@@ -2231,6 +2231,181 @@ MonoBehaviour:
   inventoryPropertyType: 0
   selectedObjectiveLabelType: 0
   itemSlotNumber: 0
+--- !u!114 &-4204669357874638465
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a5f455f0e4a864975bf60bc153fbe20d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  menuSource: 0
+  canvas: {fileID: 0}
+  canvasID: 0
+  rectTransform: {fileID: 0}
+  rectTransformID: 0
+  uiTransitionType: 0
+  uiPositionType: 0
+  _isLocked: 0
+  id: 7
+  title: PayRequest
+  manualSize: {x: 80.6, y: 20.1}
+  positionType: 0
+  manualPosition: {x: 528, y: 240}
+  positionSmoothing: 0
+  alignment: 4
+  toggleKey: 
+  ignoreMouseClicks: 0
+  pauseWhenEnabled: 1
+  showWhenPaused: 0
+  canClickInCutscene: 0
+  enabledOnStart: 0
+  actionListOnTurnOn: {fileID: 11400000, guid: d6a9b8bdcc6662e4d839783ade06b469, type: 2}
+  actionListOnTurnOff: {fileID: 11400000, guid: 08bd57cc9873ef74c9d1894b158f149b, type: 2}
+  updateWhenFadeOut: 1
+  hideDuringSaveScreenshots: 1
+  fitWithinScreen: 1
+  backgroundTexture: {fileID: 2800000, guid: 40fc9f56c7492d64dac99f34614c6fa3, type: 3}
+  visibleElements:
+  - {fileID: -2401774984793491776}
+  - {fileID: 7651120538359111580}
+  - {fileID: -4184779791118094497}
+  transitionProgress: 0
+  appearType: 0
+  speechMenuType: 0
+  speechMenuLimit: 0
+  limitToCharacters: 
+  forceSubtitles: 0
+  moveWithCharacter: 1
+  selected_element: {fileID: 0}
+  selected_slot: 0
+  autoSelectFirstVisibleElement: 0
+  firstSelectedElement: 
+  elements:
+  - {fileID: -2401774984793491776}
+  - {fileID: 7651120538359111580}
+  - {fileID: -4184779791118094497}
+  spacing: 2.5
+  sizeType: 1
+  autoSizeEveryFrame: 0
+  orientation: 0
+  transitionType: 2
+  panDirection: 0
+  panMovement: 0
+  timeCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panDistance: 0.5
+  fadeSpeed: 0.2
+  zoomAnchor: 4
+  zoomElements: 0
+  oneMenuPerSpeech: 0
+  speechProximityLimit: 0
+  speechProximityDistance: 10
+  deleteUIWhenTurnOff: 0
+  biggestElementSize: {x: 0, y: 0}
+  rect:
+    serializedVersion: 2
+    x: 102.43201
+    y: 191.76
+    width: 851.136
+    height: 96.48
+  showInFilter: 1
+--- !u!114 &-4184779791118094497
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 64747f67d47cb4e04a88bea43b7c1cfd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ID: 2
+  title: PayHighButton
+  slotSize: {x: 15, y: 11.1}
+  sizeType: 1
+  positionType: 0
+  slotSpacing: 0
+  lineID: 615
+  alternativeInputButton: 
+  font: {fileID: 12800000, guid: 84211003358ed8d448a1d84288481aa5, type: 3}
+  fontScaleFactor: 2
+  fontColor: {r: 0.7877358, g: 0.8408019, b: 1, a: 1}
+  fontHighlightColor: {r: 0.7877358, g: 0.8408019, b: 1, a: 1}
+  isVisible: 1
+  isClickable: 1
+  orientation: 1
+  gridWidth: 3
+  backgroundTexture: {fileID: 2800000, guid: 32e15e936d26ba04c8fb24df081c8e86, type: 3}
+  singleSlotBackgrounds: 0
+  highlightTexture: {fileID: 0}
+  hoverSound: {fileID: 0}
+  clickSound: {fileID: 0}
+  changeCursor: 0
+  cursorID: 0
+  linkedUiID: 0
+  maxAutoWidthFactor: 0.5
+  relativeRect:
+    serializedVersion: 2
+    x: 660.00006
+    y: 26.4
+    width: 158.40001
+    height: 53.280003
+  relativePosition: {x: 0, y: 0}
+  numSlots: 1
+  uiButton: {fileID: 0}
+  uiPointerState: 0
+  label: Pay More
+  hotspotLabel: 
+  hotspotLabelID: -1
+  anchor: 4
+  textEffects: 2
+  outlineSize: 2
+  buttonClickType: 3
+  actionList: {fileID: 0}
+  parameterID: -1
+  parameterValue: 0
+  doFade: 1
+  switchMenuTitle: 
+  inventoryBoxTitle: 
+  shiftInventory: 0
+  shiftAmount: 1
+  onlyShowWhenEffective: 0
+  loopJournal: 0
+  inputAxis: 
+  simulateInput: 0
+  simulateValue: 1
+  clickTexture: {fileID: 0}
+  allowContinuousClick: 0
+  uiSelectableHideStyle: 0
 --- !u!114 &-4094647019730218411
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -2471,7 +2646,7 @@ MonoBehaviour:
   sizeType: 1
   positionType: 2
   slotSpacing: 0
-  lineID: -1
+  lineID: 617
   alternativeInputButton: 
   font: {fileID: 12800000, guid: 84211003358ed8d448a1d84288481aa5, type: 3}
   fontScaleFactor: 2
@@ -3127,6 +3302,67 @@ MonoBehaviour:
   inventoryPropertyType: 0
   selectedObjectiveLabelType: 3
   itemSlotNumber: 0
+--- !u!114 &-2401774984793491776
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 86ae5c94351944600a4b0aec144476b8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ID: 0
+  title: RateTitle
+  slotSize: {x: 40, y: 11.1}
+  sizeType: 1
+  positionType: 0
+  slotSpacing: 0
+  lineID: 613
+  alternativeInputButton: 
+  font: {fileID: 12800000, guid: 84211003358ed8d448a1d84288481aa5, type: 3}
+  fontScaleFactor: 2.5
+  fontColor: {r: 0.9528302, g: 0.8720103, b: 0, a: 1}
+  fontHighlightColor: {r: 1, g: 1, b: 1, a: 1}
+  isVisible: 1
+  isClickable: 0
+  orientation: 1
+  gridWidth: 3
+  backgroundTexture: {fileID: 2800000, guid: e55dc530f6e6623408a1d769c83defd1, type: 3}
+  singleSlotBackgrounds: 0
+  highlightTexture: {fileID: 0}
+  hoverSound: {fileID: 0}
+  clickSound: {fileID: 0}
+  changeCursor: 0
+  cursorID: 0
+  linkedUiID: 0
+  maxAutoWidthFactor: 0.5
+  relativeRect:
+    serializedVersion: 2
+    x: 26.4
+    y: 26.4
+    width: 422.40002
+    height: 53.280003
+  relativePosition: {x: 4.7, y: 0}
+  numSlots: 1
+  uiText: {fileID: 0}
+  label: Support Us Improve Our Job?
+  anchor: 4
+  textEffects: 2
+  outlineSize: 2
+  labelType: 0
+  variableID: 0
+  useCharacterColour: 0
+  autoAdjustHeight: 1
+  updateIfEmpty: 0
+  showPendingWhileMovingToHotspot: 0
+  itemPropertyID: 0
+  multiplyByItemCount: 0
+  inventoryPropertyType: 0
+  selectedObjectiveLabelType: 0
+  itemSlotNumber: 0
 --- !u!114 &-2375674716339920617
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -3260,7 +3496,7 @@ MonoBehaviour:
   title: RateRequest
   manualSize: {x: 80.6, y: 20.1}
   positionType: 0
-  manualPosition: {x: 1280, y: 720}
+  manualPosition: {x: 528, y: 240}
   positionSmoothing: 0
   alignment: 4
   toggleKey: 
@@ -3336,10 +3572,10 @@ MonoBehaviour:
   biggestElementSize: {x: 1931.2642, y: 149.888}
   rect:
     serializedVersion: 2
-    x: 248.32007
-    y: 575.28
-    width: 2063.3599
-    height: 289.44
+    x: 102.43201
+    y: 191.76
+    width: 851.136
+    height: 96.48
   showInFilter: 1
 --- !u!114 &-2111190305744473262
 MonoBehaviour:
@@ -4133,10 +4369,10 @@ MonoBehaviour:
   maxAutoWidthFactor: 0.5
   relativeRect:
     serializedVersion: 2
-    x: 1804.8
-    y: 64
-    width: 204.8
-    height: 159.84
+    x: 744.4801
+    y: 26.4
+    width: 84.48
+    height: 53.280003
   relativePosition: {x: 0, y: 0}
   numSlots: 1
   uiButton: {fileID: 0}
@@ -5008,6 +5244,7 @@ MonoBehaviour:
   - {fileID: 4174713895539040433}
   - {fileID: -2322440120729400312}
   - {fileID: 8605166057181571696}
+  - {fileID: -4204669357874638465}
   globalDepth: 0
   pauseTexture: {fileID: 0}
   scaleTextEffects: 0
@@ -6230,10 +6467,10 @@ MonoBehaviour:
   maxAutoWidthFactor: 0.5
   relativeRect:
     serializedVersion: 2
-    x: 1536
-    y: 64
-    width: 204.8
-    height: 159.84
+    x: 633.6001
+    y: 26.4
+    width: 84.48
+    height: 53.280003
   relativePosition: {x: 0, y: 0}
   numSlots: 1
   uiButton: {fileID: 0}
@@ -6860,7 +7097,7 @@ MonoBehaviour:
   sizeType: 1
   positionType: 1
   slotSpacing: 0
-  lineID: -1
+  lineID: 617
   alternativeInputButton: 
   font: {fileID: 12800000, guid: 84211003358ed8d448a1d84288481aa5, type: 3}
   fontScaleFactor: 2
@@ -7418,10 +7655,10 @@ MonoBehaviour:
   maxAutoWidthFactor: 0.5
   relativeRect:
     serializedVersion: 2
-    x: 64
-    y: 64
-    width: 1408
-    height: 159.84
+    x: 26.4
+    y: 26.4
+    width: 580.80005
+    height: 53.280003
   relativePosition: {x: 4.7, y: 0}
   numSlots: 1
   uiText: {fileID: 0}
@@ -8183,6 +8420,76 @@ MonoBehaviour:
   outlineSize: 2
   buttonClickType: 3
   actionList: {fileID: 11400000, guid: f44b37e51e67131469fc539332cd760a, type: 2}
+  parameterID: -1
+  parameterValue: 0
+  doFade: 0
+  switchMenuTitle: 
+  inventoryBoxTitle: 
+  shiftInventory: 0
+  shiftAmount: 1
+  onlyShowWhenEffective: 0
+  loopJournal: 0
+  inputAxis: 
+  simulateInput: 0
+  simulateValue: 1
+  clickTexture: {fileID: 0}
+  allowContinuousClick: 0
+  uiSelectableHideStyle: 0
+--- !u!114 &7651120538359111580
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 64747f67d47cb4e04a88bea43b7c1cfd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ID: 1
+  title: PayLowButton
+  slotSize: {x: 15, y: 11.1}
+  sizeType: 1
+  positionType: 0
+  slotSpacing: 0
+  lineID: 614
+  alternativeInputButton: 
+  font: {fileID: 12800000, guid: 84211003358ed8d448a1d84288481aa5, type: 3}
+  fontScaleFactor: 2
+  fontColor: {r: 0.9528302, g: 0.8720103, b: 0, a: 1}
+  fontHighlightColor: {r: 0.9528302, g: 0.8720103, b: 0, a: 1}
+  isVisible: 1
+  isClickable: 1
+  orientation: 1
+  gridWidth: 3
+  backgroundTexture: {fileID: 2800000, guid: 32e15e936d26ba04c8fb24df081c8e86, type: 3}
+  singleSlotBackgrounds: 0
+  highlightTexture: {fileID: 0}
+  hoverSound: {fileID: 0}
+  clickSound: {fileID: 0}
+  changeCursor: 0
+  cursorID: 0
+  linkedUiID: 0
+  maxAutoWidthFactor: 0.5
+  relativeRect:
+    serializedVersion: 2
+    x: 475.2
+    y: 26.4
+    width: 158.40001
+    height: 53.280003
+  relativePosition: {x: 0, y: 0}
+  numSlots: 1
+  uiButton: {fileID: 0}
+  uiPointerState: 0
+  label: Pay For This
+  hotspotLabel: 
+  hotspotLabelID: -1
+  anchor: 4
+  textEffects: 2
+  outlineSize: 2
+  buttonClickType: 3
+  actionList: {fileID: 11400000, guid: f2d9875bb32fbe540b442044144be3e3, type: 2}
   parameterID: -1
   parameterValue: 0
   doFade: 0
