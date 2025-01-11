@@ -12,4 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b64bf02e12d4b564f9ece13f9c76a0e1, type: 3}
   m_Name: NewMyket
   m_EditorClassIdentifier: 
-  MarketKey: 
+  _MarketKey: MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCHGB8Zz9+5hjBhtw5qh73p2Xxui/vQPm3iEvNCaKtpupQG8tgeof3yfxcVNtMtwhKEF0DYtYKYq7XWqxg6f1NdxeshxRxWcoCUcKxLLDJia/4nmzrYfVWSj5+aIPRxgXPz7RFrUnHKFTPFDurIYERpCOEezDCG2uH2HNfodprqFwIDAQAB
+  _SKUs:
+  - sku.deathescape.support
+  - sku.deathescape.furthersupport

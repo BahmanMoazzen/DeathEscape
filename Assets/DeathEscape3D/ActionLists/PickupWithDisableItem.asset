@@ -42,7 +42,7 @@ MonoBehaviour:
   parentActionListInEditor: {fileID: 0}
   invAction: 0
   parameterID: 0
-  invID: -1
+  invID: 8
   replaceParameterID: -1
   invIDReplace: 0
   setAmount: 0

@@ -5038,8 +5038,8 @@ MonoBehaviour:
   showWhenPaused: 0
   canClickInCutscene: 0
   enabledOnStart: 0
-  actionListOnTurnOn: {fileID: 11400000, guid: b8c4212575c9c5c4995153bb0b184c5a, type: 2}
-  actionListOnTurnOff: {fileID: 11400000, guid: bf439cd1a2788e246837392d0f9160f7, type: 2}
+  actionListOnTurnOn: {fileID: 0}
+  actionListOnTurnOff: {fileID: 0}
   updateWhenFadeOut: 1
   hideDuringSaveScreenshots: 1
   fitWithinScreen: 1
@@ -5063,7 +5063,7 @@ MonoBehaviour:
   sizeType: 1
   autoSizeEveryFrame: 0
   orientation: 0
-  transitionType: 2
+  transitionType: 0
   panDirection: 0
   panMovement: 0
   timeCurve:
@@ -5340,8 +5340,8 @@ MonoBehaviour:
   showWhenPaused: 0
   canClickInCutscene: 0
   enabledOnStart: 0
-  actionListOnTurnOn: {fileID: 11400000, guid: d6a9b8bdcc6662e4d839783ade06b469, type: 2}
-  actionListOnTurnOff: {fileID: 11400000, guid: 08bd57cc9873ef74c9d1894b158f149b, type: 2}
+  actionListOnTurnOn: {fileID: 0}
+  actionListOnTurnOff: {fileID: 0}
   updateWhenFadeOut: 1
   hideDuringSaveScreenshots: 1
   fitWithinScreen: 1
@@ -5365,7 +5365,7 @@ MonoBehaviour:
   sizeType: 1
   autoSizeEveryFrame: 0
   orientation: 0
-  transitionType: 2
+  transitionType: 0
   panDirection: 0
   panMovement: 0
   timeCurve:
@@ -5793,7 +5793,7 @@ MonoBehaviour:
   sizeType: 1
   positionType: 0
   slotSpacing: 0
-  lineID: 613
+  lineID: 577
   alternativeInputButton: 
   font: {fileID: 12800000, guid: 84211003358ed8d448a1d84288481aa5, type: 3}
   fontScaleFactor: 2.5
@@ -7838,7 +7838,7 @@ MonoBehaviour:
   sizeType: 1
   positionType: 0
   slotSpacing: 0
-  lineID: 613
+  lineID: 619
   alternativeInputButton: 
   font: {fileID: 12800000, guid: 84211003358ed8d448a1d84288481aa5, type: 3}
   fontScaleFactor: 2.5
@@ -7866,7 +7866,7 @@ MonoBehaviour:
   relativePosition: {x: 4.7, y: 0}
   numSlots: 1
   uiText: {fileID: 0}
-  label: Payment Done.
+  label: Payment Done. Thank You!
   anchor: 4
   textEffects: 2
   outlineSize: 2
