@@ -42,7 +42,7 @@ public class MyketInfo : MarketInfo
 
     public override void _InitializeMarket()
     {
-        
+
         IABEventManager.billingSupportedEvent += billingSupportedEvent;
         IABEventManager.billingNotSupportedEvent += billingNotSupportedEvent;
         IABEventManager.queryInventorySucceededEvent += queryInventorySucceededEvent;
@@ -55,14 +55,19 @@ public class MyketInfo : MarketInfo
         IABEventManager.purchaseFailedEvent += purchaseFailedEvent;
         IABEventManager.consumePurchaseSucceededEvent += consumePurchaseSucceededEvent;
         IABEventManager.consumePurchaseFailedEvent += consumePurchaseFailedEvent;
+        _dLog("Events Added. Using Myket init...");
         MyketIAB.init(_MarketKey);
+        _dLog("Myket init called. Waiting for response...");
 
 
     }
 
     public override void _PurchaseProduct(string iSKU)
     {
+        _dLog("Purchasing " + iSKU);
+        _currentSKU = iSKU;
         MyketIAB.purchaseProduct(iSKU);
+
     }
 
     public override void _QueryInventory()
@@ -83,13 +88,16 @@ public class MyketInfo : MarketInfo
     #region events
     void billingSupportedEvent()
     {
+        _dLog("Myket is Initialised. Querying purchases ...");
         _QueryPurchases();
     }
 
     void billingNotSupportedEvent(string error)
     {
+        _dLog("Myket is not initialized.");
         _onFail();
-        _DisposeMarket();
+        //_DisposeMarket();
+
     }
 
     void queryInventorySucceededEvent(List<MyketPurchase> purchases, List<MyketSkuInfo> skus)
@@ -131,64 +139,71 @@ public class MyketInfo : MarketInfo
 
     private void queryPurchasesSucceededEvent(List<MyketPurchase> purchases)
     {
-        Debug.Log(string.Format("queryPurchasesSucceededEvent. total purchases: {0}", purchases.Count));
+        _dLog(string.Format("queryPurchasesSucceededEvent. total purchases: {0}", purchases.Count));
         if (purchases.Count > 0)
         {
-            bool hasCurrentSKU = false;
+            //bool hasCurrentSKU = false;
             for (int i = 0; i < purchases.Count; ++i)
             {
                 _ConsumProduct(purchases[i].ProductId);
-                if (purchases[i].ProductId == _currentSKU)
-                {
-                    hasCurrentSKU = true;
-                }
+                //if (purchases[i].ProductId == _currentSKU)
+                //{
+                //    hasCurrentSKU = true;
+                //}
             }
-            if (!hasCurrentSKU)
-            {
-                _PurchaseProduct(_currentSKU);
-            }
-            else
-            {
-                _onSuccess();
-                _DisposeMarket();
-            }
+            //if (!hasCurrentSKU)
+            //{
+            //    _PurchaseProduct(_currentSKU);
+            //}
+            //else
+            //{
+            //    _onSuccess();
+            //    _DisposeMarket();
+            //}
         }
         else
         {
-            _PurchaseProduct(_currentSKU);
+            //_PurchaseProduct(_currentSKU);
         }
     }
 
     private void queryPurchasesFailedEvent(string error)
     {
-        _PurchaseProduct(_currentSKU);
+        _dLog("Querying failed.");
+
+        //_PurchaseProduct(_currentSKU);
     }
 
     void purchaseSucceededEvent(MyketPurchase purchase)
     {
+        _dLog("Purchas Success " + purchase.ProductId + " .Consuming ...");
+
         _ConsumProduct(purchase.ProductId);
 
     }
 
     void purchaseFailedEvent(string error)
     {
+        _dLog("Purchas failed " + error);
+
         _onFail();
-        _DisposeMarket();
+        //_DisposeMarket();
     }
 
     void consumePurchaseSucceededEvent(MyketPurchase purchase)
     {
-        if(purchase.ProductId == _currentSKU)
-        {
-            _onSuccess();
-            _DisposeMarket();
-        }
+        _dLog("Consumption Success " + purchase.ProductId );
+
+        _onSuccess();
+        //_DisposeMarket();
+
     }
 
     void consumePurchaseFailedEvent(string error)
     {
+        _dLog($"Consumed purchase failed: {error}");
         _onFail();
-        _DisposeMarket();
+        //_DisposeMarket();
     }
     #endregion
 }

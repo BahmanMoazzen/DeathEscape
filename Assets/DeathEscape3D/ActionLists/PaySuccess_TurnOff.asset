@@ -15,7 +15,7 @@ MonoBehaviour:
   actions:
   - {fileID: 8755511610852763745}
   isSkippable: 1
-  actionListType: 0
+  actionListType: 1
   unfreezePauseMenus: 1
   useParameters: 0
   canRunMultipleInstances: 0

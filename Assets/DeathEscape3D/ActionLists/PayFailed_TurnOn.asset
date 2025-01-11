@@ -62,7 +62,7 @@ MonoBehaviour:
   - {fileID: 2292231023756646647}
   - {fileID: 7472954152445960837}
   isSkippable: 1
-  actionListType: 0
+  actionListType: 1
   unfreezePauseMenus: 1
   useParameters: 0
   canRunMultipleInstances: 0
@@ -112,7 +112,7 @@ MonoBehaviour:
   showOutputSockets: 1
   parentActionListInEditor: {fileID: 0}
   parameterID: -1
-  timeToPause: 5
+  timeToPause: 3
 --- !u!114 &7472954152445960837
 MonoBehaviour:
   m_ObjectHideFlags: 1

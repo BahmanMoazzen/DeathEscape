@@ -2,13 +2,14 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.UI;
 
 public class BAHMANPurchaseManager : MonoBehaviour
 {
     public static BAHMANPurchaseManager _Instance;
 
 
-
+    [SerializeField] Text _debugText;
     [SerializeField] MarketInfo _marketConfig;
 
     public UnityEvent OnPurchaseFailed;
@@ -19,6 +20,7 @@ public class BAHMANPurchaseManager : MonoBehaviour
         if (_Instance == null)
         {
             _Instance = this;
+            _marketConfig._debugInfoText = _debugText;
             _marketConfig._InitializeMarket();
         }
         else
