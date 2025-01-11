@@ -38,7 +38,7 @@ MonoBehaviour:
   playerSwitching: 1
   player: {fileID: 6400253439099899167, guid: 8a629ef365eafbe458fbcc6153daec4e, type: 3}
   players: []
-  movementMethod: 4
+  movementMethod: 2
   inputMethod: 2
   interactionMethod: 2
   selectInteractions: 0

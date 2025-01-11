@@ -2,34 +2,53 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.UI;
 
 public class BAHMANPurchaseManager : MonoBehaviour
 {
-    [SerializeField] string _publicKey;
+    public static BAHMANPurchaseManager _Instance;
+
+
+    [SerializeField] Text _debugText;
     [SerializeField] MarketInfo _marketConfig;
-    
+
     public UnityEvent OnPurchaseFailed;
     public UnityEvent OnPurchaseSuccessful;
-    public string[] _SKUList = { "sku0", "sku1" };
-    public void StartPurchase(AllSKUs iSKUtoBuy)
+
+    private void Awake()
     {
-        _marketConfig.InitializeMarket();
-        AC.GlobalVariables.GetVariable(15).BooleanValue = true;
+        if (_Instance == null)
+        {
+            _Instance = this;
+            _marketConfig._debugInfoText = _debugText;
+            _marketConfig._InitializeMarket();
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
+    }
+    private void OnDestroy()
+    {
+        _marketConfig._DisposeMarket();
     }
 
-    public void _StartLow()
+    public void _StartPurchase(AllSKUs iSKUtoBuy)
     {
+        _marketConfig._BuyWholeProcess(_marketConfig._SKUs[(int)iSKUtoBuy], _Success, _Failed);
 
+        //AC.GlobalVariables.GetVariable(15).BooleanValue = true;
+    }
+
+    public void _Success()
+    {
+        OnPurchaseSuccessful?.Invoke();
 
     }
-    public void _StartHigh()
+    public void _Failed()
     {
+        OnPurchaseFailed?.Invoke();
 
-
-    }
-    private void Start()
-    {
-        StartPurchase(AllSKUs.PayLess);
     }
 }
 public enum AllSKUs { PayLess, PlayMore }
