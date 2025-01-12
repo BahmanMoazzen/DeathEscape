@@ -332,7 +332,7 @@ MonoBehaviour:
     updateLinkOnStart: 0
     canTranslate: 1
     popUpID: 0
-    textValLineID: -1
+    textValLineID: 620
     popUpsLineID: -1
     description: 
     showInFilter: 1
