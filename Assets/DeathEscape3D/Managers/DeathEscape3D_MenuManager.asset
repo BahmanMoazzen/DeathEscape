@@ -5344,7 +5344,7 @@ MonoBehaviour:
   alignment: 4
   toggleKey: 
   ignoreMouseClicks: 0
-  pauseWhenEnabled: 1
+  pauseWhenEnabled: 0
   showWhenPaused: 0
   canClickInCutscene: 0
   enabledOnStart: 0
@@ -5401,7 +5401,7 @@ MonoBehaviour:
     m_PostInfinity: 2
     m_RotationOrder: 4
   panDistance: 0.5
-  fadeSpeed: 0.2
+  fadeSpeed: 0.1
   zoomAnchor: 4
   zoomElements: 0
   oneMenuPerSpeech: 0
@@ -5646,7 +5646,7 @@ MonoBehaviour:
   alignment: 4
   toggleKey: 
   ignoreMouseClicks: 0
-  pauseWhenEnabled: 1
+  pauseWhenEnabled: 0
   showWhenPaused: 0
   canClickInCutscene: 0
   enabledOnStart: 0
@@ -5703,7 +5703,7 @@ MonoBehaviour:
     m_PostInfinity: 2
     m_RotationOrder: 4
   panDistance: 0.5
-  fadeSpeed: 0.2
+  fadeSpeed: 0.1
   zoomAnchor: 4
   zoomElements: 0
   oneMenuPerSpeech: 0
