@@ -112,7 +112,7 @@ MonoBehaviour:
   showOutputSockets: 1
   parentActionListInEditor: {fileID: 0}
   parameterID: -1
-  timeToPause: 3
+  timeToPause: 1.5
 --- !u!114 &7472954152445960837
 MonoBehaviour:
   m_ObjectHideFlags: 1
