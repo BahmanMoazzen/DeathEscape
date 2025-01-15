@@ -1,43 +1,41 @@
-using BazaarInAppBilling;
 using UnityEngine;
 using UnityEngine.Events;
+using Bazaar.Poolakey;
+using Bazaar.Poolakey.Data;
+using System.Collections.Generic;
 [CreateAssetMenu(fileName = "NewBazaar", menuName = "Bahman/Bazaar", order = 1)]
 public class BazaarInfo : MarketInfo
 {
-    public override void _ConsumProduct(string iSKU)
+    protected Payment _bazaarIAB;
+    public override void _ConsumProduct(string iTokenID)
     {
-        throw new System.NotImplementedException();
+        _bazaarIAB.Consume(iTokenID, onConsumeDone);
     }
     public override void _BuyWholeProcess(string iSKU, UnityAction iOnSuccess, UnityAction iOnFail)
     {
         base._BuyWholeProcess(iSKU, iOnSuccess, iOnFail);
-        StoreHandler.instance.Purchase(_SKUtoIndex(iSKU), onBuyFailed, onBuySuccess);
+        _PurchaseProduct(iSKU);
 
     }
     public override void _DisposeMarket()
     {
+        _bazaarIAB.Disconnect();
+    }
 
-    }
-    protected int _SKUtoIndex(string iSKU)
-    {
-        for (int i = 0; i < _SKUs.Length; i++)
-        {
-            if (_SKUs[i] == iSKU)
-            {
-                return i;
-            }
-        }
-        return -1;
-    }
     public override void _InitializeMarket()
     {
         _dLog("initializing ...");
-        StoreHandler.instance.InitializeBillingService(onInitFailed, onInitSuccess);
+        SecurityCheck securityCheck = SecurityCheck.Enable(_MarketKey);
+        PaymentConfiguration paymentConfiguration = new PaymentConfiguration(securityCheck);
+        _bazaarIAB = new Payment(paymentConfiguration);
+
+        _bazaarIAB.Connect(onInitDone);
+
     }
 
     public override void _PurchaseProduct(string iSKU)
     {
-        throw new System.NotImplementedException();
+        _bazaarIAB.Purchase(iSKU, SKUDetails.Type.inApp, null, onPurchaseDone);
     }
 
     public override void _QueryInventory()
@@ -47,11 +45,8 @@ public class BazaarInfo : MarketInfo
 
     public override void _QueryPurchases()
     {
-        foreach (string s in _SKUs)
-        {
-            StoreHandler.instance.CheckInventory(_SKUtoIndex(s), null, onQueryInventorySuccess);
-        }
 
+        _bazaarIAB.GetPurchases(SKUDetails.Type.all, onQueryPurchasesDone);
     }
 
     public override void _QuerySKUDetails()
@@ -59,43 +54,65 @@ public class BazaarInfo : MarketInfo
         throw new System.NotImplementedException();
     }
 
+    void onInitDone(Bazaar.Data.Result<bool> iResult)
+    {
 
-
-    void onInitFailed(int iErrorNumber, string iErrorMessage)
-    {
-        _dLog("Init Failed: " + iErrorMessage);
-    }
-    void onInitSuccess()
-    {
-        _dLog("Init Success. Querying ...");
-        _QueryPurchases();
-    }
-    void onQueryInventorySuccess(Purchase iPurchase, int iIndex)
-    {
-        _dLog(iPurchase.productId + " is in inventory. Consuming ...");
-        StoreHandler.instance.ConsumePurchase(iPurchase, iIndex, null, onConsumeSuccess);
-    }
-    void onBuyFailed(int iErrorNumber, string iErrorMessage)
-    {
-        _dLog("Buy failed");
-        _onFail();
-    }
-    void onBuySuccess(Purchase iPurchase, int iIndex)
-    {
-        _dLog("Buy Success" + iPurchase.purchaseToken);
-        StoreHandler.instance.ConsumePurchase(iPurchase, iIndex, onConsumeFailed, onConsumeSuccess);
+        if (iResult.status == Bazaar.Data.Status.Success)
+        {
+            _dLog("Initialization Success. Querying ...");
+            _QueryPurchases();
+        }
+        else
+        {
+            _dLog("Initialization Failed.");
+            _onFail();
+        }
     }
 
-    void onConsumeFailed(int iErrorNumber, string iErrorMessage)
+    void onQueryPurchasesDone(Bazaar.Data.Result<List<PurchaseInfo>> iResult)
     {
-        _dLog("Consume failed");
-        _onFail();
-    }
 
-    void onConsumeSuccess(Purchase iPurchase, int iIndex)
+        if (iResult.status == Bazaar.Data.Status.Success)
+        {
+            _dLog("Querying Success. Consuming ...");
+            foreach (PurchaseInfo p in iResult.data)
+            {
+                _ConsumProduct(p.purchaseToken);
+            }
+        }
+        else
+        {
+            _dLog("No Old Purchase Found!");
+        }
+    }
+    void onConsumeDone(Bazaar.Data.Result<bool> iResult)
     {
-        _dLog("Consume Success" + iPurchase.purchaseToken);
-        _onSuccess();
-    }
+        if (iResult.status == Bazaar.Data.Status.Success)
+        {
+            _dLog("Consume Successfull.");
+            _onSuccess();
+        }
+        else
+        {
+            _dLog("Consume Failed.");
+            if (_currentSKU != string.Empty)
+            {
 
+                _onFail();
+            }
+        }
+    }
+    void onPurchaseDone(Bazaar.Data.Result<PurchaseInfo> iResult)
+    {
+        if (iResult.status == Bazaar.Data.Status.Success)
+        {
+            _dLog("Purchase Done. Consuming ...");
+            _ConsumProduct(iResult.data.purchaseToken);
+        }
+        else
+        {
+            _dLog("Purchase Failed.");
+            _onFail();
+        }
+    }
 }

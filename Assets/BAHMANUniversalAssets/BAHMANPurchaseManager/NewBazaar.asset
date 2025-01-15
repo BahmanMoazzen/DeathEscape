@@ -12,4 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cc6b45fceda89a14e85c5676aa0244cb, type: 3}
   m_Name: NewBazaar
   m_EditorClassIdentifier: 
-  MarketKey: 
+  _debugInfoText: {fileID: 0}
+  _MarketKey: MIHNMA0GCSqGSIb3DQEBAQUAA4G7ADCBtwKBrwCbI7ZfYip/lRxltlzXkfPeU/9RGjDTnUwBeIVxQxqs+qnqW/YbaDJEaFRJ25MOhV570B1cFXof9wyD0nhVD8eVlyBMFbXOsftxB2CIFhUNyQkTJMwdIcbCV+G5X86gsdwiX/olDxvhrunIMPz56+YbDWeVZNNi5JkVlmALeA69970J1P9wJdolATpQBdhhpfkazKX0w3fcXtwHHezHxPn+6l6ERKCwqOzZXfih3WcCAwEAAQ==
+  _SKUs:
+  - sku.deathescape.support
+  - sku.deathescape.furthersupport
