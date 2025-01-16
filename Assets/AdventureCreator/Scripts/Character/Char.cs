@@ -1230,7 +1230,7 @@ namespace AC
 					}
 					else
 					{
-						Vector3 force = CalcForce (newVel, _rigidbody.velocity.y, _rigidbody.mass, _rigidbody.velocity);
+						Vector3 force = CalcForce (newVel, _rigidbody.linearVelocity.y, _rigidbody.mass, _rigidbody.linearVelocity);
 						_rigidbody.AddForce (force);
 					}
 				}
@@ -1267,7 +1267,7 @@ namespace AC
 					}
 					else
 					{
-						Vector3 force = CalcForce (newVel, 0f, _rigidbody2D.mass, _rigidbody2D.velocity);
+						Vector3 force = CalcForce (newVel, 0f, _rigidbody2D.mass, _rigidbody2D.linearVelocity);
 						_rigidbody2D.AddForce (force);
 					}
 				}
@@ -3857,7 +3857,7 @@ namespace AC
 											 groundCheckLayerMask);
 			}
 
-			if (_rigidbody && Mathf.Abs (_rigidbody.velocity.y) > 0.1f)
+			if (_rigidbody && Mathf.Abs (_rigidbody.linearVelocity.y) > 0.1f)
 			{
 				return false;
 			}

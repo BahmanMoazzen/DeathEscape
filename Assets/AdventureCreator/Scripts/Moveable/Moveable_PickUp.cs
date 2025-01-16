@@ -179,7 +179,7 @@ namespace AC
 			{
 				if (numCollisions > 0)
 			    {
-					PlayMoveSound (_rigidbody.velocity.magnitude);
+					PlayMoveSound (_rigidbody.linearVelocity.magnitude);
 				}
 				else if (moveSound.IsPlaying ())
 				{
@@ -203,7 +203,7 @@ namespace AC
 			fixedJointOffset = Vector3.zero;
 			deltaMovement = Vector3.zero;
 
-			_rigidbody.velocity = _rigidbody.angularVelocity = Vector3.zero;
+			_rigidbody.linearVelocity = _rigidbody.angularVelocity = Vector3.zero;
 			originalDistanceToCamera = (grabPosition - KickStarter.CameraMainTransform.position).magnitude;
 
 			if (autoSetConstraints)
@@ -234,12 +234,12 @@ namespace AC
 				fixedJoint.connectedBody = null;
 			}
 
-			_rigidbody.drag = originalDrag;
-			_rigidbody.angularDrag = originalAngularDrag;
+			_rigidbody.linearDamping = originalDrag;
+			_rigidbody.angularDamping = originalAngularDrag;
 
 			if (inRotationMode)
 			{
-				_rigidbody.velocity = Vector3.zero;
+				_rigidbody.linearVelocity = Vector3.zero;
 			}
 			else if (!isChargingThrow && !ignoreInteractions)
 			{
@@ -328,7 +328,7 @@ namespace AC
 			if (inRotationMode)
 			{
 				// Scale force
-				force *= speedFactor * _rigidbody.drag * distanceToCamera * Time.deltaTime;
+				force *= speedFactor * _rigidbody.linearDamping * distanceToCamera * Time.deltaTime;
 				
 				// Limit magnitude
 				if (force.magnitude > maxSpeed)
@@ -386,8 +386,8 @@ namespace AC
 			LetGo ();
 
 			_rigidbody.useGravity = true;
-			_rigidbody.drag = originalDrag;
-			_rigidbody.angularDrag = originalAngularDrag;
+			_rigidbody.linearDamping = originalDrag;
+			_rigidbody.angularDamping = originalAngularDrag;
 
 			Vector3 moveVector = (Transform.position - KickStarter.CameraMainTransform.position).normalized;
 			_rigidbody.AddForce (throwForce * throwCharge * moveVector);
@@ -412,7 +412,7 @@ namespace AC
 
 		protected void SetRotationMode (bool on)
 		{
-			_rigidbody.velocity = Vector3.zero;
+			_rigidbody.linearVelocity = Vector3.zero;
 			_rigidbody.useGravity = !on;
 
 			if (inRotationMode != on)

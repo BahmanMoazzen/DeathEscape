@@ -275,7 +275,7 @@ namespace AC
 					}
 					else
 					{
-						_rigidbody.velocity = Vector3.up * KickStarter.settingsManager.jumpSpeed;
+						_rigidbody.linearVelocity = Vector3.up * KickStarter.settingsManager.jumpSpeed;
 					}
 					isJumping = true;
 
