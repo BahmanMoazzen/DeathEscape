@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"ShapeableMixer.cs"
  * 
@@ -109,17 +109,13 @@ namespace AC
 					ACDebug.LogWarning ("Mismatching shape group IDs - cannot blend between them in Timeline");
 				}
 				
-				ShapeGroup shapeGroup = _shapeable.GetGroup (groupID);
-				if (shapeGroup != null)
+				if (doBlending)
 				{
-					if (doBlending)
-					{
-						shapeGroup.SetTimelineOverride (clipA.keyID, (int) (clipA.intensity * clipA.weight), clipB.keyID, (int) (clipB.intensity * clipB.weight));
-					}
-					else
-					{
-						shapeGroup.SetTimelineOverride (clipB.keyID, (int) (clipB.intensity * clipB.weight));
-					}
+					_shapeable.SetTimelineOverride (groupID, clipA.keyID, (int) (clipA.intensity * clipA.weight), clipB.keyID, (int) (clipB.intensity * clipB.weight));
+				}
+				else
+				{
+					_shapeable.SetTimelineOverride (groupID, clipB.keyID, (int) (clipB.intensity * clipB.weight));
 				}
 			}
 		}

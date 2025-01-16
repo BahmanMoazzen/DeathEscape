@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"MenuInteraction.cs"
  * 
@@ -72,9 +72,6 @@ namespace AC
 		private CursorManager cursorManager;
 
 
-		/**
-		 * Initialises the element when it is created within MenuManager.
-		 */
 		public override void Declare ()
 		{
 			uiButton = null;
@@ -120,8 +117,7 @@ namespace AC
 			else
 			{
 				uiButton = _element.uiButton;
-
-				uiSlots = new UISlot[_element.uiSlots.Length];
+				uiSlots = (_element.uiSlots != null) ? new UISlot[_element.uiSlots.Length] : new UISlot[0];
 				for (int i=0; i<uiSlots.Length; i++)
 				{
 					uiSlots[i] = new UISlot (_element.uiSlots[i]);
@@ -199,19 +195,24 @@ namespace AC
 
 		public override GameObject GetObjectToSelect (int slotIndex = 0)
 		{
-			if (uiButton)
+			if (fixedIcon)
 			{
-				return uiButton.gameObject;
+				if (uiButton)
+				{
+					return uiButton.gameObject;
+				}
+			}
+			else
+			{
+				if (uiSlots != null && uiSlots.Length > slotIndex && uiSlots[slotIndex].uiButton)
+				{
+					return uiSlots[slotIndex].uiButton.gameObject;
+				}
 			}
 			return null;
 		}
 		
 
-		/**
-		 * <summary>Gets the boundary of the element</summary>
-		 * <param name = "_slot">Ignored by this subclass</param>
-		 * <returns>The boundary Rect of the element</returns>
-		 */
 		public override RectTransform GetRectTransform (int _slot)
 		{
 			if (fixedIcon)
@@ -379,6 +380,33 @@ namespace AC
 			}
 
 			return false;
+		}
+
+
+		public override int GetSlotIndex (GameObject gameObject)
+		{
+			if (fixedIcon)
+			{
+				if (uiButton && uiButton.gameObject == gameObject)
+				{
+					return 0;
+				}
+				if (uiText && uiText.gameObject == gameObject)
+				{
+					return 0;
+				}
+			}
+			else
+			{
+				for (int i = 0; i < uiSlots.Length; i++)
+				{
+					if (uiSlots[i].uiButton && uiSlots[i].uiButton == gameObject)
+					{
+						return 0;
+					}
+				}
+			}
+			return base.GetSlotIndex (gameObject);
 		}
 
 
@@ -787,22 +815,25 @@ namespace AC
 		protected override void AutoSize ()
 		{
 			CursorIcon _icon = GetIconAtSlot (0);
-			if (displayType == AC_DisplayType.IconOnly && _icon != null && _icon.texture)
+			if (_icon == null)
+			{
+				return;
+			}
+
+			if (displayType == AC_DisplayType.IconOnly && _icon.texture)
 			{
 				GUIContent content = new GUIContent (_icon.texture);
 				AutoSize (content);
 			}
 			else
 			{
-				GUIContent content = new GUIContent (TranslateLabel (GetLabel (0, Options.GetLanguage ()), Options.GetLanguage ()));
+				GUIContent content = new GUIContent (_icon.GetLabel (Options.GetLanguage ()));
 				AutoSize (content);
 			}
 		}
 
 
-		/**
-		 * If using Choose Interaction Then Hotspot mode, and default interactions are enabled, then this is True if the active Hotspot's first-enabled Use interaction uses this icon
-		 */
+		/** If using Choose Interaction Then Hotspot mode, and default interactions are enabled, then this is True if the active Hotspot's first-enabled Use interaction uses this icon */
 		public bool IsDefaultIcon
 		{
 			get

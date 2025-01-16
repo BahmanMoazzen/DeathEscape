@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿#if UNITY_EDITOR
+
+using UnityEngine;
 using UnityEditor;
 
 namespace AC
@@ -35,6 +37,10 @@ namespace AC
 					if (_target.GetComponent<Camera> ().orthographic)
 					{
 						_target.backgroundConstraint = (SpriteRenderer) CustomGUILayout.ObjectField<SpriteRenderer> ("Background constraint:", _target.backgroundConstraint, true, string.Empty, "If set, this sprite's boundary will be used to set the constraint limits");
+						if (_target.backgroundConstraint)
+						{
+							_target.autoScaleToFitBackgroundConstraint = CustomGUILayout.Toggle ("Auto-set Orthographic size to fit?", _target.autoScaleToFitBackgroundConstraint, string.Empty, "If True, then the Camera's Orthographic Size value will be reduced if the background is not large enough to fill the screen.");
+						}
 					}
 
 					if (!_target.GetComponent<Camera>().orthographic || _target.backgroundConstraint == null)
@@ -68,6 +74,10 @@ namespace AC
 					if (_target.GetComponent<Camera> ().orthographic)
 					{
 						_target.backgroundConstraint = (SpriteRenderer) CustomGUILayout.ObjectField<SpriteRenderer> ("Background constraint:", _target.backgroundConstraint, true, string.Empty, "If set, this sprite's boundary will be used to set the constraint limits");
+						if (_target.backgroundConstraint)
+						{
+							_target.autoScaleToFitBackgroundConstraint = CustomGUILayout.Toggle ("Auto-set Orthographic size to fit?", _target.autoScaleToFitBackgroundConstraint, string.Empty, "If True, then the Camera's Orthographic Size value will be reduced if the background is not large enough to fill the screen.");
+						}
 					}
 
 					if (!_target.GetComponent<Camera> ().orthographic || _target.backgroundConstraint == null)
@@ -127,3 +137,5 @@ namespace AC
 	}
 
 }
+
+#endif

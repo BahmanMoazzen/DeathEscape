@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"InventoryManager.cs"
  * 
@@ -85,9 +85,7 @@ namespace AC
 		private bool showPropertiesProperties = true;
 
 		
-		/**
-		 * Shows the GUI.
-		 */
+		/** Shows the GUI. */
 		public void ShowGUI (Rect windowRect)
 		{
 			EditorGUILayout.Space ();
@@ -155,7 +153,7 @@ namespace AC
 			}
 			else if (showDocumentsTab)
 			{
-				DocumentsGUI ();
+				DocumentsGUI (windowRect.width);
 			}
 			else if (showObjectivesTab)
 			{
@@ -442,7 +440,7 @@ namespace AC
 		private Document selectedDocument;
 		private int sideDocument = -1;
 
-		private void DocumentsGUI ()
+		private void DocumentsGUI (float windowWidth)
 		{
 			EditorGUILayout.BeginVertical (CustomStyles.thinBox);
 			showDocumentsList = CustomGUILayout.ToggleHeader (showDocumentsList, "Documents");
@@ -511,7 +509,7 @@ namespace AC
 				if (showSelectedDocument)
 				{
 					string apiPrefix = "AC.KickStarter.inventoryManager.GetDocument (" + selectedDocument.ID + ")";
-					selectedDocument.ShowGUI (apiPrefix, bins);
+					selectedDocument.ShowGUI (apiPrefix, bins, windowWidth);
 				}
 				else
 				{
@@ -548,7 +546,8 @@ namespace AC
 
 			menu.AddSeparator (string.Empty);
 			menu.AddItem (new GUIContent ("Find references"), false, DocumentCallback, "Find references");
-
+			menu.AddItem (new GUIContent ("Change ID"), false, DocumentCallback, "Change ID");
+					
 			if (Application.isPlaying)
 			{
 				menu.AddSeparator (string.Empty);
@@ -614,6 +613,10 @@ namespace AC
 
 					case "Find references":
 						FindReferences (tempDocument);
+						break;
+
+					case "Change ID":
+						ReferenceUpdaterWindow.Init (ReferenceUpdaterWindow.ReferenceType.Document, tempDocument.Title, tempDocument.ID);
 						break;
 
 					case "Give to Player":
@@ -850,6 +853,7 @@ namespace AC
 
 			menu.AddSeparator (string.Empty);
 			menu.AddItem (new GUIContent ("Find references"), false, ObjectiveCallback, "Find references");
+			menu.AddItem (new GUIContent ("Change ID"), false, ObjectiveCallback, "Change ID");
 
 			menu.ShowAsContext ();
 		}
@@ -910,6 +914,10 @@ namespace AC
 
 					case "Find references":
 						FindReferences (tempObjective);
+						break;
+
+					case "Change ID":
+						ReferenceUpdaterWindow.Init (ReferenceUpdaterWindow.ReferenceType.Objective, tempObjective.Title, tempObjective.ID);
 						break;
 
 					default:
@@ -1366,6 +1374,7 @@ namespace AC
 
 			menu.AddSeparator (string.Empty);
 			menu.AddItem (new GUIContent ("Find references"), false, Callback, "Find references");
+			menu.AddItem (new GUIContent ("Change ID"), false, Callback, "Change ID");
 
 			if (Application.isPlaying)
 			{
@@ -1487,6 +1496,10 @@ namespace AC
 
 					case "Find references":
 						FindReferences (tempItem);
+						break;
+
+					case "Change ID":
+						ReferenceUpdaterWindow.Init (ReferenceUpdaterWindow.ReferenceType.InventoryItem, tempItem.label, tempItem.id);
 						break;
 
 					case "Give to Player":
@@ -1864,20 +1877,17 @@ namespace AC
 				if (UnityEditor.SceneManagement.EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo ())
 				{
 					int totalNumReferences = 0;
-					int thisNumReferences = 0;
 
 					// Search other items
 					foreach (InvItem otherItem in items)
 					{
-						if (otherItem.id != item.id)
+						if (otherItem != item)
 						{
-							foreach (InvCombineInteraction invCombineInteraction in otherItem.combineInteractions)
+							int thisNumReferences = otherItem.GetNumItemReferences (item.id);
+							if (thisNumReferences > 0)
 							{
-								if (invCombineInteraction.combineID == item.id)
-								{
-									totalNumReferences ++;
-									ACDebug.Log ("Found reference to inventory item '" + item.label + "' in inventory item '" + otherItem.label + "'s list of combine interactions.");
-								}
+								totalNumReferences += thisNumReferences;
+								ACDebug.Log ("Found " + thisNumReferences + " reference(s) to Inventory item '" + item.label + "' in Inventory item " + otherItem.EditorLabel);
 							}
 						}
 					}
@@ -1885,23 +1895,37 @@ namespace AC
 					// Search crafting
 					foreach (Recipe recipe in recipes)
 					{
-						thisNumReferences = 0;
-						if (recipe.resultID == item.id)
-						{
-							thisNumReferences ++;
-						}
-						foreach (Ingredient ingredient in recipe.ingredients)
-						{
-							if (ingredient.ItemID == item.id)
-							{
-								thisNumReferences ++;
-							}
-						}
+						int thisNumReferences = recipe.GetNumItemReferences (item.id);
 						if (thisNumReferences > 0)
 						{
-							ACDebug.Log ("Found " + thisNumReferences  + " reference to inventory item '" + item.label + "' in recipe '" + recipe.label + "'.");
+							totalNumReferences += thisNumReferences;
+							ACDebug.Log ("Found " + thisNumReferences  + " reference(s) to Inventory item '" + item.label + "' in Recipe " + recipe.EditorLabel);
 						}
-						totalNumReferences += thisNumReferences;
+					}
+
+					// Search Players
+					if (KickStarter.settingsManager)
+					{
+						Player[] players = KickStarter.settingsManager.GetAllPlayerPrefabs ();
+						foreach (Player player in players)
+						{
+							MonoBehaviour[] playerComponents = player.gameObject.GetComponentsInChildren<MonoBehaviour> ();
+							for (int i = 0; i < playerComponents.Length; i++)
+							{
+								MonoBehaviour currentObj = playerComponents[i];
+								IItemReferencer currentComponent = currentObj as IItemReferencer;
+								if (currentComponent != null)
+								{
+									ActionList.logSuffix = string.Empty;
+									int thisNumReferences = currentComponent.GetNumItemReferences (item.id);
+									if (thisNumReferences > 0)
+									{
+										totalNumReferences += thisNumReferences;
+										ACDebug.Log ("Found " + thisNumReferences + " reference(s) to Inventory item '" + item.label + "' in " + currentComponent.GetType () + " '" + currentObj.name + "' on Player '" + player.gameObject.name + "' " + ActionList.logSuffix, player);
+									}
+								}
+							}
+						}
 					}
 
 					// Search scenes
@@ -1911,42 +1935,20 @@ namespace AC
 					{
 						UnityVersionHandler.OpenScene (sceneFile);
 
-						ActionList[] actionLists = FindObjectsOfType <ActionList>();
-						foreach (ActionList actionList in actionLists)
+						MonoBehaviour[] sceneObjects = FindObjectsOfType<MonoBehaviour> ();
+						for (int i = 0; i < sceneObjects.Length; i++)
 						{
-							totalNumReferences += actionList.GetInventoryReferences (item, sceneFile);
-						}
-
-						Container [] containers = FindObjectsOfType <Container>();
-						foreach (Container container in containers)
-						{
-							thisNumReferences = container.GetInventoryReferences (item.id);
-							if (thisNumReferences > 0)
+							MonoBehaviour currentObj = sceneObjects[i];
+							IItemReferencer currentComponent = currentObj as IItemReferencer;
+							if (currentComponent != null)
 							{
-								totalNumReferences += thisNumReferences;
-								ACDebug.Log ("Found " + thisNumReferences + " references to inventory item '" + item.label + "' in Container '" + container.name + "' in scene '" + sceneFile + "'", container);
-							}
-						}
-
-						Conversation[] conversations = FindObjectsOfType <Conversation>();
-						foreach (Conversation conversation in conversations)
-						{
-							thisNumReferences = conversation.GetInventoryReferences (item.id);
-							if (thisNumReferences > 0)
-							{
-								totalNumReferences += thisNumReferences;
-								ACDebug.Log ("Found " + thisNumReferences + " references to inventory item '" + item.label + "' in Conversation '" + conversation.name + "' in scene '" + sceneFile + "'", conversation);
-							}
-						}
-
-						Hotspot[] hotspots = FindObjectsOfType <Hotspot>();
-						foreach (Hotspot hotspot in hotspots)
-						{
-							thisNumReferences = hotspot.GetInventoryReferences (item.id);
-							if (thisNumReferences > 0)
-							{
-								totalNumReferences += thisNumReferences;
-								ACDebug.Log ("Found " + thisNumReferences + " references to inventory item '" + item.label + "' in Hotspot '" + hotspot.name + "'", hotspot);
+								ActionList.logSuffix = string.Empty;
+								int thisNumReferences = currentComponent.GetNumItemReferences (item.id);
+								if (thisNumReferences > 0)
+								{
+									totalNumReferences += thisNumReferences;
+									ACDebug.Log ("Found " + thisNumReferences + " reference(s) to Inventory item '" + item.label + "' in " + currentComponent.GetType () + " '" + currentObj.name + "' in scene '" + sceneFile + "' " + ActionList.logSuffix, currentObj);
+								}
 							}
 						}
 					}
@@ -1959,11 +1961,146 @@ namespace AC
 						ActionListAsset[] allActionListAssets = AdvGame.GetReferences ().speechManager.GetAllActionListAssets ();
 						foreach (ActionListAsset actionListAsset in allActionListAssets)
 						{
-							totalNumReferences += actionListAsset.GetInventoryReferences (item);
+							ActionList.logSuffix = string.Empty;
+							int thisNumReferences = actionListAsset.GetNumItemReferences (item.id);
+							if (thisNumReferences > 0)
+							{
+								totalNumReferences += thisNumReferences;
+								ACDebug.Log ("Found " + thisNumReferences + " reference(s) to Inventory item '" + item.label + "' in ActionList asset " + actionListAsset.name + ActionList.logSuffix, actionListAsset);
+							}
 						}
 					}
 
-					EditorUtility.DisplayDialog ("Inventory search complete", "In total, found " + totalNumReferences + " references to inventory item '" + item.label + "' in the project.  Please see the Console window for full details.", "OK");
+					EditorUtility.DisplayDialog ("Inventory search complete", "In total, found " + totalNumReferences + " reference(s) to inventory item '" + item.label + "' in the project.  Please see the Console window for full details.", "OK");
+				}
+			}
+		}
+
+
+		public void ChangeItemID (int oldID, int newID)
+		{
+			InvItem item = GetItem (oldID);
+			if (item == null || oldID == newID) return;
+
+			if (GetItem (newID) != null)
+			{
+				ACDebug.LogWarning ("Cannot update Inventory item " + item.EditorLabel + " to ID " + newID + " because another Inventory item uses the same ID");
+				return;
+			}
+
+			if (EditorUtility.DisplayDialog ("Update '" + item.EditorLabel + "' references?", "The Editor will update assets, and active scenes listed in the Build Settings, that reference the inventory item.  It is recommended to back up the project first. Continue?", "OK", "Cancel"))
+			{
+				if (UnityEditor.SceneManagement.EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo ())
+				{
+					int totalNumReferences = 0;
+
+					// Search other items
+					foreach (InvItem otherItem in items)
+					{
+						if (otherItem != item)
+						{
+							int thisNumReferences = otherItem.UpdateItemReferences (oldID, newID);
+							if (thisNumReferences > 0)
+							{
+								totalNumReferences += thisNumReferences;
+								ACDebug.Log ("Updated " + thisNumReferences + " reference(s) to Inventory item '" + item.EditorLabel + "' in Inventory item " + otherItem.EditorLabel);
+							}
+						}
+					}
+
+					// Search crafting
+					foreach (Recipe recipe in recipes)
+					{
+						int thisNumReferences = recipe.UpdateItemReferences (oldID, newID);
+						if (thisNumReferences > 0)
+						{
+							totalNumReferences += thisNumReferences;
+							ACDebug.Log ("Updated " + thisNumReferences + " reference(s) to Inventory item '" + item.EditorLabel + "' in Recipe " + recipe.EditorLabel);
+						}
+					}
+
+					// Search Players
+					if (KickStarter.settingsManager)
+					{
+						Player[] players = KickStarter.settingsManager.GetAllPlayerPrefabs ();
+						foreach (Player player in players)
+						{
+							MonoBehaviour[] playerComponents = player.gameObject.GetComponentsInChildren<MonoBehaviour> ();
+							for (int i = 0; i < playerComponents.Length; i++)
+							{
+								MonoBehaviour currentObj = playerComponents[i];
+								IItemReferencer currentComponent = currentObj as IItemReferencer;
+								if (currentComponent != null)
+								{
+									ActionList.logSuffix = string.Empty;
+									int thisNumReferences = currentComponent.UpdateItemReferences (oldID, newID);
+									if (thisNumReferences > 0)
+									{
+										totalNumReferences += thisNumReferences;
+										EditorUtility.SetDirty (player);
+										ACDebug.Log ("Updated " + thisNumReferences + " reference(s) to Inventory item '" + item.EditorLabel + "' in '" + currentComponent.GetType () + "' " + currentObj.name + " on Player '" + player.gameObject.name + "'" + ActionList.logSuffix, player);
+									}
+								}
+							}
+						}
+					}
+
+					// Search scenes
+					string originalScene = UnityVersionHandler.GetCurrentSceneFilepath ();
+					string[] sceneFiles = AdvGame.GetSceneFiles ();
+					foreach (string sceneFile in sceneFiles)
+					{
+						UnityVersionHandler.OpenScene (sceneFile);
+
+						bool modifiedScene = false;
+						MonoBehaviour[] sceneObjects = FindObjectsOfType<MonoBehaviour> ();
+						for (int i = 0; i < sceneObjects.Length; i++)
+						{
+							MonoBehaviour currentObj = sceneObjects[i];
+							IItemReferencer currentComponent = currentObj as IItemReferencer;
+							if (currentComponent != null)
+							{
+								ActionList.logSuffix = string.Empty;
+								int thisNumReferences = currentComponent.UpdateItemReferences (oldID, newID);
+								if (thisNumReferences > 0)
+								{
+									totalNumReferences += thisNumReferences;
+									modifiedScene = true;
+									EditorUtility.SetDirty (currentObj);
+									ACDebug.Log ("Updated " + thisNumReferences + " reference(s) to Inventory item '" + item.EditorLabel + "' in " + currentComponent.GetType () + " '" + currentObj.name + "' in scene '" + sceneFile + "'" + ActionList.logSuffix, currentObj);
+								}
+							}
+						}
+
+						if (modifiedScene)
+						{
+							UnityVersionHandler.SaveScene ();
+						}
+					}
+
+					UnityVersionHandler.OpenScene (originalScene);
+
+					// Search assets
+					if (AdvGame.GetReferences ().speechManager != null)
+					{
+						ActionListAsset[] allActionListAssets = AdvGame.GetReferences ().speechManager.GetAllActionListAssets ();
+						foreach (ActionListAsset actionListAsset in allActionListAssets)
+						{
+							ActionList.logSuffix = string.Empty;
+							int thisNumReferences = actionListAsset.UpdateItemReferences (oldID, newID);
+							if (thisNumReferences > 0)
+							{
+								totalNumReferences += thisNumReferences;
+								EditorUtility.SetDirty (actionListAsset);
+								ACDebug.Log ("Updated " + thisNumReferences + " reference(s) to Inventory item '" + item.EditorLabel + "' in ActionList asset " + actionListAsset.name + ActionList.logSuffix, actionListAsset);
+							}
+						}
+					}
+
+					item.id = newID;
+					EditorUtility.SetDirty (this);
+
+					EditorUtility.DisplayDialog ("Update complete", "In total, updated " + totalNumReferences + " reference(s) to inventory item '" + item.EditorLabel + "' in the project.  Please see the Console window for full details.", "OK");
 				}
 			}
 		}
@@ -1987,10 +2124,21 @@ namespace AC
 					{
 						UnityVersionHandler.OpenScene (sceneFile);
 
-						ActionList[] actionLists = FindObjectsOfType <ActionList>();
-						foreach (ActionList actionList in actionLists)
+						MonoBehaviour[] sceneObjects = FindObjectsOfType<MonoBehaviour> ();
+						for (int i = 0; i < sceneObjects.Length; i++)
 						{
-							totalNumReferences += actionList.GetDocumentReferences (document, sceneFile);
+							MonoBehaviour currentObj = sceneObjects[i];
+							IDocumentReferencer currentComponent = currentObj as IDocumentReferencer;
+							if (currentComponent != null)
+							{
+								ActionList.logSuffix = string.Empty;
+								int thisNumReferences = currentComponent.GetNumDocumentReferences (document.ID);
+								if (thisNumReferences > 0)
+								{
+									totalNumReferences += thisNumReferences;
+									ACDebug.Log ("Found " + thisNumReferences + " reference(s) to Document '" + document.Title + "' in " + currentComponent.GetType () + " '" + currentObj.name + "' in scene '" + sceneFile + "'" + ActionList.logSuffix, currentObj);
+								}
+							}
 						}
 					}
 
@@ -2002,11 +2150,95 @@ namespace AC
 						ActionListAsset[] allActionListAssets = AdvGame.GetReferences ().speechManager.GetAllActionListAssets ();
 						foreach (ActionListAsset actionListAsset in allActionListAssets)
 						{
-							totalNumReferences += actionListAsset.GetDocumentReferences (document);
+							ActionList.logSuffix = string.Empty;
+							int thisNumReferences = actionListAsset.GetNumDocumentReferences (document.ID);
+							if (thisNumReferences > 0)
+							{
+								ACDebug.Log ("Found " + thisNumReferences + " reference(s) to Document '" + document.Title + "' in ActionList asset " + actionListAsset.name + ActionList.logSuffix, actionListAsset);
+								totalNumReferences += thisNumReferences;
+							}
 						}
 					}
 
 					EditorUtility.DisplayDialog ("Document search complete", "In total, found " + totalNumReferences + " references to document '" + document.Title + "' in the project.  Please see the Console window for full details.", "OK");
+				}
+			}
+		}
+
+
+		public void ChangeDocumentID (int oldID, int newID)
+		{
+			Document document = GetDocument (oldID);
+			if (document == null || oldID == newID) return;
+
+			if (GetDocument (newID) != null)
+			{
+				ACDebug.LogWarning ("Cannot update Document " + document.Title + " to ID " + newID + " because another Document uses the same ID");
+				return;
+			}
+
+			if (EditorUtility.DisplayDialog ("Update '" + document.Title + "' references?", "The Editor will search assets, and active scenes listed in the Build Settings, for references to the document.  The current scene will need to be saved and listed to be included in the search process. It is recommended to back up the project first. Continue?", "OK", "Cancel"))
+			{
+				if (UnityEditor.SceneManagement.EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo ())
+				{
+					int totalNumReferences = 0;
+
+					// Search scenes
+					string originalScene = UnityVersionHandler.GetCurrentSceneFilepath ();
+					string[] sceneFiles = AdvGame.GetSceneFiles ();
+
+					foreach (string sceneFile in sceneFiles)
+					{
+						UnityVersionHandler.OpenScene (sceneFile);
+
+						bool modifiedScene = false;
+
+						MonoBehaviour[] sceneObjects = FindObjectsOfType<MonoBehaviour> ();
+						for (int i = 0; i < sceneObjects.Length; i++)
+						{
+							MonoBehaviour currentObj = sceneObjects[i];
+							IDocumentReferencer currentComponent = currentObj as IDocumentReferencer;
+							if (currentComponent != null)
+							{
+								ActionList.logSuffix = string.Empty;
+								int thisNumReferences = currentComponent.UpdateDocumentReferences (oldID, newID);
+								if (thisNumReferences > 0)
+								{
+									totalNumReferences += thisNumReferences;
+									EditorUtility.SetDirty (currentObj);
+									modifiedScene = true;
+									ACDebug.Log ("Updated " + thisNumReferences + " reference(s) to Document '" + document.Title + "' in " + currentComponent.GetType () + " '" + currentObj.name + "' in scene '" + sceneFile + "'" + ActionList.logSuffix, currentObj);
+								}
+							}
+						}
+
+						if (modifiedScene)
+						{
+							UnityVersionHandler.SaveScene ();
+						}
+					}
+
+					UnityVersionHandler.OpenScene (originalScene);
+
+					// Search assets
+					if (AdvGame.GetReferences ().speechManager != null)
+					{
+						ActionListAsset[] allActionListAssets = AdvGame.GetReferences ().speechManager.GetAllActionListAssets ();
+						foreach (ActionListAsset actionListAsset in allActionListAssets)
+						{
+							ActionList.logSuffix = string.Empty;
+							int thisNumReferences = actionListAsset.UpdateDocumentReferences (oldID, newID);
+							if (thisNumReferences > 0)
+							{
+								ACDebug.Log ("Updated " + thisNumReferences + " reference(s) to Document '" + document.Title + "' in ActionList asset " + actionListAsset.name + ActionList.logSuffix, actionListAsset);
+								totalNumReferences += thisNumReferences;
+							}
+						}
+					}
+
+					document.ID = newID;
+					EditorUtility.SetDirty (this);
+					EditorUtility.DisplayDialog ("Document update complete", "In total, updated " + totalNumReferences + " references to document '" + document.Title + "' in the project.  Please see the Console window for full details.", "OK");
 				}
 			}
 		}
@@ -2030,10 +2262,21 @@ namespace AC
 					{
 						UnityVersionHandler.OpenScene (sceneFile);
 
-						ActionList[] actionLists = FindObjectsOfType<ActionList> ();
-						foreach (ActionList actionList in actionLists)
+						MonoBehaviour[] sceneObjects = FindObjectsOfType<MonoBehaviour> ();
+						for (int i = 0; i < sceneObjects.Length; i++)
 						{
-							totalNumReferences += actionList.GetObjectiveReferences (objective, sceneFile);
+							MonoBehaviour currentObj = sceneObjects[i];
+							IObjectiveReferencer currentComponent = currentObj as IObjectiveReferencer;
+							if (currentComponent != null)
+							{
+								ActionList.logSuffix = string.Empty;
+								int thisNumReferences = currentComponent.GetNumObjectiveReferences (objective.ID);
+								if (thisNumReferences > 0)
+								{
+									totalNumReferences += thisNumReferences;
+									ACDebug.Log ("Found " + thisNumReferences + " reference(s) to Objective '" + objective.Title + "' in " + currentComponent.GetType () + " '" + currentObj.name + "' in scene '" + sceneFile + "'" + ActionList.logSuffix, currentObj);
+								}
+							}
 						}
 					}
 
@@ -2045,11 +2288,96 @@ namespace AC
 						ActionListAsset[] allActionListAssets = AdvGame.GetReferences ().speechManager.GetAllActionListAssets ();
 						foreach (ActionListAsset actionListAsset in allActionListAssets)
 						{
-							totalNumReferences += actionListAsset.GetObjectiveReferences (objective);
+							ActionList.logSuffix = string.Empty;
+							int thisNumReferences = actionListAsset.GetNumObjectiveReferences (objective.ID);
+							if (thisNumReferences > 0)
+							{
+								ACDebug.Log ("Found " + thisNumReferences + " reference(s) to Objective '" + objective.Title + "' in ActionList asset " + actionListAsset.name + ActionList.logSuffix, actionListAsset);
+								totalNumReferences += thisNumReferences;
+							}
 						}
 					}
 
-					EditorUtility.DisplayDialog ("Document search complete", "In total, found " + totalNumReferences + " references to objective '" + objective.Title + "' in the project.  Please see the Console window for full details.", "OK");
+					EditorUtility.DisplayDialog ("Document search complete", "In total, found " + totalNumReferences + " reference(s) to Objective '" + objective.Title + "' in the project.  Please see the Console window for full details.", "OK");
+				}
+			}
+		}
+
+
+		public void ChangeObjectiveID (int oldID, int newID)
+		{
+			Objective objective = GetObjective (oldID);
+			if (objective == null) return;
+
+			if (GetObjective (newID) != null)
+			{
+				ACDebug.LogWarning ("Cannot update Objective " + objective.Title + " to ID " + newID + " because another Objective uses the same ID");
+				return;
+			}
+
+			if (EditorUtility.DisplayDialog ("Update '" + objective.Title + "' references?", "The Editor will search assets, and active scenes listed in the Build Settings, for references to the objective.  The current scene will need to be saved and listed to be included in the search process.  It is recommended to back up the project first.  Continue?", "OK", "Cancel"))
+			{
+				if (UnityEditor.SceneManagement.EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo ())
+				{
+					int totalNumReferences = 0;
+
+					// Search scenes
+					string originalScene = UnityVersionHandler.GetCurrentSceneFilepath ();
+					string[] sceneFiles = AdvGame.GetSceneFiles ();
+
+					foreach (string sceneFile in sceneFiles)
+					{
+						UnityVersionHandler.OpenScene (sceneFile);
+
+						bool modifiedScene = false;
+
+						MonoBehaviour[] sceneObjects = FindObjectsOfType<MonoBehaviour> ();
+						for (int i = 0; i < sceneObjects.Length; i++)
+						{
+							MonoBehaviour currentObj = sceneObjects[i];
+							IObjectiveReferencer currentComponent = currentObj as IObjectiveReferencer;
+							if (currentComponent != null)
+							{
+								ActionList.logSuffix = string.Empty;
+								int thisNumReferences = currentComponent.UpdateObjectiveReferences (oldID, newID);
+								if (thisNumReferences > 0)
+								{
+									totalNumReferences += thisNumReferences;
+									EditorUtility.SetDirty (currentObj);
+									modifiedScene = true;
+									ACDebug.Log ("Updated " + thisNumReferences + " reference(s) to Objective '" + objective.Title + "' in " + currentComponent.GetType () + " '" + currentObj.name + "' in scene '" + sceneFile + "'" + ActionList.logSuffix, currentObj);
+								}
+							}
+						}
+
+						if (modifiedScene)
+						{
+							UnityVersionHandler.SaveScene ();
+						}
+					}
+
+					UnityVersionHandler.OpenScene (originalScene);
+
+					// Search assets
+					if (AdvGame.GetReferences ().speechManager != null)
+					{
+						ActionListAsset[] allActionListAssets = AdvGame.GetReferences ().speechManager.GetAllActionListAssets ();
+						foreach (ActionListAsset actionListAsset in allActionListAssets)
+						{
+							ActionList.logSuffix = string.Empty;
+							int thisNumReferences = actionListAsset.UpdateObjectiveReferences (oldID, newID);
+							if (thisNumReferences > 0)
+							{
+								ACDebug.Log ("Updated " + thisNumReferences + " reference(s) to Objective '" + objective.Title + "' in ActionList asset " + actionListAsset.name + ActionList.logSuffix, actionListAsset);
+								EditorUtility.SetDirty (actionListAsset);
+								totalNumReferences += thisNumReferences;
+							}
+						}
+					}
+
+					objective.ID = newID;
+					EditorUtility.SetDirty (this);
+					EditorUtility.DisplayDialog ("Document update complete", "In total, updated " + totalNumReferences + " reference(s) to Objective '" + objective.Title + "' in the project.  Please see the Console window for full details.", "OK");
 				}
 			}
 		}
@@ -2221,8 +2549,26 @@ namespace AC
 					itemsList.Add (item);
 				}
 			}
-
 			return itemsList.ToArray ();
+		}
+
+
+		/**
+		 * <summary>Gets an array of all Documents in a given category</summary>
+		 * <param name = "categoryID">The ID number of the category in question</param>
+		 * <returns>An array of all Documents in the category</returns>
+		 */
+		public Document[] GetDocumentsInCategory (int categoryID)
+		{
+			List<Document> documentsList = new List<Document> ();
+			foreach (Document document in documents)
+			{
+				if (document.binID == categoryID)
+				{
+					documentsList.Add (document);
+				}
+			}
+			return documentsList.ToArray ();
 		}
 
 

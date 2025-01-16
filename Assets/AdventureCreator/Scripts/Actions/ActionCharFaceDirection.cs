@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"ActionCharDirection.cs"
  * 
@@ -194,7 +194,7 @@ namespace AC
 				if (charToMove != null && charToMove.gameObject == _gameObject) return true;
 				if (charToMoveID == id) return true;
 			}
-			if (isPlayer && _gameObject.GetComponent <Player>() != null) return true;
+			if (isPlayer && _gameObject && _gameObject.GetComponent <Player>() != null) return true;
 			return base.ReferencesObjectOrID (_gameObject, id);
 		}
 

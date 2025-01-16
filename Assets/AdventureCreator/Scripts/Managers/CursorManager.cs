@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"CursorManager.cs"
  * 
@@ -29,8 +29,10 @@ namespace AC
 	public class CursorManager : ScriptableObject
 	{
 
-		/** The rendering method of all cursors (Software, Hardware) */
+		/** The rendering method of all cursors (Software, Hardware, UnityUI) */
 		public CursorRendering cursorRendering = CursorRendering.Software;
+		/** The cursor prefab to spawn if cursorRendering = CursorRendering.Hardware */
+		public GameObject uiCursorPrefab = null;
 		/** The rule that defines when the main cursor is shown (Always, Never, OnlyWhenPaused) */
 		public CursorDisplay cursorDisplay = CursorDisplay.Always;
 		/** If True, then the system's default hardware cursor will replaced with a custom one */
@@ -46,6 +48,11 @@ namespace AC
 
 		/** If True, then a separate cursor will display when in "walk mode" */
 		public bool allowWalkCursor = false;
+
+		public bool syncWalkCursorWithInteraction = false;
+		
+		public int walkCursor_ID = 0;
+
 		/** If True, then a prefix can be added to the Hotspot label when in "walk mode" */
 		public bool addWalkPrefix = false;
 		/** The prefix to add to the Hotspot label when in "walk mode", if addWalkPrefix = True */
@@ -80,6 +87,8 @@ namespace AC
 		public CursorIconBase walkIcon = new CursorIcon ();
 		/** The cursor when hovering over a Hotspot */
 		public CursorIconBase mouseOverIcon = new CursorIcon ();
+		/** The cursor while the cursor is being used to manipulate a drag-controlled camera */
+		public CursorIconBase cameraDragIcon = new CursorIcon ();
 
 		/** What happens to the cursor when an inventory item is selected (ChangeCursor, ChangeHotspotLabel, ChangeCursorAndHotspotLabel) */
 		public InventoryHandling inventoryHandling = InventoryHandling.ChangeCursor;
@@ -130,6 +139,7 @@ namespace AC
 		private bool showInventoryCursor = true;
 		private bool showInteractionIcons = true;
 		private bool showCutsceneCursor = true;
+		private bool showCameraDragCursor = true;
 		#endif
 
 		private SettingsManager settingsManager;
@@ -137,9 +147,7 @@ namespace AC
 		
 		#if UNITY_EDITOR
 
-		/**
-		 * Shows the GUI.
-		 */
+		/** Shows the GUI. */
 		public void ShowGUI ()
 		{
 			settingsManager = AdvGame.GetReferences().settingsManager;
@@ -149,21 +157,24 @@ namespace AC
 			if (showSettings)
 			{
 				cursorRendering = (CursorRendering) CustomGUILayout.EnumPopup ("Cursor rendering:", cursorRendering, "AC.KickStarter.cursorManager.cursorRendering", "The rendering method of all cursors");
-				if (cursorRendering == CursorRendering.Software)
+
+				switch (cursorRendering)
 				{
-					lockSystemCursor = CustomGUILayout.ToggleLeft ("Lock system cursor when locking AC cursor?", lockSystemCursor, "AC.KickStarter.cursorManager.lockSystemCursor", "If True, the system cursor will be locked when the AC cursor is");
+					case CursorRendering.Software:
+						lockSystemCursor = CustomGUILayout.ToggleLeft ("Lock system cursor when locking AC cursor?", lockSystemCursor, "AC.KickStarter.cursorManager.lockSystemCursor", "If True, the system cursor will be locked when the AC cursor is");
+						keepCursorWithinScreen = CustomGUILayout.ToggleLeft ("Always keep cursor within screen boundary?", keepCursorWithinScreen, "AC.KickStarter.cursorManager.keepCursorWithinScreen", "If True, then the cursor will always be kept within the boundary of the game window");
+						break;
+
+					case CursorRendering.Hardware:
+						keepCursorWithinScreen = CustomGUILayout.ToggleLeft ("Always keep perceived cursor within screen boundary?", keepCursorWithinScreen, "AC.KickStarter.cursorManager.keepCursorWithinScreen", "If True, then the cursor will always be kept within the boundary of the game window");
+						break;
+
+					case CursorRendering.UnityUI:
+						uiCursorPrefab = (GameObject) CustomGUILayout.ObjectField <GameObject> ("Unity UI Cursor prefab:", uiCursorPrefab, false, "AC.KickStarter.cursorManager.uiCursorPrefab", "The cursor prefab to spawn at runtime");
+						break;
 				}
+				
 				forceCursorInEditor = CustomGUILayout.ToggleLeft ("Always show system cursor in Editor?", forceCursorInEditor, "AC.KickStarter.cursorManager.forceCursorInEditor");
-
-				if (cursorRendering == CursorRendering.Software)
-				{
-					keepCursorWithinScreen = CustomGUILayout.ToggleLeft ("Always keep cursor within screen boundary?", keepCursorWithinScreen, "AC.KickStarter.cursorManager.keepCursorWithinScreen", "If True, then the cursor will always be kept within the boundary of the game window");
-				}
-				else
-				{
-					keepCursorWithinScreen = CustomGUILayout.ToggleLeft ("Always keep perceived cursor within screen boundary?", keepCursorWithinScreen, "AC.KickStarter.cursorManager.keepCursorWithinScreen", "If True, then the cursor will always be kept within the boundary of the game window");
-				}
-
 				#if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
 				confineSystemCursor = CustomGUILayout.ToggleLeft ("Confine system cursor to game window?", confineSystemCursor, "AC.KickStarter.cursorManager.confineSystemCursor", "If True, then the system cursor will be confined to the game window");
 				#endif
@@ -204,6 +215,17 @@ namespace AC
 							EditorGUILayout.LabelField ("Input button:", "Icon_Walk");
 						}
 						IconBaseGUI (string.Empty, walkIcon, "AC.KickStarter.cursorManager.walkIcon", "The cursor when in 'walk mode'");
+					}
+					if (KickStarter.settingsManager && KickStarter.settingsManager.interactionMethod == AC_InteractionMethod.ChooseInteractionThenHotspot)
+					{
+						syncWalkCursorWithInteraction = CustomGUILayout.Toggle ("Sync with interaction?", syncWalkCursorWithInteraction, "AC.KickStarter.cursorManager.syncWalkCursorWithInteraction", "If True, then walking will be possible when the Interaction icon set below is the active cursor");
+						if (syncWalkCursorWithInteraction)
+						{
+							WalkIconGUI ();
+						}
+					}
+					if (allowWalkCursor || (KickStarter.settingsManager && KickStarter.settingsManager.interactionMethod == AC_InteractionMethod.ChooseInteractionThenHotspot && syncWalkCursorWithInteraction))
+					{
 						onlyWalkWhenOverNavMesh = CustomGUILayout.ToggleLeft ("Only show 'Walk' Cursor when over NavMesh?", onlyWalkWhenOverNavMesh, "AC.KickStarter.cursorManager.onlyWalkWhenOverNavMesh", "If True, then the walk cursor will only show when the cursor is hovering over a NavMesh");
 					}
 				}
@@ -292,6 +314,10 @@ namespace AC
 						onlyShowCursorLabelOverHotspots = CustomGUILayout.ToggleLeft ("Only show label when over Hotspots and Inventory?", onlyShowCursorLabelOverHotspots, "AC.KickStarter.cursorManager.onlyShowCursorLabelOverHotspots", "If True, then Hotspot labels will not show when no inventory item is selected unless the cursor is over another inventory item or a Hotspot");
 					}
 				}
+				if (settingsManager && settingsManager.interactionMethod == AC_InteractionMethod.ChooseHotspotThenInteraction)
+				{
+					allowInteractionCursor = CustomGUILayout.ToggleLeft ("Change cursor when over single-use Interaction Hotspots?", allowInteractionCursor, "AC.KickStarter.cursorManager.allowInteractionCursor", "If True, then the cursor will be controlled by the current Interaction when hovering over a Hotspot");
+				}
 
 				if ((settingsManager && settingsManager.interactionMethod == AC_InteractionMethod.ContextSensitive && lookUseCursorAction == LookUseCursorAction.RightClickCyclesModes) ||
 					(settingsManager && settingsManager.interactionMethod == AC_InteractionMethod.ChooseInteractionThenHotspot && settingsManager.inventoryInteractions == InventoryInteractions.Multiple) ||
@@ -318,6 +344,15 @@ namespace AC
 			if (showCutsceneCursor)
 			{
 				IconBaseGUI (string.Empty, waitIcon, "AC.KickStarter.cursorManager.waitIcon", "The cursor while the game is running a gameplay-blocking cutscene");
+			}
+			CustomGUILayout.EndVertical ();
+
+			EditorGUILayout.Space ();
+			EditorGUILayout.BeginVertical (CustomStyles.thinBox);
+			showCameraDragCursor = CustomGUILayout.ToggleHeader (showCameraDragCursor, "Camera-drag cursor");
+			if (showCameraDragCursor)
+			{
+				IconBaseGUI (string.Empty, cameraDragIcon, "AC.KickStarter.cursorManager.cameraDragIcon", "The cursor to show while dragging the camera");
 			}
 			CustomGUILayout.EndVertical ();
 
@@ -502,6 +537,17 @@ namespace AC
 		}
 
 
+		private void WalkIconGUI ()
+		{
+			if (cursorIcons.Count > 0)
+			{
+				int walkCursor_int = GetIntFromID (walkCursor_ID);
+				walkCursor_int = CustomGUILayout.Popup ("Walk interaction:", walkCursor_int, GetLabelsArray (), "AC.KickStarter.cursorManager.walkCursor_ID", "The Cursor that represents the 'Walk' Interaction");
+				walkCursor_ID = cursorIcons[walkCursor_int].id;
+			}
+		}
+
+
 		private void IconBaseGUI (string fieldLabel, CursorIconBase icon, string apiPrefix, string tooltip = "", bool includeAlwaysAnimate = true)
 		{
 			if (fieldLabel != "" && fieldLabel.Length > 0)
@@ -570,11 +616,7 @@ namespace AC
 			{
 				if (cursorIcon.id == _ID)
 				{
-					if (Application.isPlaying)
-					{
-						return KickStarter.runtimeLanguages.GetTranslation (cursorIcon.label, cursorIcon.lineID, languageNumber, AC_TextType.CursorIcon);
-					}
-					return cursorIcon.label;
+					return cursorIcon.GetLabel (languageNumber);
 				}
 			}
 			return string.Empty;

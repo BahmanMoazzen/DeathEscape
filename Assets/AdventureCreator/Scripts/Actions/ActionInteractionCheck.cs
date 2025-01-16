@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"ActionInteraction.cs"
  * 
@@ -184,7 +184,7 @@ namespace AC
 		{
 			if (parameterID < 0)
 			{
-				if (hotspot != null && hotspot.gameObject == _gameObject) return true;
+				if (hotspot && hotspot.gameObject == _gameObject) return true;
 				if (constantID == id) return true;
 			}
 			return base.ReferencesObjectOrID (_gameObject, id);

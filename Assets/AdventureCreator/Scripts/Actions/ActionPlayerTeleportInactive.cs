@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"ActionPlayerTeleportInactive.cs"
  * 
@@ -59,8 +59,19 @@ namespace AC
 			}
 			else
 			{
-				int runtimeSceneIndex = (chooseSceneBy == ChooseSceneBy.Name) ? KickStarter.sceneChanger.NameToIndex (newSceneName) : newSceneIndex;
-				KickStarter.saveSystem.MoveInactivePlayer (playerID, runtimeSceneIndex, teleportPlayerStartMethod, newTransformConstantID);
+				switch (KickStarter.settingsManager.referenceScenesInSave)
+				{
+					case ChooseSceneBy.Name:
+						string runtimeSceneName = (chooseSceneBy == ChooseSceneBy.Name) ? newSceneName : KickStarter.sceneChanger.IndexToName (newSceneIndex);
+						KickStarter.saveSystem.MoveInactivePlayer (playerID, runtimeSceneName, teleportPlayerStartMethod, newTransformConstantID);
+						break;
+
+					case ChooseSceneBy.Number:
+					default:
+						int runtimeSceneIndex = (chooseSceneBy == ChooseSceneBy.Name) ? KickStarter.sceneChanger.NameToIndex (newSceneName) : newSceneIndex;
+						KickStarter.saveSystem.MoveInactivePlayer (playerID, runtimeSceneIndex, teleportPlayerStartMethod, newTransformConstantID);
+						break;
+				}
 			}
 
 			return 0f;
@@ -219,7 +230,7 @@ namespace AC
 		{
 			if (newTransformParameterID < 0)
 			{
-				if (newTransform != null && newTransform.gameObject == gameObject) return true;
+				if (newTransform && newTransform.gameObject == gameObject) return true;
 				if (newTransformConstantID == id && id != 0) return true;
 			}
 			return base.ReferencesObjectOrID (gameObject, id);

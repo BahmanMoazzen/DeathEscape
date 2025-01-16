@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"ActionVarSequence.cs"
  * 
@@ -331,7 +331,7 @@ namespace AC
 		}
 
 
-		public override int GetVariableReferences (List<ActionParameter> parameters, VariableLocation _location, int varID, Variables _variables, int _variablesConstantID = 0)
+		public override int GetNumVariableReferences (VariableLocation _location, int varID, List<ActionParameter> parameters, Variables _variables = null, int _variablesConstantID = 0)
 		{
 			int thisCount = 0;
 
@@ -343,7 +343,25 @@ namespace AC
 				}
 			}
 
-			thisCount += base.GetVariableReferences (parameters, _location, varID, _variables);
+			thisCount += base.GetNumVariableReferences (_location, varID, parameters, _variables, _variablesConstantID);
+			return thisCount;
+		}
+
+
+		public override int UpdateVariableReferences (VariableLocation _location, int oldVarID, int newVarID, List<ActionParameter> parameters, Variables _variables = null, int _variablesConstantID = 0)
+		{
+			int thisCount = 0;
+
+			if (location == _location && variableID == oldVarID && parameterID < 0)
+			{
+				if (location != VariableLocation.Component || (variables && variables == _variables) || (_variablesConstantID != 0 && variablesConstantID == _variablesConstantID))
+				{
+					variableID = newVarID;
+					thisCount++;
+				}
+			}
+
+			thisCount += base.UpdateVariableReferences (_location, oldVarID, newVarID, parameters, _variables, _variablesConstantID);
 			return thisCount;
 		}
 
@@ -352,6 +370,11 @@ namespace AC
 		{
 			if (location == VariableLocation.Component && parameterID < 0)
 			{
+				if (saveScriptsToo && variables && parameterID < 0)
+				{
+					AddSaveScript<RememberVariables> (variables);
+				}
+
 				AssignConstantID <Variables> (variables, variablesConstantID, -1);
 			}
 		}
@@ -361,7 +384,7 @@ namespace AC
 		{
 			if (parameterID < 0 && location == VariableLocation.Component)
 			{
-				if (variables != null && variables.gameObject == gameObject) return true;
+				if (variables && variables.gameObject == gameObject) return true;
 				return (variablesConstantID == id && id != 0);
 			}
 			return base.ReferencesObjectOrID (gameObject, id);

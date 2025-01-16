@@ -26,6 +26,8 @@ namespace AC
 		public Vector2 limitCursorInfluenceY;
 		/** The speed at which the camera follows the cursor */
 		public float followCursorSpeed = 3f;
+		/** If True, the camera can be rotated based on cursor position during cutscenes, if followCursor = True */
+		public bool cursorInfluenceDuringCutscenes = false;
 
 		protected Vector2 actualCursorOffset;
 
@@ -36,9 +38,16 @@ namespace AC
 
 		public override Vector2 CreateRotationOffset ()
 		{
-			if (followCursor && KickStarter.stateHandler)
+			#if UNITY_EDITOR
+			if (!Application.isPlaying)
 			{
-				if (KickStarter.stateHandler.IsInGameplay () && KickStarter.playerInput)
+				return Vector2.zero;
+			}
+			#endif
+
+			if (followCursor)
+			{
+				if (KickStarter.stateHandler.IsInGameplay () || (cursorInfluenceDuringCutscenes && KickStarter.stateHandler.IsInCutscene ()))
 				{
 					Vector2 mousePosition = KickStarter.playerInput.GetMousePosition ();
 					Vector2 mouseOffset = new Vector2 (mousePosition.x / ( ACScreen.width / 2) - 1, mousePosition.y / ( ACScreen.height / 2) - 1);
@@ -74,23 +83,24 @@ namespace AC
 		{
 			CustomGUILayout.BeginVertical ();
 			EditorGUILayout.LabelField ("Cursor influence", EditorStyles.boldLabel);
-			followCursor = CustomGUILayout.Toggle ("Follow cursor?", followCursor, "", "If True, then the camera will rotate towards the cursor's position on-screen");
+			followCursor = CustomGUILayout.Toggle ("Follow cursor?", followCursor, string.Empty, "If True, then the camera will rotate towards the cursor's position on-screen");
 			if (followCursor)
 			{
-				cursorInfluence = CustomGUILayout.Vector2Field ("Panning factor:", cursorInfluence, "", "The influence that the cursor's position has on rotation");
-				followCursorSpeed = CustomGUILayout.Slider ("Follow speed:", followCursorSpeed, 0f, 10f, "", "The speed at which the camera follows the cursor.");
+				cursorInfluence = CustomGUILayout.Vector2Field ("Panning factor:", cursorInfluence, string.Empty, "The influence that the cursor's position has on rotation");
+				followCursorSpeed = CustomGUILayout.Slider ("Follow speed:", followCursorSpeed, 0f, 10f, string.Empty, "The speed at which the camera follows the cursor.");
+				cursorInfluenceDuringCutscenes = CustomGUILayout.Toggle ("Follow during cutscenes?", cursorInfluenceDuringCutscenes, string.Empty, "If True, then the camera can rotate to the cursor's position during cutscenes");
 
-				constrainCursorInfluenceX = CustomGUILayout.ToggleLeft ("Constrain panning in X direction?", constrainCursorInfluenceX, "", "If True, then camera rotation according to the cursor's X position will be limited");
+				constrainCursorInfluenceX = CustomGUILayout.Toggle ("Constrain in X direction?", constrainCursorInfluenceX, string.Empty, "If True, then camera rotation according to the cursor's X position will be limited");
 				if (constrainCursorInfluenceX)
 				{
-					limitCursorInfluenceX[0] = CustomGUILayout.Slider ("Minimum X constraint:", limitCursorInfluenceX[0], -1.4f, 0f, "", "The cursor influence's lower limit in the X-direction");
-					limitCursorInfluenceX[1] = CustomGUILayout.Slider ("Maximum X constraint:", limitCursorInfluenceX[1], 0f, 1.4f, "", "The cursor influence's upper limit in the X-direction");
+					limitCursorInfluenceX[0] = CustomGUILayout.Slider ("Minimum X constraint:", limitCursorInfluenceX[0], -1.4f, 0f, string.Empty, "The cursor influence's lower limit in the X-direction");
+					limitCursorInfluenceX[1] = CustomGUILayout.Slider ("Maximum X constraint:", limitCursorInfluenceX[1], 0f, 1.4f, string.Empty, "The cursor influence's upper limit in the X-direction");
 				}
-				constrainCursorInfluenceY = CustomGUILayout.ToggleLeft ("Constrain panning in Y direction?", constrainCursorInfluenceY, "", "If True, then camera rotation according to the cursor's Y position will be limited");
+				constrainCursorInfluenceY = CustomGUILayout.Toggle ("Constrain in Y direction?", constrainCursorInfluenceY, string.Empty, "If True, then camera rotation according to the cursor's Y position will be limited");
 				if (constrainCursorInfluenceY)
 				{
-					limitCursorInfluenceY[0] = CustomGUILayout.Slider ("Minimum Y constraint:", limitCursorInfluenceY[0], -1.4f, 0f, "", "The cursor influence's lower limit in the Y-direction");
-					limitCursorInfluenceY[1] = CustomGUILayout.Slider ("Maximum Y constraint:", limitCursorInfluenceY[1], 0f, 1.4f, "", "The cursor influence's upper limit in the Y-direction");
+					limitCursorInfluenceY[0] = CustomGUILayout.Slider ("Minimum Y constraint:", limitCursorInfluenceY[0], -1.4f, 0f, string.Empty, "The cursor influence's lower limit in the Y-direction");
+					limitCursorInfluenceY[1] = CustomGUILayout.Slider ("Maximum Y constraint:", limitCursorInfluenceY[1], 0f, 1.4f, string.Empty, "The cursor influence's upper limit in the Y-direction");
 				}
 
 				if (Application.isPlaying && KickStarter.mainCamera && KickStarter.mainCamera.attachedCamera == this)

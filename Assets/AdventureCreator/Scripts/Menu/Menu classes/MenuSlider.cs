@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"MenuSlider.cs"
  * 
@@ -19,9 +19,7 @@ using UnityEditor;
 namespace AC
 {
 
-	/**
-	 * A MenuElement that provides a slider, whose value can represent either a Float global variable or the volume of an Options sound type.
-	 */
+	/** A MenuElement that provides a slider, whose value can represent either a Float global variable or the volume of an Options sound type. */
 	public class MenuSlider : MenuElement, ITranslatable
 	{
 
@@ -62,6 +60,12 @@ namespace AC
 		/** The method by which this element is hidden from view when made invisible (DisableObject, DisableInteractability) */
 		public UISelectableHideStyle uiSelectableHideStyle = UISelectableHideStyle.DisableObject;
 
+		#if TextMeshProIsPresent
+		private TMPro.TextMeshProUGUI uiText;
+		#else
+		private Text uiText;
+		#endif
+
 		private float visualAmount;
 		private string fullText;
 
@@ -69,6 +73,7 @@ namespace AC
 		public override void Declare ()
 		{
 			uiSlider = null;
+			uiText = null;
 
 			label = "Slider";
 			isVisible = true;
@@ -114,6 +119,7 @@ namespace AC
 				uiSlider = _element.uiSlider;
 			}
 
+			uiText = null;
 			label = _element.label;
 			isClickable = _element.isClickable;
 			textEffects = _element.textEffects;
@@ -142,6 +148,12 @@ namespace AC
 			uiSlider = LinkUIElement <Slider> (canvas);
 			if (uiSlider)
 			{
+				#if TextMeshProIsPresent
+				uiText = uiSlider.GetComponentInChildren <TMPro.TextMeshProUGUI>();
+				#else
+				uiText = uiSlider.GetComponentInChildren <Text>();
+				#endif
+
 				uiSlider.interactable = isClickable;
 				if (isClickable)
 				{
@@ -197,11 +209,7 @@ namespace AC
 			CustomGUILayout.BeginVertical ();
 
 			sliderType = (AC_SliderType) CustomGUILayout.EnumPopup ("Slider affects:", sliderType, apiPrefix + ".sliderType", "What the slider's value represents");
-
-			if (source == MenuSource.AdventureCreator)
-			{
-				label = CustomGUILayout.TextField ("Label text:", label, apiPrefix + ".label", "The text that's displayed on-screen");
-			}
+			label = CustomGUILayout.TextField ("Label text:", label, apiPrefix + ".label", "The text that's displayed on-screen");
 
 			if (sliderType == AC_SliderType.CustomScript)
 			{
@@ -316,8 +324,8 @@ namespace AC
 		{
 			int numFound = 0;
 
-			string tokenText = "[var:" + _varID.ToString () + "]";
-			if (label.Contains (tokenText))
+			string tokenText = AdvGame.GetVariableTokenText (VariableLocation.Global, _varID);
+			if (label.ToLower ().Contains (tokenText))
 			{
 				numFound ++;
 			}
@@ -327,7 +335,29 @@ namespace AC
 				numFound ++;
 			}
 
-			return numFound + base.GetVariableReferences (_varID);
+			return numFound;
+		}
+
+
+		public override int UpdateVariableReferences (int oldVarID, int newVarID)
+		{
+			int numFound = 0;
+
+			string oldTokenText = AdvGame.GetVariableTokenText (VariableLocation.Global, oldVarID);
+			if (label.ToLower ().Contains (oldTokenText))
+			{
+				numFound++;
+				string newTokenText = AdvGame.GetVariableTokenText (VariableLocation.Global, newVarID);
+				label = label.Replace (oldTokenText, newTokenText);
+			}
+
+			if (sliderType == AC_SliderType.FloatVariable && varID == oldVarID)
+			{
+				numFound++;
+				varID = newVarID;
+			}
+
+			return numFound;
 		}
 
 
@@ -349,27 +379,44 @@ namespace AC
 		}
 
 
+		public override int GetSlotIndex (GameObject gameObject)
+		{
+			if (uiSlider && uiSlider.gameObject == gameObject)
+			{
+				return 0;
+			}
+			if (uiText && uiText.gameObject == gameObject)
+			{
+				return 0;
+			}
+			return base.GetSlotIndex (gameObject);
+		}
+
+
+		protected override string GetLabelToTranslate ()
+		{
+			return label;
+		}
+
+
 		public override void PreDisplay (int _slot, int languageNumber, bool isActive)
 		{
 			CalculateValue ();
 
-			fullText = AdvGame.ConvertTokens (TranslateLabel (label, languageNumber));
+			fullText = AdvGame.ConvertTokens (TranslateLabel (languageNumber));
 
 			if (uiSlider)
 			{
+				if (uiText)
+				{
+					uiText.text = fullText;
+				}
 				uiSlider.value = visualAmount;
 				UpdateUISelectable (uiSlider, uiSelectableHideStyle);
 			}
 		}
 
 
-		/**
-		 * <summary>Draws the element using OnGUI</summary>
-		 * <param name = "_style">The GUIStyle to draw with</param>
-		 * <param name = "_slot">Ignored by this subclass</param>
-		 * <param name = "zoom">The zoom factor</param>
-		 * <param name = "isActive">If True, then the element will be drawn as though highlighted</param>
-		 */
 		public override void Display (GUIStyle _style, int _slot, float zoom, bool isActive)
 		{
 			base.Display (_style, _slot, zoom, isActive);
@@ -487,15 +534,9 @@ namespace AC
 		}
 		
 
-		/**
-		 * <summary>Gets the display text of the element</summary>
-		 * <param name = "slot">Ignored by this subclass</param>
-		 * <param name = "languageNumber">The index number of the language number to get the text in</param>
-		 * <returns>The display text of the element</returns>
-		 */
 		public override string GetLabel (int slot, int languageNumber)
 		{
-			return AdvGame.ConvertTokens (TranslateLabel (label, languageNumber));
+			return AdvGame.ConvertTokens (TranslateLabel (languageNumber));
 		}
 
 
@@ -785,7 +826,7 @@ namespace AC
 		
 		protected override void AutoSize ()
 		{
-			AutoSize (new GUIContent (TranslateLabel (label, Options.GetLanguage ())));
+			AutoSize (new GUIContent (TranslateLabel (Options.GetLanguage ())));
 		}
 
 

@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"LocalVariables.cs"
  * 
@@ -74,11 +74,7 @@ namespace AC
 				{
 					if (localVar.id == presetValue.id)
 					{
-						localVar.IntegerValue = presetValue.val;
-						localVar.FloatValue = presetValue.floatVal;
-						localVar.TextValue = presetValue.textVal;
-						localVar.Vector3Value = presetValue.vector3Val;
-						localVar.GameObjectValue = presetValue.gameObjectVal;
+						localVar.AssignPreset (presetValue);
 					}
 				}
 			}

@@ -1,13 +1,15 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"CharacterAnimation2DBehaviour.cs"
  * 
  *	A PlayableBehaviour that allows for automatic animation playback of sprite-based characters, according to how they are moving.
  * 
  */
+
+#if !ACIgnoreTimeline
 
 using UnityEngine;
 using UnityEngine.Playables;
@@ -155,13 +157,13 @@ namespace AC
 			{
 				if (enable)
 				{
-					character.ActiveCharacterAnimation2DShot = activeShot;
+					character.ActiveCharacterAnimationShot = activeShot;
 				}
 				else
 				{
-					if (character.ActiveCharacterAnimation2DShot == activeShot)
+					if (character.ActiveCharacterAnimationShot == activeShot)
 					{
-						character.ActiveCharacterAnimation2DShot = null;
+						character.ActiveCharacterAnimationShot = null;
 					}
 				}
 			}
@@ -172,3 +174,5 @@ namespace AC
 	}
 
 }
+
+#endif

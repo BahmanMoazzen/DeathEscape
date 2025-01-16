@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"MenuTimer.cs"
  * 
@@ -20,9 +20,7 @@ using UnityEditor;
 namespace AC
 {
 
-	/**
-	 * A MenuElement that provides a "countdown" timer that can either show the time remaining to choose a Conversation's dialogue option or complete a QTE, or the progress made in the current QTE.
-	 */
+	/** A MenuElement that provides a "countdown" timer that can either show the time remaining to choose a Conversation's dialogue option or complete a QTE, or the progress made in the current QTE. */
 	public class MenuTimer : MenuElement
 	{
 
@@ -46,9 +44,6 @@ namespace AC
 		private Rect timerRect;
 
 
-		/**
-		 * Initialises the MenuElement when it is created within MenuManager.
-		 */
 		public override void Declare ()
 		{
 			uiSlider = null;
@@ -111,11 +106,6 @@ namespace AC
 		}
 
 
-		/**
-		 * <summary>Gets the boundary of the element.</summary>
-		 * <param name = "_slot">Ignored by this subclass</param>
-		 * <returns>The boundary Rect of the element</returns>
-		 */
 		public override RectTransform GetRectTransform (int _slot)
 		{
 			if (uiSlider)
@@ -176,6 +166,16 @@ namespace AC
 			if (uiSlider && uiSlider.gameObject == gameObject) return true;
 			if (linkedUiID == id && id != 0) return true;
 			return false;
+		}
+
+
+		public override int GetSlotIndex (GameObject gameObject)
+		{
+			if (uiSlider && uiSlider.gameObject == gameObject)
+			{
+				return 0;
+			}
+			return base.GetSlotIndex (gameObject);
 		}
 
 

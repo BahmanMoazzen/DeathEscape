@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"ActionInventoryCheckSelected.cs"
  * 
@@ -20,13 +20,13 @@ namespace AC
 {
 	
 	[System.Serializable]
-	public class ActionInventoryCheckSelected : ActionCheck
+	public class ActionInventoryCheckSelected : ActionCheck, IItemReferencerAction
 	{
 		
 		public int parameterID = -1;
 		public int invID;
 		public int binID;
-		public bool checkNothing = false; // Deprecated
+		[SerializeField] private bool checkNothing = false; // Deprecated
 		public bool includeLast = false;
 
 		[SerializeField] protected SelectedCheckMethod selectedCheckMethod = SelectedCheckMethod.SpecificItem;
@@ -256,15 +256,26 @@ namespace AC
 		}
 
 
-		public override int GetInventoryReferences (List<ActionParameter> parameters, int _invID)
+		public int GetNumItemReferences (int _itemID, List<ActionParameter> actionParameters)
 		{
-			if (selectedCheckMethod == SelectedCheckMethod.SpecificItem && invID == _invID)
+			if (selectedCheckMethod == SelectedCheckMethod.SpecificItem && invID == _itemID)
 			{
 				return 1;
 			}
 			return 0;
 		}
-		
+
+
+		public int UpdateItemReferences (int oldItemID, int newItemID, List<ActionParameter> parameters)
+		{
+			if (selectedCheckMethod == SelectedCheckMethod.SpecificItem && invID == oldItemID)
+			{
+				invID = newItemID;
+				return 1;
+			}
+			return 0;
+		}
+
 		#endif
 
 

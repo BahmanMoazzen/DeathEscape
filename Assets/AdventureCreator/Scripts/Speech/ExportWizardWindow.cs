@@ -7,9 +7,7 @@ using UnityEditor;
 namespace AC
 {
 	
-	/**
-	 * Provides an EditorWindow to manage the export of game text
-	 */
+	/** Provides an EditorWindow to manage the export of game text */
 	public class ExportWizardWindow : EditorWindow
 	{
 
@@ -44,24 +42,23 @@ namespace AC
 			exportColumns.Clear ();
 			exportColumns.Add (new ExportColumn (ExportColumn.ColumnType.Type));
 			exportColumns.Add (new ExportColumn (ExportColumn.ColumnType.DisplayText));
-			if (speechManager != null && forLanguage > 0 && speechManager.languages != null && speechManager.languages.Count > forLanguage)
+			if (speechManager != null && forLanguage > 0 && speechManager.Languages != null && speechManager.Languages.Count > forLanguage)
 			{
 				exportColumns.Add (new ExportColumn (forLanguage));
 			}
 		}
 
 
-		/**
-		 * <summary>Initialises the window.</summary>
-		 */
+		/** Initialises the window. */
 		public static void Init (SpeechManager _speechManager, string[] _sceneNames, int forLanguage = 0)
 		{
 			if (_speechManager == null) return;
 
-			ExportWizardWindow window = EditorWindow.GetWindowWithRect <ExportWizardWindow> (new Rect (0, 0, 350, 500), true, "Game text exporter", true);
-			window.titleContent.text = "Game text exporter";
+			ExportWizardWindow window = (ExportWizardWindow) GetWindow (typeof (ExportWizardWindow));
+			window.titleContent.text = "Text export wizard";
 			window.position = new Rect (300, 200, 350, 500);
 			window._Init (_speechManager, _sceneNames, forLanguage);
+			window.minSize = new Vector2 (300, 180);
 		}
 		
 		
@@ -106,17 +103,13 @@ namespace AC
 			}
 			GUI.enabled = true;
 
-			EditorGUILayout.Space ();
 			GUILayout.EndScrollView ();
 		}
 
 
 		private void ShowColumnsGUI ()
 		{
-			string[] languagesArray = speechManager.languages.ToArray ();
-
 			EditorGUILayout.LabelField ("Define columns",  CustomStyles.subHeader);
-			EditorGUILayout.Space ();
 			for (int i=0; i<exportColumns.Count; i++)
 			{
 				CustomGUILayout.BeginVertical ();
@@ -130,12 +123,11 @@ namespace AC
 				}
 				EditorGUILayout.EndHorizontal ();
 
-				exportColumns[i].ShowLanguageSelector (languagesArray);
+				exportColumns[i].ShowLanguageSelector (speechManager.GetLanguageNameArray ());
 
 				CustomGUILayout.EndVertical ();
 			}
 
-			EditorGUILayout.Space ();
 			if (GUILayout.Button ("Add new column"))
 			{
 				exportColumns.Add (new ExportColumn ());
@@ -148,7 +140,6 @@ namespace AC
 		private void ShowRowsGUI ()
 		{
 			EditorGUILayout.LabelField ("Row filtering", CustomStyles.subHeader);
-			EditorGUILayout.Space ();
 
 			filterByType = EditorGUILayout.Toggle ("Filter by type?", filterByType);
 			if (filterByType)
@@ -225,7 +216,6 @@ namespace AC
 		private void ShowSortingGUI ()
 		{
 			EditorGUILayout.LabelField ("Row sorting", CustomStyles.subHeader);
-			EditorGUILayout.Space ();
 
 			doRowSorting = EditorGUILayout.Toggle ("Apply row sorting?", doRowSorting);
 			if (doRowSorting)
@@ -323,6 +313,11 @@ namespace AC
 			List<SpeechLine> exportLines = new List<SpeechLine>();
 			foreach (SpeechLine line in speechManager.lines)
 			{
+				if (line.ignoreDuringExport)
+				{
+					continue;
+				}
+
 				if (filterByType)
 				{
 					if (!IsTextTypeFiltered (line.textType))
@@ -400,12 +395,11 @@ namespace AC
 
 			List<string[]> output = new List<string[]>();
 
-			string[] languagesArray = speechManager.languages.ToArray ();
 			List<string> headerList = new List<string>();
 			headerList.Add ("ID");
 			foreach (ExportColumn exportColumn in exportColumns)
 			{
-				headerList.Add (exportColumn.GetHeader (languagesArray));
+				headerList.Add (exportColumn.GetHeader (speechManager.GetLanguageNameArray ()));
 			}
 			output.Add (headerList.ToArray ());
 		
@@ -463,11 +457,15 @@ namespace AC
 
 			public void ShowFieldSelector (int i)
 			{
-				columnType = (ColumnType) EditorGUILayout.EnumPopup ("Column #" + (i+1).ToString (), columnType);
+				columnType = (ColumnType) EditorGUILayout.EnumPopup ("Column #" + (i+1).ToString () + ":", columnType);
 
 				if (columnType == ColumnType.AudioFilePresence && KickStarter.speechManager.referenceSpeechFiles == ReferenceSpeechFiles.ByAssetBundle)
 				{
 					EditorGUILayout.HelpBox ("Presence from asset bundles cannot be determined in Edit mode - files will be searched for in Resources folders.", MessageType.Warning);
+				}
+				else if (columnType == ColumnType.AudioFilePresence && KickStarter.speechManager.referenceSpeechFiles == ReferenceSpeechFiles.ByAddressable)
+				{
+					EditorGUILayout.HelpBox ("Presence of Addressable assets cannot be determined in Edit mode.", MessageType.Warning);
 				}
 			}
 
@@ -596,11 +594,11 @@ namespace AC
 								if (speechLine.HasAudio (0))
 								{
 									string missingLabel = "Missing ";
-									for (int i=1; i<KickStarter.speechManager.languages.Count; i++)
+									for (int i=1; i<KickStarter.speechManager.Languages.Count; i++)
 									{
 										if (!speechLine.HasAudio (i))
 										{
-											missingLabel += KickStarter.speechManager.languages[i] + ", ";
+											missingLabel += KickStarter.speechManager.Languages[i].name + ", ";
 										}
 									}
 									if (missingLabel.EndsWith (", "))

@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"SubScene.cs"
  * 
@@ -27,6 +27,7 @@ namespace AC
 		#region Variables
 
 		protected int sceneIndex;
+		protected string sceneName;
 
 		protected LocalVariables localVariables;
 		protected SceneSettings sceneSettings;
@@ -46,6 +47,7 @@ namespace AC
 			if (selfInitialise && KickStarter.sceneChanger)
 			{
 				sceneIndex = gameObject.scene.buildIndex;
+				sceneName = gameObject.scene.name;
 				KickStarter.sceneChanger.RegisterSubScene (this);
 			}
 		}
@@ -74,6 +76,7 @@ namespace AC
 			kickStarter = _multiSceneChecker.GetComponent <KickStarter>();
 
 			sceneIndex = scene.buildIndex;
+			sceneName = scene.name;
 			gameObject.name = "SubScene " + sceneIndex;
 
 			localVariables = _multiSceneChecker.GetComponent <LocalVariables>();
@@ -99,6 +102,13 @@ namespace AC
 			{
 				ACDebug.LogError ("The added scene (" + scene.name + ", " + scene.buildIndex + ") overrides the default camera perspective - this feature should not be used in conjunction with multiple-open scenes.", gameObject);
 			}
+
+			if (KickStarter.sceneChanger == null)
+			{
+				ACDebug.LogWarning ("Cannot register " + scene.name + " as a sub-scene - no SceneChanger component was found. Is the main scene an AC scene?", this);
+				return;
+			}
+
 			KickStarter.sceneChanger.RegisterSubScene (this);
 		}
 
@@ -133,9 +143,7 @@ namespace AC
 
 		#region GetSet
 
-		/**
-		 * Gets the build index for the scene that this component represents.
-		 */
+		/** Gets the build index of the scene that this component represents. */
 		public int SceneIndex
 		{
 			get
@@ -145,9 +153,17 @@ namespace AC
 		}
 
 
-		/**
-		 * Gets the LocalVariables for the scene that this component represents.
-		 */
+		/** Gets the name the scene that this component represents. */
+		public string SceneName
+		{
+			get
+			{
+				return sceneName;
+			}
+		}
+
+
+		/** Gets the LocalVariables for the scene that this component represents. */
 		public LocalVariables LocalVariables
 		{
 			get
@@ -157,9 +173,7 @@ namespace AC
 		}
 
 
-		/**
-		 * Gets the SceneSettings for the scene that this component represents.
-		 */
+		/** Gets the SceneSettings for the scene that this component represents. */
 		public SceneSettings SceneSettings
 		{
 			get

@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"ActionScene.cs"
  * 
@@ -55,36 +55,79 @@ namespace AC
 		
 		public override float Run ()
 		{
-			if (sceneNumber > -1 || chooseSceneBy == ChooseSceneBy.Name)
+			switch (chooseSceneBy)
 			{
-				int runtimeSceneIndex = (chooseSceneBy == ChooseSceneBy.Name) ? KickStarter.sceneChanger.NameToIndex (sceneName) : sceneNumber;
+				case ChooseSceneBy.Number:
+					if (sceneNumber < 0) return 0f;
+					break;
 
-				if (runtimeSceneIndex < 0) return 0f;
-
-				if (onlyPreload)
-				{
-					if (AdvGame.GetReferences ().settingsManager.useAsyncLoading)
-					{
-						KickStarter.sceneChanger.PreloadScene (runtimeSceneIndex);
-					}
-					else if (AdvGame.GetReferences ().settingsManager.useLoadingScreen)
-					{
-						LogWarning ("Scenes cannot be preloaded when loading scenes are used in the Settings Manager.");
-					}
-					else
-					{
-						LogWarning ("To pre-load scenes, 'Load scenes asynchronously?' must be enabled in the Settings Manager.");
-					}
-					return 0f;
-				}
-
-				if (relativePosition && runtimeRelativeMarker != null)
-				{
-					KickStarter.sceneChanger.SetRelativePosition (runtimeRelativeMarker);
-				}
-
-				KickStarter.sceneChanger.ChangeScene (runtimeSceneIndex, true, forceReload, assignScreenOverlay);
+				case ChooseSceneBy.Name:
+					if (string.IsNullOrEmpty (sceneName)) return 0f;
+					break;
 			}
+
+			switch (KickStarter.settingsManager.referenceScenesInSave)
+			{
+				case ChooseSceneBy.Name:
+					string runtimeSceneName = (chooseSceneBy == ChooseSceneBy.Name) ? sceneName : KickStarter.sceneChanger.IndexToName (sceneNumber);
+					if (string.IsNullOrEmpty (runtimeSceneName)) return 0f;
+
+					if (onlyPreload)
+					{
+						if (AdvGame.GetReferences ().settingsManager.useAsyncLoading)
+						{
+							KickStarter.sceneChanger.PreloadScene (runtimeSceneName);
+						}
+						else if (AdvGame.GetReferences ().settingsManager.useLoadingScreen)
+						{
+							LogWarning ("Scenes cannot be preloaded when loading scenes are used in the Settings Manager.");
+						}
+						else
+						{
+							LogWarning ("To pre-load scenes, 'Load scenes asynchronously?' must be enabled in the Settings Manager.");
+						}
+						return 0f;
+					}
+
+					if (relativePosition && runtimeRelativeMarker != null)
+					{
+						KickStarter.sceneChanger.SetRelativePosition (runtimeRelativeMarker);
+					}
+
+					KickStarter.sceneChanger.ChangeScene (runtimeSceneName, true, forceReload, assignScreenOverlay);
+					break;
+
+				case ChooseSceneBy.Number:
+				default:
+					int runtimeSceneIndex = (chooseSceneBy == ChooseSceneBy.Name) ? KickStarter.sceneChanger.NameToIndex (sceneName) : sceneNumber;
+					if (runtimeSceneIndex < 0) return 0f;
+
+					if (onlyPreload)
+					{
+						if (AdvGame.GetReferences ().settingsManager.useAsyncLoading)
+						{
+							KickStarter.sceneChanger.PreloadScene (runtimeSceneIndex);
+						}
+						else if (AdvGame.GetReferences ().settingsManager.useLoadingScreen)
+						{
+							LogWarning ("Scenes cannot be preloaded when loading scenes are used in the Settings Manager.");
+						}
+						else
+						{
+							LogWarning ("To pre-load scenes, 'Load scenes asynchronously?' must be enabled in the Settings Manager.");
+						}
+						return 0f;
+					}
+
+					if (relativePosition && runtimeRelativeMarker != null)
+					{
+						KickStarter.sceneChanger.SetRelativePosition (runtimeRelativeMarker);
+					}
+
+					KickStarter.sceneChanger.ChangeScene (runtimeSceneIndex, true, forceReload, assignScreenOverlay);
+					break;
+			}
+
 			return 0f;
 		}
 		
@@ -96,7 +139,7 @@ namespace AC
 			chooseSceneBy = (ChooseSceneBy) EditorGUILayout.EnumPopup ("Choose scene by:", chooseSceneBy);
 			if (chooseSceneBy == ChooseSceneBy.Name)
 			{
-				sceneNameParameterID = Action.ChooseParameterGUI ("Scene name:", parameters, sceneNameParameterID, ParameterType.String);
+				sceneNameParameterID = Action.ChooseParameterGUI ("Scene name:", parameters, sceneNameParameterID, new ParameterType[2] { ParameterType.String, ParameterType.PopUp });
 				if (sceneNameParameterID < 0)
 				{
 					sceneName = EditorGUILayout.TextField ("Scene name:", sceneName);
@@ -176,13 +219,23 @@ namespace AC
 		{
 			if (relativePosition && relativeMarkerParameterID < 0)
 			{
-				if (relativeMarker != null && relativeMarker.gameObject == gameObject) return true;
+				if (relativeMarker && relativeMarker.gameObject == gameObject) return true;
 				if (relativeMarkerID == id && id != 0) return true;
 			}
 			return base.ReferencesObjectOrID (gameObject, id);
 		}
 
 		#endif
+
+
+		public override int GetNextOutputIndex ()
+		{
+			if (NumSockets > 0)
+			{
+				return 0;
+			}
+			return -1;
+		}
 
 
 		/**

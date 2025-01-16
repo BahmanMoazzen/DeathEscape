@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"ActionCheck.cs"
  * 
@@ -19,9 +19,7 @@ using UnityEditor;
 namespace AC
 {
 
-	/**
-	 * An Action subclass that allows for two different outcomes based on a boolean check.
-	 */
+	/** An Action subclass that allows for two different outcomes based on a boolean check. */
 	[System.Serializable]
 	public class ActionCheck : Action
 	{

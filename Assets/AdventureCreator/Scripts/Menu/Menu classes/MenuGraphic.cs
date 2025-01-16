@@ -5,7 +5,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"MenuGraphic.cs"
  * 
@@ -24,15 +24,13 @@ using UnityEditor;
 namespace AC
 {
 
-	/**
-	 * A MenuElement that provides a space for animated or still images.
-	 */
+	/** A MenuElement that provides a space for animated or still images. */
 	public class MenuGraphic : MenuElement
 	{
 
 		/** The Unity UI Image this is linked to (Unity UI Menus only) */
 		public Image uiImage;
-		/** The type of graphic that is shown (Normal, DialogPortrait, DocumentTexture, ObjectiveTexture) */
+		/** The type of graphic that is shown (Normal, DialoguePortrait, DocumentTexture, ObjectiveTexture) */
 		public AC_GraphicType graphicType = AC_GraphicType.Normal;
 		/** The CursorIconBase that stores the graphic and animation data */
 		public CursorIconBase graphic;
@@ -51,9 +49,6 @@ namespace AC
 		private bool isDuppingSpeech;
 
 
-		/**
-		 * Initialises the element when it is created within MenuManager.
-		 */
 		public override void Declare ()
 		{
 			uiImage = null;
@@ -112,11 +107,6 @@ namespace AC
 		}
 		
 
-		/**
-		 * <summary>Gets the boundary of a slot</summary>
-		 * <param name = "_slot">Ignored by this subclass</param>
-		 * <returns>The boundary Rect of the slot</returns>
-		 */
 		public override RectTransform GetRectTransform (int _slot)
 		{
 			if (uiImageType == UIImageType.Image && uiImage)
@@ -177,6 +167,20 @@ namespace AC
 		}
 
 
+		public override int GetSlotIndex (GameObject gameObject)
+		{
+			if (uiImageType == UIImageType.Image && uiImage && uiImage.gameObject == gameObject)
+			{
+				return 0;
+			}
+			if (uiImageType == UIImageType.RawImage && uiRawImage && uiRawImage.gameObject == gameObject)
+			{
+				return 0;
+			}
+			return base.GetSlotIndex (gameObject);
+		}
+
+
 		/**
 		 * <summary>Updates the element's texture, provided that its graphicType = AC_GraphicType.Normal</summary>
 		 * <param name = "newTexture">The new texture to assign the element</param>
@@ -196,14 +200,15 @@ namespace AC
 			if (!isDuppingSpeech && KickStarter.dialog.GetLatestSpeech () != null)
 			{
 				speech = KickStarter.dialog.GetLatestSpeech ();
+
+				if (parentMenu != null && !speech.MenuCanShow (parentMenu))
+				{
+					speech = null;
+				}
 			}
 		}
 		
 
-		/**
-		 * <summary>Assigns the element to a specific Speech line.</summary>
-		 * <param name = "_speech">The Speech line to assign the element to</param>
-		 */
 		public override void SetSpeech (Speech _speech)
 		{
 			isDuppingSpeech = true;
@@ -211,9 +216,6 @@ namespace AC
 		}
 		
 
-		/**
-		 * Clears any speech text on display.
-		 */
 		public override void ClearSpeech ()
 		{
 			if (graphicType == AC_GraphicType.DialoguePortrait)
@@ -302,13 +304,6 @@ namespace AC
 		}
 
 
-		/**
-		 * <summary>Draws the element using OnGUI</summary>
-		 * <param name = "_style">The GUIStyle to draw with</param>
-		 * <param name = "_slot">Ignored by this subclass</param>
-		 * <param name = "zoom">The zoom factor</param>
-		 * <param name = "isActive">If True, then the element will be drawn as though highlighted</param>
-		 */
 		public override void Display (GUIStyle _style, int _slot, float zoom, bool isActive)
 		{
 			base.Display (_style, _slot, zoom, isActive);
@@ -369,11 +364,6 @@ namespace AC
 		}
 		
 
-		/**
-		 * <summary>Recalculates the element's size.
-		 * This should be called whenever a Menu's shape is changed.</summary>
-		 * <param name = "source">How the parent Menu is displayed (AdventureCreator, UnityUiPrefab, UnityUiInScene)</param>
-		 */
 		public override void RecalculateSize (MenuSource source)
 		{
 			graphic.Reset ();
@@ -464,9 +454,6 @@ namespace AC
 				portraitCharacterOverride = value;
 			}
 		}
-
-
-
 		
 	}
 	

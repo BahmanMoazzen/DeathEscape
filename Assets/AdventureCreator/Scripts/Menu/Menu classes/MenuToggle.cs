@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"MenuToggle.cs"
  * 
@@ -35,6 +35,9 @@ namespace AC
 		public ActionListAsset actionListOnClick = null;
 		/** The text that's displayed on-screen */
 		public string label;
+		/** A string to append to the label, before the value */
+		public string labelSuffix = defaultLabelSuffix;
+		private const string defaultLabelSuffix = " : ";
 		/** If True, then the toggle will be in its "on" state by default */
 		public bool isOn;
 		/** The special FX applied to the text (None, Outline, Shadow, OutlineAndShadow) */
@@ -63,7 +66,11 @@ namespace AC
 		/** The translation ID of the 'off' text, as set within SpeechManager */
 		public int offTextLineID = -1;
 
+		#if TextMeshProIsPresent
+		private TMPro.TextMeshProUGUI uiText;
+		#else
 		private Text uiText;
+		#endif
 		private string fullText;
 
 
@@ -72,6 +79,7 @@ namespace AC
 			uiToggle = null;
 			uiText = null;
 			label = "Toggle";
+			labelSuffix = defaultLabelSuffix;
 			isOn = false;
 			isVisible = true;
 			isClickable = true;
@@ -118,6 +126,7 @@ namespace AC
 
 			uiText = null;
 			label = _element.label;
+			labelSuffix = _element.labelSuffix;
 			isOn = _element.isOn;
 			textEffects = _element.textEffects;
 			outlineSize = _element.outlineSize;
@@ -144,7 +153,11 @@ namespace AC
 			uiToggle = LinkUIElement <Toggle> (canvas);
 			if (uiToggle)
 			{
+				#if TextMeshProIsPresent
+				uiText = uiToggle.GetComponentInChildren <TMPro.TextMeshProUGUI>();
+				#else
 				uiText = uiToggle.GetComponentInChildren <Text>();
+				#endif
 
 				uiToggle.interactable = isClickable;
 				if (isClickable)
@@ -209,6 +222,10 @@ namespace AC
 			}
 
 			label = CustomGUILayout.TextField ("Label text:", label, apiPrefix + ".label", "The text that's displayed on-screen");
+			if (!string.IsNullOrEmpty (label))
+			{
+				labelSuffix = CustomGUILayout.TextField ("Label suffix:", labelSuffix, apiPrefix + ".labelSuffix", "A string to append to the label, before the value");
+			}
 			appendState = CustomGUILayout.Toggle ("Append state to label?", appendState, apiPrefix + ".appendState", "If True, then the state (On/Off) will be added to the display label");
 			if (appendState)
 			{
@@ -277,8 +294,8 @@ namespace AC
 		{
 			int numFound = 0;
 
-			string tokenText = "[var:" + _varID.ToString () + "]";
-			if (label.Contains (tokenText))
+			string tokenText = AdvGame.GetVariableTokenText (VariableLocation.Global, _varID);
+			if (label.ToLower ().Contains (tokenText))
 			{
 				numFound ++;
 			}
@@ -288,7 +305,29 @@ namespace AC
 				numFound ++;
 			}
 
-			return numFound + base.GetVariableReferences (_varID);
+			return numFound;
+		}
+
+
+		public override int UpdateVariableReferences (int oldVarID, int newVarID)
+		{
+			int numFound = 0;
+
+			string oldTokenText = AdvGame.GetVariableTokenText (VariableLocation.Global, oldVarID);
+			if (label.ToLower ().Contains (oldTokenText))
+			{
+				string newTokenText = AdvGame.GetVariableTokenText (VariableLocation.Global, newVarID);
+				label = label.Replace (oldTokenText, newTokenText);
+				numFound++;
+			}
+
+			if (toggleType == AC_ToggleType.Variable && varID == oldVarID)
+			{
+				numFound++;
+				varID = newVarID;
+			}
+
+			return numFound;
 		}
 
 
@@ -310,16 +349,30 @@ namespace AC
 		}
 
 
+		public override int GetSlotIndex (GameObject gameObject)
+		{
+			if (uiToggle && uiToggle.gameObject == gameObject)
+			{
+				return 0;
+			}
+			if (uiText && uiText.gameObject == gameObject)
+			{
+				return 0;
+			}
+			return base.GetSlotIndex (gameObject);
+		}
+
+
 		public override void PreDisplay (int _slot, int languageNumber, bool isActive)
 		{
 			CalculateValue ();
 
-			fullText = TranslateLabel (label, languageNumber);
+			fullText = TranslateLabel (languageNumber);
 			if (appendState)
 			{
 				if (!string.IsNullOrEmpty (fullText))
 				{
-					fullText += " : ";
+					fullText += labelSuffix;
 				}
 
 				if (languageNumber == 0)
@@ -358,13 +411,6 @@ namespace AC
 		}
 		
 
-		/**
-		 * <summary>Draws the element using OnGUI</summary>
-		 * <param name = "_style">The GUIStyle to draw with</param>
-		 * <param name = "_slot">Ignored by this subclass</param>
-		 * <param name = "zoom">The zoom factor</param>
-		 * <param name = "isActive">If True, then the element will be drawn as though highlighted</param>
-		 */
 		public override void Display (GUIStyle _style, int _slot, float zoom, bool isActive)
 		{
 			base.Display (_style, _slot, zoom, isActive);
@@ -394,21 +440,24 @@ namespace AC
 				GUI.Label (rect, fullText, _style);
 			}
 		}
-		
 
-		/**
-		 * <summary>Gets the display text of the element</summary>
-		 * <param name = "slot">Ignored by this subclass</param>
-		 * <param name = "languageNumber">The index number of the language number to get the text in</param>
-		 * <returns>The display text of the element</returns>
-		 */
+
+		protected override string GetLabelToTranslate ()
+		{
+			return label;
+		}
+
+
 		public override string GetLabel (int slot, int languageNumber)
 		{
-			string baseLabel = TranslateLabel (label, languageNumber);
+			string baseLabel = TranslateLabel (languageNumber);
 
 			if (appendState)
 			{
-				baseLabel += " : ";
+				if (!string.IsNullOrEmpty (baseLabel))
+				{
+					baseLabel += labelSuffix;
+				}
 
 				if (isOn)
 				{
@@ -533,11 +582,11 @@ namespace AC
 			int languageNumber = Options.GetLanguage ();
 			if (appendState)
 			{
-				AutoSize (new GUIContent (TranslateLabel (label, languageNumber) + " : Off"));
+				AutoSize (new GUIContent (TranslateLabel (languageNumber) + " : Off"));
 			}
 			else
 			{
-				AutoSize (new GUIContent (TranslateLabel (label, languageNumber)));
+				AutoSize (new GUIContent (TranslateLabel (languageNumber)));
 			}
 		}
 

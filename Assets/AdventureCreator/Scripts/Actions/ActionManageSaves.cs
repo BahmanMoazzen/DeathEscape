@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"ActionManageSaves.cs"
  * 
@@ -29,7 +29,9 @@ namespace AC
 		public int saveIndex = 0;
 		public int saveIndexParameterID = -1;
 
-		public int varID;
+		[SerializeField] private int varID;
+		public string customLabel;
+		public bool preProcessTokens = true;
 		public int slotVarID;
 		
 		public string menuName = "";
@@ -43,6 +45,7 @@ namespace AC
 
 		public override void AssignValues (List<ActionParameter> parameters)
 		{
+			UpgradeSelf ();
 			saveIndex = AssignInteger (parameters, saveIndexParameterID, saveIndex);
 		}
 		
@@ -52,15 +55,10 @@ namespace AC
 			string newSaveLabel = string.Empty;
 			if (manageSaveType == ManageSaveType.RenameSave)
 			{
-				GVar gVar = GlobalVariables.GetVariable (varID);
-				if (gVar != null)
+				newSaveLabel = customLabel;
+				if (preProcessTokens)
 				{
-					newSaveLabel = gVar.TextValue;
-				}
-				else
-				{
-					LogWarning ("Could not " + manageSaveType.ToString () + " - no variable found.");
-					return 0f;
+					newSaveLabel = AdvGame.ConvertTokens (newSaveLabel);
 				}
 			}
 
@@ -145,11 +143,13 @@ namespace AC
 		
 		public override void ShowGUI (List<ActionParameter> parameters)
 		{
+			UpgradeSelf ();
 			manageSaveType = (ManageSaveType) EditorGUILayout.EnumPopup ("Method:", manageSaveType);
 			
 			if (manageSaveType == ManageSaveType.RenameSave)
 			{
-				varID = AdvGame.GlobalVariableGUI ("Label as String variable:", varID, VariableType.String);
+				customLabel = EditorGUILayout.TextField ("New label text:", customLabel);
+				preProcessTokens = EditorGUILayout.Toggle ("Pre-process tokens?", preProcessTokens);
 			}
 
 			string _action = "delete";
@@ -198,8 +198,58 @@ namespace AC
 		{
 			return manageSaveType.ToString ();
 		}
-		
+
+
+		public override int GetNumVariableReferences (VariableLocation location, int varID, List<ActionParameter> parameters, Variables variables = null, int variablesConstantID = 0)
+		{
+			int thisNumReferences = 0;
+			UpgradeSelf ();
+
+			if (manageSaveType == ManageSaveType.RenameSave)
+			{
+				string tokenText = AdvGame.GetVariableTokenText (location, varID, variablesConstantID);
+				if (!string.IsNullOrEmpty (customLabel) && customLabel.ToLower ().Contains (tokenText))
+				{
+					thisNumReferences ++;
+				}
+			}
+
+			thisNumReferences += base.GetNumVariableReferences (location, varID, parameters, variables, variablesConstantID);
+			return thisNumReferences;
+		}
+
+
+		public override int UpdateVariableReferences (VariableLocation location, int oldVarID, int newVarID, List<ActionParameter> parameters, Variables variables = null, int variablesConstantID = 0)
+		{
+			int thisNumReferences = 0;
+			UpgradeSelf ();
+
+			if (manageSaveType == ManageSaveType.RenameSave)
+			{
+				string oldTokenText = AdvGame.GetVariableTokenText (location, oldVarID, variablesConstantID);
+				if (!string.IsNullOrEmpty (customLabel) && customLabel.ToLower ().Contains (oldTokenText))
+				{
+					string newTokenText = AdvGame.GetVariableTokenText (location, newVarID, variablesConstantID);
+					customLabel = customLabel.Replace (oldTokenText, newTokenText);
+					thisNumReferences++;
+				}
+			}
+
+			thisNumReferences += base.UpdateVariableReferences (location, oldVarID, newVarID, parameters, variables, variablesConstantID);
+			return thisNumReferences;
+		}
+
 		#endif
+
+
+		public void UpgradeSelf ()
+		{
+			if (string.IsNullOrEmpty (customLabel) && varID >= 0)
+			{
+				customLabel = "[var:" + varID + "]";
+				varID = -1;
+			}
+		}
 
 
 		/**

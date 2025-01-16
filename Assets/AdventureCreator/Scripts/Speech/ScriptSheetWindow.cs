@@ -8,9 +8,7 @@ using UnityEditor;
 namespace AC
 {
 	
-	/**
-	 * Provides an EditorWindow to manage the export of script-sheets
-	 */
+	/** Provides an EditorWindow to manage the export of script-sheets */
 	public class ScriptSheetWindow : EditorWindow
 	{
 
@@ -60,9 +58,9 @@ namespace AC
 			EditorGUILayout.HelpBox ("Check the settings below and click 'Create' to save a new script sheet.", MessageType.Info);
 			EditorGUILayout.Space ();
 			
-			if (speechManager.languages.Count > 1)
+			if (speechManager.Languages.Count > 1)
 			{
-				languageIndex = EditorGUILayout.Popup ("Language:", languageIndex, speechManager.languages.ToArray ());
+				languageIndex = EditorGUILayout.Popup ("Language:", languageIndex, speechManager.GetLanguageNameArray ());
 			}
 			else
 			{
@@ -111,7 +109,10 @@ namespace AC
 				}
 			}
 
-			limitToMissingAudio = EditorGUILayout.Toggle ("Limit to lines with no audio?", limitToMissingAudio);
+			if (speechManager.referenceSpeechFiles != ReferenceSpeechFiles.ByAddressable)
+			{
+				limitToMissingAudio = EditorGUILayout.Toggle ("Limit to lines with no audio?", limitToMissingAudio);
+			}
 
 			includeDescriptions = EditorGUILayout.Toggle ("Include descriptions?", includeDescriptions);
 			removeTokens = EditorGUILayout.Toggle ("Remove text tokens?", removeTokens);
@@ -161,7 +162,7 @@ namespace AC
 			suggestedFilename += " - ";
 			if (languageIndex > 0)
 			{
-				suggestedFilename += speechManager.languages[languageIndex] + " ";
+				suggestedFilename += speechManager.Languages[languageIndex].name + " ";
 			}
 			suggestedFilename += "script.html";
 			
@@ -177,7 +178,7 @@ namespace AC
 				gameName = AdvGame.GetReferences ().settingsManager.saveFileName;
 				if (languageIndex > 0)
 				{
-					gameName += " (" + speechManager.languages[languageIndex] + ")";
+					gameName += " (" + speechManager.Languages[languageIndex].name + ")";
 				}
 			}
 			

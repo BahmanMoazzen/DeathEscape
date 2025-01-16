@@ -363,7 +363,14 @@ namespace AC
 			{
 				if (queuedSoundtrack.Count > 0 && queuedSoundtrack[0].trackID == trackID)
 				{
-					// Already playing, ignore
+					// Already playing
+					if (resumeIfPlayedBefore)
+					{
+						QueuedSoundtrack track = queuedSoundtrack[0];
+						track.trackLoop = loop;
+						audioSource.loop = loop;
+						queuedSoundtrack[0] = track;
+					}
 					return 0f;
 				}
 				

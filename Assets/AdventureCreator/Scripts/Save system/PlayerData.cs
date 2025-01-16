@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"PlayerData.cs"
  * 
@@ -34,14 +34,16 @@ namespace AC
 		public int playerID = 0;
 		/** The current scene number */
 		public int currentScene = -1;
-		/** Deprecated - use currentScene instead */
-		public string currentSceneName;
+		/** The current scene name */
+		public string currentSceneName = "";
 		/** The last-visited scene number */
 		public int previousScene = -1;
-		/** Deprecated - use previousScene instead */
-		public string previousSceneName;
-		/** The details any sub-scenes that are also open */
+		/** The last-visited scene name */
+		public string previousSceneName = "";
+		/** The details any sub-scenes that are also open (as build indices) */
 		public string openSubScenes = "";
+		/** The details any sub-scenes that are also open (as names) */
+		public string openSubSceneNames = "";
 
 		/** The Player's X position */
 		public float playerLocX = 0f;
@@ -89,6 +91,8 @@ namespace AC
 		public bool playerLockedPath = false;
 		/** True if the Player is locked along a Path, and going backwards */
 		public bool playerLockedPathReversing = false;
+		/** The type of Path the Player is locked along, if playerLockedPathReversing = true */
+		public int playerLockedPathType;
 		/** The Constant ID number of the Player's current Path */
 		public int playerActivePath = 0;
 		/** True if the Player's current Path affects the Y position */
@@ -249,53 +253,20 @@ namespace AC
 		public void UpdatePosition (int newSceneIndex, TeleportPlayerStartMethod teleportPlayerStartMethod, int playerStartID)
 		{
 			UpdateCurrentAndShiftPrevious (newSceneIndex);
+			OnUpdatePosition (newSceneIndex == SceneChanger.CurrentSceneIndex, teleportPlayerStartMethod, playerStartID);
+		}
 
-			tempPlayerStart = 0;
-			if (newSceneIndex == SceneChanger.CurrentSceneIndex)
-			{
-				// Updating position to the current scene
-				PlayerStart playerStart = null;
 
-				switch (teleportPlayerStartMethod)
-				{
-					case TeleportPlayerStartMethod.BasedOnPrevious:
-						playerStart = KickStarter.sceneSettings.GetPlayerStart (playerID);
-						break;
-
-					case TeleportPlayerStartMethod.EnteredHere:
-						if (playerStartID != 0)
-						{
-							playerStart = ConstantID.GetComponent <PlayerStart> (playerStartID);
-						}
-						break;
-
-					case TeleportPlayerStartMethod.SceneDefault:
-						playerStart = KickStarter.sceneSettings.defaultPlayerStart;
-						break;
-
-					default:
-						break;
-				}
-
-				if (playerStart)
-				{
-					UpdatePositionFromPlayerStart (playerStart);
-				}
-				else if (teleportPlayerStartMethod == TeleportPlayerStartMethod.EnteredHere && playerStartID != 0)
-				{
-					ACDebug.LogWarning ("Cannot find PlayerStart with Constant ID = " + playerStartID + " for Player ID = " + playerID + " in the current scene.");
-				}
-				else
-				{
-					ACDebug.LogWarning ("Cannot find suitable PlayerStart for Player ID = " + playerID + " in the current scene");
-				}
-			}
-			else
-			{
-				// Position is being set in another scene, so keep a record of it
-				tempTeleportPlayerStartMethod = teleportPlayerStartMethod;
-				tempPlayerStart = (teleportPlayerStartMethod == TeleportPlayerStartMethod.EnteredHere) ? playerStartID : -1;
-			}
+		/**
+		 * <summary>Updates the record of the Player's current position</summary>
+		 * <param name = "newSceneName">The scene in which to place the Player in</param>
+		 * <param name = "teleportPlayerStartMethod">How to select which PlayerStart to appear at (SceneDefault, BasedOnPrevious, EnteredHere)</param>
+		 * <param name = "playerStartID">The Constant ID value of the PlayerStart for the Player to appear at</param>
+		 */
+		public void UpdatePosition (string newSceneName, TeleportPlayerStartMethod teleportPlayerStartMethod, int playerStartID)
+		{
+			UpdateCurrentAndShiftPrevious (newSceneName);
+			OnUpdatePosition (newSceneName == SceneChanger.CurrentSceneName, teleportPlayerStartMethod, playerStartID);
 		}
 
 
@@ -307,6 +278,7 @@ namespace AC
 		public void UpdatePosition (TeleportPlayerStartMethod teleportPlayerStartMethod, PlayerStart playerStart)
 		{
 			UpdateCurrentAndShiftPrevious (SceneChanger.CurrentSceneIndex);
+			UpdateCurrentAndShiftPrevious (SceneChanger.CurrentSceneName);
 
 			tempPlayerStart = 0;
 
@@ -330,6 +302,7 @@ namespace AC
 		public void CopyPosition (PlayerData playerData)
 		{
 			UpdateCurrentAndShiftPrevious (playerData.currentScene);
+			UpdateCurrentAndShiftPrevious (playerData.currentSceneName);
 			
 			tempPlayerStart = 0;
 
@@ -388,13 +361,27 @@ namespace AC
 				{
 					playerPrefab.SpawnInScene (false);
 				}
-				else if (SceneChanger.CurrentSceneIndex == currentScene)
+				else if ((KickStarter.settingsManager.referenceScenesInSave == ChooseSceneBy.Name && SceneChanger.CurrentSceneName == currentSceneName) ||
+						 (KickStarter.settingsManager.referenceScenesInSave == ChooseSceneBy.Number && SceneChanger.CurrentSceneIndex == currentScene))
 				{
 					playerPrefab.SpawnInScene (false);
 				}
 				else
 				{
-					SubScene subScene = KickStarter.sceneChanger.GetSubScene (currentScene);
+					SubScene subScene = null;
+					
+					switch (KickStarter.settingsManager.referenceScenesInSave)
+					{
+						case ChooseSceneBy.Name:
+							subScene = KickStarter.sceneChanger.GetSubScene (currentSceneName);
+							break;
+
+						case ChooseSceneBy.Number:
+						default:
+							subScene = KickStarter.sceneChanger.GetSubScene (currentScene);
+							break;
+					}
+
 					if (subScene != null)
 					{
 						playerPrefab.SpawnInScene (subScene.gameObject.scene);
@@ -411,10 +398,27 @@ namespace AC
 		public void SpawnIfFollowingActive ()
 		{
 			if (KickStarter.saveSystem.CurrentPlayerID != playerID &&
-				currentScene != SceneChanger.CurrentSceneIndex &&
 				followTargetIsPlayer &&
 				followAcrossScenes)
 			{
+				switch (KickStarter.settingsManager.referenceScenesInSave)
+				{
+					case ChooseSceneBy.Name:
+						if (currentSceneName == SceneChanger.CurrentSceneName)
+						{
+							return;
+						}
+						break;
+
+					case ChooseSceneBy.Number:
+					default:
+						if (currentScene == SceneChanger.CurrentSceneIndex)
+						{
+							return;
+						}
+						break;
+				}
+
 				ClearPathData ();
 				UpdatePosition (SceneChanger.CurrentSceneIndex, TeleportPlayerStartMethod.BasedOnPrevious, 0);
 				UpdatePresenceInScene ();
@@ -444,10 +448,75 @@ namespace AC
 			}
 		}
 
+
+		/**
+		 * <summary>Updates the internal record of the player's current scene</summary>
+		 * <param name = "newSceneIndex">The index of the new scene</param>
+		 */
+		public void UpdateCurrentAndShiftPrevious (string newSceneName)
+		{
+			if (currentSceneName != newSceneName)
+			{
+				previousSceneName = currentSceneName;
+				currentSceneName = newSceneName;
+			}
+		}
+
 		#endregion
 
 
 		#region PrivateFunctions
+
+		private void OnUpdatePosition (bool inScene, TeleportPlayerStartMethod teleportPlayerStartMethod, int playerStartID)
+		{
+			tempPlayerStart = 0;
+			if (inScene)
+			{
+				// Updating position to the current scene
+				PlayerStart playerStart = null;
+
+				switch (teleportPlayerStartMethod)
+				{
+					case TeleportPlayerStartMethod.BasedOnPrevious:
+						playerStart = KickStarter.sceneSettings.GetPlayerStart (playerID);
+						break;
+
+					case TeleportPlayerStartMethod.EnteredHere:
+						if (playerStartID != 0)
+						{
+							playerStart = ConstantID.GetComponent<PlayerStart> (playerStartID);
+						}
+						break;
+
+					case TeleportPlayerStartMethod.SceneDefault:
+						playerStart = KickStarter.sceneSettings.defaultPlayerStart;
+						break;
+
+					default:
+						break;
+				}
+
+				if (playerStart)
+				{
+					UpdatePositionFromPlayerStart (playerStart);
+				}
+				else if (teleportPlayerStartMethod == TeleportPlayerStartMethod.EnteredHere && playerStartID != 0)
+				{
+					ACDebug.LogWarning ("Cannot find PlayerStart with Constant ID = " + playerStartID + " for Player ID = " + playerID + " in the current scene.");
+				}
+				else
+				{
+					ACDebug.LogWarning ("Cannot find suitable PlayerStart for Player ID = " + playerID + " in the current scene");
+				}
+			}
+			else
+			{
+				// Position is being set in another scene, so keep a record of it
+				tempTeleportPlayerStartMethod = teleportPlayerStartMethod;
+				tempPlayerStart = (teleportPlayerStartMethod == TeleportPlayerStartMethod.EnteredHere) ? playerStartID : -1;
+			}
+		}
+
 
 		private void UpdatePositionFromPlayerStart (PlayerStart playerStart)
 		{
@@ -529,9 +598,18 @@ namespace AC
 				CustomGUILayout.MultiLineLabelGUI ("Player ID:", playerID.ToString ());
 
 				EditorGUILayout.LabelField ("Scene info:");
-				CustomGUILayout.MultiLineLabelGUI ("   Current scene:", currentScene.ToString ());
-				CustomGUILayout.MultiLineLabelGUI ("   Previous scene:", previousScene.ToString ());
-				CustomGUILayout.MultiLineLabelGUI ("   Sub-scenes:", openSubScenes);
+				if (KickStarter.settingsManager && KickStarter.settingsManager.referenceScenesInSave == ChooseSceneBy.Name)
+				{
+					if (!string.IsNullOrEmpty (currentSceneName)) CustomGUILayout.MultiLineLabelGUI ("   Current:", currentSceneName.ToString ());
+					if (!string.IsNullOrEmpty (previousSceneName)) CustomGUILayout.MultiLineLabelGUI ("   Previous:", previousSceneName.ToString ());
+					if (!string.IsNullOrEmpty (openSubSceneNames)) CustomGUILayout.MultiLineLabelGUI ("   Sub-scenes:", openSubSceneNames.ToString ());
+				}
+				else
+				{
+					CustomGUILayout.MultiLineLabelGUI ("   Current:", currentScene.ToString ());
+					CustomGUILayout.MultiLineLabelGUI ("   Previous:", previousScene.ToString ());
+					CustomGUILayout.MultiLineLabelGUI ("   Sub-scenes:", openSubScenes);
+				}
 				if (tempPlayerStart != 0)
 				{
 					CustomGUILayout.MultiLineLabelGUI ("   PlayerStart ID:", tempPlayerStart.ToString ());
@@ -637,6 +715,11 @@ namespace AC
 					foreach (ScriptData scriptData in playerScriptData)
 					{
 						RememberData rememberData = SaveSystem.FileFormatHandler.DeserializeObject<RememberData> (scriptData.data);
+						if (string.IsNullOrEmpty (scriptData.data))
+						{
+							Debug.LogWarning ("Invalid Remember data for object ID " + scriptData.objectID + " for Player ID " + playerID);
+							continue;
+						}
 						if (rememberData != null)
 						{
 							CustomGUILayout.MultiLineLabelGUI ("   " + rememberData.GetType ().ToString () + ":", EditorJsonUtility.ToJson (rememberData, true));

@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"GameCamera.cs"
  * 
@@ -377,7 +377,14 @@ namespace AC
 			SetDesiredFOV ();
 			if (!lockFOV)
 			{
-				Camera.fieldOfView = desiredFOV;
+				if (Camera.orthographic)
+				{
+					Camera.orthographicSize = desiredFOV;
+				}
+				else
+				{
+					Camera.fieldOfView = desiredFOV;
+				}
 			}
 
 			SetFocalPoint ();
@@ -528,7 +535,7 @@ namespace AC
 
 				if (Camera)
 				{
-					originalFOV = Camera.fieldOfView;
+					originalFOV = Camera.orthographic ? Camera.orthographicSize : Camera.fieldOfView;
 				}
 				haveSetOriginalPosition = true;
 			}
@@ -662,14 +669,7 @@ namespace AC
 		{
 			if (lockFOV)
 			{
-				if (Camera.orthographic)
-				{
-					desiredFOV = Camera.orthographicSize;
-				}
-				else
-				{
-					desiredFOV = Camera.fieldOfView;
-				}
+				desiredFOV = Camera.orthographic ? Camera.orthographicSize : Camera.fieldOfView;
 			}
 			else
 			{

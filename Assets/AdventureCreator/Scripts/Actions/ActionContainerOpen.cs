@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"ActionContainerOpen.cs"
  * 
@@ -74,11 +74,11 @@ namespace AC
 				runtimeContainer = AssignFile <Container> (parameters, parameterID, constantID, container);
 			}
 
-			if (!useActive && setElement && !string.IsNullOrEmpty (menuName) && !string.IsNullOrEmpty (containerElementName))
+			if (!useActive && setElement)
 			{
 				string runtimeMenuName = AssignString (parameters, menuParameterID, menuName);
 				string runtimeContainerElementName = AssignString (parameters, elementParameterID, containerElementName);
-
+				
 				runtimeMenuName = AdvGame.ConvertTokens (runtimeMenuName, Options.GetLanguage (), localVariables, parameters);
 				runtimeContainerElementName = AdvGame.ConvertTokens (runtimeContainerElementName, Options.GetLanguage (), localVariables, parameters);
 				
@@ -102,8 +102,6 @@ namespace AC
 						runtimeInventoryBox.OverrideContainer = runtimeContainer;
 						return 0f;
 					}
-
-					LogWarning ("Could not find an InventoryBox element '" + containerElementName + "' in Menu '" + menuName + "'");
 				}
 				else
 				{
@@ -139,13 +137,13 @@ namespace AC
 				setElement = EditorGUILayout.Toggle ("Open in set element?", setElement);
 				if (setElement)
 				{
-					menuParameterID = Action.ChooseParameterGUI ("Menu name:", parameters, menuParameterID, ParameterType.String);
+					menuParameterID = Action.ChooseParameterGUI ("Menu name:", parameters, menuParameterID, new ParameterType[2] { ParameterType.String, ParameterType.PopUp });
 					if (menuParameterID < 0)
 					{
 						menuName = EditorGUILayout.TextField ("Menu name:", menuName);
 					}
 
-					elementParameterID = Action.ChooseParameterGUI ("InventoryBox name:", parameters, elementParameterID, ParameterType.String);
+					elementParameterID = Action.ChooseParameterGUI ("InventoryBox name:", parameters, elementParameterID, new ParameterType[2] { ParameterType.String, ParameterType.PopUp });
 					if (elementParameterID < 0)
 					{
 						containerElementName = EditorGUILayout.TextField ("InventoryBox name:", containerElementName);
@@ -179,7 +177,7 @@ namespace AC
 		{
 			if (!useActive && parameterID < 0)
 			{
-				if (container != null && container.gameObject == _gameObject) return true;
+				if (container && container.gameObject == _gameObject) return true;
 				if (constantID == id) return true;
 			}
 			return base.ReferencesObjectOrID (_gameObject, id);

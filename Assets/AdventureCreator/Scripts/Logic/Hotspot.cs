@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"Hotspot.cs"
  * 
@@ -11,7 +11,7 @@
  */
 
 using UnityEngine;
-using System.Collections;
+using UnityEngine.Serialization;
 using System.Collections.Generic;
 
 namespace AC
@@ -24,15 +24,14 @@ namespace AC
 	 */
 	[AddComponentMenu("Adventure Creator/Hotspots/Hotspot")]
 	[HelpURL("https://www.adventurecreator.org/scripting-guide/class_a_c_1_1_hotspot.html")]
-	public class Hotspot : MonoBehaviour, ITranslatable
+	public class Hotspot : MonoBehaviour, ITranslatable, IItemReferencer
 	{
 
 		#region Variables
 
 		/** The source of the commands that are run when an option is chosen (InScene, AssetFile, CustomScript) */	
 		public AC.InteractionSource interactionSource;
-		/** If assigned, then the Hotspot will only be interactive when the assigned _Camera is active */
-		public _Camera limitToCamera = null;
+		[FormerlySerializedAs ("limitToCamera")] [SerializeField] private _Camera _limitToCamera = null;
 		/** If assigned, then the Hotspot will only be interactive when the player is within this Trigger Collider's boundary */
 		public InteractiveBoundary interactiveBoundary = null;
 
@@ -51,8 +50,8 @@ namespace AC
 
 		/** If True, then the Hotspot can have 'Use" interactions */
 		public bool provideUseInteraction;
-		/** No longer used by Adventure Creator, but kept so that older projects can be upgraded */
-		public Button useButton = new Button();
+		
+		[SerializeField] private Button useButton = new Button();
 
 		/** A List of all available 'Use' interactions */
 		public List<Button> useButtons = new List<Button>();
@@ -106,6 +105,7 @@ namespace AC
 		protected Sprite iconSprite = null;
 		protected SpriteRenderer iconRenderer = null;
 		protected CursorIcon mainIcon;
+		private CursorIconBase hotspotIcon;
 
 		protected LerpUtils.FloatLerp iconAlphaLerp = new LerpUtils.FloatLerp (true);
 
@@ -115,6 +115,7 @@ namespace AC
 
 		protected MatchingInvInteractionData matchingInvInteractionData;
 		private Transform _transform;
+		private string cachedLabel;
 
 		#endregion
 
@@ -133,14 +134,12 @@ namespace AC
 
 			lastInteractionIndex = FindFirstEnabledInteraction ();
 			displayLineID = lineID;
-		}
 
-
-		protected void OnEnable ()
-		{
-			if (KickStarter.stateHandler) KickStarter.stateHandler.Register (this);
-
-			EventManager.OnSwitchCamera += OnSwitchCamera;
+			hotspotIcon = new CursorIconBase ();
+			if (KickStarter.settingsManager)
+			{
+				hotspotIcon.Copy (KickStarter.settingsManager.hotspotIconGraphic);
+			}
 		}
 
 
@@ -150,10 +149,19 @@ namespace AC
 		}
 
 
+		protected void OnEnable ()
+		{
+			if (KickStarter.stateHandler) KickStarter.stateHandler.Register (this);
+			EventManager.OnSwitchCamera += OnSwitchCamera;
+			EventManager.OnChangeLanguage += OnChangeLanguage;
+		}
+
+		
 		protected void OnDisable ()
 		{
 			if (KickStarter.stateHandler) KickStarter.stateHandler.Unregister (this);
 
+			EventManager.OnChangeLanguage -= OnChangeLanguage;
 			EventManager.OnSwitchCamera -= OnSwitchCamera;
 		}
 
@@ -180,8 +188,32 @@ namespace AC
 
 
 		/**
-		 * <summary>Runs the Hotspot's 'Examine' interaction, if one is defined.</summary>
+		 * <summary>Runs an Interaction associated with the Hotspot</summary>
+		 * <param name = "button">The Interaction's Button class</param>
 		 */
+		public void RunInteraction (AC.Button button)
+		{
+			if (useButtons != null && useButtons.Contains (button))
+			{
+				KickStarter.playerInteraction.UseHotspot (this, button.iconID);
+				return;
+			}
+
+			if (lookButton != null && button == lookButton)
+			{
+				KickStarter.playerInteraction.ExamineHotspot (this);
+				return;
+			}
+
+			if (invButtons != null && invButtons.Contains (button))
+			{
+				KickStarter.playerInteraction.UseInventoryOnHotspot (this, new InvInstance (button.invID), false);
+				return;
+			}
+		}
+
+
+		/** Runs the Hotspot's 'Examine' interaction, if one is defined. */
 		public void RunExamineInteraction ()
 		{
 			if (lookButton != null)
@@ -331,31 +363,29 @@ namespace AC
 						iconRenderer = iconOb.AddComponent <SpriteRenderer>();
 						iconOb.transform.localScale = Vector3.one * (25f * KickStarter.settingsManager.hotspotIconSize);
 
-						if (iconSortingLayer != "")
+						if (!string.IsNullOrEmpty (iconSortingLayer))
 						{
 							iconRenderer.GetComponent <SpriteRenderer>().sortingLayerName = iconSortingLayer;
 						}
 						iconRenderer.GetComponent <SpriteRenderer>().sortingOrder = iconSortingOrder;
 					}
 
-					if (KickStarter.settingsManager.hotspotIcon == HotspotIcon.UseIcon)
+					switch (KickStarter.settingsManager.hotspotIcon)
 					{
-						GetMainIcon ();
-						if (mainIcon != null)
-						{
-							iconRenderer.sprite = mainIcon.GetSprite ();
-						}
-					}
-					else
-					{
-						if (iconSprite == null && KickStarter.settingsManager.hotspotIconTexture)
-						{
-							iconSprite = UnityEngine.Sprite.Create (KickStarter.settingsManager.hotspotIconTexture, new Rect (0f, 0f, KickStarter.settingsManager.hotspotIconTexture.width, KickStarter.settingsManager.hotspotIconTexture.height), new Vector2 (0.5f, 0.5f));
-						}
-						if (iconSprite != iconRenderer.sprite)
-						{
-							iconRenderer.sprite = iconSprite;
-						}
+						case HotspotIcon.UseIcon:
+							GenerateMainIcon ();
+							if (mainIcon != null)
+							{
+								iconRenderer.sprite = mainIcon.GetAnimatedSprite (true);
+							}
+							break;
+
+						case HotspotIcon.Texture:
+							iconRenderer.sprite = hotspotIcon.GetAnimatedSprite (true);
+							break;
+
+						default:
+							break;
 					}
 
 					iconRenderer.transform.position = GetIconPosition ();
@@ -374,17 +404,22 @@ namespace AC
 					c.a = iconAlpha;
 					GUI.color = c;
 					
-					if (KickStarter.settingsManager.hotspotIcon == HotspotIcon.UseIcon)
+					switch (KickStarter.settingsManager.hotspotIcon)
 					{
-						GetMainIcon ();
-						if (mainIcon != null)
-						{
-							mainIcon.Draw (GetIconScreenPosition (), !KickStarter.playerMenus.IsMouseOverInteractionMenu ());
-						}
-					}
-					else if (KickStarter.settingsManager.hotspotIconTexture)
-					{
-						GUI.DrawTexture (AdvGame.GUIBox (GetIconScreenPosition (), KickStarter.settingsManager.hotspotIconSize), KickStarter.settingsManager.hotspotIconTexture, ScaleMode.ScaleToFit, true, 0f);
+						case HotspotIcon.UseIcon:
+							GenerateMainIcon ();
+							if (mainIcon != null)
+							{
+								mainIcon.Draw (GetIconScreenPosition (), !KickStarter.playerMenus.IsMouseOverInteractionMenu ());
+							}
+							break;
+
+						case HotspotIcon.Texture:
+							hotspotIcon.Draw (GetIconScreenPosition (), !KickStarter.playerMenus.IsMouseOverInteractionMenu ());
+							break;
+
+						default:
+							break;
 					}
 					
 					GUI.color = tempColor;
@@ -398,7 +433,7 @@ namespace AC
 				iconRenderer.color = tempColor;
 			}
 		}
-
+		
 
 		/**
 		 * <summary>Gets the label to display when the cursor is over this Hotspot, with cursor names and active inventory item included if appropriate.</summary>
@@ -419,14 +454,11 @@ namespace AC
 			{
 				hotspotName = hotspotName.ToLower ();
 			}
-
 			return AdvGame.CombineLanguageString (prefix, hotspotName, languageNumber);
 		}
 
 
-		/**
-		 * Recalculates the alpha value of the Hotspot's icon.
-		 */
+		/** Recalculates the alpha value of the Hotspot's icon. */
 		public void UpdateIcon ()
 		{
 			CanDisplayHotspotIcon ();
@@ -763,20 +795,30 @@ namespace AC
 			{
 				highlight.HighlightOn ();
 			}
+			hotspotIcon.Reset ();
 		}
 		
 
-		/**
-		 * De-selects the Hotspot.
-		 */
+		/** De-selects the Hotspot. */
 		public void Deselect ()
 		{
 			KickStarter.eventManager.Call_OnChangeHotspot (this, false);
 
-			if (highlight)
+			if (highlight && highlight.highlightWhenSelected)
 			{
 				highlight.HighlightOff ();
 			}
+		}
+
+
+		/** Invokes the Hotspot's flashing effect */
+		public void Flash ()
+		{
+			if (highlight)
+			{
+				highlight.Flash ();
+			}
+			hotspotIcon.Reset ();
 		}
 
 		
@@ -1084,18 +1126,22 @@ namespace AC
 		 */
 		public string GetName (int languageNumber)
 		{
+			if (languageNumber == Options.GetLanguage ())
+			{ 
+				if (string.IsNullOrEmpty (cachedLabel))
+				{
+					UpdateLabel (languageNumber);
+				}
+				return cachedLabel;
+			}
+
 			string newName = gameObject.name;
 			if (!string.IsNullOrEmpty (hotspotName))
 			{
 				newName = hotspotName;
 			}
 
-			if (languageNumber > 0)
-			{
-				return KickStarter.runtimeLanguages.GetTranslation (newName, displayLineID, languageNumber, GetTranslationType (0));
-			}
-
-			return newName;
+			return KickStarter.runtimeLanguages.GetTranslation (newName, displayLineID, languageNumber, GetTranslationType (0));
 		}
 
 
@@ -1116,6 +1162,8 @@ namespace AC
 			{
 				displayLineID = lineID;
 			}
+
+			UpdateLabel (Options.GetLanguage ());
 		}
 
 
@@ -1217,6 +1265,24 @@ namespace AC
 			if (limitToCamera == null) return;
 
 			LimitToActiveCamera (newCamera);
+		}
+
+
+		protected void OnChangeLanguage (int language)
+		{
+			UpdateLabel (language);
+		}
+
+
+		protected void UpdateLabel (int languageNumber)
+		{
+			string newName = gameObject.name;
+			if (!string.IsNullOrEmpty (hotspotName))
+			{
+				newName = hotspotName;
+			}
+
+			cachedLabel = KickStarter.runtimeLanguages.GetTranslation (newName, displayLineID, languageNumber, GetTranslationType (0));
 		}
 
 
@@ -1326,7 +1392,6 @@ namespace AC
 						{
 							iconAlpha = highlight.GetHighlightAlpha ();
 						}
-
 						else
 						{
 							iconAlpha = highlight.GetFlashAlpha (iconAlpha);
@@ -1355,7 +1420,7 @@ namespace AC
 		}
 
 
-		protected void GetMainIcon ()
+		protected void GenerateMainIcon ()
 		{
 			if (mainIcon != null)
 			{
@@ -1443,7 +1508,7 @@ namespace AC
 			{
 				for (int i = 0; i < invButtons.Count; i++)
 				{
-					if (useButtons[i].invID == _itemID && !useButtons[i].isDisabled)
+					if (invButtons[i].invID == _itemID && !invButtons[i].isDisabled)
 					{
 						return true;
 					}
@@ -1532,7 +1597,7 @@ namespace AC
 
 						case AC_InteractionMethod.ChooseHotspotThenInteraction:
 							if (KickStarter.settingsManager.selectInteractions == SelectInteractions.CyclingCursorAndClickingHotspot ||
-							KickStarter.settingsManager.selectInteractions == SelectInteractions.ClickingMenu)
+								KickStarter.settingsManager.selectInteractions == SelectInteractions.ClickingMenu)
 							{
 								label = KickStarter.cursorManager.GetLabelFromID (cursorID, languageNumber);
 							}
@@ -1593,7 +1658,6 @@ namespace AC
 				else
 				{
 					label = KickStarter.runtimeLanguages.GetTranslation (KickStarter.cursorManager.walkPrefix.label, KickStarter.cursorManager.walkPrefix.lineID, languageNumber, KickStarter.cursorManager.walkPrefix.GetTranslationType (0));
-
 				}
 			}
 
@@ -1636,7 +1700,10 @@ namespace AC
 					MeshCollider meshCollider = GetComponent <MeshCollider>();
 					if (meshCollider)
 					{
-						AdvGame.DrawMeshCollider (transform, meshCollider.sharedMesh, gizmoColor);
+						if (meshCollider.sharedMesh)
+						{
+							AdvGame.DrawMeshCollider (transform, meshCollider.sharedMesh, gizmoColor);
+						}
 					}
 					else
 					{
@@ -1671,12 +1738,12 @@ namespace AC
 		}
 
 
-		public int GetInventoryReferences (int invID)
+		public int GetNumItemReferences (int itemID)
 		{
 			int numFound = 0;
 			foreach (Button invButton in invButtons)
 			{
-				if (invButton.invID == invID)
+				if (invButton.invID == itemID)
 				{
 					numFound ++;
 				}
@@ -1684,10 +1751,59 @@ namespace AC
 			return numFound;
 		}
 
+
+		public int UpdateItemReferences (int oldItemID, int newItemID)
+		{
+			int numFound = 0;
+			foreach (Button invButton in invButtons)
+			{
+				if (invButton.invID == oldItemID)
+				{
+					invButton.invID = newItemID;
+					numFound++;
+				}
+			}
+			return numFound;
+		}
+
+
+		/**
+		 * <summary>Gets the Hotspot's "main" icon, which refers to the first-found interaction icon associated with the Hotspot.</summary>
+		 * <returns>The Hotspot's "main" icon.</returns>
+		 */
+		public CursorIcon GetMainIcon ()
+		{
+			GenerateMainIcon ();
+			return mainIcon;
+		}
+
 		#endif
 
 
 		#region GetSet
+
+		/** If assigned, then the Hotspot will only be interactive when the assigned _Camera is active */
+		public _Camera limitToCamera
+		{
+			get
+			{
+				return _limitToCamera;
+			}
+			set
+			{
+				_limitToCamera = value;
+
+				#if UNITY_EDITOR
+				if (Application.isPlaying)
+				#endif
+				{
+					if (KickStarter.mainCamera)
+					{
+						LimitToActiveCamera (KickStarter.mainCamera.attachedCamera);
+					}
+				}
+			}
+		}
 
 		/** A cache of the Hotspot's transform component */
 		public Transform Transform

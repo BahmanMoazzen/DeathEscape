@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"Highlight.cs"
  * 
@@ -11,10 +11,9 @@
  * 
  */
 
-using UnityEngine;
 using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.Events;
-using UnityEngine.Rendering;
 
 namespace AC
 {
@@ -85,12 +84,22 @@ namespace AC
 
 		protected void Awake ()
 		{
-			#if UNITY_2019_3_OR_NEWER
-			if (GraphicsSettings.currentRenderPipeline && GraphicsSettings.currentRenderPipeline.GetType ().ToString ().Contains ("HighDefinition"))
+			Renderer thisRenderer = GetComponent<Renderer> ();
+			if (thisRenderer && thisRenderer.material && thisRenderer.material.HasProperty ("_BaseColor") && !thisRenderer.material.HasProperty ("_Color"))
 			{
 				colorProperty = "_BaseColor";
 			}
-			#endif
+
+			/*#if UNITY_2019_3_OR_NEWER
+			if (GraphicsSettings.currentRenderPipeline)
+			{
+				string pipelineType = GraphicsSettings.currentRenderPipeline.GetType ().ToString ();
+				if (pipelineType.Contains ("HighDefinition") || pipelineType.Contains ("UniversalRenderPipelineAsset"))
+				{
+					colorProperty = "_BaseColor";
+				}
+			}
+			#endif*/
 
 			if (affectChildren)
 			{
@@ -99,7 +108,7 @@ namespace AC
 				{
 					foreach (Material material in childRenderer.materials)
 					{
-						if (material.HasProperty (colorProperty))
+						if (material.HasProperty (ColorProperty))
 						{
 							originalColors.Add (material.color);
 						}
@@ -113,7 +122,7 @@ namespace AC
 				{
 					foreach (Material material in _renderer.materials)
 					{
-						if (material.HasProperty (colorProperty))
+						if (material.HasProperty (ColorProperty))
 						{
 							originalColors.Add (material.color);
 						}
@@ -242,6 +251,11 @@ namespace AC
 				highlightState = HighlightState.Flash;
 				direction = 1;
 				currentTimer = 0f;
+
+				if (callEvents && onHighlightOn != null)
+				{
+					onHighlightOn.Invoke ();
+				}
 			}
 		}
 
@@ -256,12 +270,18 @@ namespace AC
 		}
 
 
+		/** Cancels the current flash effect */
 		public void CancelFlash ()
 		{
 			if (direction >= 0 && highlightState == HighlightState.Flash)
 			{
-				direction = 0;
-				currentTimer = -1f;
+				direction = -1;
+				currentTimer = 0f;
+
+				if (callEvents && onHighlightOff != null)
+				{
+					onHighlightOff.Invoke ();
+				}
 			}
 		}
 
@@ -387,8 +407,7 @@ namespace AC
 					currentTimer += Time.deltaTime;
 					if (currentTimer >= flashHoldTime)
 					{
-						direction = -1;
-						currentTimer = 0f;
+						CancelFlash ();
 					}
 				}
 
@@ -430,12 +449,12 @@ namespace AC
 							break;
 						}
 
-						if (material.HasProperty (colorProperty))
+						if (material.HasProperty (ColorProperty))
 						{
 							alpha = material.color.a;
 							Color newColor = originalColors[i] * highlight;
 							newColor.a = alpha;
-							material.SetColor (colorProperty, newColor);
+							material.SetColor (ColorProperty, newColor);
 							i++;
 						}
 					}
@@ -445,12 +464,12 @@ namespace AC
 			{
 				foreach (Material material in _renderer.materials)
 				{
-					if (material.HasProperty (colorProperty))
+					if (material.HasProperty (ColorProperty))
 					{
 						alpha = material.color.a;
 						Color newColor = originalColors[i] * highlight;
 						newColor.a = alpha;
-						material.SetColor (colorProperty, newColor);
+						material.SetColor (ColorProperty, newColor);
 						i++;
 					}
 				}
@@ -483,6 +502,19 @@ namespace AC
 					keyframes[0].value = value;
 					highlightCurve.keys = keyframes;
 				}
+			}
+		}
+
+
+		private string ColorProperty
+		{
+			get
+			{
+				if (KickStarter.settingsManager && !string.IsNullOrEmpty (KickStarter.settingsManager.highlightMaterialPropertyOverride))
+				{ 
+					return KickStarter.settingsManager.highlightMaterialPropertyOverride;
+				}
+				return colorProperty;
 			}
 		}
 

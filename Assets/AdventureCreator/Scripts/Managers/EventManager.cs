@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"EventManager.cs"
  * 
@@ -12,7 +12,6 @@
 
 using UnityEngine;
 using UnityEngine.Playables;
-using UnityEngine.SceneManagement;
 using System.Collections.Generic;
 
 namespace AC
@@ -353,7 +352,7 @@ namespace AC
 		/** An event triggered whenever a Hotspot's button is interacted with */
 		public static Delegate_InteractHotspot OnHotspotInteract;
 		/** An event triggered whenever a Hotspot is double-clicked */
-		public static Delegate_ChangeHotspot OnDoubleClickHotspot;
+		public static Delegate_InteractHotspot OnDoubleClickHotspot;
 		/** An event triggered whenever a Hotspot is turned on */
 		public static Delegate_ChangeHotspot OnHotspotTurnOn;
 		/** An event triggered whenever a Hotspot is turned off */
@@ -412,13 +411,13 @@ namespace AC
 		 * <summary>Triggers the OnDoubleClickHotspot event, regardless of the Hotspot's doubleClickingHotspot variable.</summary>
 		 * <param name = "hotspot">The Hotspot that was double-clicked.</param>
 		 */
-		public void Call_OnDoubleClickHotspot (Hotspot hotspot)
+		public void Call_OnDoubleClickHotspot (Hotspot hotspot, AC.Button button)
 		{
 			if (hotspot == null) return;
 
 			if (OnDoubleClickHotspot != null)
 			{
-				OnDoubleClickHotspot (hotspot);
+				OnDoubleClickHotspot (hotspot, button);
 			}
 		}
 
@@ -659,6 +658,8 @@ namespace AC
 		public delegate void Delegate_OnModifyJournalPage (MenuJournal journal, JournalPage page, int index);
 		/** A delegate for the Delegate_OnRequestMenuElementHotspotLabel event */
 		public delegate string Delegate_OnRequestMenuElementHotspotLabel (AC.Menu _menu, MenuElement _element, int _slot, int _language);
+		/** A delegate for the OnRequestInventoryCountText event */
+		public delegate string Delegate_OnRequestInventoryCountText (InvInstance invInstance, bool isSelectedCursor);
 
 		/** An event triggered whenever a MenuElement inside a Menu is clicked */
 		public static Delegate_OnMenuElementClick OnMenuElementClick;
@@ -686,57 +687,59 @@ namespace AC
 		public static Delegate_OnModifyJournalPage OnJournalPageRemove;
 		/** An event triggered whenever the Hotspot label for a menu element is requested */
 		public static Delegate_OnRequestMenuElementHotspotLabel OnRequestMenuElementHotspotLabel;
+		/** An event triggered whenever the Inventory "Count" label for an Inventory item instance is requested */
+		public static Delegate_OnRequestInventoryCountText OnRequestInventoryCountText;
 
 
 		/**
 		 * <summary>Triggers the OnMenuElementClick event.</summary>
-		 * <param name = "_menu">The Menu that the clicked MenuElement is a part of</param>
-		 * <param name = "_element">The MenuElement that was clicked on</param>
-		 * <param name = "_slot">The slot index that was clicked, if the MenuElement consists of multiple slots (0 otherwise)</param>
-		 * <param name = "_buttonPressed">Equals 1 if a left-click, or 2 if a right-click</param>
+		 * <param name = "menu">The Menu that the clicked MenuElement is a part of</param>
+		 * <param name = "element">The MenuElement that was clicked on</param>
+		 * <param name = "slot">The slot index that was clicked, if the MenuElement consists of multiple slots (0 otherwise)</param>
+		 * <param name = "buttonPressed">Equals 1 if a left-click, or 2 if a right-click</param>
 		 */
-		public void Call_OnMenuElementClick (AC.Menu _menu, MenuElement _element, int _slot, int _buttonPressed)
+		public void Call_OnMenuElementClick (AC.Menu menu, MenuElement element, int slot, int buttonPressed)
 		{
 			if (OnMenuElementClick != null)
 			{
-				OnMenuElementClick (_menu, _element, _slot, _buttonPressed);
+				OnMenuElementClick (menu, element, slot, buttonPressed);
 			}
 		}
 
 
 		/**
 		 * <summary>Triggers the OnMouseOverMenuElement event.</summary>
-		 * <param name = "_menu">The Menu that the mouse is over</param>
-		 * <param name = "_element">The MenuElement that the mouse is over</param>
-		 * <param name = "_slot">The slot index that the mouse is over, if the MenuElement consists of multiple slots (0 otherwise)</param>
+		 * <param name = "menu">The Menu that the mouse is over</param>
+		 * <param name = "element">The MenuElement that the mouse is over</param>
+		 * <param name = "slot">The slot index that the mouse is over, if the MenuElement consists of multiple slots (0 otherwise)</param>
 		 */
-		public void Call_OnMouseOverMenuElement (AC.Menu _menu, MenuElement _element, int _slot)
+		public void Call_OnMouseOverMenuElement (AC.Menu menu, MenuElement element, int slot)
 		{
 			if (OnMouseOverMenu != null)
 			{
-				OnMouseOverMenu (_menu, _element, _slot);
+				OnMouseOverMenu (menu, element, slot);
 			}
 		}
 
 
 		/**
 		 * <summary>Triggers either the OnMenuElementShow or OnMenuElementHide events, depending on the state of the element's isVisible property.</summary>
-		 * <param name = "_element">The MenuElement whose visibility has changed</param>
+		 * <param name = "element">The MenuElement whose visibility has changed</param>
 		 */
-		public void Call_OnMenuElementChangeVisibility (MenuElement _element)
+		public void Call_OnMenuElementChangeVisibility (MenuElement element)
 		{
-			if (_element.IsVisible)
+			if (element.IsVisible)
 			{
 				if (OnMenuElementShow != null)
 				{
-					OnMenuElementShow (_element);
+					OnMenuElementShow (element);
 				}
 			}
 			else
 			{
 				if (OnMenuElementHide != null)
 				{
-					OnMenuElementHide (_element);
+					OnMenuElementHide (element);
 				}
 			}
 		}
@@ -744,14 +747,14 @@ namespace AC
 
 		/**
 		 * <summary>Triggers the OnMenuElementShift</summary>
-		 * <param name = "_element">The MenuElement whose slots have been shifted</param>
+		 * <param name = "element">The MenuElement whose slots have been shifted</param>
 		 * <param name = "shiftType">The direction in which the slots where shifted (ShiftLeft, ShiftRight)</param>
 		 */
-		public void Call_OnMenuElementShift (MenuElement _element, AC_ShiftInventory shiftType)
+		public void Call_OnMenuElementShift (MenuElement element, AC_ShiftInventory shiftType)
 		{
 			if (OnMenuElementShift != null)
 			{
-				OnMenuElementShift (_element, shiftType);
+				OnMenuElementShift (element, shiftType);
 			}
 		}
 
@@ -770,28 +773,28 @@ namespace AC
 
 		/**
 		 * <summary>Triggers the OnMenuTurnOn event.</summary>
-		 * <param name = "_menu">The Menu that is being turned on</param>
+		 * <param name = "menu">The Menu that is being turned on</param>
 		 * <param name = "isInstant">If true, the transition is being skipped and the Menu is being turned on instantly</param>
 		 */
-		public void Call_OnMenuTurnOn (AC.Menu _menu, bool isInstant)
+		public void Call_OnMenuTurnOn (AC.Menu menu, bool isInstant)
 		{
 			if (OnMenuTurnOn != null)
 			{
-				OnMenuTurnOn (_menu, isInstant);
+				OnMenuTurnOn (menu, isInstant);
 			}
 		}
 
 
 		/**
 		 * <summary>Triggers the OnMenuTurnOff event.</summary>
-		 * <param name = "_menu">The Menu that is being turned off</param>
+		 * <param name = "menu">The Menu that is being turned off</param>
 		 * <param name = "isInstant">If true, the transition is being skipped and the Menu is being turned off instantly</param>
 		 */
-		public void Call_OnMenuTurnOff (AC.Menu _menu, bool isInstant)
+		public void Call_OnMenuTurnOff (AC.Menu menu, bool isInstant)
 		{
 			if (OnMenuTurnOff != null)
 			{
-				OnMenuTurnOff (_menu, isInstant);
+				OnMenuTurnOff (menu, isInstant);
 			}
 		}
 
@@ -863,6 +866,22 @@ namespace AC
 			if (OnRequestMenuElementHotspotLabel != null)
 			{
 				return OnRequestMenuElementHotspotLabel (_menu, _element, _slot, language);
+			}
+			return string.Empty;
+		}
+
+
+		/**
+		 * <summary>Triggers the OnRequestInventoryCountText event</summary>
+		 * <param name = "invInstance">The item instance to get the "count" text for</param>
+		 * <param name = "isSelectedCursor">True if the item is currently selected and this is for the active cursor</param>
+		 * <returns>The custom "count" text for the item instance, or empty for the default value</returns>
+		 */
+		public string Call_OnRequestInventoryCountText (InvInstance invInstance, bool isSelectedCursor)
+		{
+			if (OnRequestInventoryCountText != null)
+			{
+				return OnRequestInventoryCountText (invInstance, isSelectedCursor);
 			}
 			return string.Empty;
 		}
@@ -1086,6 +1105,16 @@ namespace AC
 		/** An event triggered whenever a character updates their facing direction */
 		public static Delegate_OnSetLookDirection OnSetLookDirection;
 
+		/** A delegate for the OnCharacterSetExpression event */
+		public delegate void Delegate_OnCharacterSetExpression (AC.Char character, Expression expression);
+		/** An event triggered whenever a character's expression is updated */
+		public static Delegate_OnCharacterSetExpression OnCharacterSetExpression;
+
+		/** A delegate for the OnCharacterTeleport event */
+		public delegate void Delegate_OnCharacterTeleport (AC.Char character, Vector3 position, Quaternion rotation);
+		/** An event triggered whenever a character is teleported */
+		public static Delegate_OnCharacterTeleport OnCharacterTeleport;
+
 
 		/** 
 		 * <summary>Triggers the OnSetPlayer event.</summary>
@@ -1286,6 +1315,35 @@ namespace AC
 			if (OnSetLookDirection != null)
 			{
 				OnSetLookDirection (character, direction, isInstant);
+			}
+		}
+
+
+		/**
+		 * <summary>Triggers the OnCharacterSetExpression event</summary>
+		 * <param name="character">The affected character</param>
+		 * <param name="expression">The character's expression. This will be null if the character's expression is reset</param>
+		 */
+		public void Call_OnCharacterSetExpression (AC.Char character, Expression expression)
+		{
+			if (OnCharacterSetExpression != null)
+			{
+				OnCharacterSetExpression.Invoke (character, expression);
+			}
+		}
+
+
+		/**
+		 * <summary>Triggers the OnCharacterTeleport event.</summary>
+		 * <param name="character">The character being teleported</param>
+		 * <param name="position">The new position</param>
+		 * <param name="rotation">The new rotation</param>
+		 */
+		public void Call_OnCharacterTeleport (AC.Char character, Vector3 position, Quaternion rotation)
+		{
+			if (OnCharacterTeleport != null)
+			{
+				OnCharacterTeleport (character, position, rotation);
 			}
 		}
 
@@ -1583,9 +1641,27 @@ namespace AC
 		}
 
 
+		/** A delegate for the OnPickUpThrow event */
+		public delegate void Delegate_OnPickUpThrow (Moveable_PickUp pickUp);
+		/** An event triggered whenever a Moveable_PickUp is thrown */
+		public static event Delegate_OnPickUpThrow OnPickUpThrow;
+
+		/**
+		 * <summary>Triggers the OnPickUp throw event</summary>
+		 * <param name = "pickUp">The object being thrown</param>
+		 */
+		public void Call_OnPickUpThrow (Moveable_PickUp pickUp)
+		{
+			if (OnPickUpThrow != null)
+			{
+				OnPickUpThrow (pickUp);
+			}
+		}
+
+
 		// Camera
 
-		/** A delegate for the Delegate_OnSwitchCamera events */
+		/** A delegate for the OnSwitchCamera event */
 		public delegate void Delegate_OnSwitchCamera (_Camera fromCamera, _Camera toCamera, float transitionTime);
 		/** A delegate for the Delegate_OnShakeCamera events */
 		public delegate void Delegate_OnShakeCamera (float intensity, float duration);
@@ -1595,7 +1671,17 @@ namespace AC
 		public static event Delegate_OnShakeCamera OnShakeCamera;
 		/** An event triggered whenever the MainCamera updates its internal record of the playable screen area, due to the aspect ratio or screen size changing */
 		public static event Delegate_Generic OnUpdatePlayableScreenArea;
-		
+
+		/** A delegate for the OnCameraSplitScreenStart event */
+		public delegate void Delegate_OnCameraSplitScreenStart (_Camera camera, CameraSplitOrientation splitOrientation, float splitAmountMain, float splitAmountOther, bool isTopLeftSplit);
+		/** An event triggered when the split-screen effect begins */
+		public static event Delegate_OnCameraSplitScreenStart OnCameraSplitScreenStart;
+		/** A delegate for the OnCameraSplitScreenStop event */
+		public delegate void Delegate_OnCameraSplitScreenStop (_Camera camera);
+		/** An event triggered when the split-screen effect ends */
+		public static event Delegate_OnCameraSplitScreenStop OnCameraSplitScreenStop;
+
+
 		/**
 		 * <summary>Triggers the OnSwitchCamera event.</summary>
 		 * <param name = "dragBase">The object being picked up</param>
@@ -1623,6 +1709,7 @@ namespace AC
 		}
 
 
+		/** Triggers the OnUpdatePlayableScreenArea event */
 		public void Call_OnUpdatePlayableScreenArea ()
 		{
 			if (OnUpdatePlayableScreenArea != null)
@@ -1631,6 +1718,35 @@ namespace AC
 			}
 		}
 
+
+		/** 
+		 * <summary>Triggers the OnCameraSplitScreenStart event</summary>
+		 * <param name = "camera">The camera used in the effect</param>
+		 * <param name = "splitOrientation">The orientation of the effect (Horizontal, Vertical)</param>
+		 * <param name = "splitAmountMain">The proportion of the screen used by the MainCamera</param>
+		 * <param name = "splitAmountOther">The proportion of the screen used by the other camera</param>
+		 * <param name = "isTopLeftSplit">If True, the MainCamera will be attached to the top or left camera (depending on the orientation)</param>
+		 */
+		public void Call_OnCameraSplitScreenStart (_Camera camera, CameraSplitOrientation splitOrientation, float splitAmountMain, float splitAmountOther, bool isTopLeftSplit)
+		{
+			if (OnCameraSplitScreenStart != null && camera)
+			{
+				OnCameraSplitScreenStart (camera, splitOrientation, splitAmountMain, splitAmountOther, isTopLeftSplit);
+			}
+		}
+
+
+		/** 
+		 * <summary>Triggers the OnCameraSplitScreenStop event</summary>
+		 * <param name = "splitCamera">The camera used in the effect that was not used by the MainCamera</param>
+		 */
+		public void Call_OnCameraSplitScreenStop (_Camera splitCamera)
+		{
+			if (OnCameraSplitScreenStop != null && splitCamera != null)
+			{
+				OnCameraSplitScreenStop (splitCamera);
+			}
+		}
 
 		// Options
 
@@ -1706,11 +1822,11 @@ namespace AC
 		/** A delegate for the OnAfterSceneChange event */
 		public delegate void Delegate_AfterSceneChange (LoadingGame loadingGame);
 		/** A delegate for the OnCompleteScenePreload event */
-		public delegate void Delegate_OnCompleteScenePreload (int sceneIndex);
+		public delegate void Delegate_OnCompleteScenePreload (string nextSceneName);
 		/** A delegate for the OnAddSubScene event */
 		public delegate void Delegate_Scene (SubScene subScene);
 		/** An event triggered just before the active scene is changed */
-		public static event Delegate_NoParameters OnBeforeChangeScene;
+		public static event Delegate_OnCompleteScenePreload OnBeforeChangeScene;
 		/** An event triggered just after the active scene is changed */
 		public static event Delegate_AfterSceneChange OnAfterChangeScene;
 		/** An event triggered whenever a scene starts, but not due to loading a save file */
@@ -1723,12 +1839,15 @@ namespace AC
 		public static event Delegate_Scene OnAddSubScene;
 
 
-		/** Triggers the OnBeforeChangeScene event. */
-		public void Call_OnBeforeChangeScene ()
+		/** 
+		 * <summary>Triggers the OnBeforeChangeScene event.</summary>
+		 * <param name="nextSceneName">The name of the next scene to be loaded next</param>
+		 */
+		public void Call_OnBeforeChangeScene (string nextSceneName)
 		{
 			if (OnBeforeChangeScene != null)
 			{
-				OnBeforeChangeScene ();
+				OnBeforeChangeScene (nextSceneName);
 			}
 		}
 
@@ -1770,26 +1889,26 @@ namespace AC
 
 		/**
 		 * <summary>Triggers the OnCompleteScenePreload event.</summary>
-		 * <param name = "preloadedSceneIndex">The build index of the scene that was preloaded</param>
+		 * <param name = "preloadedSceneName">The name of the scene that was preloaded</param>
 		 */
-		public void Call_OnCompleteScenePreload (int preloadedSceneIndex)
+		public void Call_OnCompleteScenePreload (string preloadedSceneName)
 		{
 			if (OnCompleteScenePreload != null)
 			{
-				OnCompleteScenePreload (preloadedSceneIndex);
+				OnCompleteScenePreload (preloadedSceneName);
 			}
 		}
 
 
 		/**
 		 * <summary>Triggers the OnAwaitSceneActivation event.</summary>
-		 * <param name = "nextSceneIndex">The build index of the next scene</param>
+		 * <param name = "nextSceneName">The name of the next scene</param>
 		 */
-		public void Call_OnAwaitSceneActivation (int nextSceneIndex)
+		public void Call_OnAwaitSceneActivation (string nextSceneName)
 		{
 			if (OnAwaitSceneActivation != null)
 			{
-				OnAwaitSceneActivation (nextSceneIndex);
+				OnAwaitSceneActivation (nextSceneName);
 			}
 		}
 

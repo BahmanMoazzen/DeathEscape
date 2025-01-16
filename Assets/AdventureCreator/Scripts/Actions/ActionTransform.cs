@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"ActionTransform.cs"
  * 
@@ -30,6 +30,8 @@ namespace AC
 		public int markerID = 0;
 		public Marker marker;
 		protected Marker runtimeMarker;
+
+		public bool scaleDuration = false;
 
 		public bool doEulerRotation = false;
 		public bool clearExisting = true;
@@ -157,7 +159,7 @@ namespace AC
 					
 					if (willWait && _transitionTime > 0f)
 					{
-						return (defaultPauseTime);
+						return defaultPauseTime;
 					}
 				}
 				else
@@ -189,7 +191,7 @@ namespace AC
 		
 		public override void Skip ()	
 		{
-			if (runtimeLinkedProp != null)
+			if (runtimeLinkedProp)
 			{
 				RunToTime (0f, true);
 			}
@@ -200,7 +202,7 @@ namespace AC
 		{
 			if (transformType == TransformType.CopyMarker)
 			{
-				if (runtimeMarker != null)
+				if (runtimeMarker)
 				{
 					runtimeLinkedProp.Move (runtimeMarker, moveMethod, inWorldSpace, _time, timeCurve);
 				}
@@ -208,6 +210,7 @@ namespace AC
 			else
 			{
 				Vector3 targetVector = Vector3.zero;
+				float speedScaler = 1f;
 
 				if (setVectorMethod == SetVectorMethod.FromVector3Variable)
 				{
@@ -226,6 +229,16 @@ namespace AC
 					if (toBy == ToBy.By)
 					{
 						targetVector = SetRelativeTarget (targetVector, isSkipping, runtimeLinkedProp.transform.localPosition);
+						speedScaler = targetVector.magnitude;
+					}
+					else
+					{
+						speedScaler = Vector3.Distance (runtimeLinkedProp.transform.localPosition, targetVector);
+					}
+
+					if (scaleDuration)
+					{
+						_time *= speedScaler * 0.2f;
 					}
 				}
 				else if (transformType == TransformType.Rotate)
@@ -248,6 +261,17 @@ namespace AC
 							targetVector = runtimeLinkedProp.transform.localEulerAngles;
 							runtimeLinkedProp.transform.localRotation = currentRotation;
 						}
+
+						speedScaler = targetVector.magnitude;
+					}
+					else
+					{
+						speedScaler = Vector3.Distance (runtimeLinkedProp.transform.eulerAngles, targetVector);
+					}
+
+					if (scaleDuration)
+					{
+						_time *= speedScaler * 0.01f;
 					}
 				}
 				else if (transformType == TransformType.Scale)
@@ -255,6 +279,16 @@ namespace AC
 					if (toBy == ToBy.By)
 					{
 						targetVector = SetRelativeTarget (targetVector, isSkipping, runtimeLinkedProp.transform.localScale);
+						speedScaler = targetVector.magnitude;
+					}
+					else
+					{
+						speedScaler = Vector3.Distance (runtimeLinkedProp.transform.localScale, targetVector);
+					}
+
+					if (scaleDuration)
+					{
+						_time *= speedScaler * 0.2f;
 					}
 				}
 				
@@ -425,6 +459,11 @@ namespace AC
 			
 			if (transitionTime > 0f)
 			{
+				if (transformType != TransformType.CopyMarker)
+				{
+					scaleDuration = EditorGUILayout.Toggle ("Scale time with distance?", scaleDuration);
+				}
+
 				if (transformType == TransformType.Rotate)
 				{
 					doEulerRotation = EditorGUILayout.Toggle ("Euler rotation?", doEulerRotation);
@@ -474,13 +513,13 @@ namespace AC
 		{
 			if (!isPlayer && parameterID < 0)
 			{
-				if (linkedProp != null && linkedProp.gameObject == gameObject) return true;
+				if (linkedProp && linkedProp.gameObject == gameObject) return true;
 				if (constantID == id && id != 0) return true;
 			}
-			if (isPlayer && gameObject.GetComponent <Player>() != null) return true;
+			if (isPlayer && gameObject && gameObject.GetComponent <Player>()) return true;
 			if (transformType != TransformType.CopyMarker && setVectorMethod == SetVectorMethod.FromVector3Variable && variableLocation == VariableLocation.Component && vectorVarParameterID < 0)
 			{
-				if (variables != null && variables.gameObject == gameObject) return true;
+				if (variables && variables.gameObject == gameObject) return true;
 				if (variablesConstantID == id && id != 0) return true;
 			}
 			return base.ReferencesObjectOrID (gameObject, id);

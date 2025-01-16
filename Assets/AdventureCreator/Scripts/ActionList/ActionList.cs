@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"ActionList.cs"
  * 
@@ -27,11 +27,11 @@ namespace AC
 	 */
 	[System.Serializable]
 	[HelpURL ("https://www.adventurecreator.org/scripting-guide/class_a_c_1_1_action_list.html")]
-	#if AC_ActionListPrefabs
-	public class ActionList : MonoBehaviour, iActionListAssetReferencer, ISerializationCallbackReceiver
-	#else
-	public class ActionList : MonoBehaviour, iActionListAssetReferencer
-	#endif
+#if AC_ActionListPrefabs
+	public class ActionList : MonoBehaviour, iActionListAssetReferencer, ISerializationCallbackReceiver, IItemReferencer, IDocumentReferencer, IObjectiveReferencer, IMenuReferencer, IVariableReferencer
+#else
+	public class ActionList : MonoBehaviour, iActionListAssetReferencer, IItemReferencer, IDocumentReferencer, IObjectiveReferencer, IMenuReferencer, IVariableReferencer
+#endif
 	{
 
 		/** The Actions */
@@ -75,7 +75,7 @@ namespace AC
 		private const string parameterSeparator = "{PARAM_SEP}";
 
 		private WaitForSeconds delayWait = new WaitForSeconds (0.05f);
-		private WaitForEndOfFrame delayFrame = new WaitForEndOfFrame ();
+		private WaitForEndOfFrame delayFrame = null;//new WaitForEndOfFrame (); // set to null to keep updates in main Update loop
 
 		protected bool isChangingScene = false;
 		private int skipIteractions = 0; // Used to combat StackOverflow exceptions
@@ -96,6 +96,7 @@ namespace AC
 		public void BackupData ()
 		{
 			backupData = JsonAction.BackupActions (actions);
+			EditorUtility.SetDirty (this);
 		}
 
 
@@ -107,11 +108,40 @@ namespace AC
 		}
 
 
+		public bool HasDataToRestore ()
+		{
+			return backupData != null && backupData.Length > 0;
+		}
+
+
 		public void RestoreData ()
 		{
-			if (backupData != null && backupData.Length > 0)
+			if (HasDataToRestore ())
 			{
 				actions = JsonAction.RestoreActions (backupData);
+				EditorUtility.SetDirty (this);
+			}
+			else
+			{
+				ACDebug.LogWarning ("Could not restore data for ActionList "+ this + " - no backup data found!", this);
+			}
+		}
+
+
+		[MenuItem ("CONTEXT/ActionList/Action data/Clear")]
+		public static void ClearData (MenuCommand command)
+		{
+			ActionList actionList = (ActionList) command.context;
+			actionList.ClearData ();
+		}
+
+
+		public void ClearData ()
+		{
+			if (HasDataToRestore ())
+			{
+				backupData = null;
+				EditorUtility.SetDirty (this);
 			}
 		}
 
@@ -189,9 +219,7 @@ namespace AC
 		}
 
 
-		/**
-		 * Clears the List of Actions and creates one instance of the default, as set within ActionsManager.
-		 */
+		/** Clears the List of Actions and creates one instance of the default, as set within ActionsManager. */
 		public void Initialise ()
 		{
 			actions.Clear ();
@@ -202,9 +230,7 @@ namespace AC
 		}
 
 
-		/**
-		 * Runs the Actions normally, from the beginning.
-		 */
+		/** Runs the Actions normally, from the beginning. */
 		public virtual void Interact ()
 		{
 			Interact (0, true);
@@ -377,6 +403,7 @@ namespace AC
 					actions[i].BreakPoint (i, this);
 					#endif
 					StartCoroutine (RunAction (actions[i]));
+
 				}
 			}
 			else
@@ -503,21 +530,11 @@ namespace AC
 			int endIndex = action.GetNextOutputIndex ();
 			ActionEnd actionEnd = (endIndex < 0 || endIndex > action.endings.Count) ? Action.GenerateStopActionEnd () : action.endings[endIndex];
 			
-			/*if (actionEnd.resultAction == ResultAction.Skip)
+			if (action.NumSockets <= 0)
 			{
-				int skip = actionEnd.skipAction;
-				if (actionEnd.skipActionActual && actions.Contains (actionEnd.skipActionActual))
-				{
-					skip = actions.IndexOf (actionEnd.skipActionActual);
-				}
-				else if (skip == -1)
-				{
-					skip = 0;
-				}
-				actionEnd.skipAction = skip;
-			}*/
-
-			if (isSkipping && action.NumSockets > 1 && action.LastRunOutput >= 0 && action.LastRunOutput < action.endings.Count)
+				actionEnd = Action.GenerateStopActionEnd ();
+			}
+			else if (isSkipping && action.NumSockets > 1 && action.LastRunOutput >= 0 && action.LastRunOutput < action.endings.Count)
 			{
 				// When skipping an Action with multiple outputs that has already run, revert to previous result
 				actionEnd = action.endings[action.LastRunOutput];
@@ -666,7 +683,10 @@ namespace AC
 
 		private IEnumerator EndCutscene ()
 		{
-			yield return delayFrame;
+			if (!isSkipping)
+			{
+				yield return delayFrame;
+			}
 
 			if (AreActionsRunning ())
 			{
@@ -715,9 +735,7 @@ namespace AC
 		}
 
 
-		/**
-		 * Stops the Actions from running.
-		 */
+		/** Stops the Actions from running. */
 		public void ResetList ()
 		{
 			isSkipping = false;
@@ -733,9 +751,7 @@ namespace AC
 		}
 
 
-		/**
-		 * Stops the Actions from running and sets the gameState in StateHandler to the correct value.
-		 */
+		/** Stops the Actions from running and sets the gameState in StateHandler to the correct value. */
 		public virtual void Kill ()
 		{
 			StopAllCoroutines ();
@@ -1081,110 +1097,32 @@ namespace AC
 		}
 
 
-		public int GetInventoryReferences (InvItem item, string sceneFile)
+		public static string logSuffix;
+
+		public int GetNumItemReferences (int itemID)
 		{
 			int totalNumReferences = 0;
 
 			if ((source == ActionListSource.InScene && NumParameters > 0) ||
 				(source == ActionListSource.AssetFile && assetFile && assetFile.NumParameters > 0 && !syncParamValues && useParameters))
 			{
-				int thisNumReferences = GetParameterReferences (parameters, item.id, ParameterType.InventoryItem);
+				int thisNumReferences = GetParameterReferences (parameters, itemID, ParameterType.InventoryItem);
 				if (thisNumReferences > 0)
 				{
 					totalNumReferences += thisNumReferences;
-					ACDebug.Log ("Found " + thisNumReferences + " references to inventory item '" + item.label + "' in parameter values of ActionList '" + name + "' in scene '" + sceneFile + "'", this);
 				}
 			}
 
 			foreach (Action action in actions)
 			{
-				int thisNumReferences = action.GetInventoryReferences (parameters, item.id);
-				if (thisNumReferences > 0)
+				if (action != null && action is IItemReferencerAction)
 				{
-					totalNumReferences += thisNumReferences;
-					ACDebug.Log ("Found " + thisNumReferences + " references to inventory item '" + item.label + "' in Action #" + actions.IndexOf (action) + " of ActionList '" + name + "' in scene '" + sceneFile + "'", this);
-				}
-			}
-
-			return totalNumReferences;
-		}
-
-
-		public int GetMenuReferences (Menu menu, string sceneFile)
-		{
-			int totalNumReferences = 0;
-
-			foreach (Action action in actions)
-			{
-				int thisNumReferences = action.GetMenuReferences (menu.title);
-				if (thisNumReferences > 0)
-				{
-					totalNumReferences += thisNumReferences;
-					ACDebug.Log ("Found " + thisNumReferences + " references to Menu '" + menu.title + "' in Action #" + actions.IndexOf(action) + " of ActionList '" + name + "' in scene '" + sceneFile + "'", this);
-				}
-			}
-
-			return totalNumReferences;
-		}
-
-
-		public int GetMenuElementReferences (Menu menu, MenuElement element, string sceneFile)
-		{
-			int totalNumReferences = 0;
-
-			foreach (Action action in actions)
-			{
-				int thisNumReferences = action.GetMenuReferences (menu.title, element.title);
-				if (thisNumReferences > 0)
-				{
-					totalNumReferences += thisNumReferences;
-					ACDebug.Log ("Found " + thisNumReferences + " references to element '" + element.title + "' in Action #" + actions.IndexOf(action) + " of ActionList '" + name + "' in scene '" + sceneFile + "'", this);
-				}
-			}
-
-			return totalNumReferences;
-		}
-
-
-		public int GetVariableReferences (VariableLocation _location, GVar _variable, Variables _variables = null, string sceneFile = "")
-		{
-			int totalNumReferences = 0;
-
-			if (_variable == null)
-			{
-				if ((source == ActionListSource.InScene && NumParameters > 0) ||
-					(source == ActionListSource.AssetFile && assetFile && assetFile.NumParameters > 0 && !syncParamValues && useParameters))
-				{
-					ParameterType parameterType = (_location == VariableLocation.Global) ? ParameterType.GlobalVariable : ParameterType.LocalVariable;
-					int thisNumReferences = GetParameterReferences (parameters, _variable.id, parameterType);
+					IItemReferencerAction itemReferencerAction = action as IItemReferencerAction;
+					int thisNumReferences = itemReferencerAction.GetNumItemReferences (itemID, parameters);
 					if (thisNumReferences > 0)
 					{
 						totalNumReferences += thisNumReferences;
-						if (string.IsNullOrEmpty (sceneFile))
-						{
-							ACDebug.Log ("Found " + thisNumReferences + " references to variable '" + _variable.label + "' in parameter values of ActionList '" + name + "'", this);
-						}
-						else
-						{
-							ACDebug.Log ("Found " + thisNumReferences + " references to variable '" + _variable.label + "' in parameter values of ActionList '" + name + "' in scene '" + sceneFile + "'", this);
-						}
-					}
-				}
-			}
-
-			foreach (Action action in actions)
-			{
-				int thisNumReferences = action.GetVariableReferences (parameters, _location, _variable.id, _variables);
-				if (thisNumReferences > 0)
-				{
-					totalNumReferences += thisNumReferences;
-					if (string.IsNullOrEmpty (sceneFile))
-					{
-						ACDebug.Log ("Found " + thisNumReferences + " references to " + _location + " variable '" + _variable.label + "' in Action #" + actions.IndexOf (action) + " of ActionList '" + name + "'", this);
-					}
-					else
-					{
-						ACDebug.Log ("Found " + thisNumReferences + " references to " + _location + " variable '" + _variable.label + "' in Action #" + actions.IndexOf (action) + " of ActionList '" + name + "' in scene '" + sceneFile + "'", this);
+						logSuffix += "\n (" + actions.IndexOf (action) + ") " + action.Category + ": "+ action.Title;
 					}
 				}
 			}
@@ -1193,28 +1131,31 @@ namespace AC
 		}
 
 
-		public int GetDocumentReferences (Document document, string sceneFile)
+		public int UpdateItemReferences (int oldItemID, int newItemID)
 		{
 			int totalNumReferences = 0;
 
 			if ((source == ActionListSource.InScene && NumParameters > 0) ||
 				(source == ActionListSource.AssetFile && assetFile && assetFile.NumParameters > 0 && !syncParamValues && useParameters))
 			{
-				int thisNumReferences = GetParameterReferences (parameters, document.ID, ParameterType.Document);
+				int thisNumReferences = GetParameterReferences (parameters, oldItemID, ParameterType.InventoryItem, null, 0, true, newItemID);
 				if (thisNumReferences > 0)
 				{
 					totalNumReferences += thisNumReferences;
-					ACDebug.Log ("Found " + thisNumReferences + " references to Document '" + document.title + "' in parameter values of ActionList '" + name + "' in scene '" + sceneFile + "'", this);
 				}
 			}
 
 			foreach (Action action in actions)
 			{
-				int thisNumReferences = action.GetDocumentReferences (parameters, document.ID);
-				if (thisNumReferences > 0)
+				if (action != null && action is IItemReferencerAction)
 				{
-					totalNumReferences += thisNumReferences;
-					ACDebug.Log ("Found " + thisNumReferences + " references to document '" + document.title + "' in Action #" + actions.IndexOf (action) + " of ActionList '" + name + "' in scene '" + sceneFile + "'", this);
+					IItemReferencerAction itemReferencerAction = action as IItemReferencerAction;
+					int thisNumReferences = itemReferencerAction.UpdateItemReferences (oldItemID, newItemID, parameters);
+					if (thisNumReferences > 0)
+					{
+						totalNumReferences += thisNumReferences;
+						logSuffix += "\n (" + actions.IndexOf (action) + ") " + action.Category + ": " + action.Title;
+					}
 				}
 			}
 
@@ -1222,17 +1163,21 @@ namespace AC
 		}
 
 
-		public int GetObjectiveReferences (Objective objective, string sceneFile)
+		public int GetNumMenuReferences (string menuName, string elementName = "")
 		{
 			int totalNumReferences = 0;
 
 			foreach (Action action in actions)
 			{
-				int thisNumReferences = action.GetObjectiveReferences (objective.ID);
-				if (thisNumReferences > 0)
+				if (action != null && action is IMenuReferencer)
 				{
-					totalNumReferences += thisNumReferences;
-					ACDebug.Log ("Found " + thisNumReferences + " references to objective '" + objective.Title + "' in Action #" + actions.IndexOf (action) + " of ActionList '" + name + "' in scene '" + sceneFile + "'", this);
+					IMenuReferencer menuReferencer = action as IMenuReferencer;
+					int thisNumReferences = menuReferencer.GetNumMenuReferences (menuName, elementName);
+					if (thisNumReferences > 0)
+					{
+						totalNumReferences += thisNumReferences;
+						logSuffix += "\n (" + actions.IndexOf (action) + ") " + action.Category + ": " + action.Title;
+					}
 				}
 			}
 
@@ -1240,7 +1185,217 @@ namespace AC
 		}
 
 
-		private int GetParameterReferences (List<ActionParameter> parameters, int _ID, ParameterType _paramType)
+		public int GetNumVariableReferences (VariableLocation _location, int variableID, Variables _variables = null, int _variablesConstantID = 0)
+		{
+			int totalNumReferences = 0;
+
+			if ((source == ActionListSource.InScene && NumParameters > 0) ||
+				(source == ActionListSource.AssetFile && assetFile && assetFile.NumParameters > 0 && !syncParamValues && useParameters))
+			{
+				int thisNumReferences = 0;
+
+				switch (_location)
+				{
+					case VariableLocation.Global:
+						thisNumReferences = GetParameterReferences (parameters, variableID, ParameterType.GlobalVariable);
+						break;
+
+					case VariableLocation.Local:
+						thisNumReferences = GetParameterReferences (parameters, variableID, ParameterType.LocalVariable);
+						break;
+
+					case VariableLocation.Component:
+						thisNumReferences = GetParameterReferences (parameters, variableID, ParameterType.ComponentVariable, _variables, _variablesConstantID);
+						break;
+
+					default:
+						break;
+				}
+
+				if (thisNumReferences > 0)
+				{
+					totalNumReferences += thisNumReferences;
+				}
+			}
+
+			foreach (Action action in actions)
+			{
+				if (action != null && action is IVariableReferencerAction)
+				{
+					IVariableReferencerAction variableReferencer = action as IVariableReferencerAction;
+					int thisNumReferences = variableReferencer.GetNumVariableReferences (_location, variableID, parameters, _variables, _variablesConstantID);
+					if (thisNumReferences > 0)
+					{
+						totalNumReferences += thisNumReferences;
+						logSuffix += "\n (" + actions.IndexOf (action) + ") " + action.Category + ": " + action.Title;
+					}
+				}
+			}
+
+			return totalNumReferences;
+		}
+
+
+		public int UpdateVariableReferences (VariableLocation _location, int oldVariableID, int newVariableID, Variables _variables = null, int _variablesConstantID = 0)
+		{
+			int totalNumReferences = 0;
+
+			if ((source == ActionListSource.InScene && NumParameters > 0) ||
+				(source == ActionListSource.AssetFile && assetFile && assetFile.NumParameters > 0 && !syncParamValues && useParameters))
+			{
+				int thisNumReferences = 0;
+
+				switch (_location)
+				{
+					case VariableLocation.Global:
+						thisNumReferences = GetParameterReferences (parameters, oldVariableID, ParameterType.GlobalVariable, null, 0, true, newVariableID);
+						break;
+
+					case VariableLocation.Local:
+						thisNumReferences = GetParameterReferences (parameters, oldVariableID, ParameterType.LocalVariable, null, 0, true, newVariableID);
+						break;
+
+					case VariableLocation.Component:
+						thisNumReferences = GetParameterReferences (parameters, oldVariableID, ParameterType.ComponentVariable, _variables, _variablesConstantID, true, newVariableID);
+						break;
+
+					default:
+						break;
+				}
+
+				if (thisNumReferences > 0)
+				{
+					totalNumReferences += thisNumReferences;
+				}
+			}
+
+			foreach (Action action in actions)
+			{
+				if (action != null && action is IVariableReferencerAction)
+				{
+					IVariableReferencerAction variableReferencer = action as IVariableReferencerAction;
+					int thisNumReferences = variableReferencer.UpdateVariableReferences (_location, oldVariableID, newVariableID, parameters, _variables, _variablesConstantID);
+					if (thisNumReferences > 0)
+					{
+						totalNumReferences += thisNumReferences;
+						logSuffix += "\n (" + actions.IndexOf (action) + ") " + action.Category + ": " + action.Title;
+					}
+				}
+			}
+
+			return totalNumReferences;
+		}
+
+
+		public int GetNumDocumentReferences (int documentID)
+		{
+			int totalNumReferences = 0;
+
+			if ((source == ActionListSource.InScene && NumParameters > 0) ||
+				(source == ActionListSource.AssetFile && assetFile && assetFile.NumParameters > 0 && !syncParamValues && useParameters))
+			{
+				int thisNumReferences = GetParameterReferences (parameters, documentID, ParameterType.Document);
+				if (thisNumReferences > 0)
+				{
+					totalNumReferences += thisNumReferences;
+				}
+			}
+
+			foreach (Action action in actions)
+			{
+				if (action != null && action is IDocumentReferencerAction)
+				{
+					IDocumentReferencerAction documentReferencerAction = action as IDocumentReferencerAction;
+					int thisNumReferences = documentReferencerAction.GetNumDocumentReferences (documentID, parameters);
+					if (thisNumReferences > 0)
+					{
+						totalNumReferences += thisNumReferences;
+						logSuffix += "\n (" + actions.IndexOf (action) + ") " + action.Category + ": " + action.Title;
+					}
+				}
+			}
+
+			return totalNumReferences;
+		}
+
+
+		public int UpdateDocumentReferences (int oldDocumentID, int newDocumentID)
+		{
+			int totalNumReferences = 0;
+
+			if ((source == ActionListSource.InScene && NumParameters > 0) ||
+				(source == ActionListSource.AssetFile && assetFile && assetFile.NumParameters > 0 && !syncParamValues && useParameters))
+			{
+				int thisNumReferences = GetParameterReferences (parameters, oldDocumentID, ParameterType.Document, null, 0, true, newDocumentID);
+				if (thisNumReferences > 0)
+				{
+					totalNumReferences += thisNumReferences;
+				}
+			}
+
+			foreach (Action action in actions)
+			{
+				if (action != null && action is IDocumentReferencerAction)
+				{
+					IDocumentReferencerAction documentReferencerAction = action as IDocumentReferencerAction;
+					int thisNumReferences = documentReferencerAction.UpdateDocumentReferences (oldDocumentID, newDocumentID, parameters);
+					if (thisNumReferences > 0)
+					{
+						totalNumReferences += thisNumReferences;
+						logSuffix += "\n (" + actions.IndexOf (action) + ") " + action.Category + ": " + action.Title;
+					}
+				}
+			}
+
+			return totalNumReferences;
+		}
+
+
+		public int GetNumObjectiveReferences (int objectiveID)
+		{
+			int totalNumReferences = 0;
+
+			foreach (Action action in actions)
+			{
+				if (action != null && action is IObjectiveReferencerAction)
+				{
+					IObjectiveReferencerAction objectiveReferencerAction = action as IObjectiveReferencerAction;
+					int thisNumReferences = objectiveReferencerAction.GetNumObjectiveReferences (objectiveID);
+					if (thisNumReferences > 0)
+					{
+						totalNumReferences += thisNumReferences;
+						logSuffix += "\n (" + actions.IndexOf (action) + ") " + action.Category + ": " + action.Title;
+					}
+				}
+			}
+
+			return totalNumReferences;
+		}
+
+
+		public int UpdateObjectiveReferences (int oldObjectiveID, int newObjectiveID)
+		{
+			int totalNumReferences = 0;
+
+			foreach (Action action in actions)
+			{
+				if (action != null && action is IObjectiveReferencerAction)
+				{
+					IObjectiveReferencerAction objectiveReferencerAction = action as IObjectiveReferencerAction;
+					int thisNumReferences = objectiveReferencerAction.UpdateObjectiveReferences (oldObjectiveID, newObjectiveID);
+					if (thisNumReferences > 0)
+					{
+						totalNumReferences += thisNumReferences;
+						logSuffix += "\n (" + actions.IndexOf (action) + ") " + action.Category + ": " + action.Title;
+					}
+				}
+			}
+
+			return totalNumReferences;
+		}
+
+
+		private int GetParameterReferences (List<ActionParameter> parameters, int _ID, ParameterType _paramType, Variables _variables = null, int _variablesConstantID = 0, bool updateID = false, int _newID = 0)
 		{
 			int thisCount = 0;
 
@@ -1248,6 +1403,23 @@ namespace AC
 			{
 				if (parameter != null && parameter.parameterType == _paramType && _ID == parameter.intValue)
 				{
+					if (_paramType == ParameterType.ComponentVariable)
+					{
+						if (_variables && parameter.variables != _variables)
+						{
+							continue;
+						}
+						if (_variablesConstantID == 0 || parameter.constantID == 0 || parameter.constantID != _variablesConstantID)
+						{
+							continue;
+						}
+						continue;
+					}
+
+					if (updateID)
+					{ 
+						parameter.intValue = _newID;
+					}
 					thisCount++;
 				}
 			}
@@ -1287,11 +1459,33 @@ namespace AC
 
 		public bool ReferencesAsset (ActionListAsset actionListAsset)
 		{
+			bool foundReference = false;
+
+			if (source == ActionListSource.InScene)
+			{
+				foreach (Action action in actions)
+				{
+					if (action != null && action is iActionListAssetReferencer)
+					{
+						iActionListAssetReferencer objectiveReferencerAction = action as iActionListAssetReferencer;
+						{
+							if (objectiveReferencerAction.ReferencesAsset (actionListAsset))
+							{
+								string actionLabel = (KickStarter.actionsManager != null) ? (" (" + KickStarter.actionsManager.GetActionTypeLabel (action) + ")") : "";
+								Debug.Log ("'" + actionListAsset.name + "' is referenced by Action #" + actions.IndexOf (action) + actionLabel + " in ActionList '" + gameObject.name + "' in scene '" + gameObject.scene.name + "'", this);
+								foundReference = true;
+							}
+						}
+					}
+				}
+			}
+
 			if (source == ActionListSource.AssetFile && assetFile == actionListAsset)
 			{
-				return true;
+				foundReference = true;
 			}
-			return false;
+
+			return foundReference;
 		}
 
 

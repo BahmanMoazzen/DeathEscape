@@ -5,7 +5,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"CursorIcon.cs"
  * 
@@ -37,6 +37,8 @@ namespace AC
 		public int lineID = -1;
 		/** A unique identifier */
 		public int id;
+
+		private string cachedLabel;
 
 
 		/** The default Constructor. */
@@ -102,19 +104,17 @@ namespace AC
 			
 			label = "Icon " + (id + 1).ToString ();
 		}
-		
-		
-		/**
-		 * <summary>Gets the name of the expected input button that is used to quick-select the cursor (only applies if SettingsManager's interactionMethod is ChooseInteractionThenHotspot).</summary>
-		 * <returns>The name of the expected input button, which should be defined in Unity's Input Manager</returns>
-		 */
-		public string GetButtonName ()
+
+
+		public override void ClearCache ()
 		{
-			if (label != "")
-			{
-				return "Icon_" + label.Replace (" ", "");
-			}
-			return "Icon_" + id.ToString ();
+			cachedLabel = string.Empty;
+		}
+
+
+		public void UpdateLabel (int languageNumber)
+		{
+			cachedLabel = KickStarter.runtimeLanguages.GetTranslation (label, lineID, languageNumber, AC_TextType.CursorIcon);
 		}
 
 
@@ -125,11 +125,33 @@ namespace AC
 		 */
 		public string GetLabel (int languageNumber)
 		{
-			if (languageNumber > 0)
+			if (Application.isPlaying)
 			{
-				return AdvGame.ConvertTokens (KickStarter.runtimeLanguages.GetTranslation (label, lineID, languageNumber, GetTranslationType (0)));
+				if (languageNumber == Options.GetLanguage ())
+				{
+					if (string.IsNullOrEmpty (cachedLabel))
+					{
+						UpdateLabel (languageNumber);
+					}
+					return AdvGame.ConvertTokens (cachedLabel);
+				}
+				return AdvGame.ConvertTokens (KickStarter.runtimeLanguages.GetTranslation (label, lineID, languageNumber, AC_TextType.CursorIcon));
 			}
 			return AdvGame.ConvertTokens (label);
+		}
+		
+		
+		/**
+		 * <summary>Gets the name of the expected input button that is used to quick-select the cursor (only applies if SettingsManager's interactionMethod is ChooseInteractionThenHotspot).</summary>
+		 * <returns>The name of the expected input button, which should be defined in Unity's Input Manager</returns>
+		 */
+		public string GetButtonName ()
+		{
+			if (!string.IsNullOrEmpty (label))
+			{
+				return "Icon_" + label.Replace (" ", string.Empty);
+			}
+			return "Icon_" + id.ToString ();
 		}
 
 
@@ -571,10 +593,8 @@ namespace AC
 		}
 
 
-		/**
-		 * <summary>Clears the animated Texture2D and Sprite caches.</summary>
-		 */
-		public void ClearCache ()
+		/** Clears the animated Texture2D and Sprite caches. */
+		public virtual void ClearCache ()
 		{
 			textures = null;
 			texture2D = null;
@@ -799,32 +819,35 @@ namespace AC
 			{
 				if (cursorRendering == CursorRendering.Software)
 				{
-					size = CustomGUILayout.FloatField ("Size:", size, string.IsNullOrEmpty (apiPrefix) ? "" : (apiPrefix + ".size"));
+					size = CustomGUILayout.FloatField ("Size:", size, string.IsNullOrEmpty (apiPrefix) ? string.Empty : (apiPrefix + ".size"));
 				}
 
-				EditorGUILayout.BeginHorizontal ();
-				EditorGUILayout.LabelField ("Click offset (from " + ((cursorRendering == CursorRendering.Software) ? "centre):" : "top left):"), GUILayout.Width (150f));
-				clickOffset = CustomGUILayout.Vector2Field ("", clickOffset, string.IsNullOrEmpty (apiPrefix) ? "" : (apiPrefix + ".clickOffset"));
-				EditorGUILayout.EndHorizontal ();
+				if (cursorRendering != CursorRendering.UnityUI)
+				{
+					EditorGUILayout.BeginHorizontal ();
+					EditorGUILayout.LabelField ("Click offset (from " + ((cursorRendering == CursorRendering.Software) ? "centre):" : "top left):"), GUILayout.Width (150f));
+					clickOffset = CustomGUILayout.Vector2Field (string.Empty, clickOffset, string.IsNullOrEmpty (apiPrefix) ? string.Empty : (apiPrefix + ".clickOffset"));
+					EditorGUILayout.EndHorizontal ();
+				}
 			}
 
 			#if ALLOW_MOVIETEXTURE
 			if (!(texture is MovieTexture))
 			#endif
 			{
-				isAnimated = CustomGUILayout.Toggle ("Animate?", isAnimated, string.IsNullOrEmpty (apiPrefix) ? "" : (apiPrefix + ".isAnimated"));
+				isAnimated = CustomGUILayout.Toggle ("Animate?", isAnimated, string.IsNullOrEmpty (apiPrefix) ? string.Empty : (apiPrefix + ".isAnimated"));
 				if (isAnimated)
 				{
 					EditorGUILayout.BeginHorizontal ();
 					EditorGUILayout.LabelField ("Frames:", GUILayout.Width (50f));
-					numFrames = CustomGUILayout.IntField (numFrames, GUILayout.Width (70f), string.IsNullOrEmpty (apiPrefix) ? "" : (apiPrefix + ".numFrames"));
+					numFrames = CustomGUILayout.IntField (numFrames, GUILayout.Width (70f), string.IsNullOrEmpty (apiPrefix) ? string.Empty : (apiPrefix + ".numFrames"));
 					EditorGUILayout.LabelField ("Rows:", GUILayout.Width (50f));
-					numRows = CustomGUILayout.IntField (numRows, GUILayout.Width (70f), string.IsNullOrEmpty (apiPrefix) ? "" : (apiPrefix + ".numRows"));
+					numRows = CustomGUILayout.IntField (numRows, GUILayout.Width (70f), string.IsNullOrEmpty (apiPrefix) ? string.Empty : (apiPrefix + ".numRows"));
 					EditorGUILayout.LabelField ("Columns:", GUILayout.Width (50f));
-					numCols = CustomGUILayout.IntField (numCols, GUILayout.Width (70f), string.IsNullOrEmpty (apiPrefix) ? "" : (apiPrefix + ".numCols"));
+					numCols = CustomGUILayout.IntField (numCols, GUILayout.Width (70f), string.IsNullOrEmpty (apiPrefix) ? string.Empty : (apiPrefix + ".numCols"));
 					EditorGUILayout.EndHorizontal ();
 					
-					animSpeed = CustomGUILayout.FloatField ("Animation speed:", animSpeed, string.IsNullOrEmpty (apiPrefix) ? "" : (apiPrefix + ".animSpeed"));
+					animSpeed = CustomGUILayout.FloatField ("Animation speed:", animSpeed, string.IsNullOrEmpty (apiPrefix) ? string.Empty : (apiPrefix + ".animSpeed"));
 
 					showExtra = EditorGUILayout.Foldout (showExtra, "Additional settings:");
 					if (showExtra)
@@ -832,16 +855,16 @@ namespace AC
 						EditorGUILayout.BeginVertical (CustomStyles.thinBox);
 						if (includeAlwaysAnimate)
 						{
-							alwaysAnimate = CustomGUILayout.ToggleLeft ("Always animate?", alwaysAnimate, string.IsNullOrEmpty (apiPrefix) ? "" : (apiPrefix + ".alwaysAnimate"));
+							alwaysAnimate = CustomGUILayout.ToggleLeft ("Always animate?", alwaysAnimate, string.IsNullOrEmpty (apiPrefix) ? string.Empty : (apiPrefix + ".alwaysAnimate"));
 						}
-						endAnimOnLastFrame = CustomGUILayout.ToggleLeft ("End on last frame?", endAnimOnLastFrame, string.IsNullOrEmpty (apiPrefix) ? "" : (apiPrefix + ".endAnimOnLastFrame"));
-						skipFirstFrameWhenLooping = CustomGUILayout.ToggleLeft ("Skip first when animating?", skipFirstFrameWhenLooping, string.IsNullOrEmpty (apiPrefix) ? "" : (apiPrefix + ".skipFirstFrameWhenLooping"));
+						endAnimOnLastFrame = CustomGUILayout.ToggleLeft ("End on last frame?", endAnimOnLastFrame, string.IsNullOrEmpty (apiPrefix) ? string.Empty : (apiPrefix + ".endAnimOnLastFrame"));
+						skipFirstFrameWhenLooping = CustomGUILayout.ToggleLeft ("Skip first when animating?", skipFirstFrameWhenLooping, string.IsNullOrEmpty (apiPrefix) ? string.Empty : (apiPrefix + ".skipFirstFrameWhenLooping"));
 
 						SyncFrameSpeeds ();
-						for (int i=0; i<numFrames; i++)
+						for (int i = 0; i < numFrames; i++)
 						{
 							if (i == 0 && skipFirstFrameWhenLooping) continue;
-							if (i == (numFrames-1) && endAnimOnLastFrame) continue;
+							if (i == (numFrames - 1) && endAnimOnLastFrame) continue;
 
 							frameSpeeds[i] = EditorGUILayout.Slider ("Frame #" + (i+1).ToString () + " relative speed:", frameSpeeds[i], 0.01f, 1f);
 						}

@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"MenuDrag.cs"
  * 
@@ -44,9 +44,6 @@ namespace AC
 		private string fullText;
 
 
-		/**
-		 * Initialises the element when it is created within MenuManager.
-		 */
 		public override void Declare ()
 		{
 			label = "Button";
@@ -144,22 +141,21 @@ namespace AC
 			base.DrawOutline (isSelected, _menu);
 		}
 
-		#endif
+#endif
+
+
+		protected override string GetLabelToTranslate ()
+		{
+			return label;
+		}
 
 
 		public override void PreDisplay (int _slot, int languageNumber, bool isActive)
 		{
-			fullText = TranslateLabel (label, languageNumber);
+			fullText = TranslateLabel (languageNumber);
 		}
 
 
-		/**
-		 * <summary>Draws the element using OnGUI</summary>
-		 * <param name = "_style">The GUIStyle to draw with</param>
-		 * <param name = "_slot">Ignored by this subclass</param>
-		 * <param name = "zoom">The zoom factor</param>
-		 * <param name = "isActive">If True, then the element will be drawn as though highlighted</param>
-		 */
 		public override void Display (GUIStyle _style, int _slot, float zoom, bool isActive)
 		{
 			base.Display (_style, _slot, zoom, isActive);
@@ -181,15 +177,9 @@ namespace AC
 		}
 		
 
-		/**
-		 * <summary>Gets the display text of the element</summary>
-		 * <param name = "slot">Ignored by this subclass</param>
-		 * <param name = "languageNumber">The index number of the language number to get the text in</param>
-		 * <returns>The display text of the element's slot, or the whole element if it only has one slot</returns>
-		 */
 		public override string GetLabel (int slot, int languageNumber)
 		{
-			return TranslateLabel (label, languageNumber);
+			return TranslateLabel (languageNumber);
 		}
 		
 		
@@ -202,7 +192,7 @@ namespace AC
 			}
 			else
 			{
-				GUIContent content = new GUIContent (TranslateLabel (label, Options.GetLanguage ()));
+				GUIContent content = new GUIContent (TranslateLabel (Options.GetLanguage ()));
 				AutoSize (content);
 			}
 		}

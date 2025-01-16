@@ -9,8 +9,10 @@ namespace AC
 	{
 
 		#region Variables
-
-		private bool runStart = false;
+		
+		[SerializeField] protected CallStartupProcess callStartupProcess = CallStartupProcess.Start;
+		protected enum CallStartupProcess { Start, FirstFrameUpdate };
+		protected bool runStart = false;
 
 		#endregion
 
@@ -48,18 +50,18 @@ namespace AC
 
 		protected void Start ()
 		{
-			if (!runStart) return;
-			runStart = false;
-
-			if (UnityVersionHandler.ObjectIsInActiveScene (gameObject) && KickStarter.settingsManager && KickStarter.saveSystem)
+			if (callStartupProcess == CallStartupProcess.Start)
 			{
-				if (KickStarter.settingsManager.IsInLoadingScene ())
-				{
-					ACDebug.Log ("Bypassing regular AC startup because the current scene is the 'Loading' scene.");
-					return;
-				}
+				RunStartProcess ();
+			}
+		}
 
-				KickStarter.saveSystem.InitAfterLoad ();
+
+		protected void Update ()
+		{
+			if (callStartupProcess == CallStartupProcess.FirstFrameUpdate)
+			{
+				RunStartProcess ();
 			}
 		}
 
@@ -104,6 +106,24 @@ namespace AC
 
 
 		#region ProtectedFunctions
+
+		protected void RunStartProcess ()
+		{
+			if (!runStart) return;
+			runStart = false;
+
+			if (UnityVersionHandler.ObjectIsInActiveScene (gameObject) && KickStarter.settingsManager && KickStarter.saveSystem)
+			{
+				if (KickStarter.settingsManager.IsInLoadingScene ())
+				{
+					ACDebug.Log ("Bypassing regular AC startup because the current scene is the 'Loading' scene.");
+					return;
+				}
+
+				KickStarter.saveSystem.InitAfterLoad ();
+			}
+		}
+
 
 		protected bool TestManagerPresence ()
 		{

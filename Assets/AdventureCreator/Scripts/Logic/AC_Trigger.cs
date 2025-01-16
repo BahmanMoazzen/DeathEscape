@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"AC_Trigger.cs"
  * 
@@ -172,9 +172,7 @@ namespace AC
 		}
 		
 
-		/**
-		 * <summary>Enables the Trigger.</summary>
-		 */
+		/** Enables the Trigger. */
 		public void TurnOn ()
 		{
 			InitTrigger ();
@@ -194,9 +192,7 @@ namespace AC
 		}
 		
 
-		/**
-		 * <summary>Disables the Trigger.</summary>
-		 */
+		/** Disables the Trigger. */
 		public void TurnOff ()
 		{
 			InitTrigger ();
@@ -219,7 +215,53 @@ namespace AC
 				positionDetectObjects[i].OnTurnOff ();
 			}
 		}
-		
+
+
+		public override void Interact ()
+		{
+			Interact (null);
+		}
+
+
+		/**
+		 * <summary>Registers an object as one that can be detected by the Trigger, provided that detectionMethod = TriggerDetectionMethod.TransformPosition</summary>
+		 * <param name = "_gameObject">The object to detect</param>
+		 */
+		public void AddObjectToDetect (GameObject _gameObject)
+		{
+			if (_gameObject == null || obsToDetect.Contains (_gameObject))
+			{
+				return;
+			}
+
+			obsToDetect.Add (_gameObject);
+			positionDetectObjects.Add (new PositionDetectObject (_gameObject));
+		}
+
+
+		/**
+		 * <summary>Registers an object as one that cancanot be detected by the Trigger, provided that detectionMethod = TriggerDetectionMethod.TransformPosition</summary>
+		 * <param name = "_gameObject">The object to no longer detect</param>
+		 */
+		public void RemoveObjectToDetect (GameObject _gameObject)
+		{
+			if (_gameObject == null || !obsToDetect.Contains (_gameObject))
+			{
+				return;
+			}
+
+			obsToDetect.Remove (_gameObject);
+
+			for (int i = 0; i < positionDetectObjects.Count; i++)
+			{
+				if (positionDetectObjects[i].IsForObject (_gameObject))
+				{
+					positionDetectObjects.RemoveAt (i);
+					i = 0;
+				}
+			}
+		}
+
 		#endregion
 
 
@@ -227,6 +269,8 @@ namespace AC
 
 		protected void Interact (GameObject collisionOb)
 		{
+			if (!enabled) return;
+
 			if (cancelInteractions)
 			{
 				KickStarter.playerInteraction.StopMovingToHotspot ();
@@ -272,12 +316,6 @@ namespace AC
 			base.Interact ();
 		}
 
-
-		public override void Interact ()
-		{
-			Interact (null);
-		}
-		
 
 		protected bool IsObjectCorrect (GameObject obToCheck)
 		{

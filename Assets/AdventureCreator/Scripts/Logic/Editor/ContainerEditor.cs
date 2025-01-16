@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿#if UNITY_EDITOR
+
+using UnityEngine;
 using UnityEditor;
 using System.Collections.Generic;
 
@@ -140,6 +142,13 @@ namespace AC
 		private void ShowCategoriesUI (Container _target)
 		{
 			CustomGUILayout.BeginVertical ();
+
+			_target.label = CustomGUILayout.TextField ("Label:", _target.label, string.Empty, "The Container's display name");
+			if (_target.HasExistingTranslation (0))
+			{
+				EditorGUILayout.LabelField ("Speech Manager ID:", _target.labelLineID.ToString ());
+			}
+
 			_target.limitToCategory = CustomGUILayout.Toggle ("Limit by category?", _target.limitToCategory, "", "If True, only inventory items of a specific category will be displayed");
 			if (_target.limitToCategory)
 			{
@@ -287,3 +296,5 @@ namespace AC
 	}
 
 }
+
+#endif

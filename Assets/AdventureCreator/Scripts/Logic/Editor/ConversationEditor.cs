@@ -1,3 +1,5 @@
+#if UNITY_EDITOR
+
 using UnityEngine;
 using UnityEditor;
 using System.Collections.Generic;
@@ -193,7 +195,8 @@ namespace AC
 				}
 			}
 
-			option.linkToInventory = CustomGUILayout.ToggleLeft ("Only show if carrying specific inventory item?", option.linkToInventory, "", " If True, then the option will only be visible if a given inventory item is being carried");
+			option.autoTurnOff = CustomGUILayout.Toggle ("Auto-disable when chosen?", option.autoTurnOff, "", "If True, then the option will be disabled automatically once chosen by the player");
+			option.linkToInventory = CustomGUILayout.Toggle ("Link visibility to inventory item?", option.linkToInventory, "", " If True, then the option will only be visible if a given inventory item is being carried");
 			if (option.linkToInventory)
 			{
 				option.linkedInventoryID = CreateInventoryGUI (option.linkedInventoryID);
@@ -220,32 +223,26 @@ namespace AC
 			int invNumber = -1;
 			int i = 0;
 
-			if (AdvGame.GetReferences ().inventoryManager.items.Count > 0)
+			foreach (InvItem _item in AdvGame.GetReferences ().inventoryManager.items)
 			{
-				foreach (InvItem _item in AdvGame.GetReferences ().inventoryManager.items)
-				{
-					labelList.Add (_item.label);
+				labelList.Add (_item.label);
 					
-					// If a item has been removed, make sure selected variable is still valid
-					if (_item.id == invID)
-					{
-						invNumber = i;
-					}
-					i++;
-				}
-				
-				if (invNumber == -1)
+				// If a item has been removed, make sure selected variable is still valid
+				if (_item.id == invID)
 				{
-					if (invID > 0) ACDebug.Log ("Previously chosen item no longer exists!");
-					invNumber = 0;
-					invID = 0;
+					invNumber = i;
 				}
-				else
-				{
-					invNumber = CustomGUILayout.Popup ("Linked inventory item:", invNumber, labelList.ToArray(), "", "The inventory item that the player must be carrying for the option to be active");
-					invID = AdvGame.GetReferences ().inventoryManager.items[invNumber].id;
-				}
+				i++;
 			}
+				
+			if (invNumber == -1)
+			{
+				if (invID > 0) ACDebug.Log ("Previously chosen item no longer exists!");
+				return invID;
+			}
+			
+			invNumber = CustomGUILayout.Popup ("Linked inventory item:", invNumber, labelList.ToArray (), string.Empty, "The inventory item that the player must be carrying for the option to be active");
+			invID = AdvGame.GetReferences ().inventoryManager.items[invNumber].id;
 
 			return invID;
 		}
@@ -363,3 +360,5 @@ namespace AC
 	}
 
 }
+
+#endif

@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"Container.cs"
  * 
@@ -21,21 +21,27 @@ namespace AC
 	 * This component that is used to store a local set of inventory items within a scene.
 	 * The items stored here are separate to those held by the player, who can retrieve or place items in here for safe-keeping.
 	 */
-	[HelpURL("https://www.adventurecreator.org/scripting-guide/class_a_c_1_1_container.html")]
-	public class Container : MonoBehaviour
+	[HelpURL ("https://www.adventurecreator.org/scripting-guide/class_a_c_1_1_container.html")]
+	public class Container : MonoBehaviour, ITranslatable, IItemReferencer
 	{
 
 		#region Variables
 
-		public List<ContainerItem> items = new List<ContainerItem>();
+		/** The Containers default list of items */
+		public List<ContainerItem> items = new List<ContainerItem> ();
 		/** If True, only inventory items (InvItem) with a specific category will be displayed */
 		public bool limitToCategory;
 		/** The category IDs to limit the display of inventory items by, if limitToCategory = True */
-		public List<int> categoryIDs = new List<int>();
+		public List<int> categoryIDs = new List<int> ();
 		/** If > 0, the maximum number of item slots the Container can hold */
 		public int maxSlots = 0;
 		/** If True, and maxSlots > 0, then attempting to place an item in the Container when full will result in the item being swapped with that in the occupied slot */
 		public bool swapIfFull = false;
+
+		/** The Container's label text */
+		public string label;
+		/** A unique identifier for the label's translation */
+		public int labelLineID = -1;
 
 		protected InvCollection invCollection = new InvCollection ();
 
@@ -72,9 +78,7 @@ namespace AC
 
 		#region PublicFunctions
 
-		/**
-		 * Activates the Container.  If a Menu with an appearType = AppearType.OnContainer, it will be enabled and show the Container's contents.
-		 */
+		/** Activates the Container.  If a Menu with an appearType = AppearType.OnContainer, it will be enabled and show the Container's contents. */
 		public void Interact ()
 		{
 			if (gameObject.activeInHierarchy)
@@ -127,9 +131,7 @@ namespace AC
 		}
 
 
-		/**
-		 * <summary>Removes all inventory items from the Container's contents.</summary>
-		 */
+		/** Removes all inventory items from the Container's contents. */
 		public void RemoveAll ()
 		{
 			invCollection.DeleteAll ();
@@ -162,15 +164,48 @@ namespace AC
 		}
 
 
+		/**
+		 * <summary>Gets the Container's label text in a given language</summary>
+		 * <param name = "languageNumber">The language index, where 0 = the game's default language</param>
+		 * <returns>The label text</returns>
+		 */
+		public string GetLabel (int languageNumber = 0)
+		{
+			return KickStarter.runtimeLanguages.GetTranslation (label, labelLineID, languageNumber, GetTranslationType (0));
+		}
+
+
 		#if UNITY_EDITOR
 
-		public int GetInventoryReferences (int invID)
+		public int GetNumItemReferences (int itemID)
 		{
-			return invCollection.GetCount (invID, false);
+			int numReferences = 0;
+			foreach (ContainerItem containerItem in items)
+			{
+				if (containerItem.ItemID == itemID)
+				{
+					numReferences ++;
+				}
+			}
+			return numReferences;
+		}
+
+
+		public int UpdateItemReferences (int oldItemID, int newItemID)
+		{
+			int numReferences = 0;
+			foreach (ContainerItem containerItem in items)
+			{
+				if (containerItem.ItemID == oldItemID)
+				{
+					containerItem.ItemID = newItemID;
+					numReferences++;
+				}
+			}
+			return numReferences;
 		}
 
 		#endif
-
 
 		#endregion
 
@@ -181,6 +216,74 @@ namespace AC
 		{
 			invCollection = new InvCollection (this);
 		}
+
+		#endregion
+
+
+		#region ITranslatable
+
+		public string GetTranslatableString (int index)
+		{
+			return label;
+		}
+
+
+		public int GetTranslationID (int index)
+		{
+			return labelLineID;
+		}
+
+
+		public AC_TextType GetTranslationType (int index)
+		{
+			return AC_TextType.Container;
+		}
+
+
+		#if UNITY_EDITOR
+
+		public void UpdateTranslatableString (int index, string updatedText)
+		{
+			label = updatedText;
+		}
+
+
+		public int GetNumTranslatables ()
+		{
+			return 1;
+		}
+
+
+		public bool HasExistingTranslation (int index)
+		{
+			return (labelLineID > -1);
+		}
+
+
+		public void SetTranslationID (int index, int _lineID)
+		{
+			labelLineID = _lineID;
+		}
+
+
+		public string GetOwner (int index)
+		{
+			return string.Empty;
+		}
+
+
+		public bool OwnerIsPlayer (int index)
+		{
+			return false;
+		}
+
+
+		public bool CanTranslate (int index)
+		{
+			return (!string.IsNullOrEmpty (label));
+		}
+
+		#endif
 
 		#endregion
 
@@ -207,6 +310,7 @@ namespace AC
 		}
 
 
+		/** The Container's associated InvCollection, where item data is stored */
 		public InvCollection InvCollection
 		{
 			get
@@ -220,6 +324,7 @@ namespace AC
 		}
 
 
+		/** Returns True if the number of filled slots is that of the maxSlots, if maxSlots > 0 */
 		public bool IsFull
 		{
 			get

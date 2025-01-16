@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"ActionPlayerSwitch.cs"
  * 
@@ -110,14 +110,17 @@ namespace AC
 								PlayerData tempPlayerData = new PlayerData ();
 								tempPlayerData = KickStarter.sceneChanger.SavePlayerData (tempPlayerData);
 								string openSubSceneData = tempPlayerData.openSubScenes;
+								string openSubSceneNameData = tempPlayerData.openSubSceneNames;
 								PlayerData newPlayerData = KickStarter.saveSystem.GetPlayerData (playerID);
 								newPlayerData.openSubScenes = openSubSceneData;
+								newPlayerData.openSubSceneNames = openSubSceneNameData;
 								
 								// Force-set position / scene
 								PlayerData oldPlayerData = KickStarter.saveSystem.GetPlayerData (KickStarter.saveSystem.CurrentPlayerID);
 								newPlayerData.CopyPosition (oldPlayerData);
 								newPlayerData.UpdatePresenceInScene ();
 								oldPlayerData.currentScene = -1;
+								oldPlayerData.currentSceneName = string.Empty;
 
 								Player newPlayer = newPlayerPrefab.GetSceneInstance (true);
 								KickStarter.player = newPlayer;
@@ -157,29 +160,67 @@ namespace AC
 								KickStarter.saveSystem.AssignItemsToPlayer (KickStarter.runtimeInventory.PlayerInvCollection, playerID);
 							}
 
-							int sceneIndexToLoad = KickStarter.saveSystem.GetPlayerSceneIndex (playerID);
-							if (sceneIndexToLoad < 0)
+							switch (KickStarter.settingsManager.referenceScenesInSave)
 							{
-								bool hasData = (KickStarter.saveSystem.GetPlayerData (playerID) != null);
-								if (hasData)
-									LogWarning ("Cannot switch to Player ID "+ playerID + " because their current scene index = " + sceneIndexToLoad);
-								else
-									LogWarning ("Cannot switch to Player ID " + playerID + " because no save data was found for them.");
-								return 0f;
+								case ChooseSceneBy.Name:
+									{
+										string sceneNameToLoad = KickStarter.saveSystem.GetPlayerSceneName (playerID);
+										if (string.IsNullOrEmpty (sceneNameToLoad))
+										{
+											bool hasData = (KickStarter.saveSystem.GetPlayerData (playerID) != null);
+											if (hasData)
+												LogWarning ("Cannot switch to Player ID " + playerID + " because their current scene name = " + sceneNameToLoad);
+											else
+												LogWarning ("Cannot switch to Player ID " + playerID + " because no save data was found for them.");
+											return 0f;
+										}
+
+										SubScene subScene = KickStarter.sceneChanger.GetSubScene (sceneNameToLoad);
+										if (subScene == null && SceneChanger.CurrentSceneName != sceneNameToLoad)
+										{
+											// Different scene, and not open as a sub-scene
+											if (KickStarter.player != null)
+											{
+												KickStarter.player.Halt ();
+											}
+
+											KickStarter.saveSystem.SwitchToPlayerInDifferentScene (playerID, sceneNameToLoad, assignScreenOverlay);
+											return 0f;
+										}
+									}
+									break;
+
+								case ChooseSceneBy.Number:
+								default:
+									{
+										int sceneIndexToLoad = KickStarter.saveSystem.GetPlayerSceneIndex (playerID);
+										if (sceneIndexToLoad < 0)
+										{
+											bool hasData = (KickStarter.saveSystem.GetPlayerData (playerID) != null);
+											if (hasData)
+												LogWarning ("Cannot switch to Player ID " + playerID + " because their current scene index = " + sceneIndexToLoad);
+											else
+												LogWarning ("Cannot switch to Player ID " + playerID + " because no save data was found for them.");
+											return 0f;
+										}
+
+										SubScene subScene = KickStarter.sceneChanger.GetSubScene (sceneIndexToLoad);
+										if (subScene == null && SceneChanger.CurrentSceneIndex != sceneIndexToLoad)
+										{
+											// Different scene, and not open as a sub-scene
+											if (KickStarter.player != null)
+											{
+												KickStarter.player.Halt ();
+											}
+
+											KickStarter.saveSystem.SwitchToPlayerInDifferentScene (playerID, sceneIndexToLoad, assignScreenOverlay);
+											return 0f;
+										}
+									}
+									break;
 							}
 
-							SubScene subScene = KickStarter.sceneChanger.GetSubScene (sceneIndexToLoad);
-							if (subScene == null && SceneChanger.CurrentSceneIndex != sceneIndexToLoad)
-							{
-								// Different scene, and not open as a sub-scene
-								if (KickStarter.player != null)
-								{
-									KickStarter.player.Halt ();
-								}
-
-								KickStarter.saveSystem.SwitchToPlayerInDifferentScene (playerID, sceneIndexToLoad, assignScreenOverlay);
-								return 0f;
-							}
+							
 
 							// Same scene
 						
@@ -187,8 +228,10 @@ namespace AC
 							PlayerData tempPlayerData = new PlayerData ();
 							tempPlayerData = KickStarter.sceneChanger.SavePlayerData (tempPlayerData);
 							string openSubSceneData = tempPlayerData.openSubScenes;
+							string openSubSceneNameData = tempPlayerData.openSubSceneNames;
 							PlayerData newPlayerData = KickStarter.saveSystem.GetPlayerData (playerID);
 							newPlayerData.openSubScenes = openSubSceneData;
+							newPlayerData.openSubSceneNames = openSubSceneNameData;
 						
 							Player newPlayer = newPlayerPrefab.GetSceneInstance (true);
 							KickStarter.player = newPlayer;

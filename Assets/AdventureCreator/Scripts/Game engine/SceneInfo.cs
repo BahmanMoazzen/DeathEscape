@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	SceneInfo.cs"
  * 
@@ -10,20 +10,29 @@
  */
 
 using UnityEngine;
+using UnityEngine.SceneManagement;
+using System.Collections.Generic;
+#if AddressableIsPresent
+using UnityEngine.ResourceManagement.ResourceProviders;
+using UnityEngine.ResourceManagement.AsyncOperations;
+#endif
 
 namespace AC
 {
 
-	/**
-	 * A data container for an actual scene in the build.
-	 */
+	/** A data container for an actual scene in the build. */
 	public class SceneInfo
 	{
 
-		#region GetSet
+		#region Variables
 
-		private int buildIndex;
-		private string filename;
+		private readonly int buildIndex;
+		private readonly string filename;
+
+		#if AddressableIsPresent
+		private readonly bool addedToBuildSettings;
+		private static Dictionary<string, AsyncOperationHandle<SceneInstance>> openSceneHandles = new Dictionary<string, AsyncOperationHandle<SceneInstance>>();
+		#endif
 
 		#endregion
 
@@ -31,10 +40,13 @@ namespace AC
 		#region Constructors
 
 		/** The default constructor */
-		public SceneInfo (int _buildIndex, string _filename)
+		public SceneInfo (int _buildIndex, string _filename, bool _addedToBuildSettings = true)
 		{
 			buildIndex = _buildIndex;
 			filename = _filename;
+			#if AddressableIsPresent
+			addedToBuildSettings = _addedToBuildSettings;
+			#endif
 		}
 
 		#endregion
@@ -48,7 +60,15 @@ namespace AC
 		 */
 		public bool IsCurrentActive ()
 		{
-			return buildIndex == SceneChanger.CurrentSceneIndex;
+			switch (KickStarter.settingsManager.referenceScenesInSave)
+			{
+				case ChooseSceneBy.Name:
+					return filename == SceneChanger.CurrentSceneName;
+
+				case ChooseSceneBy.Number:
+				default:
+					return buildIndex == SceneChanger.CurrentSceneIndex;
+			}
 		}
 
 
@@ -58,27 +78,48 @@ namespace AC
 		 */
 		public bool Open (bool forceReload = false)
 		{
-			return Open (forceReload, UnityEngine.SceneManagement.LoadSceneMode.Single);
+			return Open (forceReload, LoadSceneMode.Single);
 		}
 
 
-		/**
-		 * <summary>Adds the scene additively.</summary>
-		 */
+		/** Adds the scene additively.*/
 		public void Add ()
 		{
-			Open (false, UnityEngine.SceneManagement.LoadSceneMode.Additive);
+			Open (false, LoadSceneMode.Additive);
 		}
 
 
-		/**
-		 * <summary>Closes the scene additively.</summary>
-		 */
+		/** Closes the scene additively. */
 		public void Close (bool evenIfCurrent = false)
 		{
 			if (evenIfCurrent || !IsCurrentActive ())
 			{
-				UnityEngine.SceneManagement.SceneManager.UnloadSceneAsync (buildIndex);
+				switch (KickStarter.settingsManager.referenceScenesInSave)
+				{
+					case ChooseSceneBy.Name:
+						#if AddressableIsPresent
+						if (!addedToBuildSettings && KickStarter.settingsManager.loadScenesFromAddressable)
+						{
+							if (openSceneHandles.ContainsKey (filename))
+							{
+								UnityEngine.AddressableAssets.Addressables.UnloadSceneAsync (openSceneHandles[filename], true);
+								openSceneHandles.Remove (filename);
+							}
+							else
+							{
+								ACDebug.LogWarning ("Cannot close scene '" + filename + " because no recorded AsyncOperation was found.");
+							}
+							return;
+						}
+						#endif
+						UnityEngine.SceneManagement.SceneManager.UnloadSceneAsync (filename);
+						break;
+
+					case ChooseSceneBy.Number:
+					default:
+						UnityEngine.SceneManagement.SceneManager.UnloadSceneAsync (buildIndex);
+						break;
+				}
 			}
 		}
 
@@ -89,15 +130,42 @@ namespace AC
 		 */
 		public AsyncOperation OpenAsync ()
 		{
-			return UnityEngine.SceneManagement.SceneManager.LoadSceneAsync (buildIndex);
+			switch (KickStarter.settingsManager.referenceScenesInSave)
+			{
+				case ChooseSceneBy.Name:
+					#if AddressableIsPresent
+					if (!addedToBuildSettings && KickStarter.settingsManager.loadScenesFromAddressable)
+					{
+						AsyncOperationHandle<SceneInstance> handle = UnityEngine.AddressableAssets.Addressables.LoadSceneAsync (filename, LoadSceneMode.Additive);
+						if (handle.IsValid ())
+						{
+							openSceneHandles.Add (filename, handle);
+						}
+					}
+					#endif
+					return UnityEngine.SceneManagement.SceneManager.LoadSceneAsync (filename);
+					
+				case ChooseSceneBy.Number:
+				default:
+					return UnityEngine.SceneManagement.SceneManager.LoadSceneAsync (buildIndex);
+			}
 		}
+
+
+		#if AddressableIsPresent
+		public AsyncOperationHandle<SceneInstance> OpenAddressableAsync (bool manualActivation)
+		{
+			AsyncOperationHandle<SceneInstance> asyncHandle = UnityEngine.AddressableAssets.Addressables.LoadSceneAsync (filename, LoadSceneMode.Single, !manualActivation);
+			return asyncHandle;
+		}
+		#endif
 
 		#endregion
 
 
 		#region PrivateFunctions
 
-		private bool Open (bool forceReload, UnityEngine.SceneManagement.LoadSceneMode loadSceneMode)
+		private bool Open (bool forceReload, LoadSceneMode loadSceneMode)
 		{
 			if (KickStarter.settingsManager.reloadSceneWhenLoading)
 			{
@@ -108,7 +176,35 @@ namespace AC
 			{
 				if (forceReload || !IsCurrentActive ())
 				{
-					UnityEngine.SceneManagement.SceneManager.LoadScene (buildIndex, loadSceneMode);
+					switch (KickStarter.settingsManager.referenceScenesInSave)
+					{
+						case ChooseSceneBy.Name:
+							#if AddressableIsPresent
+							if (!addedToBuildSettings && KickStarter.settingsManager.loadScenesFromAddressable)
+							{
+								var handle = UnityEngine.AddressableAssets.Addressables.LoadSceneAsync (filename, loadSceneMode);
+								if (!handle.IsValid ())
+								{
+									return false;
+								}
+								handle.WaitForCompletion ();
+								if (loadSceneMode == LoadSceneMode.Additive)
+								{
+									openSceneHandles.Add (filename, handle);
+								}
+							}
+							else
+							#endif
+							{
+								UnityEngine.SceneManagement.SceneManager.LoadScene (filename, loadSceneMode);
+							}
+							break;
+
+						case ChooseSceneBy.Number:
+						default:
+							UnityEngine.SceneManagement.SceneManager.LoadScene (buildIndex, loadSceneMode);
+							break;
+					}
 					return true;
 				}
 			}

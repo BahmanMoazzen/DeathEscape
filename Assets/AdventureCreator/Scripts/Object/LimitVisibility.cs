@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"LimitVisibility.cs"
  * 
@@ -10,11 +10,12 @@
  * 
  */
 
-#if !UNITY_SWITCH
+//#if !UNITY_SWITCH
 #define ALLOW_VIDEO
-#endif
+//#endif
 
 using UnityEngine;
+using System.Collections;
 using System.Collections.Generic;
 
 #if ALLOW_VIDEO
@@ -42,12 +43,9 @@ namespace AC
 		public bool affectChildren = false;
 		/** If True, then the GameObject will only be visible when the Cameras defined in limitToCameras are not active */
 		public bool negateEffect = false;
-		/** If True, then the object will not be visible even if the correct _Camera is active */
-		[HideInInspector] public bool isLockedOff = false;
 
+		protected bool isLockedOff = false;
 		protected bool isVisible = false;
-		protected _Camera activeCamera = null;
-		protected _Camera transitionCamera = null;
 
 		protected Renderer _renderer;
 		protected SpriteRenderer spriteRenderer;
@@ -84,44 +82,14 @@ namespace AC
 
 		protected void OnEnable ()
 		{
-			if (KickStarter.stateHandler) KickStarter.stateHandler.Register (this);
+			Upgrade ();
+			EventManager.OnSwitchCamera += OnSwitchCamera;
 		}
 
 
 		protected void OnDisable ()
 		{
-			if (KickStarter.stateHandler) KickStarter.stateHandler.Unregister (this);
-		}
-
-
-		protected void Start ()
-		{
-			if (KickStarter.stateHandler) KickStarter.stateHandler.Register (this);
-
-			Upgrade ();
-
-			if (limitToCameras.Count == 0 || KickStarter.mainCamera == null)
-			{
-				return;
-			}
-
-			activeCamera = KickStarter.mainCamera.attachedCamera;
-
-			if (activeCamera && !isLockedOff)
-			{
-				if (limitToCameras.Contains (activeCamera))
-				{
-					SetVisibility (true);
-				}
-				else
-				{
-					SetVisibility (false);
-				}
-			}
-			else
-			{
-				SetVisibility (false);
-			}
+			EventManager.OnSwitchCamera -= OnSwitchCamera;
 		}
 
 		#endregion
@@ -129,9 +97,7 @@ namespace AC
 
 		#region PublicFunctions
 
-		/**
-		 * <summary>Upgrades the component to make use of the limitToCameras List, rather than the singular limitToCamera variable.</summary>
-		 */
+		/** Upgrades the component to make use of the limitToCameras List, rather than the singular limitToCamera variable. */
 		public void Upgrade ()
 		{
 			if (limitToCameras == null)
@@ -161,43 +127,6 @@ namespace AC
 			}
 		}
 
-
-		/**
-		 * Updates the visibility based on the attached camera. This is public so that it can be called by StateHandler.
-		 */
-		public void _Update ()
-		{
-			if (limitToCameras.Count == 0 || KickStarter.mainCamera == null)
-			{
-				return;
-			}
-
-			activeCamera = KickStarter.mainCamera.attachedCamera;
-			transitionCamera = KickStarter.mainCamera.GetTransitionFromCamera ();
-
-			if (isLockedOff)
-			{
-				if (isVisible)
-				{
-					SetVisibility (false);
-				}
-				return;
-			}
-
-			if (activeCamera && limitToCameras.Contains (activeCamera))
-			{
-				SetVisibility (!negateEffect);
-			}
-			else if (transitionCamera && limitToCameras.Contains (transitionCamera))
-			{
-				SetVisibility (!negateEffect);
-			}
-			else
-			{
-				SetVisibility (negateEffect);
-			}
-		}
-
 		#endregion
 
 
@@ -205,6 +134,8 @@ namespace AC
 
 		protected void SetVisibility (bool state)
 		{
+			StopAllCoroutines ();
+
 			if (_renderer)
 			{
 				_renderer.enabled = state;
@@ -235,6 +166,62 @@ namespace AC
 			#endif
 
 			isVisible = state;
+		}
+		
+		
+		protected IEnumerator SetVisibilityAfterDelay (bool state, float delayDuration)
+		{
+			yield return new WaitForSeconds (delayDuration);
+			SetVisibility (state);
+		}
+
+		#endregion
+
+
+		#region CustomEvents
+
+		private void OnSwitchCamera (_Camera fromCamera, _Camera toCamera, float transitionTime)
+		{
+			if (IsLockedOff)
+			{
+				return;
+			}
+
+			if (toCamera && limitToCameras.Contains (toCamera))
+			{
+				SetVisibility (!negateEffect);
+			}
+			else if (fromCamera && limitToCameras.Contains (fromCamera))
+			{
+				StartCoroutine (SetVisibilityAfterDelay (negateEffect, transitionTime));
+			}
+			else
+			{
+				SetVisibility (negateEffect);
+			}
+		}
+
+		#endregion
+
+
+		#region GetSet
+
+		/** If True, then the object will not be visible even if the correct _Camera is active */
+		public bool IsLockedOff
+		{
+			get
+			{
+				return isLockedOff;
+			}
+			set
+			{
+				isLockedOff = value;
+
+				if (isLockedOff && isVisible)
+				{
+					SetVisibility (false);
+				}
+			}
 		}
 
 		#endregion

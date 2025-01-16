@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"ActionStopActionList.cs"
  * 
@@ -54,7 +54,7 @@ namespace AC
 		{
 			if (listSource == ListSource.InScene && runtimeActionList != null)
 			{
-				KickStarter.actionListManager.EndList (runtimeActionList);
+				runtimeActionList.Kill ();
 			}
 			else if (listSource == ListSource.AssetFile && invActionList != null)
 			{
@@ -121,7 +121,7 @@ namespace AC
 		{
 			if (parameterID < 0 && listSource == ListSource.InScene)
 			{
-				if (actionList != null && actionList.gameObject == gameObject) return true;
+				if (actionList && actionList.gameObject == gameObject) return true;
 				if (constantID == id && id != 0) return true;
 			}
 			return base.ReferencesObjectOrID (gameObject, id);

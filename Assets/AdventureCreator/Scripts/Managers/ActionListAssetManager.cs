@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"ActionListAssetManager.cs"
  * 
@@ -70,11 +70,7 @@ namespace AC
 				{
 					if (activeLists[i].IsFor (actionListAsset))
 					{
-						//if (actionListAsset.canRunMultipleInstances && removeMultipleInstances)
-						{
-							activeLists[i].Reset (false);
-						}
-
+						activeLists[i].Reset (false);
 						activeLists.RemoveAt (i);
 					}
 				}

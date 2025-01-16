@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"RememberContainer.cs"
  * 
@@ -15,9 +15,7 @@ using System.Collections.Generic;
 namespace AC
 {
 
-	/**
-	 * This script is attached to Container objects in the scene you wish to save.
-	 */
+	/** This script is attached to Container objects in the scene you wish to save. */
 	[AddComponentMenu("Adventure Creator/Save system/Remember Container")]
 	[HelpURL("https://www.adventurecreator.org/scripting-guide/class_a_c_1_1_remember_container.html")]
 	public class RememberContainer : Remember
@@ -53,16 +51,14 @@ namespace AC
 		public override void LoadData (string stringData)
 		{
 			ContainerData data = Serializer.LoadScriptData <ContainerData> (stringData);
-
 			if (data == null) return;
 			SavePrevented = data.savePrevented; if (savePrevented) return;
 
 			if (_Container)
 			{
-				List<InvInstance> invInstances = new List<InvInstance> ();
-
 				if (!string.IsNullOrEmpty (data._linkedIDs))
 				{
+					List<InvInstance> invInstances = new List<InvInstance> ();
 					int[] linkedIDs = StringToIntArray (data._linkedIDs);
 					int[] counts = StringToIntArray (data._counts);
 				
@@ -79,6 +75,10 @@ namespace AC
 				else if (!string.IsNullOrEmpty (data.collectionData))
 				{
 					_Container.InvCollection = InvCollection.LoadData (data.collectionData);
+				}
+				else
+				{
+					_Container.InvCollection = new InvCollection ();
 				}
 			}
 		}
@@ -100,9 +100,7 @@ namespace AC
 	}
 	
 
-	/**
-	 * A data container used by the RememberContainer script.
-	 */
+	/** A data container used by the RememberContainer script. */
 	[System.Serializable]
 	public class ContainerData : RememberData
 	{
@@ -116,9 +114,7 @@ namespace AC
 		/** The contents of the container's InvCollection. */
 		public string collectionData;
 
-		/**
-		 * The default Constructor.
-		 */
+		/** The default Constructor. */
 		public ContainerData () { }
 
 	}

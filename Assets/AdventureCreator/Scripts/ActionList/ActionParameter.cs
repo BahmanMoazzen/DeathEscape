@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"ActionParameter.cs"
  * 
@@ -10,6 +10,7 @@
  */
 
 using UnityEngine;
+using System.Collections.Generic;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -21,9 +22,7 @@ using UnityEngine.AddressableAssets;
 namespace AC
 {
 
-	/**
-	 * A data container for an ActionList parameter. A parameter can change the value of an Action's public variables dynamically during gameplay, allowing the same Action to be repurposed for different tasks.
-	 */
+	/** A data container for an ActionList parameter. A parameter can change the value of an Action's public variables dynamically during gameplay, allowing the same Action to be repurposed for different tasks. */
 	[System.Serializable]
 	public class ActionParameter
 	{
@@ -36,10 +35,12 @@ namespace AC
 		public int ID = 0;
 		/** The type of variable it overrides (GameObject, InventoryItem, GlobalVariable, LocalVariable, String, Float, Integer, Boolean, Vector3, Document, ComponentVariable, Parameter) */
 		public ParameterType parameterType = ParameterType.GameObject;
-		/** The new value or ID number, if parameterType = ParameterType.Integer / Boolean / LocalVariable / GlobalVariable / InventoryItem / Document / ComponentVariable.  If parameterType = ParameterType.GameObject, it is the ConstantID number of the GameObject if it is not currently accessible */
+		/** The new value or ID number, if parameterType = ParameterType.Integer / Boolean / LocalVariable / GlobalVariable / InventoryItem / Document / ComponentVariable / PopUp.  If parameterType = ParameterType.GameObject, it is the ConstantID number of the GameObject if it is not currently accessible */
 		public int intValue = -1;
 		/** The constant ID number of the Variables component, if parameterType = ParameterType.ComponentVariabel */
 		public int constantID = 0;
+		/** The Preset ID for the popup, if parameterType = ParameterType.PopUp */
+		public int popUpID = 0;
 		/** The new value, if parameterType = ParameterType.Float */
 		public float floatValue = 0f;
 		/** The new value, if parameterType = ParameterType.String */
@@ -79,6 +80,7 @@ namespace AC
 			gameObjectParameterReferences = GameObjectParameterReferences.ReferencePrefab;
 			variables = null;
 			constantID = 0;
+			popUpID = 0;
 
 			// Update id based on array
 			foreach (int _id in idArray)
@@ -110,6 +112,7 @@ namespace AC
 			gameObjectParameterReferences = GameObjectParameterReferences.ReferencePrefab;
 			variables = null;
 			constantID = 0;
+			popUpID = 0;
 
 			label = "Parameter " + (ID + 1).ToString ();
 		}
@@ -136,6 +139,7 @@ namespace AC
 				gameObjectParameterReferences = _actionParameter.gameObjectParameterReferences;
 				variables = _actionParameter.variables;
 				constantID = _actionParameter.constantID;
+				popUpID = _actionParameter.popUpID;
 			}
 			else
 			{
@@ -148,6 +152,7 @@ namespace AC
 				gameObjectParameterReferences = GameObjectParameterReferences.ReferencePrefab;
 				variables = null;
 				constantID = 0;
+				popUpID = 0;
 			}
 		}
 
@@ -167,12 +172,11 @@ namespace AC
 			gameObjectParameterReferences = otherParameter.gameObjectParameterReferences;
 			variables = otherParameter.variables;
 			constantID = otherParameter.constantID;
+			popUpID = otherParameter.popUpID;
 		}
 
 
-		/**
-		 * Resets the value that the parameter assigns.
-		 */
+		/** Resets the value that the parameter assigns. */
 		public void Reset ()
 		{
 			intValue = -1;
@@ -184,6 +188,7 @@ namespace AC
 			gameObjectParameterReferences = GameObjectParameterReferences.ReferencePrefab;
 			variables = null;
 			constantID = 0;
+			popUpID = 0;
 		}
 
 
@@ -203,6 +208,7 @@ namespace AC
 				case ParameterType.Document:
 				case ParameterType.LocalVariable:
 				case ParameterType.ComponentVariable:
+				case ParameterType.PopUp:
 					return true;
 
 				default:
@@ -472,9 +478,20 @@ namespace AC
 					string vector3Val = vector3Value.x.ToString () + "," + vector3Value.y.ToString () + "," + vector3Value.z.ToString ();
 					return vector3Val;
 
+				case ParameterType.PopUp:
+					PopUpLabelData popUpLabelData = KickStarter.variablesManager.GetPopUpLabelData (popUpID);
+					if (popUpLabelData != null)
+					{
+						return popUpLabelData.GetValue (intValue);
+					}
+					ACDebug.LogWarning ("Could not get parameter text for PopUp parameter " + label + " as no PopUp preset with ID = " + popUpID + " was found");
+					break;
+
 				default:
-					return intValue.ToString ();
+					break;
 			}
+
+			return intValue.ToString ();
 		}
 
 
@@ -784,6 +801,66 @@ namespace AC
 							if (gameObject && gameObject.GetComponent<ConstantID> () == null)
 							{
 								UnityVersionHandler.AddConstantIDToGameObject<ConstantID> (gameObject);
+							}
+						}
+						break;
+
+					case ParameterType.PopUp:
+						{
+							if (KickStarter.variablesManager == null)
+							{
+								EditorGUILayout.HelpBox ("A Variables Manager must be assigned for PopUp parameter values to display.", MessageType.Warning);
+								break;
+							}
+
+							List<string> popUpPresetLabels = new List<string> ();
+							int j = 0;
+							for (int i = 0; i < KickStarter.variablesManager.popUpLabelData.Count; i++)
+							{
+								popUpPresetLabels.Add (KickStarter.variablesManager.popUpLabelData[i].EditorLabel);
+								if (popUpID == KickStarter.variablesManager.popUpLabelData[i].ID)
+								{
+									j = i;
+								}
+							}
+
+							popUpPresetLabels.Add ("Create new...");
+							j = EditorGUILayout.Popup ("Label preset:", j, popUpPresetLabels.ToArray ());
+							
+							if (j == popUpPresetLabels.Count - 1)
+							{
+								// Create new
+								if (popUpPresetLabels.Count > PopUpLabelData.MaxPresets)
+								{
+									ACDebug.LogWarning ("The maximum number of popup presets has been reached!");
+									break;
+								}
+
+								List<int> idArray = new List<int> ();
+								foreach (PopUpLabelData data in KickStarter.variablesManager.popUpLabelData)
+								{
+									idArray.Add (data.ID);
+								}
+								idArray.Sort ();
+								PopUpLabelData newData = new PopUpLabelData (idArray.ToArray (), new string[0], -1);
+								KickStarter.variablesManager.popUpLabelData.Add (newData);
+								popUpID = newData.ID;
+
+								EditorUtility.SetDirty (KickStarter.variablesManager);
+							}
+							else
+							{
+								popUpID = KickStarter.variablesManager.popUpLabelData[j].ID;
+							}
+
+							PopUpLabelData presetData = KickStarter.variablesManager.GetPopUpLabelData (popUpID);
+							if (presetData != null)
+							{
+								presetData.ShowGUI (!Application.isPlaying, KickStarter.variablesManager);
+							}
+							else
+							{
+								EditorGUILayout.HelpBox ("No PopUp preset data found with ID = " + popUpID + " - is the correct Variables Manager assigned?", MessageType.Warning);
 							}
 						}
 						break;

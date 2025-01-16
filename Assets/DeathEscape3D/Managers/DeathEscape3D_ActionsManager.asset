@@ -12,7 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0a0c43bf7c11a40f386c183fa9601d86, type: 3}
   m_Name: DeathEscape3D_ActionsManager
   m_EditorClassIdentifier: 
-  customFolderPath: 
   customFolderPaths:
   - 
   allFavouriteActionData: []
@@ -21,6 +20,7 @@ MonoBehaviour:
   allowMultipleActionListWindows: 0
   actionListEditorScrollWheel: 0
   invertPanning: 0
+  focusOnPastedActions: 1
   panSpeed: 1
   autoPanNearWindowEdge: 1
   defaultClass: -1
@@ -104,8 +104,7 @@ MonoBehaviour:
   - fileName: ActionCameraTP
     category: 1
     title: Rotate third-person
-    description: Rotates a Game Camera Third-person to face a certain direction,
-      either fixed or relative to its target.
+    description: Manipulates the new third-person camera
     isEnabled: 1
     color: {r: 1, g: 1, b: 1, a: 1}
   - fileName: ActionCameraShake
@@ -655,6 +654,13 @@ MonoBehaviour:
       restrict movement to.
     isEnabled: 1
     color: {r: 1, g: 1, b: 1, a: 1}
+  - fileName: ActionPlayerLockPath
+    category: 14
+    title: Lock to Path
+    description: When using Direct or First Person control, constrains the Player's
+      movement to a pre-defined Path.
+    isEnabled: 1
+    color: {r: 1, g: 1, b: 1, a: 1}
   - fileName: ActionPlayerSwitch
     category: 14
     title: Switch
@@ -868,3 +874,4 @@ MonoBehaviour:
       Variable in the Variables Manager.
     isEnabled: 1
     color: {r: 1, g: 1, b: 1, a: 1}
+  defaultActionCategoryDatas: []

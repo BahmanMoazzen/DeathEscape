@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"Moveable.cs"
  * 
@@ -218,9 +218,7 @@ namespace AC
 
 		#region PublicFunctions
 
-		/**
-		 * Halts the GameObject, if it is being moved by this script.
-		 */
+		/** Halts the GameObject, if it is being moved by this script. */
 		public void StopMoving ()
 		{
 			positionChangeTime = rotateChangeTime = scaleChangeTime = 0f;
@@ -233,13 +231,13 @@ namespace AC
 			{
 				case TransformType.Translate:
 				case TransformType.CopyMarker:
-					return (positionChangeTime > 0f);
+					return positionChangeTime > 0f;
 
 				case TransformType.Rotate:
-					return (rotateChangeTime > 0f);
+					return rotateChangeTime > 0f;
 
 				case TransformType.Scale:
-					return (scaleChangeTime > 0f);
+					return scaleChangeTime > 0f;
 
 				default: 
 					return false;
@@ -247,9 +245,7 @@ namespace AC
 		}
 		
 
-		/**
-		 * Halts the GameObject, and sets its Transform to its target values, if it is being moved by this script.
-		 */
+		/** Halts the GameObject, and sets its Transform to its target values, if it is being moved by this script. */
 		public void EndMovement ()
 		{
 			if (positionChangeTime > 0f)

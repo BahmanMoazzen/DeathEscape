@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"ActionComment.cs"
  * 
@@ -42,19 +42,25 @@ namespace AC
 
 		public override float Run ()
 		{
-			if (acLogType != ACLogType.No && !string.IsNullOrEmpty (convertedText))
+			if (!string.IsNullOrEmpty (convertedText))
 			{
-				if (acLogType == ACLogType.AsInfo)
+				switch (acLogType)
 				{
-					Log (convertedText);
-				}
-				else if (acLogType == ACLogType.AsWarning)
-				{
-					LogWarning (convertedText);
-				}
-				else if (acLogType == ACLogType.AsError)
-				{
-					LogError (convertedText);
+					case ACLogType.No:
+					default:
+						break;
+
+					case ACLogType.AsInfo:
+						Log (convertedText);
+						break;
+
+					case ACLogType.AsWarning:
+						LogWarning (convertedText);
+						break;
+
+					case ACLogType.AsError:
+						LogError (convertedText);
+						break;
 				}
 			}
 			return 0f;
@@ -69,6 +75,14 @@ namespace AC
 			commentText = CustomGUILayout.TextArea ("Comment:", commentText);
 
 			acLogType = (ACLogType) EditorGUILayout.EnumPopup ("Display in Console?", acLogType);
+
+			if (!string.IsNullOrEmpty (commentText) && acLogType != ACLogType.No)
+			{
+				if (KickStarter.settingsManager.showDebugLogs == ShowDebugLogs.Never || (KickStarter.settingsManager.showDebugLogs == ShowDebugLogs.OnlyWarningsOrErrors && acLogType == ACLogType.AsInfo))
+				{
+					EditorGUILayout.HelpBox ("To enable comment-logging, configure the Settings Manager's 'Show logs in Console' field.", MessageType.Warning);
+				}
+			}
 		}
 		
 		
@@ -118,16 +132,32 @@ namespace AC
 		}
 
 
-		public override int GetVariableReferences (List<ActionParameter> parameters, VariableLocation location, int varID, Variables _variables, int _variablesConstantID = 0)
+		public override int GetNumVariableReferences (VariableLocation location, int varID, List<ActionParameter> parameters, Variables _variables = null, int _variablesConstantID = 0)
 		{
 			int thisCount = 0;
-			string tokenText = AdvGame.GetVariableTokenText (location, varID);
+			string tokenText = AdvGame.GetVariableTokenText (location, varID, _variablesConstantID);
 
 			if (!string.IsNullOrEmpty (tokenText) && commentText.Contains (tokenText))
 			{
 				thisCount ++;
 			}
-			thisCount += base.GetVariableReferences (parameters, location, varID, _variables);
+			thisCount += base.GetNumVariableReferences (location, varID, parameters, _variables, _variablesConstantID);
+			return thisCount;
+		}
+
+
+		public override int UpdateVariableReferences (VariableLocation location, int oldVarID, int newVarID, List<ActionParameter> parameters, Variables _variables = null, int _variablesConstantID = 0)
+		{
+			int thisCount = 0;
+			string oldTokenText = AdvGame.GetVariableTokenText (location, oldVarID, _variablesConstantID);
+
+			if (!string.IsNullOrEmpty (oldTokenText) && commentText.Contains (oldTokenText))
+			{
+				string newTokenText = AdvGame.GetVariableTokenText (location, newVarID, _variablesConstantID);
+				commentText = commentText.Replace (oldTokenText, newTokenText);
+				thisCount++;
+			}
+			thisCount += base.UpdateVariableReferences (location, oldVarID, newVarID, parameters, _variables, _variablesConstantID);
 			return thisCount;
 		}
 

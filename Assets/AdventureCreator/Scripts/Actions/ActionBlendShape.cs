@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"ActionBlendShape.cs"
  * 
@@ -350,7 +350,7 @@ namespace AC
 			}
 			if (isPlayer && (KickStarter.settingsManager == null || KickStarter.settingsManager.playerSwitching == PlayerSwitching.DoNotAllow))
 			{
-				if (_gameObject.GetComponent<Char> () && _gameObject.GetComponent<Char> ().IsPlayer) return true;
+				if (_gameObject && _gameObject.GetComponent<Char> () && _gameObject.GetComponent<Char> ().IsPlayer) return true;
 			}
 			return base.ReferencesObjectOrID (_gameObject, id);
 		}

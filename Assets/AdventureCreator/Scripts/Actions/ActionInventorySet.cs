@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"ActionInventorySet.cs"
  * 
@@ -20,7 +20,7 @@ namespace AC
 {
 
 	[System.Serializable]
-	public class ActionInventorySet : Action
+	public class ActionInventorySet : Action, IItemReferencerAction
 	{
 		
 		public InvAction invAction;
@@ -110,8 +110,19 @@ namespace AC
 					case InvAction.Remove:
 						if (removeLast)
 						{
-							KickStarter.runtimeInventory.SetNull ();
-							KickStarter.runtimeInventory.PlayerInvCollection.Delete (KickStarter.runtimeInventory.LastSelectedInstance);
+							InvInstance invInstance = KickStarter.runtimeInventory.LastSelectedInstance;
+							if (InvInstance.IsValid (invInstance))
+							{
+								if (setAmount && invInstance.InvItem.canCarryMultiple && invInstance.Count > amount)
+								{
+									invInstance.Count -= amount;
+								}
+								else
+								{
+									KickStarter.runtimeInventory.SetNull ();
+									KickStarter.runtimeInventory.PlayerInvCollection.Delete (invInstance);
+								}
+							}
 						}
 						else
 						{
@@ -250,26 +261,24 @@ namespace AC
 						label = "Item to remove:";
 
 						removeLast = EditorGUILayout.Toggle ("Remove last-selected?", removeLast);
-						if (removeLast)
+					}
+
+					if (invAction != InvAction.Remove || !removeLast)
+					{
+						parameterID = Action.ChooseParameterGUI (label, parameters, parameterID, ParameterType.InventoryItem);
+						if (parameterID >= 0)
 						{
-							setAmount = false;
-							return;
+							invNumber = Mathf.Min (invNumber, inventoryManager.items.Count-1);
+							invID = -1;
+						}
+						else
+						{
+							invNumber = EditorGUILayout.Popup (label, invNumber, labelList.ToArray());
+							invID = inventoryManager.items[invNumber].id;
 						}
 					}
 
-					parameterID = Action.ChooseParameterGUI (label, parameters, parameterID, ParameterType.InventoryItem);
-					if (parameterID >= 0)
-					{
-						invNumber = Mathf.Min (invNumber, inventoryManager.items.Count-1);
-						invID = -1;
-					}
-					else
-					{
-						invNumber = EditorGUILayout.Popup (label, invNumber, labelList.ToArray());
-						invID = inventoryManager.items[invNumber].id;
-					}
-
-					if (inventoryManager.items[invNumber].canCarryMultiple)
+					if ((invAction == InvAction.Remove && removeLast) || inventoryManager.items[invNumber].canCarryMultiple)
 					{
 						setAmount = EditorGUILayout.Toggle ("Set amount?", setAmount);
 					
@@ -409,18 +418,38 @@ namespace AC
 		}
 
 
-		public override int GetInventoryReferences (List<ActionParameter> parameters, int _invID)
+		public int GetNumItemReferences (int _itemID, List<ActionParameter> parameters)
 		{
 			int numFound = 0;
 
-			if (parameterID < 0 && invID == _invID)
+			if (parameterID < 0 && invID == _itemID)
 			{
 				numFound ++;
 			}
 
-			if (invAction == InvAction.Replace && replaceParameterID < 0 && invIDReplace == _invID)
+			if (invAction == InvAction.Replace && replaceParameterID < 0 && invIDReplace == _itemID)
 			{
 				numFound ++;
+			}
+
+			return numFound;
+		}
+
+
+		public int UpdateItemReferences (int oldItemID, int newItemID, List<ActionParameter> parameters)
+		{
+			int numFound = 0;
+
+			if (parameterID < 0 && invID == oldItemID)
+			{
+				invID = newItemID;
+				numFound++;
+			}
+
+			if (invAction == InvAction.Replace && replaceParameterID < 0 && invIDReplace == oldItemID)
+			{
+				invIDReplace = newItemID;
+				numFound++;
 			}
 
 			return numFound;

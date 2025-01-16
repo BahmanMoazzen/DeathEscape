@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"ActionCharMove.cs"
  * 
@@ -82,7 +82,7 @@ namespace AC
 
 				if (runtimeChar)
 				{
-					if (!runtimeChar.IsPlayer)
+					if (!runtimeChar.IsActivePlayer ())
 					{
 						NPC npcToMove = (NPC) runtimeChar;
 						npcToMove.StopFollowing ();
@@ -92,7 +92,7 @@ namespace AC
 					{
 						case MovePathMethod.StopMoving:
 							runtimeChar.EndPath ();
-							if (runtimeChar.IsPlayer && KickStarter.playerInteraction.GetHotspotMovingTo () != null)
+							if (runtimeChar.IsActivePlayer () && KickStarter.playerInteraction.GetHotspotMovingTo () != null)
 							{
 								KickStarter.playerInteraction.StopMovingToHotspot ();
 							}
@@ -171,7 +171,7 @@ namespace AC
 			{
 				runtimeChar.EndPath (runtimeMovePath);
 
-				if (!runtimeChar.IsPlayer)
+				if (!runtimeChar.IsActivePlayer ())
 				{
 					NPC npcToMove = (NPC) runtimeChar;
 					npcToMove.StopFollowing ();
@@ -406,13 +406,13 @@ namespace AC
 		{
 			if (!isPlayer && charToMoveParameterID < 0)
 			{
-				if (charToMove != null && charToMove.gameObject == _gameObject) return true;
+				if (charToMove && charToMove.gameObject == _gameObject) return true;
 				if (charToMoveID == id) return true;
 			}
-			if (isPlayer && _gameObject.GetComponent <Player>() != null) return true;
+			if (isPlayer && _gameObject && _gameObject.GetComponent <Player>()) return true;
 			if (movePathMethod == MovePathMethod.MoveOnNewPath && movePathParameterID < 0)
 			{
-				if (movePath != null && movePath.gameObject == _gameObject) return true;
+				if (movePath && movePath.gameObject == _gameObject) return true;
 				if (movePathID == id) return true;
 			}
 			return base.ReferencesObjectOrID (_gameObject, id);

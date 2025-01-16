@@ -70,6 +70,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 0
     orderPrefix: 'Test Tube: Indigo Pot_73312_'
@@ -90,6 +91,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 0
     orderPrefix: 'Small Glass Jar: SmallBrains 5_71766_'
@@ -110,6 +112,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 0
     orderPrefix: 'Test Tube: EmptyPot_71590_'
@@ -131,6 +134,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 0
     orderPrefix: 'Drip Tap: Look at_71062_'
@@ -151,6 +155,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 0
     orderPrefix: Standing Zombie Conversation_Option3_71082_
@@ -173,6 +178,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 1
     orderPrefix: Standing Zombie Conversation_Option3_71082_
@@ -204,6 +210,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 2
     orderPrefix: Standing Zombie Conversation_Option3_71082_
@@ -225,6 +232,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 0
     orderPrefix: 'OrangePelakHS: Use_71202_'
@@ -245,6 +253,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 0
     orderPrefix: Standing Zombie Conversation_Option2_71260_
@@ -266,6 +275,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 0
     orderPrefix: 'autopsy_table: Pick_71268_'
@@ -287,6 +297,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 0
     orderPrefix: 'TestTubePuzzle: Pick_71302_'
@@ -311,6 +322,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 0
     orderPrefix: 'SafeBrainHS: Use_71314_'
@@ -339,6 +351,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 0
     orderPrefix: 'OrangePelakHS: Look at_71324_'
@@ -361,6 +374,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 0
     orderPrefix: 'Safe Key Hole: Look at_71332_'
@@ -383,6 +397,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 1
     orderPrefix: 'Safe Key Hole: Look at_71332_'
@@ -404,6 +419,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 0
     orderPrefix: 'FilledTubes: Look at_71372_'
@@ -425,6 +441,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 1
     orderPrefix: 'FilledTubes: Look at_71372_'
@@ -446,6 +463,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 0
     orderPrefix: 'Drip Tap: EmptyPot_71374_'
@@ -467,6 +485,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 1
     orderPrefix: 'Drip Tap: EmptyPot_71374_'
@@ -488,6 +507,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 0
     orderPrefix: 'autopsy_table: Look at_71420_'
@@ -509,6 +529,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 0
     orderPrefix: 'SafeBrainHS: Look at_71454_'
@@ -530,6 +551,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 0
     orderPrefix: 'Ceramic Sink: Unhandled inventory_71456_'
@@ -551,6 +573,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 1
     orderPrefix: 'Ceramic Sink: Unhandled inventory_71456_'
@@ -571,6 +594,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 0
     orderPrefix: Standing Zombie Conversation_Option_71466_
@@ -591,6 +615,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 0
     orderPrefix: 'CorpsDrawerSignHS: Look at_71584_'
@@ -611,6 +636,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 1
     orderPrefix: 'ceramic_sink: EmptyPot_71668_'
@@ -632,6 +658,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 0
     orderPrefix: 'ceramic_sink: EmptyPot_71668_'
@@ -652,6 +679,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 0
     orderPrefix: CombinationLockUnlockCutScene_71724_
@@ -673,6 +701,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 0
     orderPrefix: 'Drip Tap: Use_71734_'
@@ -694,6 +723,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 0
     orderPrefix: 'Trolley: Look at_71772_'
@@ -715,6 +745,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 0
     orderPrefix: 'SafePuzzleHS: Pick_71796_'
@@ -735,6 +766,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 0
     orderPrefix: 'Safe Key Hole: Safe Key_71802_'
@@ -756,6 +788,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 1
     orderPrefix: 'ceramic_sink: Use_71842_'
@@ -777,6 +810,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 0
     orderPrefix: 'ceramic_sink: Use_71842_'
@@ -798,6 +832,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 0
     orderPrefix: 'Jars: Look at_71884_'
@@ -819,6 +854,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 1
     orderPrefix: 'Jars: Look at_71884_'
@@ -840,6 +876,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 2
     orderPrefix: 'Jars: Look at_71884_'
@@ -864,6 +901,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 3
     orderPrefix: 'Jars: Look at_71884_'
@@ -884,6 +922,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 0
     orderPrefix: 'Ceramic Sink: FullPot_72130_'
@@ -911,6 +950,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 0
     orderPrefix: 'Saw: Pick_72142_'
@@ -935,6 +975,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 0
     orderPrefix: 'OrganePelak: Look at_72158_'
@@ -956,6 +997,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 0
     orderPrefix: 'Jars: Use_72192_'
@@ -977,6 +1019,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 0
     orderPrefix: 'Safe Key Hole: Use_72214_'
@@ -998,6 +1041,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 0
     orderPrefix: 'NoteBook: Look at_72220_'
@@ -1023,6 +1067,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 1
     orderPrefix: 'NoteBook: Look at_72220_'
@@ -1044,6 +1089,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 0
     orderPrefix: SafeCombinationCheck_72300_
@@ -1064,6 +1110,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 0
     orderPrefix: 'IronBoxFake: Use_72382_'
@@ -1084,6 +1131,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 0
     orderPrefix: startupCinemantic_72430_
@@ -1104,6 +1152,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 1
     orderPrefix: startupCinemantic_72430_
@@ -1126,6 +1175,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 2
     orderPrefix: startupCinemantic_72430_
@@ -1146,6 +1196,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 3
     orderPrefix: startupCinemantic_72430_
@@ -1166,6 +1217,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 4
     orderPrefix: startupCinemantic_72430_
@@ -1187,6 +1239,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 5
     orderPrefix: startupCinemantic_72430_
@@ -1209,6 +1262,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 0
     orderPrefix: 'Zarfe Tarazoo: CompleteBrain_72496_'
@@ -1230,6 +1284,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 0
     orderPrefix: Standing Zombie Conversation_Option4_72562_
@@ -1250,6 +1305,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 1
     orderPrefix: Standing Zombie Conversation_Option4_72562_
@@ -1275,6 +1331,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 2
     orderPrefix: Standing Zombie Conversation_Option4_72562_
@@ -1295,6 +1352,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 3
     orderPrefix: Standing Zombie Conversation_Option4_72562_
@@ -1317,6 +1375,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 4
     orderPrefix: Standing Zombie Conversation_Option4_72562_
@@ -1337,6 +1396,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 0
     orderPrefix: 'Saw: Use_72568_'
@@ -1358,6 +1418,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 0
     orderPrefix: 'Larg Glass Jar: Pick_72574_'
@@ -1379,6 +1440,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 0
     orderPrefix: 'Test Tube: FullPot_72622_'
@@ -1400,6 +1462,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 0
     orderPrefix: 'autopsy_table 1: Look at_72672_'
@@ -1421,6 +1484,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 0
     orderPrefix: 'Photo Frame Kian: Look at_72706_'
@@ -1443,6 +1507,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 1
     orderPrefix: 'Photo Frame Kian: Look at_72706_'
@@ -1463,6 +1528,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 0
     orderPrefix: Standing Zombie Conversation_Option5_72724_
@@ -1484,6 +1550,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 1
     orderPrefix: Standing Zombie Conversation_Option5_72724_
@@ -1504,6 +1571,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 2
     orderPrefix: Standing Zombie Conversation_Option5_72724_
@@ -1526,6 +1594,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 3
     orderPrefix: Standing Zombie Conversation_Option5_72724_
@@ -1547,6 +1616,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 0
     orderPrefix: 'Larg Glass Jar: Look at_72800_'
@@ -1567,6 +1637,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -1587,6 +1658,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 0
     orderPrefix: 'CorpsDrawer: Use_72846_'
@@ -1608,6 +1680,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 0
     orderPrefix: 'ElectricSwitch: Look at_72866_'
@@ -1629,6 +1702,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 0
     orderPrefix: 'ElectricSwitch: Use_72892_'
@@ -1651,6 +1725,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 1
     orderPrefix: 'CorpsDrawerSignHS: Sciesors_72938_'
@@ -1671,6 +1746,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 0
     orderPrefix: 'CorpsDrawerSignHS: Sciesors_72938_'
@@ -1691,6 +1767,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 0
     orderPrefix: 'SafePuzzleHS: Look at_73138_'
@@ -1728,6 +1805,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 1
     orderPrefix: 'SafePuzzleHS: Look at_73138_'
@@ -1752,6 +1830,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 0
     orderPrefix: 'Saw: Look at_73168_'
@@ -1773,6 +1852,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 1
     orderPrefix: 'CorpsDrawerSignHS: Scalp_73216_'
@@ -1794,6 +1874,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 0
     orderPrefix: 'CorpsDrawerSignHS: Scalp_73216_'
@@ -1817,6 +1898,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 2
     orderPrefix: 'CorpsDrawerSignHS: Scalp_73216_'
@@ -1837,6 +1919,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 0
     orderPrefix: 'Test Tube: Use_73222_'
@@ -1862,6 +1945,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 0
     orderPrefix: 'LiquidOnly: Look at_73234_'
@@ -1887,6 +1971,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 0
     orderPrefix: 'Knife: Pick_73264_'
@@ -1907,6 +1992,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 0
     orderPrefix: 'autopsy_table: Use_73318_'
@@ -1927,6 +2013,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -1947,6 +2034,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -1967,6 +2055,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -1987,6 +2076,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -2007,6 +2097,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -2027,6 +2118,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -2047,6 +2139,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -2067,6 +2160,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -2087,6 +2181,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -2107,6 +2202,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -2127,6 +2223,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -2147,6 +2244,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -2167,6 +2265,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -2187,6 +2286,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -2207,6 +2307,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -2227,6 +2328,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -2247,6 +2349,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -2267,6 +2370,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -2287,6 +2391,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -2307,6 +2412,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -2328,6 +2434,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -2348,6 +2455,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -2368,6 +2476,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -2388,6 +2497,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -2408,6 +2518,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -2429,6 +2540,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -2449,6 +2561,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -2469,6 +2582,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -2489,6 +2603,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -2510,6 +2625,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -2530,6 +2646,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -2550,6 +2667,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -2570,6 +2688,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -2590,6 +2709,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -2611,6 +2731,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -2631,6 +2752,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -2652,6 +2774,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -2673,6 +2796,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -2693,6 +2817,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -2713,6 +2838,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -2733,6 +2859,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -2754,6 +2881,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -2775,6 +2903,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -2796,6 +2925,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -2816,6 +2946,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -2836,6 +2967,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -2856,6 +2988,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -2877,6 +3010,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -2897,6 +3031,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -2917,6 +3052,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -2937,6 +3073,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -2957,6 +3094,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -2977,6 +3115,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -2997,6 +3136,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -3017,6 +3157,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -3037,6 +3178,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -3057,6 +3199,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -3077,6 +3220,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -3097,6 +3241,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -3117,6 +3262,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -3137,6 +3283,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -3157,6 +3304,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -3177,6 +3325,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -3197,6 +3346,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -3217,6 +3367,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -3237,6 +3388,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -3257,6 +3409,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -3277,6 +3430,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -3297,6 +3451,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -3317,6 +3472,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -3337,6 +3493,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -3357,6 +3514,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -3377,6 +3535,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -3397,6 +3556,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -3417,6 +3577,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -3437,6 +3598,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -3457,6 +3619,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -3477,6 +3640,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -3497,6 +3661,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -3517,6 +3682,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -3537,6 +3703,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -3557,6 +3724,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -3577,6 +3745,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -3597,6 +3766,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -3617,6 +3787,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -3637,6 +3808,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -3657,6 +3829,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -3677,6 +3850,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -3697,6 +3871,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -3717,6 +3892,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -3737,6 +3913,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -3757,6 +3934,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -3777,6 +3955,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -3797,6 +3976,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -3817,6 +3997,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -3837,6 +4018,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -3857,6 +4039,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -3877,6 +4060,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -3897,6 +4081,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -3917,6 +4102,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -3937,6 +4123,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -3965,6 +4152,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -3985,6 +4173,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -4010,6 +4199,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -4032,6 +4222,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -4052,6 +4243,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -4077,6 +4269,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -4097,6 +4290,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -4119,6 +4313,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -4139,6 +4334,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -4161,6 +4357,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -4181,6 +4378,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -4202,6 +4400,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -4222,6 +4421,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -4242,6 +4442,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -4267,6 +4468,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -4287,6 +4489,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -4310,6 +4513,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -4331,6 +4535,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -4358,6 +4563,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -4378,6 +4584,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -4401,6 +4608,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -4421,6 +4629,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -4442,6 +4651,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -4463,6 +4673,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -4485,6 +4696,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -4507,6 +4719,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -4527,6 +4740,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -4553,6 +4767,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -4578,6 +4793,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -4601,6 +4817,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -4625,6 +4842,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -4647,6 +4865,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -4671,6 +4890,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -4696,6 +4916,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -4718,6 +4939,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -4739,6 +4961,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -4759,6 +4982,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -4782,6 +5006,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -4804,6 +5029,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -4826,6 +5052,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -4846,6 +5073,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -4866,6 +5094,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -4886,6 +5115,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -4906,6 +5136,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -4926,6 +5157,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -4946,6 +5178,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -4966,6 +5199,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -4986,6 +5220,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -5006,6 +5241,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -5026,6 +5262,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -5046,6 +5283,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -5066,6 +5304,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -5086,6 +5325,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -5106,6 +5346,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -5126,6 +5367,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -5146,6 +5388,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -5166,6 +5409,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -5186,6 +5430,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -5206,6 +5451,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -5226,6 +5472,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -5246,6 +5493,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -5266,6 +5514,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -5286,6 +5535,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -5306,6 +5556,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -5326,6 +5577,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -5346,6 +5598,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -5366,6 +5619,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -5386,6 +5640,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -5406,6 +5661,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -5432,6 +5688,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -5453,6 +5710,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -5478,6 +5736,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -5504,6 +5763,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -5524,6 +5784,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -5546,6 +5807,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -5567,6 +5829,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -5587,6 +5850,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -5607,6 +5871,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -5627,6 +5892,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -5647,6 +5913,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -5667,6 +5934,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -5687,6 +5955,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -5707,6 +5976,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -5727,6 +5997,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -5747,6 +6018,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -5767,6 +6039,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -5788,6 +6061,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -5808,6 +6082,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -5828,6 +6103,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -5848,6 +6124,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -5868,6 +6145,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -5889,6 +6167,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -5912,6 +6191,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -5932,6 +6212,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -5952,6 +6233,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -5972,6 +6254,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -5994,6 +6277,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -6014,6 +6298,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -6034,6 +6319,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -6054,6 +6340,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -6075,6 +6362,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -6095,6 +6383,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 0
     orderPrefix: Inventory_Unhandled_Combine_21306_
@@ -6115,6 +6404,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 0
     orderPrefix: Inventory_Unhandled_Hotspot_21140_
@@ -6136,6 +6426,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 0
     orderPrefix: BlueSack_Examine_20612_
@@ -6159,6 +6450,7 @@ MonoBehaviour:
     tagID: 0
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: 1
     orderPrefix: BlueSack_Examine_20612_
@@ -6179,6 +6471,7 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
@@ -6199,23 +6492,34 @@ MonoBehaviour:
     tagID: -1
     onlyPlaySpeechOnce: 0
     alwaysRetainInSpeechManager: 0
+    ignoreDuringExport: 0
     customFilename: 
     orderID: -1
     orderPrefix: 
-  languages:
-  - Original
-  - Farsi
-  - English
-  languageIsRightToLeft: 000000
-  languageAudioAssetBundles:
-  - 
-  - 
-  - 
-  languageLipsyncAssetBundles:
-  - 
-  - 
-  - 
-  ignoreOriginalText: 1
+  languages: []
+  languageIsRightToLeft: 
+  languageAudioAssetBundles: []
+  languageLipsyncAssetBundles: []
+  Languages:
+  - name: Original
+    isRightToLeft: 0
+    audioAssetBundle: 
+    lipsyncAssetBundle: 
+    fallbackLanguageIndex: 0
+    isDisabled: 1
+  - name: Farsi
+    isRightToLeft: 0
+    audioAssetBundle: 
+    lipsyncAssetBundle: 
+    fallbackLanguageIndex: 0
+    isDisabled: 0
+  - name: English
+    isRightToLeft: 0
+    audioAssetBundle: 
+    lipsyncAssetBundle: 
+    fallbackLanguageIndex: 0
+    isDisabled: 0
+  ignoreOriginalText: 0
   sfxDucking: 0
   musicDucking: 0
   lipSyncMode: 0
@@ -6225,7 +6529,6 @@ MonoBehaviour:
   translatableTextTypes: -1
   maxID: 621
   speechIDRecycling: 1
-  activeLineID: 620
   mergeMatchingSpeechIDs: 0
   useSpeechTags: 0
   speechTags:

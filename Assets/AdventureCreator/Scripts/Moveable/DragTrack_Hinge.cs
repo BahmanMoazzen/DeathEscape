@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"DragTrack_Hinge.cs"
  * 
@@ -98,7 +98,7 @@ namespace AC
 				normalizedDotProduct = Vector3.Dot (force.normalized, Transform.up);
 
 				// Invert force if on the "back" side
-				axisOffset = GetAxisOffset (draggable._dragVector);
+				axisOffset = GetAxisOffset (draggable.dragVector);
 				if (Vector3.Dot (Transform.right, axisOffset) < 0f)
 				{
 					dotProduct *= -1f;
@@ -201,7 +201,23 @@ namespace AC
 			float reversedMidAngle = 180f + (startToEndAngle / 2f);
 			if (startToPointAngle > reversedMidAngle) startToPointAngle -= 360f;
 
-			return startToPointAngle / startToEndAngle;
+			float result = startToPointAngle / startToEndAngle;
+
+			if (Loops)
+			{
+				// Prevent turning a revolution when crossing over the maxangle
+				float currentPositionAlong = drag.GetPositionAlong ();
+				if ((currentPositionAlong - result) > 0.5f)
+				{
+					result += 1f;
+				}
+				else if ((result - currentPositionAlong) > 0.5f)
+				{
+					result -= 1f;
+				}
+			}
+
+			return result;
 		}
 
 
@@ -267,7 +283,7 @@ namespace AC
 				}
 			}
 			SetPositionAlong (draggable.trackValue, draggable);
-
+			
 			if (Loops && limitRevolutions)
 			{
 				if (oldValue < 0.1f && draggable.trackValue > 0.9f)
@@ -294,6 +310,8 @@ namespace AC
 					draggable.Rigidbody.angularVelocity = Vector3.zero;
 				}
 			}
+
+			DoRegionAudioCheck (draggable);
 
 			if (!onlySnapOnPlayerRelease)
 			{

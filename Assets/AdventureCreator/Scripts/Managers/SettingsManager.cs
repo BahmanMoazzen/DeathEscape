@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"SettingsManager.cs"
  * 
@@ -84,6 +84,8 @@ namespace AC
 		public bool saveAssetReferencesWithAddressables = false;
 		/** A collection of save strings (Save, Import, Autosave) that can be translated */
 		public SaveLabels saveLabels = new SaveLabels ();
+		/** How to refer to scenes in save game files */
+		public ChooseSceneBy referenceScenesInSave = ChooseSceneBy.Number;
 
 		// Scene settings
 
@@ -113,6 +115,8 @@ namespace AC
 		public MovementMethod movementMethod = MovementMethod.PointAndClick;
 		/** The main input method used to control the game with (MouseAndKeyboard, KeyboardOrController, TouchScreen) */
 		public InputMethod inputMethod = InputMethod.MouseAndKeyboard;
+		/** The movement speed of a keyboard or controller-controlled cursor */
+		public float simulatedCursorMoveSpeed = 4f;
 		/** How Hotspots are interacted with (ContextSensitive, ChooseInteractionThenHotspot, ChooseHotspotThenInteraction) */
 		public AC_InteractionMethod interactionMethod = AC_InteractionMethod.ContextSensitive;
 		/** How Interactions are triggered, if interactionMethod = AC_InteractionMethod.ChooseHotspotThenInteraction (ClickingMenu, CyclingCursorAndClickingHotspot, CyclingMenuAndClickingHotspot) */
@@ -145,8 +149,10 @@ namespace AC
 		public bool lockCursorOnStart = false;
 		/** If True, then the cursor will be hidden whenever it is locked */
 		public bool hideLockedCursor = false;
-		/** If True, and the game is in first-person, then free-aiming will be disabled while a moveable object is dragged */
+		/** If True, and the game is in first-person, then free-aiming will be disabled while a Draggable object is manipulated */
 		public bool disableFreeAimWhenDragging = false;
+		/** If True, and the game is in first-person, then free-aiming will be disabled while a PickUp object is manipulated */
+		public bool disableFreeAimWhenDraggingPickUp = false;
 		/** If True, then Conversation dialogue options can be triggered with the number keys */
 		public bool runConversationsWithKeys = false;
 		/** If True, then interactions can be triggered by releasing the mouse cursor over an icon, if interactionMethod = AC_InteractionMethod.ChooseHotspotThenInteraction */
@@ -155,6 +161,8 @@ namespace AC
 		public bool defaultMouseClicks = true;
 		/** If True, then gameplay is allowed during Conversations */
 		public bool allowGameplayDuringConversations = false;
+		/** If True, then walking to Hotspots without running a particular Interaction will cause the Player to walk to the Hotspot's 'Walk-to Marker' */
+		public bool walkToHotspotMarkers = true;
 
 		// Inventory settings
 
@@ -237,6 +245,8 @@ namespace AC
 		public DirectMovementType directMovementType = DirectMovementType.RelativeToCamera;
 		/** How to limit the player's moement, if directMovementType = DirectMovementType.RelativeToCamera */
 		public LimitDirectMovement limitDirectMovement = LimitDirectMovement.NoLimit;
+		/** If greater than zero, player direction will be unchanged when the camera angle changes during gameplay if the input does not exceed this angle */
+		public float cameraLockSnapAngleThreshold = 5f;
 		/** If True, then the player's position on screen will be accounted for, if directMovementType = DirectMovementType.RelativeToCamera */
 		public bool directMovementPerspective = false;
 		/** How accurate characters will be when navigating to set points on a NavMesh */
@@ -304,8 +314,10 @@ namespace AC
 		public FirstPersonTouchScreen firstPersonTouchScreen = FirstPersonTouchScreen.OneTouchToMoveAndTurn;
 		/** How Direct movement should work when using touch-screen controls (DragBased, CustomInput) */
 		public DirectTouchScreen directTouchScreen = DirectTouchScreen.DragBased;
-		/** If True, then clicks while the game is paused are performed by releasing a touch, rather than beginning one */
+		/** If True, then menu clicks are performed by releasing a touch, rather than beginning one */
 		public bool touchUpWhenPaused = false;
+		/** If True, then scne clicks are performed by releasing a touch, rather than beginning one */
+		public bool touchUpInteractScene = false;
 
 		// Camera settings
 
@@ -356,8 +368,13 @@ namespace AC
 		public HotspotIconDisplay hotspotIconDisplay = HotspotIconDisplay.Never;
 		/** The type of Hotspot icon to display, if hotspotIconDisplay != HotspotIconDisplay.Never (Texture, UseIcon) */
 		public HotspotIcon hotspotIcon;
-		/** The texture to use for Hotspot icons, if hotspotIcon = HotspotIcon.Texture */
+		/** Deprecated */
 		public Texture2D hotspotIconTexture = null;
+		/** The icon to use for Hotspot icons, if hotspotIcon = HotspotIcon.Texture */
+		public CursorIconBase hotspotIconGraphic = new CursorIcon ();
+		/** If set, this material property will be affected by Highlight components instead of the default */
+		public string highlightMaterialPropertyOverride = "";
+
 		/** The size of Hotspot icons */
 		public float hotspotIconSize = 0.04f;
 		/** If True, then 3D player prefabs will turn their head towards the active Hotspot */
@@ -407,6 +424,8 @@ namespace AC
 		public bool manualSceneActivation = false;
 		/** How the scene that acts as a loading scene is chosen (Number, Name) */
 		public ChooseSceneBy loadingSceneIs = ChooseSceneBy.Number;
+		/** If True, scenes will be loaded from Addressables, and names will be used for keys */
+		public bool loadScenesFromAddressable = false;
 		/** The name of the scene to act as a loading scene, if loadingScene = ChooseSceneBy.Name */
 		public string loadingSceneName = "";
 		/** The number of the scene to act as a loading scene, if loadingScene = ChooseSceneBy.Number */
@@ -633,6 +652,8 @@ namespace AC
 					#endif
 				}
 
+				referenceScenesInSave = (ChooseSceneBy) CustomGUILayout.EnumPopup ("Reference scenes by:", referenceScenesInSave, "AC.KickStarter.settingsManager.referenceScenesInSave", "How scenes are referenced in scene files (build index or filename)");
+
 				if (GUILayout.Button ("Auto-add Save components to GameObjects"))
 				{
 					AssignSaveScripts ();
@@ -731,6 +752,10 @@ namespace AC
 				if (inputMethod == InputMethod.MouseAndKeyboard)
 				{
 					defaultMouseClicks = CustomGUILayout.ToggleLeft ("Mouse clicks have default functionality?", defaultMouseClicks, "AC.KickStarter.settingsManager.defaultMouseClicks", "If True, then left and right mouse clicks will have default behaviour");
+				}
+				else if (inputMethod == InputMethod.KeyboardOrController)
+				{
+					simulatedCursorMoveSpeed = CustomGUILayout.FloatField ("Simulated cursor speed:", simulatedCursorMoveSpeed, "AC.KickStarter.settingsManager.simulatedCursorMoveSpeed", "The movement speed of a keyboard or controller-controlled cursor");
 				}
 				interactionMethod = (AC_InteractionMethod) CustomGUILayout.EnumPopup ("Interaction method:", interactionMethod, "AC.KickStarter.settingsManager.interactionMethod", "How Hotspots are interacted with");
 
@@ -856,7 +881,8 @@ namespace AC
 				}
 				if (IsInFirstPerson ())
 				{
-					disableFreeAimWhenDragging = CustomGUILayout.ToggleLeft ("Disable free-aim when moving Draggables and PickUps?", disableFreeAimWhenDragging, "AC.KickStarter.settingsManager.disableFreeAimWhenDragging", "If True, then free-aiming will be disabled while a moveable object is dragged");
+					disableFreeAimWhenDragging = CustomGUILayout.ToggleLeft ("Disable free-aim when moving Draggables?", disableFreeAimWhenDragging, "AC.KickStarter.settingsManager.disableFreeAimWhenDragging", "If True, then free-aiming will be disabled while a Draggable object is manipulated");
+					disableFreeAimWhenDraggingPickUp = CustomGUILayout.ToggleLeft ("Disable free-aim when moving PickUps?", disableFreeAimWhenDraggingPickUp, "AC.KickStarter.settingsManager.disableFreeAimWhenDraggingPickUp", "If True, then free-aiming will be disabled while a PickUp object is manipulated");
 
 					if (movementMethod == MovementMethod.FirstPerson && !allowGameplayDuringConversations)
 					{
@@ -1117,6 +1143,10 @@ namespace AC
 						{
 							directMovementPerspective = CustomGUILayout.ToggleLeft ("Account for player's position on screen?", directMovementPerspective, "AC.KickStarter.settingsManager.directMovementPerspective", "If True, then the player's position on screen will be accounted for");
 						}
+						if (cameraPerspective != CameraPerspective.TwoD)
+						{
+							cameraLockSnapAngleThreshold = CustomGUILayout.Slider ("Max camera lock angle:", cameraLockSnapAngleThreshold, 0f, 20f, "AC.KickStarter.settingsManager.cameraLockSnapAngleThreshold", "If greater than zero, player direction will be unchanged when the camera angle changes during gameplay if the input does not exceed this angle");
+						}
 					}
 				}
 				else if (movementMethod == MovementMethod.PointAndClick ||
@@ -1180,6 +1210,11 @@ namespace AC
 						rotationsAffectedByVerticalReduction = CustomGUILayout.ToggleLeft ("Character rotations affected by 'Vertical movement factor'?", rotationsAffectedByVerticalReduction, "If True, then rotations of 2D characters will be affected by the verticalReductionFactor value");
 					}
 				}
+
+				if (interactionMethod == AC_InteractionMethod.ChooseInteractionThenHotspot || interactionMethod == AC_InteractionMethod.ContextSensitive)
+				{
+					walkToHotspotMarkers = CustomGUILayout.ToggleLeft ("Always move to Hotspot Markers?", walkToHotspotMarkers, "AC.KickStarter.settingsManager.walkToHotspotMarkers", "If True, then clicking Hotspots without running a particular Interaction will cause the Player to move to the Hotspot's 'Walk-to Marker'");
+				}
 			}
 			CustomGUILayout.EndVertical ();
 		}
@@ -1218,6 +1253,11 @@ namespace AC
 					}
 					doubleTapHotspots = CustomGUILayout.ToggleLeft ("Activate Hotspots with double-tap?", doubleTapHotspots, "AC.KickStarter.settingsManager.doubleTapHotspots", "If True, then Hotspots are activated by double-tapping");
 					touchUpWhenPaused = CustomGUILayout.ToggleLeft ("Release touch to interact with AC Menus?", touchUpWhenPaused, "AC.KickStarter.settingsManager.touchUpWhenPaused", "If True, then menu interactions are performed by releasing a touch, rather than beginning one");
+
+					if (movementMethod != MovementMethod.FirstPerson && offsetTouchCursor)
+					{
+						touchUpInteractScene = CustomGUILayout.ToggleLeft ("Release touch to interact with scene? (Experimental)", touchUpInteractScene, "AC.KickStarter.settingsManager.touchUpInteractScene", "If True, then scene interactions are performed by releasing a touch, rather than beginning one");
+					}
 				}
 				CustomGUILayout.EndVertical ();
 			}
@@ -1351,7 +1391,13 @@ namespace AC
 					hotspotIcon = (HotspotIcon) CustomGUILayout.EnumPopup ("Hotspot icon type:", hotspotIcon, "AC.KickStarter.settingsManager.hotspotIcon", "The type of Hotspot icon to display");
 					if (hotspotIcon == HotspotIcon.Texture)
 					{
-						hotspotIconTexture = (Texture2D) CustomGUILayout.ObjectField <Texture2D> ("Hotspot icon texture:", hotspotIconTexture, false, "AC.KickStarter.settingsManager.hotspotIconTexture", "The texture to use for Hotspot icons");
+						if (hotspotIconTexture && hotspotIconGraphic.texture == null)
+						{
+							// Upgrade
+							hotspotIconGraphic.texture = hotspotIconTexture;
+							hotspotIconTexture = null;
+						}
+						hotspotIconGraphic.ShowGUI (true, true, "Hotspot icon texture:", (KickStarter.cursorManager) ? KickStarter.cursorManager.cursorRendering : CursorRendering.Software, "AC.KickStarter.settingsManager.hotspotIconGraphic", "The icon to use for Hotspots");
 					}
 					hotspotIconSize = CustomGUILayout.FloatField ("Hotspot icon size:", hotspotIconSize, "AC.KickStarter.settingsManager.hotspotIconSize", "The size of Hotspot icons");
 					if (interactionMethod == AC_InteractionMethod.ChooseHotspotThenInteraction &&
@@ -1366,6 +1412,8 @@ namespace AC
 				{
 					hideUnhandledHotspots = CustomGUILayout.ToggleLeft ("Hide Hotspots with no suitable interaction?", hideUnhandledHotspots, "AC.KickStarter.settingsManager.hideUnhandledHotspots", "If True, then Hotspots that do not have an interaction for the currently-selected icon will not be visible to the cursor");
 				}
+
+				highlightMaterialPropertyOverride = CustomGUILayout.TextField ("Highlight material override:", highlightMaterialPropertyOverride, "AC.KickStarter.settingsManager.highlightMaterialPropertyOverride", "By default, the Highlight component affects the '_Color' property for Materials. The value entered here will override that.");
 			}
 			CustomGUILayout.EndVertical ();
 		}
@@ -1430,9 +1478,21 @@ namespace AC
 			{
 				reloadSceneWhenLoading = CustomGUILayout.ToggleLeft ("Always reload scene when loading a save file?", reloadSceneWhenLoading, "AC.KickStarter.settingsManager.reloadSceneWhenLoading", "If True, then the scene will reload when loading a saved game that takes place in the same scene that the player is already in");
 				blackOutWhenInitialising = CustomGUILayout.ToggleLeft ("Black out when initialising?", blackOutWhenInitialising, "AC.KickStarter.settingsManager.blackOutWhenInitialising", "If True then the game will turn black while the scene initialises itself, which can be useful when restoring animation states");
+
 				useAsyncLoading = CustomGUILayout.ToggleLeft ("Load scenes asynchronously?", useAsyncLoading, "AC.KickStarter.settingsManager.useAsyncLoading", "If True, scenes will be loaded asynchronously");
 				if (useAsyncLoading)
 				{
+					if (referenceScenesInSave == ChooseSceneBy.Name)
+					{
+						loadScenesFromAddressable = CustomGUILayout.ToggleLeft ("Load scenes from Addressables?", loadScenesFromAddressable, "AC.KickStarter.settingsManager.loadScenesFromAddressable", "If True, then scene names will be considered keys for Addressable scenes assets, and loaded via the Addressable system.");
+						if (loadScenesFromAddressable)
+						{
+							#if !AddressableIsPresent
+							EditorGUILayout.HelpBox ("The 'AddressableIsPresent' preprocessor define must be declared in the Player Settings.", MessageType.Warning);
+							#endif
+						}
+					}
+				
 					manualSceneActivation = CustomGUILayout.ToggleLeft ("Scene loading requires manual activation?", manualSceneActivation, "AC.KickStarter.settingsManager.manualSceneActivation", "If True, then new scenes will not be activated upon loading until the SceneChanger's ActivateLoadedScene function has been called.");
 				}
 				useLoadingScreen = CustomGUILayout.ToggleLeft ("Use loading screen?", useLoadingScreen, "AC.KickStarter.settingsManager.useLoadingScreen", "If True, then a specific scene will be loaded in-between scene transitions, to be used as a loading screen");
@@ -1450,6 +1510,11 @@ namespace AC
 					if (useAsyncLoading)
 					{
 						loadingDelay = CustomGUILayout.Slider ("Delay before and after (s):", loadingDelay, 0f, 1f, "AC.KickStarter.settingsManager.loadingDelay", "The delay, in seconds, before and after loading");
+					}
+
+					if (referenceScenesInSave == ChooseSceneBy.Name && loadScenesFromAddressable)
+					{
+						EditorGUILayout.HelpBox ("The loading scene must be present in Unity's Build Settings - it cannot be loaded via Addressables.", MessageType.Info);
 					}
 				}
 
@@ -1677,10 +1742,6 @@ namespace AC
 			}
 			result = SmartAddInput (result, "EndCutscene (Button)");
 			result = SmartAddInput (result, "EndConversation (Button)");
-			result = SmartAddInput (result, "ThrowMoveable (Button)");
-			result = SmartAddInput (result, "RotateMoveable (Button)");
-			result = SmartAddInput (result, "RotateMoveableToggle (Button)");
-			result = SmartAddInput (result, "ZoomMoveable (Axis)");
 
 			if (AdvGame.GetReferences ().menuManager != null && AdvGame.GetReferences ().menuManager.menus != null)
 			{
@@ -1920,6 +1981,27 @@ namespace AC
 				}
 			}
 			return null;
+		}
+
+
+		public Player[] GetAllPlayerPrefabs ()
+		{
+			if (playerSwitching == PlayerSwitching.DoNotAllow)
+			{
+				return new Player[1] { player };
+			}
+
+			List<Player> playersList = new List<Player> ();
+
+			foreach (PlayerPrefab _player in players)
+			{
+				if (_player.playerOb)
+				{
+					playersList.Add (_player.playerOb);
+				}
+			}
+
+			return playersList.ToArray ();
 		}
 
 
@@ -2220,6 +2302,10 @@ namespace AC
 				}
 				return false;
 			}
+			set
+			{
+				inventoryDragDrop = value;
+			}
 		}
 
 
@@ -2257,7 +2343,7 @@ namespace AC
 			bool canProceed = EditorUtility.DisplayDialog ("Add save scripts", "AC will now go through your game, and attempt to add 'Remember' components where appropriate.\n\nThese components are required for saving to function, and are covered in Section 9.1.1 of the Manual.\n\nAs this process cannot be undone without manually removing each script, it is recommended to back up your project beforehand.", "OK", "Cancel");
 			if (!canProceed) return;
 
-			string originalScene = UnityVersionHandler.GetCurrentSceneName ();
+			string originalScene = UnityVersionHandler.GetCurrentSceneFilepath ();
 
 			if (UnityEditor.SceneManagement.EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo ())
 			{
@@ -2273,7 +2359,7 @@ namespace AC
 
 				AssignSaveScriptsInManagers ();
 
-				if (originalScene == "")
+				if (string.IsNullOrEmpty (originalScene))
 				{
 					UnityVersionHandler.NewScene ();
 				}
@@ -2324,7 +2410,6 @@ namespace AC
 			{
 				if (hotspot.interactionSource == InteractionSource.AssetFile)
 				{
-					SaveActionListAsset (hotspot.useButton.assetFile);
 					SaveActionListAsset (hotspot.lookButton.assetFile);
 					SaveActionListAsset (hotspot.unhandledInvButton.assetFile);
 					

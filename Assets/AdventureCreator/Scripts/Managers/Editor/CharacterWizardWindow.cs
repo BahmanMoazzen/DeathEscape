@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿#if UNITY_EDITOR
+
+using UnityEngine;
 using UnityEditor;
 
 namespace AC
@@ -358,7 +360,7 @@ namespace AC
 			charScript.soundChild = sound;
 
 			baseObject = null;
-			charName = "";
+			charName = string.Empty;
 			EditorGUIUtility.PingObject (newBaseObject);
 		}
 
@@ -383,22 +385,16 @@ namespace AC
 				GUILayout.Label ("Is this a Player or an NPC?");
 				charType = (CharType) EditorGUILayout.EnumPopup (charType);
 
-				if (charType == CharType.NPC)
+				if (charType == CharType.Player && AdvGame.GetReferences ().settingsManager && AdvGame.GetReferences ().settingsManager.movementMethod == MovementMethod.FirstPerson)
 				{
-					EditorGUILayout.BeginHorizontal ();
-					GUILayout.Label ("The character's name:", GUILayout.Width (150f));
-					charName = GUILayout.TextField (charName);
-					EditorGUILayout.EndHorizontal ();
-				}
-				else
-				{
-					if (AdvGame.GetReferences ().settingsManager && AdvGame.GetReferences ().settingsManager.movementMethod == MovementMethod.FirstPerson)
-					{
-						EditorGUILayout.HelpBox ("First-person Player prefabs require no base graphic, though one can be added after creation if desired.", MessageType.Info);
-						return;
-					}
+					EditorGUILayout.HelpBox ("First-person Player prefabs require no base graphic, though one can be added after creation if desired.", MessageType.Info);
+					return;
 				}
 
+				EditorGUILayout.Space ();
+				charName = EditorGUILayout.TextField ("The " + charType.ToString () + "'s name:", charName);
+
+				EditorGUILayout.Space ();
 				GUILayout.Label ("Assign your character's base GameObject (such as a Skinned Mesh Renderer or 'idle' sprite):");
 				baseObject = (GameObject) EditorGUILayout.ObjectField (baseObject, typeof (GameObject), true);
 
@@ -499,3 +495,5 @@ namespace AC
 	}
 
 }
+
+#endif

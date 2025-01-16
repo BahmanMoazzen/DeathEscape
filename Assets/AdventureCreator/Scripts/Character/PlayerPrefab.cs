@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"PlayerPrefab.cs"
  * 
@@ -157,7 +157,18 @@ namespace AC
 		public void SetInitialPosition (PlayerData playerData)
 		{
 			TeleportPlayerStartMethod teleportPlayerStartMethod = (useSceneDefaultPlayerStart) ? TeleportPlayerStartMethod.SceneDefault : TeleportPlayerStartMethod.EnteredHere;
-			playerData.UpdatePosition (StartingSceneIndex, teleportPlayerStartMethod, startingPlayerStartID);
+
+			switch (KickStarter.settingsManager.referenceScenesInSave)
+			{
+				case ChooseSceneBy.Name:
+					playerData.UpdatePosition (StartingSceneName, teleportPlayerStartMethod, startingPlayerStartID);
+					break;
+
+				case ChooseSceneBy.Number:
+				default:
+					playerData.UpdatePosition (StartingSceneIndex, teleportPlayerStartMethod, startingPlayerStartID);
+					break;
+			}
 		}
 
 
@@ -198,10 +209,30 @@ namespace AC
 			}
 		}
 
+
+		private string StartingSceneName
+		{
+			get
+			{
+				if (KickStarter.settingsManager && KickStarter.settingsManager.GetDefaultPlayerPrefab () == this)
+				{
+					return string.Empty;
+				}
+
+				if (chooseSceneBy == ChooseSceneBy.Name) return startingSceneName;
+				return KickStarter.sceneChanger.IndexToName (startingSceneIndex);
+			}
+			set
+			{
+				startingSceneName = value;
+				chooseSceneBy = ChooseSceneBy.Name;
+			}
+		}
+
 		#endregion
 
 
-		#if UNITY_EDITOR
+#if UNITY_EDITOR
 
 		public void ShowGUI (string apiPrefix)
 		{

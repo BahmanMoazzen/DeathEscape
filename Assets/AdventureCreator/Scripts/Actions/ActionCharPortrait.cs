@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"ActionCharPortrait.cs"
  * 
@@ -147,10 +147,10 @@ namespace AC
 		{
 			if (!isPlayer && parameterID < 0 && playerID < 0)
 			{
-				if (_char != null && _char.gameObject == _gameObject) return true;
+				if (_char && _char.gameObject == _gameObject) return true;
 				if (constantID == id) return true;
 			}
-			if (isPlayer && _gameObject.GetComponent <Player>() != null) return true;
+			if (isPlayer && _gameObject && _gameObject.GetComponent <Player>()) return true;
 			return base.ReferencesObjectOrID (_gameObject, id);
 		}
 

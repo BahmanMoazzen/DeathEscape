@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"RuntimeInventory.cs"
  * 
@@ -451,6 +451,23 @@ namespace AC
 
 
 		/**
+		 * <summary>Gets the amount of a particular inventory item within all player inventories, if multiple Player prefabs are supported.</summary>
+		 * <param name = "_invID">The ID number of the inventory item (InvItem) in question</param>
+		 * <param name = "playerID">The ID number of the Player to refer to</param>
+		 * <returns>The amount of the inventory item within all player inventories.</returns>
+		 */
+		public int GetCountFromAllPlayers (int _invID)
+		{
+			int count = 0;
+			foreach (PlayerPrefab playerPrefab in KickStarter.settingsManager.players)
+			{
+				count += GetCount (_invID, playerPrefab.ID);
+			}
+			return count;
+		}
+
+
+		/**
 		 * <summary>Gets the total number of inventory items currently held by the active Player.</summary>
 		 * <param name="includeMultipleInSameSlot">If True, then multiple items in the same slot will be counted separately</param>
 		 * <returns>The total number of inventory items currently held by the active Player</returns>
@@ -464,6 +481,7 @@ namespace AC
 		/**
 		 * <summary>Gets the total number of inventory items currently held by a given Player, if multiple Players are supported.</summary>
 		 * <param name = "playerID">The ID number of the Player to refer to</param>
+		 * <param name="includeMultipleInSameSlot">If True, then multiple items in the same slot will be counted separately</param>
 		 * <returns>The total number of inventory items currently held by the given Player</returns>
 		 */
 		public int GetNumberOfItemsCarried (int _playerID, bool includeMultipleInSameSlot = false)
@@ -474,6 +492,26 @@ namespace AC
 				return otherPlayerInvCollection.GetCount (includeMultipleInSameSlot);
 			}
 			return 0;
+		}
+
+
+		/**
+		 * <summary>Gets the total number of inventory items currently held by all Players, if multiple Players are supported.</summary>
+		 * <param name="includeMultipleInSameSlot">If True, then multiple items in the same slot will be counted separately</param>
+		 * <returns>The total number of inventory items currently held by all Players</returns>
+		 */
+		public int GetNumberOfItemsCarriedByAllPlayers (bool includeMultipleInSameSlot = false)
+		{
+			int count = 0;
+			foreach (PlayerPrefab playerPrefab in KickStarter.settingsManager.players)
+			{
+				InvCollection otherPlayerInvCollection = KickStarter.saveSystem.GetItemsFromPlayer (playerPrefab.ID);
+				if (otherPlayerInvCollection != null)
+				{
+					count += otherPlayerInvCollection.GetCount (includeMultipleInSameSlot);
+				}
+			}
+			return count;
 		}
 
 
@@ -502,6 +540,26 @@ namespace AC
 				return otherPlayerInvCollection.GetCountInCategory (categoryID, includeMultipleInSameSlot);
 			}
 			return 0;
+		}
+
+
+		/**
+		 * <summary>Gets the total number of inventory items currently held by all Players, if multiple Players are supported.</summary>
+		 * <param name = "categoryID">If >=0, then only items placed in the category with that ID will be counted</param>
+		 * <returns>The total number of inventory items currently held by the all Players</returns>
+		 */
+		public int GetNumberOfItemsCarriedInCategoryByAllPlayers (int categoryID, bool includeMultipleInSameSlot = false)
+		{
+			int count = 0;
+			foreach (PlayerPrefab playerPrefab in KickStarter.settingsManager.players)
+			{
+				InvCollection otherPlayerInvCollection = KickStarter.saveSystem.GetItemsFromPlayer (playerPrefab.ID);
+				if (otherPlayerInvCollection != null)
+				{
+					count += otherPlayerInvCollection.GetCountInCategory (categoryID, includeMultipleInSameSlot);
+				}
+			}
+			return count;
 		}
 
 
@@ -721,6 +779,26 @@ namespace AC
 		}
 
 
+		/**
+		 * <summary>Crafts a new inventory item, and removes the relevent ingredients, according to a Recipe.</summary>
+		 * <param name = "recipe">The Recipe to perform</param>
+		 * <param name = "invCollection">If assigned, the InvCollection to place the newly-created Recipe item into</param>
+		 */
+		public InvInstance PerformCrafting (Recipe recipe, InvCollection invCollection = null)
+		{
+			craftingInvCollection.DeleteRecipeIngredients (recipe);
+			if (invCollection != null)
+			{
+				InvInstance addedInstance = invCollection.Add (new InvInstance (recipe.resultID));
+				return addedInstance;
+			}
+			else
+			{
+				return new InvInstance (recipe.resultID);
+			}
+		}
+
+
 		public List<InvInstance> RemoveEmptySlots (List<InvInstance> invInstances)
 		{
 			// Remove empty slots on end
@@ -931,6 +1009,12 @@ namespace AC
 		{
 			if (InvInstance.IsValid (selectedInstance))
 			{
+				string customText = KickStarter.eventManager.Call_OnRequestInventoryCountText (selectedInstance, true);
+				if (!string.IsNullOrEmpty (customText))
+				{
+					return customText;
+				}
+
 				int displayCount = selectedInstance.TransferCount;
 				if (displayCount > 1)
 				{
@@ -972,9 +1056,14 @@ namespace AC
 
 				case AC_InventoryBoxType.HotspotBased:
 					{
-						if (InvInstance.IsValid (_menu.TargetInvInstance))
+						if (_mouseState == MouseState.LetGo)
+						{
+							// Invalid
+						}
+						else if (InvInstance.IsValid (_menu.TargetInvInstance))
 						{
 							_menu.TargetInvInstance.Combine (inventoryBox.GetInstance (_slot), true);
+							KickStarter.playerInput.ResetMouseClick ();
 							clickConsumed = true;
 						}
 						else if (_menu.TargetHotspot)
@@ -1256,6 +1345,7 @@ namespace AC
 		}
 
 
+		/** The InvCollection that holds the current set of items to be crafted */
 		public InvCollection CraftingInvCollection
 		{
 			get
@@ -1264,6 +1354,8 @@ namespace AC
 			}
 		}
 
+
+		/** The InvCollection that holds the current set of items in the Player#s inventory */
 		public InvCollection PlayerInvCollection
 		{
 			get

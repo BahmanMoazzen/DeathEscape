@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"ActionDirector.cs"
  * 
@@ -83,6 +83,10 @@ namespace AC
 		
 		public override float Run ()
 		{
+			#if ACIgnoreTimeline
+			return 0f;
+			#endif
+
 			if (!isRunning)
 			{
 				if (runtimeDirector)
@@ -113,7 +117,7 @@ namespace AC
 									}
 									isRunning = true;
 
-									lastFrameDuration = director.time;
+									lastFrameDuration = runtimeDirector.time;
 									return defaultPauseTime;
 								}
 							}
@@ -147,18 +151,16 @@ namespace AC
 			}
 			else
 			{
-				if (director.state != PlayState.Paused)
+				if (KickStarter.stateHandler.ApplicationIsPaused ())
 				{
-					if (director.extrapolationMode == DirectorWrapMode.Loop)
+					return defaultPauseTime;
+				}
+
+				if (runtimeDirector.state != PlayState.Paused || (!KickStarter.stateHandler.ApplicationIsInFocus () && !Application.runInBackground))
+				{
+					if (lastFrameDuration <= runtimeDirector.time && lastFrameDuration < runtimeDirector.duration)
 					{
-						if (lastFrameDuration <= director.time)
-						{
-							lastFrameDuration = director.time;
-							return defaultPauseTime;
-						}
-					}
-					else
-					{
+						lastFrameDuration = runtimeDirector.time;
 						return defaultPauseTime;
 					}
 				}
@@ -178,6 +180,10 @@ namespace AC
 
 		public override void Skip ()
 		{
+			#if ACIgnoreTimeline
+			return;
+			#endif
+
 			if (runtimeDirector != null)
 			{
 				if (disableCamera)
@@ -185,13 +191,16 @@ namespace AC
 					KickStarter.mainCamera.Enable ();
 				}
 
+				if (!isRunning)
+				{
+					PrepareDirector ();
+				}
+
 				switch (method)
 				{
 					case ActionDirectorMethod.Play:
 						if (runtimeDirector.extrapolationMode == DirectorWrapMode.Loop)
 						{
-							PrepareDirector ();
-
 							if (restart)
 							{
 								runtimeDirector.Play ();
@@ -203,10 +212,18 @@ namespace AC
 							return;
 						}
 
+						if (!isRunning)
+						{
+							runtimeDirector.time = runtimeDirector.duration;
+							runtimeDirector.Evaluate ();
+							runtimeDirector.Stop ();
+						}
+
 						PrepareDirectorEnd ();
 
-						runtimeDirector.Stop ();
 						runtimeDirector.time = runtimeDirector.duration;
+						runtimeDirector.Evaluate ();
+						runtimeDirector.Stop ();
 						break;
 
 					case ActionDirectorMethod.Stop:
@@ -231,8 +248,8 @@ namespace AC
 		{
 			if (isRunning)
 			{
-				isRunning = false;
 				Skip ();
+				isRunning = false;
 			}
 		}
 
@@ -445,7 +462,7 @@ namespace AC
 		{
 			if (directorParameterID < 0)
 			{
-				if (director != null && director.gameObject == gameObject) return true;
+				if (director && director.gameObject == gameObject) return true;
 				if (directorConstantID == id && id != 0) return true;
 			}
 			return base.ReferencesObjectOrID (gameObject, id);

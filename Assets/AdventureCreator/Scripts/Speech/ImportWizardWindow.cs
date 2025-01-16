@@ -7,9 +7,7 @@ using UnityEditor;
 namespace AC
 {
 	
-	/**
-	 * Provides an EditorWindow to manage the import of game text
-	 */
+	/** Provides an Editor Window to manage the import of game text */
 	public class ImportWizardWindow : EditorWindow
 	{
 
@@ -46,7 +44,7 @@ namespace AC
 					importColumns.Add (new ImportColumn (csvData [col, 0]));
 				}
 
-				if (forLanguage > 0 && speechManager.languages != null && speechManager.languages.Count > forLanguage)
+				if (forLanguage > 0 && speechManager.Languages != null && speechManager.Languages.Count > forLanguage)
 				{
 					if (importColumns.Count > 1)
 					{
@@ -68,18 +66,17 @@ namespace AC
 		}
 
 
-		/**
-		 * <summary>Initialises the window.</summary>
-		 */
+		/** Initialises the window. */
 		public static void Init (SpeechManager _speechManager, string[,] _csvData, int _forLanguage = -1)
 		{
 			if (_speechManager == null) return;
 
-			ImportWizardWindow window = EditorWindow.GetWindowWithRect <ImportWizardWindow> (new Rect (0, 0, 350, 500), true, "Game text importer", true);
-
-			window.titleContent.text = "Game text importer";
+			ImportWizardWindow window = (ImportWizardWindow) GetWindow (typeof (ImportWizardWindow));
+			
+			window.titleContent.text = "Text import wizard";
 			window.position = new Rect (300, 200, 350, 500);
 			window._Init (_speechManager, _csvData, _forLanguage);
+			window.minSize = new Vector2 (300, 180);
 		}
 		
 		
@@ -108,14 +105,13 @@ namespace AC
 			scroll = GUILayout.BeginScrollView (scroll);
 
 			EditorGUILayout.LabelField ("Detected columns", CustomStyles.subHeader);
-			EditorGUILayout.Space ();
 
 			List<string> translations = new List<string>();
-			if (speechManager.languages != null && speechManager.languages.Count > 1)
+			if (speechManager.Languages != null && speechManager.Languages.Count > 1)
 			{
-				for (int i=1; i<speechManager.languages.Count; i++)
+				for (int i=1; i<speechManager.Languages.Count; i++)
 				{
-					translations.Add (speechManager.languages[i]);
+					translations.Add (speechManager.Languages[i].name);
 				}
 			}
 			string[] translationsArray = translations.ToArray ();
@@ -135,7 +131,6 @@ namespace AC
 				Import ();
 			}
 
-			EditorGUILayout.Space ();
 			EditorGUILayout.EndScrollView ();
 		}
 
@@ -163,7 +158,7 @@ namespace AC
 				speechManager.GetAllActionListAssets ();
 			}
 
-			int numUpdated = 0;
+			HashSet<SpeechLine> updatedLines = new HashSet<SpeechLine> ();
 			for (int row = 1; row < numRows; row ++)
 			{
 				if (csvData [0, row] != null && csvData [0, row].Length > 0)
@@ -182,7 +177,10 @@ namespace AC
 									string cellData = csvData [col, row];
 									if (importColumns[col].Process (speechManager, cellData, speechLine))
 									{
-										numUpdated ++;
+										if (!updatedLines.Contains (speechLine))
+										{
+											updatedLines.Add (speechLine);
+										}
 									}
 								}
 							}
@@ -202,8 +200,16 @@ namespace AC
 
 			speechManager.CacheDisplayLines ();
 			EditorUtility.SetDirty (speechManager);
-			ACDebug.Log ((numRows-2).ToString () + " line(s) imported, " + numUpdated.ToString () + " line(s) updated.");
 
+			int numLinesImported = (numRows - 2);
+			int numLinesUpdated = updatedLines.Count;
+
+			foreach (SpeechLine updatedLine in updatedLines)
+			{
+				ACDebug.Log ("Updated line ID: " + updatedLine.lineID + ", Type: " + updatedLine.textType + ", Text: '" + updatedLine.text + "'");
+			}
+
+			EditorUtility.DisplayDialog ("Import game text", "Process complete.\n\n" + numLinesImported + " line(s) imported, " + numLinesUpdated + " line(s) updated.", "OK");
 
 			this.Close ();
 			#endif
@@ -249,7 +255,7 @@ namespace AC
 			public void ShowGUI (int i, string[] translations)
 			{
 				CustomGUILayout.BeginVertical ();
-				GUILayout.Label ("Column # : " + header);
+				GUILayout.Label ("Column #" + (i + 1).ToString () +": " + header);
 
 				if (i > 0)
 				{
@@ -336,9 +342,9 @@ namespace AC
 
 			private string AddLineBreaks (string text)
 			{
-	            text = text.Replace ("[break]", "\n");
-	            return text;
-	        }
+				text = text.Replace ("[break]", "\n");
+				return text;
+			}
 	
 		}
 		

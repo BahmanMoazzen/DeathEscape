@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"ActionSound.cs"
  * 
@@ -268,7 +268,7 @@ namespace AC
 		{
 			if (parameterID < 0)
 			{
-				if (soundObject != null && soundObject.gameObject == gameObject) return true;
+				if (soundObject && soundObject.gameObject == gameObject) return true;
 				if (constantID == id && id != 0) return true;
 			}
 			return base.ReferencesObjectOrID (gameObject, id);

@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"StateHandler.cs"
  * 
@@ -43,6 +43,8 @@ namespace AC
 		protected bool cameraIsOff = false;
 		protected bool triggerIsOff = false;
 		protected bool playerIsOff = false;
+		protected bool applicationIsInFocus = true;
+		protected bool applicationIsPaused = false;
 
 		protected bool runAtLeastOnce = false;
 		protected KickStarter activeKickStarter = null;
@@ -55,7 +57,6 @@ namespace AC
 		protected HashSet<AC_Trigger> triggers = new HashSet<AC_Trigger>();
 		protected HashSet<_Camera> cameras = new HashSet<_Camera>();
 		protected HashSet<Sound> sounds = new HashSet<Sound>();
-		protected HashSet<LimitVisibility> limitVisibilitys = new HashSet<LimitVisibility>();
 		protected HashSet<Char> characters = new HashSet<Char>();
 		protected HashSet<FollowSortingMap> followSortingMaps = new HashSet<FollowSortingMap>();
 		protected HashSet<NavMeshBase> navMeshBases = new HashSet<NavMeshBase>();
@@ -76,15 +77,24 @@ namespace AC
 			EventManager.OnInitialiseScene += OnInitialiseScene;
 			EventManager.OnAddSubScene += OnAddSubScene;
 			EventManager.OnEnterGameState += OnEnterGameState;
+
+			#if UNITY_EDITOR
+			UnityEditor.EditorApplication.pauseStateChanged += OnPauseStateChange;
+			#endif
 		}
+
 
 		private void OnDisable ()
 		{
 			EventManager.OnInitialiseScene -= OnInitialiseScene;
 			EventManager.OnAddSubScene -= OnAddSubScene;
 			EventManager.OnEnterGameState -= OnEnterGameState;
-		}
 
+			#if UNITY_EDITOR
+			UnityEditor.EditorApplication.pauseStateChanged -= OnPauseStateChange;
+			#endif
+		}
+		
 
 		public void Initialise (bool rebuildMenus = true)
 		{
@@ -247,11 +257,6 @@ namespace AC
 			{
 				KickStarter.playerInteraction.UpdateInventory ();
 			}
-
-			foreach (LimitVisibility limitVisibility in limitVisibilitys)
-			{
-				limitVisibility._Update ();
-			}
 			
 			foreach (Sound sound in sounds)
 			{
@@ -348,6 +353,18 @@ namespace AC
 			}
 
 			KickStarter.playerInput._FixedUpdate ();
+		}
+
+
+		private void OnApplicationFocus (bool focus)
+		{
+			applicationIsInFocus = focus;
+		}
+
+
+		private void OnApplicationPause (bool pause)
+		{
+			applicationIsPaused = pause;
 		}
 
 
@@ -467,6 +484,20 @@ namespace AC
 
 		#region PublicFunctions
 
+		/** Checks if the application is currently in focus or not */
+		public bool ApplicationIsInFocus ()
+		{
+			return applicationIsInFocus;
+		}
+
+
+		/** Checks if the application is currently paused */
+		public bool ApplicationIsPaused ()
+		{
+			return applicationIsPaused;
+		}
+
+
 		/** The current state of the game (Normal, Cutscene, Paused, DialogOptions) */
 		public GameState gameState
 		{
@@ -565,18 +596,14 @@ namespace AC
 		}
 
 
-		/**
-		 * Allows the ActionListAsset defined in SettingsManager's actionListOnStart to be run again.
-		 */
+		/** Allows the ActionListAsset defined in SettingsManager's actionListOnStart to be run again. */
 		public void CanGlobalOnStart ()
 		{
 			runAtLeastOnce = false;
 		}
 
 
-		/**
-		 * Calls Physics.IgnoreCollision on all appropriate Collider combinations (Unity 5 only).
-		 */
+		/** Calls Physics.IgnoreCollision on all appropriate Collider combinations (Unity 5 only). */
 		public void IgnoreNavMeshCollisions ()
 		{
 			Collider[] allColliders = FindObjectsOfType (typeof(Collider)) as Collider[];
@@ -587,9 +614,7 @@ namespace AC
 		}
 
 
-		/**
-		 * Sets the maximum volume of all Sound objects in the scene.
-		 */
+		/** Sets the maximum volume of all Sound objects in the scene. */
 		public void UpdateAllMaxVolumes ()
 		{
 			foreach (Sound sound in sounds)
@@ -599,9 +624,7 @@ namespace AC
 		}
 
 
-		/**
-		 * Sets the state of enforced cutscene mode.  This is used to block gameplay etc through custom scripting, as opposed to ActionLists
-		 */
+		/** The state of enforced cutscene mode.  This is used to block gameplay etc through custom scripting, as opposed to ActionLists */
 		public bool EnforceCutsceneMode
 		{
 			get
@@ -615,9 +638,7 @@ namespace AC
 		}
 
 
-		/**
-		 * Sets the state of enforced pause mode.  This is used to pause the game without requiring a pausing menu to be enabled
-		 */
+		/** The state of enforced pause mode.  This is used to pause the game without requiring a pausing menu to be enabled */
 		public bool EnforcePauseMode
 		{
 			get
@@ -946,18 +967,30 @@ namespace AC
 
 		protected void OnInitialiseScene ()
 		{
+			if (previousUpdateState != gameState)
+			{
+				KickStarter.eventManager.Call_OnChangeGameState (previousUpdateState, gameState);
+				previousUpdateState = gameState;
+			}
+
 			EnforceCutsceneMode = false;
 		}
 
 
 		protected void OnEnterGameState (GameState gameState)
 		{
+			StopAllCoroutines ();
+
 			if (gameState == GameState.Paused)
 			{
 				if (Time.time > 0f)
 				{
 					AudioListener.pause = true;
 					Time.timeScale = 0f;
+				}
+				else
+				{
+					StartCoroutine (PauseNextFrame ());
 				}
 			}
 			else
@@ -968,6 +1001,14 @@ namespace AC
 					Time.timeScale = KickStarter.playerInput.timeScale;
 				}
 			}
+		}
+
+
+		private System.Collections.IEnumerator PauseNextFrame ()
+		{
+			yield return null;
+			AudioListener.pause = true;
+			Time.timeScale = 0f;
 		}
 
 
@@ -1003,6 +1044,15 @@ namespace AC
 		{
 			return (!isACDisabled && activeKickStarter);
 		}
+
+		
+		#if UNITY_EDITOR
+		protected void OnPauseStateChange (UnityEditor.PauseState state)
+		{
+			applicationIsPaused = (state == UnityEditor.PauseState.Paused);
+		}
+		#endif
+
 
 		#endregion
 
@@ -1306,26 +1356,6 @@ namespace AC
 		public void Unregister (Sound _object)
 		{
 			sounds.Remove (_object);
-		}
-
-
-		/**
-		 * <summary>Registers a LimitVisibility, so that it can be updated</summary>
-		 * <param name = "_object">The LimitVisibility to register</param>
-		 */
-		public void Register (LimitVisibility _object)
-		{
-			limitVisibilitys.Add (_object);
-		}
-
-
-		/**
-		 * <summary>Unregisters a LimitVisibility, so that it is no longer updated</summary>
-		 * <param name = "_object">The LimitVisibility to unregister</param>
-		 */
-		public void Unregister (LimitVisibility _object)
-		{
-			limitVisibilitys.Remove (_object);
 		}
 
 

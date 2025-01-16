@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"CSVReader.cs"
  * 
@@ -38,7 +38,13 @@ namespace AC
 		 */
 		static public string[,] SplitCsvGrid (string csvText)
 		{
-			switch (ACEditorPrefs.CSVFormat)
+			#if UNITY_EDITOR
+			CSVFormat format = ACEditorPrefs.CSVFormat;
+			#else
+			CSVFormat format = CSVFormat.Standard;
+			#endif
+
+			switch (format)
 			{
 				case CSVFormat.Legacy:
 					{
@@ -94,10 +100,17 @@ namespace AC
 								string cellText = cells[i];
 								if (cellText.StartsWith (textSeparator) && cellText.EndsWith (textSeparator))
 								{
-									cellText = cellText.Substring (1, cellText.Length - 2);
-									if (cellText.Contains (textSeparator + textSeparator))
+									if (cellText.Length == textSeparator.Length)
 									{
-										cellText = cellText.Replace (textSeparator + textSeparator, textSeparator);
+										cellText = string.Empty;
+									}
+									else
+									{
+										cellText = cellText.Substring (1, cellText.Length - 2);
+										if (cellText.Contains (textSeparator + textSeparator))
+										{
+											cellText = cellText.Replace (textSeparator + textSeparator, textSeparator);
+										}
 									}
 								}
 								cells[i] = cellText;
@@ -118,7 +131,7 @@ namespace AC
 								{
 									if (x >= contents[y].Length)
 									{
-										Debug.LogWarning ("Error importing file row: " + y + ", line ID: " + contents[y][0] + " - its column count differs from the header. Skipping.");
+										Debug.LogWarning ("Error importing file row: " + y + ", line ID: " + contents[y][0] + " - its column count (" + contents[y].Length + ") differs from the header + (" + contents[0].Length + "). Skipping.");
 									}
 									else
 									{
@@ -138,12 +151,18 @@ namespace AC
 
 		static public string CreateCSVGrid (List<string[]> contents)
 		{
+			#if UNITY_EDITOR
+			CSVFormat format = ACEditorPrefs.CSVFormat;
+			#else
+			CSVFormat format = CSVFormat.Standard;
+			#endif
+
 			System.Text.StringBuilder sb = new System.Text.StringBuilder ();
 			
 			int numRows = contents.Count;
 			for (int row=0; row<numRows; row++)
 			{
-				switch (ACEditorPrefs.CSVFormat)
+				switch (format)
 				{
 					case CSVFormat.Legacy:
 						{

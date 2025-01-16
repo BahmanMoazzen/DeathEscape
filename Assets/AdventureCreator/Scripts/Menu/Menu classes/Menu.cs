@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"Menu.cs"
  * 
@@ -16,9 +16,12 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Serialization;
 using System.Collections.Generic;
-
 #if UNITY_EDITOR
 using UnityEditor;
+#endif
+#if AddressableIsPresent
+using UnityEngine.AddressableAssets;
+using UnityEngine.ResourceManagement.AsyncOperations;
 #endif
 
 namespace AC
@@ -37,6 +40,11 @@ namespace AC
 		public MenuSource menuSource = MenuSource.AdventureCreator;
 		[SerializeField] private Canvas canvas;
 		private Canvas runtimeCanvas = null;
+
+		/** The Addressable key for the UI Prefab, if the Addressable system is used */
+		public string canvasAssetKey;
+		private int awaitingAddressable;
+
 		/** The ConstantID number of the canvas */
 		public int canvasID = 0;
 		/** A RectTransform that describes the Menu's screen space */
@@ -175,8 +183,7 @@ namespace AC
 		private GameState gameStateWhenTurnedOn;
 		private bool isEnabled;
 		private bool isDisabledForScreenshot = false;
-		private string idString;
-
+		
 		private bool canDoSmoothing = false;
 		private int elementCount = -1;
 
@@ -197,6 +204,7 @@ namespace AC
 		{
 			menuSource = MenuSource.AdventureCreator;
 			canvas = null;
+			canvasAssetKey = string.Empty;
 			runtimeCanvas = null;
 			canvasID = 0;
 			uiPositionType = UIPositionType.Manual;
@@ -289,6 +297,7 @@ namespace AC
 				canvasID = _menu.canvasID;
 				rectTransform = _menu.rectTransform;
 				rectTransformID = _menu.rectTransformID;
+				canvasAssetKey = _menu.canvasAssetKey;
 			}
 			uiTransitionType = _menu.uiTransitionType;
 			uiPositionType = _menu.uiPositionType;
@@ -344,13 +353,18 @@ namespace AC
 			hideDuringSaveScreenshots = _menu.hideDuringSaveScreenshots;
 			positionSmoothing = _menu.positionSmoothing;
 
-			idString = id.ToString ();
 			elementCount = -1;
 
 			elements = new List<MenuElement>();
 			bool ignoreUnityUI = (Application.isPlaying && !fromEditor && _menu.menuSource == MenuSource.AdventureCreator);
 			foreach (MenuElement _element in _menu.elements)
 			{
+				if (_element == null)
+				{
+					Debug.LogWarning ("Null element found in menu " + title);
+					continue;
+				}
+
 				MenuElement newElement = _element.DuplicateSelf (fromEditor, ignoreUnityUI);
 				elements.Add (newElement);
 			}
@@ -390,14 +404,25 @@ namespace AC
 				canvasScaler = RuntimeCanvas.GetComponent <CanvasScaler>();
 				canvasAnimator = RuntimeCanvas.GetComponent <Animator>();
 
-				if (uiTransitionType == UITransition.CanvasGroupFade && canvasGroup && fadeSpeed > 0f && !IsOn ())
+				if (uiTransitionType == UITransition.CanvasGroupFade)
 				{
-					canvasGroup.alpha = 0f;
+					if (canvasGroup == null)
+					{
+						ACDebug.LogWarning ("No Canvas Group component attached to UI prefab " + RuntimeCanvas.name + " - cannot perform fade transition", RuntimeCanvas);
+					}
+					else if (fadeSpeed > 0f && !IsOn ())
+					{
+						canvasGroup.alpha = 0f;
+					}
 				}
 			}
 			else
 			{
-				ACDebug.LogWarning ("The Menu '" + title + "' has its Source set to " + menuSource.ToString () + ", but no Linked Canvas can be found!");
+				if (awaitingAddressable == 0)
+				{
+					ACDebug.LogWarning ("The Menu '" + title + "' has its Source set to " + menuSource.ToString () + ", but no Linked Canvas can be found!");
+				}
+				return;
 			}
 
 			foreach (MenuElement _element in elements)
@@ -536,9 +561,12 @@ namespace AC
 				RuntimeCanvas.gameObject.SetActive (true);
 				RuntimeCanvas.enabled = true;
 
-				if (isDuplicate && uiTransitionType == UITransition.CanvasGroupFade && canvasGroup && fadeSpeed > 0f)
+				if (uiTransitionType == UITransition.CanvasGroupFade)
 				{
-					canvasGroup.alpha = 0f;
+					if (canvasGroup && isDuplicate && uiTransitionType == UITransition.CanvasGroupFade && fadeSpeed > 0f)
+					{
+						canvasGroup.alpha = 0f;
+					}
 				}
 			}
 		}
@@ -576,25 +604,10 @@ namespace AC
 		}
 
 
-		/** Makes all linked UI elements interactive, if the Menu is drawn with Unity UI. */
-		public void MakeUIInteractive ()
+		/** Updates the interactablity state of the UI elements, if the Menu is drawn with Unity UI. */
+		public void UpdateInteractability ()
 		{
-			SetUIInteractableState (true);
-		}
-
-
-		/** Makes all linked UI elements non-interactive, if the Menu is drawn with Unity UI. */
-		public void MakeUINonInteractive ()
-		{
-			if (!IsClickable ())
-			{
-				SetUIInteractableState (false);
-			}
-		}
-
-
-		private void SetUIInteractableState (bool state)
-		{
+			bool state = IsClickable ();
 			if (menuSource != MenuSource.AdventureCreator)
 			{
 				foreach (MenuElement element in elements)
@@ -862,7 +875,16 @@ namespace AC
 				}
 				else
 				{
-					canvas = (Canvas) CustomGUILayout.ObjectField <Canvas> ("Linked Canvas prefab:", canvas, isInScene, apiPrefix + ".canvas", "The Canvas prefab that renders the menu. This will be spawned into the scene automatically at runtime");
+					if (KickStarter.menuManager.useAddressables)
+					{
+						#if AddressableIsPresent
+						canvasAssetKey = CustomGUILayout.DelayedTextField ("Canvas asset key:", canvasAssetKey, apiPrefix + ".canvasAssetKey", "The Addressable asset key that reference the menu's linked Canvas prefab");
+						#endif
+					}
+					else
+					{
+						canvas = (Canvas) CustomGUILayout.ObjectField <Canvas> ("Linked Canvas prefab:", canvas, isInScene, apiPrefix + ".canvas", "The Canvas prefab that renders the menu. This will be spawned into the scene automatically at runtime");
+					}
 				}
 
 				rectTransform = (RectTransform) CustomGUILayout.ObjectField <RectTransform> ("RectTransform boundary:", rectTransform, true, apiPrefix + ".rectTransform", "A RectTransform that describes the Menu's screen space.");
@@ -874,7 +896,7 @@ namespace AC
 				{
 					firstSelectedElement = CustomGUILayout.TextField ("First selected Element:", firstSelectedElement, apiPrefix + ".firstSelectedElement", "The name of the element to automatically select when the Menu is turned on");
 
-					if (string.IsNullOrEmpty (firstSelectedElement) && elements != null && elements.Count > 0)
+					if (!ignoreMouseClicks && string.IsNullOrEmpty (firstSelectedElement) && elements != null && elements.Count > 0)
 					{
 						EditorGUILayout.HelpBox ("For menus to be directly-navigable, an element to select must be defined above.", MessageType.Warning);
 					}
@@ -964,6 +986,26 @@ namespace AC
 				if (element != null)
 				{
 					numFound += element.GetVariableReferences (varID);
+				}
+			}
+			return numFound;
+		}
+
+
+		/**
+		 * <summary>Updates references the Menu makes to a global variable</summary>
+		 * <param name = "oldVarID">The global variable's original ID number</param>
+		 * <param name = "newVarID">The global variable's new ID number</param>
+		 * <returns>The number of references the Menu makes to the variable</returns>
+		 */
+		public int UpdateVariableReferences (int oldVarID, int newVarID)
+		{
+			int numFound = 0;
+			foreach (MenuElement element in elements)
+			{
+				if (element != null)
+				{
+					numFound += element.UpdateVariableReferences (oldVarID, newVarID);
 				}
 			}
 			return numFound;
@@ -1115,13 +1157,11 @@ namespace AC
 						if (fitWithinScreen)
 						{
 							_position -= safeScreenRect.position;
-
 							float minLeft = rectTransform.sizeDelta.x * (1f - rectTransform.pivot.x) * RuntimeCanvas.scaleFactor * rectTransform.localScale.x;
 							float minTop = rectTransform.sizeDelta.y * (1f - rectTransform.pivot.y) * RuntimeCanvas.scaleFactor * rectTransform.localScale.y;
 							
 							float maxLeft = rectTransform.sizeDelta.x * rectTransform.pivot.x * RuntimeCanvas.scaleFactor * rectTransform.localScale.x;
 							float maxTop = rectTransform.sizeDelta.y * rectTransform.pivot.y * RuntimeCanvas.scaleFactor * rectTransform.localScale.y;
-
 							if (KickStarter.settingsManager.AspectRatioEnforcement != AspectRatioEnforcement.NoneEnforced)
 							{
 								Vector2 windowViewportDifference = KickStarter.mainCamera.GetWindowViewportDifference ();
@@ -1409,7 +1449,7 @@ namespace AC
 			{
 				Rect rectRelative = _element.GetSlotRectRelative (slot);
 				Rect rectAbsolute = GetRectAbsolute (rectRelative);
-				return (rectAbsolute.Contains (_point));
+				return rectAbsolute.Contains (_point);
 			}
 			else if (RuntimeCanvas)
 			{
@@ -1432,6 +1472,33 @@ namespace AC
 				}
 			}
 			return false;
+		}
+
+
+		/**
+		 * <summary>Gets a Rect describing the boundary (in screen-space) of an element in the Menu</summary>
+		 * <param name = "_element">The Element to get the boundary of</param>
+		 * <param name = "slot">The Element's slot, if it supports multiple slots</param>
+		 * <returns>A Rect describing the Element's boundary in screen-space</returns>
+		 */
+		public Rect GetElementRect (MenuElement _element, int slot)
+		{
+			if (menuSource == MenuSource.AdventureCreator)
+			{
+				Rect rectRelative = _element.GetSlotRectRelative (slot);
+				Rect rectAbsolute = GetRectAbsolute (rectRelative);
+
+				Vector2 invertedCentre = new Vector2 (rectAbsolute.center.x, Screen.height - rectAbsolute.center.y);
+				Rect invertedRect = new Rect (invertedCentre, rectAbsolute.size);
+				return invertedRect;
+			}
+			else if (RuntimeCanvas)
+			{
+				RectTransform slotRectTransform = _element.GetRectTransform (slot);
+				Vector2 size = Vector2.Scale (slotRectTransform.rect.size, slotRectTransform.lossyScale);
+				return new Rect ((Vector2) slotRectTransform.position - (size * 0.5f), size);
+			}
+			return new Rect ();
 		}
 
 
@@ -1819,6 +1886,15 @@ namespace AC
 			
 			if (RuntimeCanvas == null)
 			{
+				if (KickStarter.menuManager.useAddressables && !string.IsNullOrEmpty (canvasAssetKey))
+				{ 
+					if (awaitingAddressable > 0)
+					{
+						return false;
+					}
+					awaitingAddressable = doFade ? 2 : 1;
+				}
+
 				LoadUnityUI ();
 			}
 
@@ -1854,7 +1930,15 @@ namespace AC
 					else if (menuSource != MenuSource.AdventureCreator && uiPositionType == UIPositionType.AppearAtCursorAndFreeze)
 					{
 						EnableUI (); // Necessary because scaling issues occur otherwise
-						SetCentre (new Vector2 (KickStarter.playerInput.GetInvertedMouse ().x,  ACScreen.height + 1f - KickStarter.playerInput.GetInvertedMouse ().y));
+						// Can we attempt to mask the reposition update?
+						if (RuntimeCanvas && uiTransitionType == UITransition.None)
+						{
+							KickStarter.playerMenus.RequestRepositionUpdate (this, new Vector2 (KickStarter.playerInput.GetInvertedMouse ().x, ACScreen.height + 1f - KickStarter.playerInput.GetInvertedMouse ().y));
+						}
+						else
+						{
+							SetCentre (new Vector2 (KickStarter.playerInput.GetInvertedMouse ().x, ACScreen.height + 1f - KickStarter.playerInput.GetInvertedMouse ().y));
+						}
 					}
 				}
 
@@ -1910,6 +1994,7 @@ namespace AC
 				SetAnimState ();
 			}
 
+			UpdateInteractability ();
 			KickStarter.playerMenus.UpdatePauseMenusRecord ();
 			return true;
 		}
@@ -1926,7 +2011,9 @@ namespace AC
 			{
 				return false;
 			}
-			
+
+			awaitingAddressable = 0;
+
 			if (KickStarter.sceneChanger.IsLoading ())
 			{
 				// Force off instantly if turn off while changing scene
@@ -1970,7 +2057,16 @@ namespace AC
 					UpdateTransition ();
 					isFading = false;
 					isEnabled = false;
-					DisableUI ();
+
+					if (CanPause ())
+					{
+						DisableUI ();
+					}
+					else
+					{
+						// Necessary for speech menu flickering
+						KickStarter.playerMenus.DiableUIInNextFrame (this);
+					}
 					ClearSpeechText ();
 				}
 			}
@@ -1997,6 +2093,8 @@ namespace AC
 		{
 			if (isEnabled || isFading)
 			{
+				awaitingAddressable = 0;
+
 				if (!ignoreActionList && actionListOnTurnOff && !IsFadingOut ())
 				{
 					AdvGame.RunActionListAsset (actionListOnTurnOff);
@@ -2525,7 +2623,7 @@ namespace AC
 		}
 
 
-		/*
+		/**
 		 * <summary>Checks if the Menu can be controlled with the keyboard or controller at this time.</summary>
 		 * <returns>True if the Menu can be controlled with the keyboard or controller at this time.</returns>
 		 */
@@ -2575,6 +2673,24 @@ namespace AC
 
 			if (elementToSelect != null)
 			{
+				Select (elementToSelect, slotIndex);
+			}
+			else
+			{
+				ACDebug.LogWarning ("Cannot find element '" + elementName + "' inside Menu '" + title + "'");
+			}
+		}
+
+
+		/**
+		 * <summary>Selects a given element (and optionally, a slot inside it) for direct-controlled menu navigation.</summary>
+		 * <param name = "elementToSelect">The MenuElement to select</param>
+		 * <param name = "slotIndex">The index number of the slot to select, if the MenuElement has multiple slots</param>
+		 */
+		public void Select (MenuElement elementToSelect, int slotIndex = 0)
+		{
+			if (elementToSelect != null)
+			{
 				if (elementToSelect.IsVisible)
 				{
 					selected_element = elementToSelect;
@@ -2591,12 +2707,8 @@ namespace AC
 				}
 				else
 				{
-					ACDebug.LogWarning ("Cannot select element '" + elementName + "' inside Menu '" + title + "' because it is not visible!");
+					ACDebug.LogWarning ("Cannot select element '" + elementToSelect.title + "' inside Menu '" + title + "' because it is not visible!");
 				}
-			}
-			else
-			{
-				ACDebug.LogWarning ("Cannot find element '" + elementName + "' inside Menu '" + title + "'");
 			}
 		}
 
@@ -2869,6 +2981,23 @@ namespace AC
 		}
 
 
+		/** 
+		 * <summary>Gets the first visibla element from the Menu's list of elements, in the order defined in the Menu Manager</summary>
+		 * <returns>The first visibla element from the Menu's list of elements</returns>
+		 */
+		public MenuElement GetFirstVisibleElement ()
+		{
+			foreach (MenuElement element in visibleElements)
+			{
+				if (element.IsVisible)
+				{
+					return element;
+				}
+			}
+			return null;
+		}
+
+
 		/**
 		 * <summary>Gets the GameObject of the first-selected MenuElement, for a Unity UI-based Menu.</summary>
 		 * <returns>The GameObject of the first-selected MenuElement</returns>
@@ -2902,6 +3031,7 @@ namespace AC
 						return element.GetObjectToSelect ();
 					}
 				}
+				ACDebug.LogWarning ("Could not find element " + firstSelectedElement + " in Menu " + title);
 			}
 			return null;
 		}
@@ -2978,27 +3108,16 @@ namespace AC
 		}
 
 
-		/**
-		 * The Menu's id number as a string.
-		 */
-		public string IDString
+		/** The Menu's id number, which is a unique identifier. */
+		public int ID
 		{
 			get
 			{
-				return idString;
+				return id;
 			}
-		}
-
-
-		/**
-		 * The Menu's id number, which is a unique identifier.
-		 */
-		public int ID
-		{
 			set
 			{
 				id = value;
-				idString = id.ToString ();
 			}
 		}
 
@@ -3020,9 +3139,7 @@ namespace AC
 		}
 
 
-		/**
-		 * True if the Menu has been repositioned
-		 */
+		/** True if the Menu has been repositioned */
 		public bool HasMoved
 		{
 			get
@@ -3032,9 +3149,7 @@ namespace AC
 		}
 
 
-		/**
-		 * The number of elements in the Menu.
-		 */
+		/** The number of elements in the Menu. */
 		public int NumElements
 		{
 			get
@@ -3051,9 +3166,25 @@ namespace AC
 		private void LocateLocalCanvas ()
 		{
 			Canvas localCanvas = null;
-
+			
 			if (menuSource == MenuSource.UnityUiPrefab)
 			{
+				if (runtimeCanvas)
+				{
+					return;
+				}
+
+				if (KickStarter.menuManager.useAddressables)
+				{
+					#if AddressableIsPresent
+					if (!string.IsNullOrEmpty (canvasAssetKey))
+					{
+						Addressables.InstantiateAsync (canvasAssetKey).Completed += OnSpawnMenuAddressable;
+					}
+					return;
+					#endif
+				}
+
 				if (canvas)
 				{
 					localCanvas = (Canvas) Instantiate (canvas);
@@ -3075,6 +3206,32 @@ namespace AC
 			}
 		}
 
+
+		#if AddressableIsPresent
+
+		private void OnSpawnMenuAddressable (AsyncOperationHandle<GameObject> obj)
+		{
+			GameObject canvasObject = obj.Result;
+
+			DontDestroyOnLoad (canvasObject);
+			runtimeCanvas = canvasObject.GetComponent<Canvas> ();
+
+			if (runtimeCanvas == null)
+			{
+				Debug.LogWarning ("Menu " + title + " Addressable asset " + runtimeCanvas + " has no Canvas component attached", runtimeCanvas);
+				return;
+			}
+
+			LoadUnityUI ();
+
+			if (awaitingAddressable > 0)
+			{
+				TurnOn (awaitingAddressable == 2);
+				awaitingAddressable = 0;
+			}
+		}
+
+		#endif
 
 		/** The in-scene instance of the linked Canvas at runtime */
 		public Canvas RuntimeCanvas
@@ -3109,10 +3266,10 @@ namespace AC
 			}
 			set
 			{
-				if (value)
+				/*if (value)
 				{
 					TurnOff ();
-				}
+				}*/
 				_isLocked = value;
 			}
 		}

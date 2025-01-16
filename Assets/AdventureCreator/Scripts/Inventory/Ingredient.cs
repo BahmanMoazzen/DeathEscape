@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"Ingredient.cs"
  * 
@@ -115,6 +115,12 @@ namespace AC
 			{
 				return itemID;
 			}
+			#if UNITY_EDITOR
+			set
+			{
+				itemID = value;
+			}
+			#endif
 		}
 
 

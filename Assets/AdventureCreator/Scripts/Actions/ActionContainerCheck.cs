@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"ActionContainerCheck.cs"
  * 
@@ -234,7 +234,7 @@ namespace AC
 		{
 			if (!useActive && parameterID < 0)
 			{
-				if (container != null && container.gameObject == _gameObject) return true;
+				if (container && container.gameObject == _gameObject) return true;
 				if (constantID == id) return true;
 			}
 			return base.ReferencesObjectOrID (_gameObject, id);

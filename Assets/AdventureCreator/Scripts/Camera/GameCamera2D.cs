@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"GameCamera2D.cs"
  * 
@@ -38,6 +38,8 @@ namespace AC
 
 		/** If set, then the sprite's bounds will be used to set the horizontal and vertical limits, overriding constrainHorizontal and constrainVertical */
 		public SpriteRenderer backgroundConstraint = null;
+		/** If True, and backgroundConstraint is set, then the camera will zoom in to fit the background if it is too zoomed out to fit */
+		public bool autoScaleToFitBackgroundConstraint = false;
 
 		/** The lower and upper horizontal limits, if limitHorizontal = True */
 		public Vector2 constrainHorizontal;
@@ -101,7 +103,7 @@ namespace AC
 			base.Start ();
 
 			ResetTarget ();
-			if (target)
+			if (Target)
 			{
 				MoveCameraInstant ();
 			}
@@ -126,6 +128,11 @@ namespace AC
 		/** Force-sets the current position as its original position. This should not normally need to be called externally. */
 		public void ForceRecordOriginalPosition ()
 		{
+			if (!haveSetOriginalPosition && backgroundConstraint && Camera.orthographic && (limitHorizontal || limitVertical) && Target)
+			{
+				Transform.position = new Vector3 (0f, 0f, Transform.position.z);
+			}
+
 			originalPosition = Transform.position;
 			haveSetOriginalPosition = true;
 		}
@@ -139,15 +146,11 @@ namespace AC
 
 		public override void MoveCameraInstant ()
 		{
-			if (targetIsPlayer && KickStarter.player)
-			{
-				target = KickStarter.player.Transform;
-			}
 			SetOriginalPosition ();
 
 			if (!lockHorizontal || !lockVertical)
 			{
-				if (target)
+				if (Target)
 				{
 					SetDesired ();
 			
@@ -180,9 +183,7 @@ namespace AC
 		}
 
 
-		/**
-		 * Snaps the camera to its offset values and recalculates the camera's projection matrix.
-		 */
+		/** Snaps the camera to its offset values and recalculates the camera's projection matrix. */
 		public void SnapToOffset ()
 		{
 			perspectiveOffset = afterOffset;
@@ -190,9 +191,7 @@ namespace AC
 		}
 
 
-		/**
-		 * Sets the camera's rotation and projection according to the chosen settings in SettingsManager.
-		 */
+		/** Sets the camera's rotation and projection according to the chosen settings in SettingsManager. */
 		public void SetCorrectRotation ()
 		{
 			if (KickStarter.settingsManager)
@@ -281,7 +280,7 @@ namespace AC
 
 
 		#region ProtectedFunctions
-
+		
 		protected void UpdateBackgroundConstraint ()
 		{
 			lastOrthographicSize = Camera.orthographicSize;
@@ -296,10 +295,11 @@ namespace AC
 			{
 				Camera.pixelRect = KickStarter.CameraMain.pixelRect;
 			}
+
 			Vector3 bottomLeftWorldPosition = Camera.ViewportToWorldPoint (new Vector3 (0f, 0f, Camera.nearClipPlane));
 			Vector3 topRightWorldPosition = Camera.ViewportToWorldPoint (new Vector3 (1f, 1f, Camera.nearClipPlane));
 			Camera.pixelRect = originalRect;
-
+			
 			Vector2 bottomLeftOffset = new Vector2 (Transform.position.x - bottomLeftWorldPosition.x, Transform.position.y - bottomLeftWorldPosition.y);
 			Vector2 topRightOffset = new Vector2 (Transform.position.x - topRightWorldPosition.x, Transform.position.y - topRightWorldPosition.y);
 
@@ -307,12 +307,55 @@ namespace AC
 			{
 				Vector2 hLimits = new Vector2 (bottomLeftOffset.x + backgroundConstraint.bounds.min.x, topRightOffset.x + backgroundConstraint.bounds.max.x);
 				constrainHorizontal = hLimits;
+				float scaleFactor = (topRightWorldPosition.x - bottomLeftWorldPosition.x) / backgroundConstraint.bounds.size.x;
+				if (scaleFactor > 1f)
+				{
+					constrainHorizontal.x = constrainHorizontal.y = backgroundConstraint.bounds.center.x;
+					if (autoScaleToFitBackgroundConstraint)
+					{
+						ACDebug.Log ("GameCamera2D '" + gameObject.name + "' is zoomed out to much to fit the Horizontal background constraint - zooming in to compensate.", this);
+						Camera.orthographicSize /= scaleFactor;
+						lastOrthographicSize = Camera.orthographicSize;
+
+						if (KickStarter.CameraMain)
+						{
+							Camera.pixelRect = KickStarter.CameraMain.pixelRect;
+						}
+
+						bottomLeftWorldPosition = Camera.ViewportToWorldPoint (new Vector3 (0f, 0f, Camera.nearClipPlane));
+						topRightWorldPosition = Camera.ViewportToWorldPoint (new Vector3 (1f, 1f, Camera.nearClipPlane));
+						Camera.pixelRect = originalRect;
+
+						bottomLeftOffset = new Vector2 (Transform.position.x - bottomLeftWorldPosition.x, Transform.position.y - bottomLeftWorldPosition.y);
+						topRightOffset = new Vector2 (Transform.position.x - topRightWorldPosition.x, Transform.position.y - topRightWorldPosition.y);
+					}
+					else
+					{
+						ACDebug.LogWarning ("Cannot properly set Horizontal constraint for GameCamera2D '" + gameObject.name + "' because the assigned background's width is less than the screen's width.", this);
+					}
+				}
 			}
 
 			if (limitVertical)
 			{
 				Vector2 vLimits = new Vector2 (bottomLeftOffset.y + backgroundConstraint.bounds.min.y, topRightOffset.y + backgroundConstraint.bounds.max.y);
 				constrainVertical = vLimits;
+
+				float scaleFactor = (topRightWorldPosition.y - bottomLeftWorldPosition.y) / backgroundConstraint.bounds.size.y;
+				if (scaleFactor > 1f)
+				{
+					constrainVertical.x = constrainVertical.y = backgroundConstraint.bounds.center.y;
+					if (autoScaleToFitBackgroundConstraint)
+					{
+						ACDebug.Log ("GameCamera2D '" + gameObject.name + "' is zoomed out to much to fit the Vertical background constraint - zooming in to compensate.", this);
+						Camera.orthographicSize /= scaleFactor;
+						lastOrthographicSize = Camera.orthographicSize;
+					}
+					else
+					{
+						ACDebug.LogWarning ("Cannot properly set Vertical constraint for GameCamera2D '" + gameObject.name + "' because the assigned background's height is less than the screen's height.", this);
+					}
+				}
 			}
 		
 			MoveCameraInstant ();
@@ -322,7 +365,7 @@ namespace AC
 
 		protected void SetDesired ()
 		{
-			Vector2 targetOffset = GetOffsetForPosition (target.position);
+			Vector2 targetOffset = GetOffsetForPosition (Target.position);
 			if (targetOffset.x < (perspectiveOffset.x - freedom.x))
 			{
 				desiredOffset.x = targetOffset.x + freedom.x;
@@ -374,12 +417,7 @@ namespace AC
 
 		protected void MoveCamera ()
 		{
-			if (targetIsPlayer && KickStarter.player)
-			{
-				target = KickStarter.player.Transform;
-			}
-			
-			if (target && (!lockHorizontal || !lockVertical))
+			if (Target && (!lockHorizontal || !lockVertical))
 			{
 				SetDesired ();
 
@@ -418,7 +456,7 @@ namespace AC
 
 		protected void SetProjection ()
 		{
-			if (target == null) return;
+			if (Target == null) return;
 
 			Vector2 snapOffset = GetSnapOffset ();
 

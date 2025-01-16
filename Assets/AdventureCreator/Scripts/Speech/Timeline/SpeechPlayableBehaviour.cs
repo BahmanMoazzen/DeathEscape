@@ -1,18 +1,13 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"SpeechPlayableBehaviour.cs"
  * 
  *	A PlayableBehaviour that allows for AC speech playback in Timelines
  * 
  */
-
-#if UNITY_EDITOR
-using System.Reflection;
-using System;
-#endif
 
 #if AddressableIsPresent
 using UnityEngine.ResourceManagement.AsyncOperations;
@@ -22,14 +17,11 @@ using UnityEngine.AddressableAssets;
 #if !ACIgnoreTimeline
 using UnityEngine;
 using UnityEngine.Playables;
-using UnityEngine.Timeline;
 
 namespace AC
 {
 
-	/**
-	 * A PlayableBehaviour that allows for AC speech playback in Timelines
-	 */
+	/** A PlayableBehaviour that allows for AC speech playback in Timelines */
 	[System.Serializable]
 	public class SpeechPlayableBehaviour : PlayableBehaviour
 	{
@@ -43,6 +35,7 @@ namespace AC
 		protected int playerID;
 		protected bool isPlaying;
 		protected int trackInstanceID;
+		private Speech speech;
 
 		#if AddressableIsPresent
 		protected bool isAwaitingAddressable = false;
@@ -88,12 +81,8 @@ namespace AC
 					string messageText = speechPlayableData.messageText;
 
 					int languageNumber = Options.GetLanguage ();
-					if (languageNumber > 0)
-					{
-						// Not in original language, so pull translation in from Speech Manager
-						messageText = KickStarter.runtimeLanguages.GetTranslation (messageText, speechPlayableData.lineID, languageNumber, AC_TextType.Speech);
-					}
-
+					messageText = KickStarter.runtimeLanguages.GetTranslation (messageText, speechPlayableData.lineID, languageNumber, AC_TextType.Speech);
+					
 					if (speechTrackPlaybackMode == SpeechTrackPlaybackMode.ClipDuration)
 					{
 						messageText += "[hold]";
@@ -105,9 +94,9 @@ namespace AC
 					}
 					
 					#if AddressableIsPresent
-					KickStarter.dialog.StartDialog (speaker, messageText, false, speechPlayableData.lineID, false, true, addressableAudioClip);
+					speech = KickStarter.dialog.StartDialog (speaker, messageText, speechPlayableData.isBackground, speechPlayableData.lineID, false, true, addressableAudioClip);
 					#else
-					KickStarter.dialog.StartDialog (speaker, messageText, false, speechPlayableData.lineID, false, true);
+					speech = KickStarter.dialog.StartDialog (speaker, messageText, speechPlayableData.isBackground, speechPlayableData.lineID, false, true);
 					#endif
 				}
 				#if UNITY_EDITOR
@@ -199,6 +188,16 @@ namespace AC
 			get
 			{
 				return speaker;
+			}
+		}
+
+
+		/** The Speech line produced by the clip.  This will only be set once the clip has begun playing. */
+		public Speech Speech
+		{
+			get
+			{
+				return speech;
 			}
 		}
 

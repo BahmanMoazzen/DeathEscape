@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"ActionOptionSet.cs"
  * 
@@ -68,7 +68,7 @@ namespace AC
 			switch (method)
 			{
 				case OptionSetMethod.Language:
-					if (index >= 0 && KickStarter.speechManager != null && index < KickStarter.speechManager.languages.Count)
+					if (index >= 0 && KickStarter.speechManager != null && index < KickStarter.speechManager.Languages.Count)
 					{
 						if (KickStarter.speechManager != null && KickStarter.speechManager.separateVoiceAndTextLanguages)
 						{
@@ -133,7 +133,7 @@ namespace AC
 					{
 						EditorGUILayout.HelpBox ("No Speech Manager found! One must be assigned in order to change the language.", MessageType.Warning);
 					}
-					else if (KickStarter.speechManager.languages != null && KickStarter.speechManager.languages.Count > 1)
+					else if (KickStarter.speechManager.Languages != null && KickStarter.speechManager.Languages.Count > 1)
 					{
 						if (KickStarter.speechManager != null && KickStarter.speechManager.separateVoiceAndTextLanguages)
 						{
@@ -143,7 +143,7 @@ namespace AC
 						indexParameterID = Action.ChooseParameterGUI ("Language:", parameters, indexParameterID, ParameterType.Integer);
 						if (indexParameterID < 0)
 						{
-							index = EditorGUILayout.Popup ("Language:", index, KickStarter.speechManager.languages.ToArray ());
+							index = EditorGUILayout.Popup ("Language:", index, KickStarter.speechManager.GetLanguageNameArray ());
 						}
 					}
 					else

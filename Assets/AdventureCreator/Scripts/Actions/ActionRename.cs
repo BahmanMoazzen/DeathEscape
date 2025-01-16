@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"ActionRename.cs"
  * 
@@ -30,6 +30,7 @@ namespace AC
 		protected Hotspot runtimeHotspot;
 
 		public string newName;
+		public int newNameParameterID = -1;
 		public int lineID = -1;
 
 
@@ -41,6 +42,7 @@ namespace AC
 		public override void AssignValues (List<ActionParameter> parameters)
 		{
 			runtimeHotspot = AssignFile <Hotspot> (parameters, parameterID, constantID, hotspot);
+			newName = AssignString (parameters, newNameParameterID, newName);
 		}
 		
 		
@@ -73,7 +75,11 @@ namespace AC
 				hotspot = IDToField <Hotspot> (hotspot, constantID, false);
 			}
 			
-			newName = EditorGUILayout.TextField ("New label:", newName);
+			newNameParameterID = Action.ChooseParameterGUI ("New label:", parameters, newNameParameterID, new ParameterType[2] { ParameterType.String, ParameterType.PopUp });
+			if (newNameParameterID < 0)
+			{
+				newName = EditorGUILayout.TextField ("New label:", newName);
+			}
 		}
 
 
@@ -102,7 +108,7 @@ namespace AC
 		{
 			if (parameterID < 0)
 			{
-				if (hotspot != null && hotspot.gameObject == gameObject) return true;
+				if (hotspot && hotspot.gameObject == gameObject) return true;
 				if (constantID == id && id != 0) return true;
 			}
 			return base.ReferencesObjectOrID (gameObject, id);
@@ -171,7 +177,11 @@ namespace AC
 
 		public bool CanTranslate (int index)
 		{
-			return (!string.IsNullOrEmpty (newName));
+			if (newNameParameterID < 0)
+			{
+				return (!string.IsNullOrEmpty (newName));
+			}
+			return false;
 		}
 
 		#endif

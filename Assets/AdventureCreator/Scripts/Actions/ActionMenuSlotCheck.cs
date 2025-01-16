@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"ActionMenuSlotCheck.cs"
  * 
@@ -20,7 +20,7 @@ namespace AC
 {
 	
 	[System.Serializable]
-	public class ActionMenuSlotCheck : ActionCheck
+	public class ActionMenuSlotCheck : ActionCheck, IMenuReferencer
 	{
 		
 		public string menuToCheck = "";
@@ -81,13 +81,13 @@ namespace AC
 		
 		public override void ShowGUI (List<ActionParameter> parameters)
 		{
-			menuToCheckParameterID = Action.ChooseParameterGUI ("Menu containing element:", parameters, menuToCheckParameterID, ParameterType.String);
+			menuToCheckParameterID = Action.ChooseParameterGUI ("Menu containing element:", parameters, menuToCheckParameterID, new ParameterType[2] { ParameterType.String, ParameterType.PopUp });
 			if (menuToCheckParameterID < 0)
 			{
 				menuToCheck = EditorGUILayout.TextField ("Menu containing element:", menuToCheck);
 			}
 			
-			elementToCheckParameterID = Action.ChooseParameterGUI ("Element to check:", parameters, elementToCheckParameterID, ParameterType.String);
+			elementToCheckParameterID = Action.ChooseParameterGUI ("Element to check:", parameters, elementToCheckParameterID, new ParameterType[2] { ParameterType.String, ParameterType.PopUp });
 			if (elementToCheckParameterID < 0)
 			{
 				elementToCheck = EditorGUILayout.TextField ("Element to check:", elementToCheck);
@@ -112,7 +112,7 @@ namespace AC
 		}
 
 
-		public override int GetMenuReferences (string menuName, string elementName = "")
+		public int GetNumMenuReferences (string menuName, string elementName = "")
 		{
 			if (menuToCheckParameterID < 0 && menuName == menuToCheck)
 			{

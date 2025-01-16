@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"MenuProfilesList.cs"
  * 
@@ -18,9 +18,7 @@ using UnityEditor;
 namespace AC
 {
 
-	/**
-	 * This MenuElement lists any save profiles found on by SaveSystem.
-	 */
+	/** This MenuElement lists any save profiles found on by SaveSystem. */
 	public class MenuProfilesList : MenuElement
 	{
 
@@ -55,9 +53,6 @@ namespace AC
 		private string[] labels = null;
 
 
-		/**
-		 * Initialises the element when it is created within MenuManager.
-		 */
 		public override void Declare ()
 		{
 			uiSlots = null;
@@ -158,20 +153,12 @@ namespace AC
 		}
 
 
-		/**
-		 * Hides all linked Unity UI GameObjects associated with the element.
-		 */
 		public override void HideAllUISlots ()
 		{
 			LimitUISlotVisibility (uiSlots, 0, uiHideStyle);
 		}
 		
 
-		/**
-		 * <summary>Gets the boundary of a slot</summary>
-		 * <param name = "_slot">The index number of the slot to get the boundary of</param>
-		 * <returns>The boundary Rect of the slot</returns>
-		 */
 		public override RectTransform GetRectTransform (int _slot)
 		{
 			if (uiSlots != null && uiSlots.Length > _slot)
@@ -320,11 +307,19 @@ namespace AC
 		}
 
 
-		/**
-		 * <summary>Shifts which slots are on display, if the number of slots the element has exceeds the number of slots it can show at once.</summary>
-		 * <param name = "shiftType">The direction to shift slots in (Left, Right)</param>
-		 * <param name = "amount">The amount to shift slots by</param>
-		 */
+		public override int GetSlotIndex (GameObject gameObject)
+		{
+			for (int i = 0; i < uiSlots.Length; i++)
+			{
+				if (uiSlots[i].uiButton && uiSlots[i].uiButton == gameObject)
+				{
+					return 0;
+				}
+			}
+			return base.GetSlotIndex (gameObject);
+		}
+
+
 		public override void Shift (AC_ShiftInventory shiftType, int amount)
 		{
 			if (fixedOption) return;
@@ -336,11 +331,6 @@ namespace AC
 		}
 
 
-		/**
-		 * <summary>Checks if the element's slots can be shifted in a particular direction.</summary>
-		 * <param name = "shiftType">The direction to shift slots in (Left, Right)</param>
-		 * <returns>True if the element's slots can be shifted in the particular direction</returns>
-		 */
 		public override bool CanBeShifted (AC_ShiftInventory shiftType)
 		{
 			if (numSlots == 0 || fixedOption)
@@ -380,12 +370,6 @@ namespace AC
 		}
 		
 
-		/**
-		 * <summary>Gets the display text of the element</summary>
-		 * <param name = "slot">The index number of the slot</param>
-		 * <param name = "languageNumber">The index number of the language number to get the text in</param>
-		 * <returns>The display text of the element's slot, or the whole element if it only has one slot</returns>
-		 */
 		public override string GetLabel (int slot, int languageNumber)
 		{
 			if (Application.isPlaying)
@@ -443,13 +427,6 @@ namespace AC
 		}
 		
 	
-		/**
-		 * <summary>Draws the element using OnGUI</summary>
-		 * <param name = "_style">The GUIStyle to draw with</param>
-		 * <param name = "_slot">The index number of the slot to display</param>
-		 * <param name = "zoom">The zoom factor</param>
-		 * <param name = "isActive If True, then the element will be drawn as though highlighted</param>
-		 */
 		public override void Display (GUIStyle _style, int _slot, float zoom, bool isActive)
 		{
 			base.Display (_style, _slot, zoom, isActive);
@@ -516,11 +493,6 @@ namespace AC
 		}
 
 
-		/**
-		 * <summary>Recalculates the element's size.
-		 * This should be called whenever a Menu's shape is changed.</summary>
-		 * <param name = "source">How the parent Menu is displayed (AdventureCreator, UnityUiPrefab, UnityUiInScene)</param>
-		 */
 		public override void RecalculateSize (MenuSource source)
 		{
 			if (Application.isPlaying)

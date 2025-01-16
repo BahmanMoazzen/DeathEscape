@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"PlayerStart.cs"
  * 
@@ -137,15 +137,34 @@ namespace AC
 				}
 			}
 
-			int previousSceneIndex = GetPlayerPreviousSceneIndex (_playerID);
-			if (chooseSceneBy == ChooseSceneBy.Name && !string.IsNullOrEmpty (previousSceneName))
+			switch (KickStarter.settingsManager.referenceScenesInSave)
 			{
-				return (KickStarter.sceneChanger.NameToIndex (previousSceneName) == previousSceneIndex);
+				case ChooseSceneBy.Name:
+					string _previousSceneName = GetPlayerPreviousSceneName (_playerID);
+					if (chooseSceneBy == ChooseSceneBy.Name && !string.IsNullOrEmpty (previousSceneName))
+					{
+						return (_previousSceneName == previousSceneName);
+					}
+					if (chooseSceneBy == ChooseSceneBy.Number && previousScene >= 0)
+					{
+						return (KickStarter.sceneChanger.IndexToName (previousScene) == _previousSceneName);
+					}
+					break;
+
+				case ChooseSceneBy.Number:
+				default:
+					int previousSceneIndex = GetPlayerPreviousSceneIndex (_playerID);
+					if (chooseSceneBy == ChooseSceneBy.Name && !string.IsNullOrEmpty (previousSceneName))
+					{
+						return (KickStarter.sceneChanger.NameToIndex (previousSceneName) == previousSceneIndex);
+					}
+					if (chooseSceneBy == ChooseSceneBy.Number && previousScene >= 0)
+					{
+						return previousScene == previousSceneIndex;
+					}
+					break;
 			}
-			if (chooseSceneBy == ChooseSceneBy.Number && previousScene >= 0)
-			{
-				return previousScene == previousSceneIndex;
-			}
+
 			return false;
 		}
 
@@ -162,9 +181,19 @@ namespace AC
 		}
 
 
-		/**
-		 * Makes the assigned cameraOnStart the active _Camera.
-		 */
+		private string GetPlayerPreviousSceneName (int _playerID)
+		{
+			if (KickStarter.settingsManager.playerSwitching == PlayerSwitching.DoNotAllow)
+			{
+				return KickStarter.sceneChanger.PreviousSceneName;
+			}
+
+			PlayerData playerData = KickStarter.saveSystem.GetPlayerData (_playerID);
+			return (playerData != null) ? playerData.previousSceneName : string.Empty;
+		}
+
+
+		/** Makes the assigned cameraOnStart the active _Camera. */
 		public void SetCameraOnStart ()
 		{
 			if (cameraOnStart && KickStarter.mainCamera)

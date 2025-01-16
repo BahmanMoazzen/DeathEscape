@@ -1,7 +1,9 @@
-﻿/*
- *
+﻿#if UNITY_EDITOR
+
+/*
+*
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"ACInstaller.cs"
  * 
@@ -91,15 +93,6 @@ namespace AC
 					//Want to have this open, but Unity 2017.1 has a bug
 					//AboutWindow.Init ();
 				}
-			}
-		}
-
-
-		public static string DefaultReferencesPath
-		{
-			get
-			{
-				return Resource.MainFolderPathRelativeToAssets + System.IO.Path.DirectorySeparatorChar.ToString () + "Resources";
 			}
 		}
 
@@ -201,15 +194,17 @@ namespace AC
 		private static SerializedProperty GetChildProperty (SerializedProperty parent, string nameToFind)
 		{
 			SerializedProperty child = parent.Copy ();
-			child.Next (true);
-			do
+			if (child.Next (true))
 			{
-				if (child.name == nameToFind)
+				do
 				{
-					return child;
+					if (child.name == nameToFind)
+					{
+						return child;
+					}
 				}
+				while (child.Next (false));
 			}
-			while (child.Next (false));
 
 			return null;
 		}
@@ -234,7 +229,7 @@ namespace AC
 				while (allAxes.Next (false))
 				{
 					SerializedProperty axis = allAxes.Copy ();
-					if (axis.Next(true) && axis.stringValue == axisName)
+					if (axis.Next (true) && axis.stringValue == axisName)
 					{
 						return true;
 					}
@@ -314,3 +309,5 @@ namespace AC
 	}
 
 }
+
+#endif

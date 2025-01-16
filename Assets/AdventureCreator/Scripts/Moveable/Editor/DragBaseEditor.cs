@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿#if UNITY_EDITOR
+
+using UnityEngine;
 using UnityEditor;
 
 namespace AC
@@ -25,7 +27,7 @@ namespace AC
 			CustomGUILayout.BeginVertical ();
 			EditorGUILayout.LabelField ("Collision settings:", EditorStyles.boldLabel);
 			_target.ignorePlayerCollider = CustomGUILayout.ToggleLeft ("Ignore Player's collider?", _target.ignorePlayerCollider, "", "If True, then the Physics system will ignore collisions between this object and the player");
-			_target.ignoreMoveableRigidbodies = CustomGUILayout.ToggleLeft ("Ignore Moveable Rigidbodies?", _target.ignoreMoveableRigidbodies, "", " If True, then the Physics system will ignore collisions between this object and the bounday colliders of any DragTrack that this is not locked to");
+			_target.ignoreMoveableRigidbodies = CustomGUILayout.ToggleLeft ("Ignore Moveable Rigidbodies?", _target.ignoreMoveableRigidbodies, "", " If True, then the Physics system will ignore collisions between this object and the boundary colliders of any DragTrack that this is not locked to");
 			_target.childrenShareLayer = CustomGUILayout.ToggleLeft ("Place children on same layer?", _target.childrenShareLayer, "", "If True, then this object's children will be placed on the same layer");
 
 			EditorGUILayout.BeginHorizontal ();
@@ -74,6 +76,7 @@ namespace AC
 			CustomGUILayout.BeginVertical ();
 			EditorGUILayout.LabelField ("Sound settings:", EditorStyles.boldLabel);
 			_target.moveSoundClip = (AudioClip) CustomGUILayout.ObjectField <AudioClip> ("Move sound:", _target.moveSoundClip, false, "", "The sound to play when the object is moved");
+			_target.moveSound = (Sound) CustomGUILayout.ObjectField <Sound> ("Move Sound object:", _target.moveSound, true, "", "The Sound component to play move sounds from");
 			_target.slideSoundThreshold = CustomGUILayout.FloatField ("Min. move speed:", _target.slideSoundThreshold, "", "The minimum speed that the object must be moving by for sound to play");
 			_target.slidePitchFactor = CustomGUILayout.FloatField ("Pitch factor:", _target.slidePitchFactor, "", "The factor by which the movement sound's pitch is adjusted in relation to speed");
 		
@@ -88,3 +91,5 @@ namespace AC
 	}
 
 }
+
+#endif

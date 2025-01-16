@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿#if UNITY_EDITOR
+
+using UnityEngine;
 using UnityEditor;
 
 namespace AC
@@ -85,6 +87,12 @@ namespace AC
 				if (_target.alignMovement == AlignDragMovement.AlignToPlane)
 				{
 					_target.plane = (Transform) CustomGUILayout.ObjectField <Transform> ("Movement plane:", _target.plane, true, "", "The plane to align movement to");
+				}
+
+				if (_target.GetComponent<Rigidbody> ())
+				{
+					_target.moveWithRigidbody = EditorGUILayout.Toggle ("Turn with Rigidbody?", _target.moveWithRigidbody);
+					_target.noGravityWhenHeld = CustomGUILayout.Toggle ("Gravity set by 'held' state?", _target.noGravityWhenHeld, "", "If True, then gravity will be disabled on the object while it is held by the player");
 				}
 			}
 			else if (_target.dragMode == DragMode.RotateOnly)
@@ -238,3 +246,5 @@ namespace AC
 	}
 
 }
+
+#endif

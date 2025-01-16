@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"RuntimeVariables.cs"
  * 
@@ -229,12 +229,7 @@ namespace AC
 					{
 						if (!ignoreOptionLinked || globalVar.link != VarLink.OptionsData)
 						{
-							globalVar.IntegerValue= presetValue.val;
-							globalVar.FloatValue = presetValue.floatVal;
-							globalVar.TextValue = presetValue.textVal;
-							globalVar.Vector3Value = presetValue.vector3Val;
-							globalVar.GameObjectValue = presetValue.gameObjectVal;
-
+							globalVar.AssignPreset (presetValue);
 							globalVar.Upload (VariableLocation.Global);
 						}
 					}

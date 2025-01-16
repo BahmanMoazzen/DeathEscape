@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"RememberNPC.cs"
  * 
@@ -15,22 +15,28 @@ using UnityEngine;
 namespace AC
 {
 
-	/**
-	 * Attach this script to NPCs in the scene whose state you wish to save.
-	 */
+	/** Attach this script to NPCs in the scene whose state you wish to save. */
 	[AddComponentMenu("Adventure Creator/Save system/Remember NPC")]
 	[HelpURL("https://www.adventurecreator.org/scripting-guide/class_a_c_1_1_remember_n_p_c.html")]
 	public class RememberNPC : Remember
 	{
 
+		#region Variables
+
 		/** Determines whether the object is on or off when the game starts */
 		public AC_OnOff startState = AC_OnOff.On;
-
 		private bool loadedData = false;
+		private Hotspot ownHotspot;
 
-		
-		private void Awake ()
+		#endregion
+
+
+		#region UnityStandards
+
+		protected override void OnEnable ()
 		{
+			base.OnEnable ();
+
 			if (loadedData) return;
 
 			if (OwnHotspot != null &&
@@ -49,6 +55,10 @@ namespace AC
 			}
 		}
 
+		#endregion
+
+
+		#region PublicFunctions
 
 		/**
 		 * <summary>Serialises appropriate GameObject values into a string.</summary>
@@ -140,8 +150,11 @@ namespace AC
 			loadedData = true;
 		}
 
+		#endregion
 
-		private Hotspot ownHotspot;
+
+		#region GetSet
+
 		private Hotspot OwnHotspot
 		{
 			get
@@ -154,12 +167,12 @@ namespace AC
 			}
 		}
 
+		#endregion
+
 	}
 
 
-	/**
-	 * A data container used by the RememberNPC script.
-	 */
+	/** A data container used by the RememberNPC script. */
 	[System.Serializable]
 	public class NPCData : RememberData
 	{

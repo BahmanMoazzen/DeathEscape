@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"ActionSendMessage.cs"
  * 
@@ -165,7 +165,7 @@ namespace AC
 			messageToSend = (MessageToSend) EditorGUILayout.EnumPopup ("Message to send:", messageToSend);
 			if (messageToSend == MessageToSend.Custom)
 			{
-				customMessageParameterID = Action.ChooseParameterGUI ("Method name:", parameters, customMessageParameterID, ParameterType.String);
+				customMessageParameterID = Action.ChooseParameterGUI ("Method name:", parameters, customMessageParameterID, new ParameterType[2] { ParameterType.String, ParameterType.PopUp });
 				if (customMessageParameterID < 0)
 				{
 					customMessage = EditorGUILayout.TextField ("Method name:", customMessage);
@@ -233,10 +233,10 @@ namespace AC
 		{
 			if (!isPlayer && parameterID < 0)
 			{
-				if (linkedObject != null && linkedObject == gameObject) return true;
+				if (linkedObject && linkedObject == gameObject) return true;
 				if (constantID == id && id != 0) return true;
 			}
-			if (isPlayer && gameObject.GetComponent <Player>() != null) return true;
+			if (isPlayer && gameObject && gameObject.GetComponent <Player>()) return true;
 			return base.ReferencesObjectOrID (gameObject, id);
 		}
 

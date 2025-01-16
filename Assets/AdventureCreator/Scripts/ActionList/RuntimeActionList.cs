@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"RuntimeActionList.cs"
  * 
@@ -195,7 +195,8 @@ namespace AC
 				ACDebug.LogWarning ("Cannot run " + this.name + " because no ActionListAssetManager was found.", this);
 				return;
 			}
-			KickStarter.actionListAssetManager.AddToList (this, assetSource, true, startIndex);
+			// If resuming, ActiveList should already be present - no need to add to the list
+			// KickStarter.actionListAssetManager.AddToList (this, assetSource, true, startIndex);
 		}
 
 
@@ -233,7 +234,7 @@ namespace AC
 		}
 
 
-		protected void OnBeforeChangeScene ()
+		protected void OnBeforeChangeScene (string nextSceneName)
 		{
 			if (assetSource.canSurviveSceneChanges && !assetSource.IsSkippable ())
 			{

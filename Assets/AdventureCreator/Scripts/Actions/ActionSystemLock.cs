@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"ActionSystemLock.cs"
  * 
@@ -217,9 +217,11 @@ namespace AC
 		
 		public override void ShowGUI ()
 		{
-			changeMovementMethod = EditorGUILayout.BeginToggleGroup ("Change movement method?", changeMovementMethod);
-			newMovementMethod = (MovementMethod) EditorGUILayout.EnumPopup ("Movement method:", newMovementMethod);
-			EditorGUILayout.EndToggleGroup ();
+			changeMovementMethod = EditorGUILayout.ToggleLeft ("Change movement method?", changeMovementMethod);
+			if (changeMovementMethod)
+			{
+				newMovementMethod = (MovementMethod) EditorGUILayout.EnumPopup ("Movement method:", newMovementMethod);
+			}
 
 			EditorGUILayout.Space ();
 

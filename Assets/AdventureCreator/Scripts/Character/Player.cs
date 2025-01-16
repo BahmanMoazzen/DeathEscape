@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"Player.cs"
  * 
@@ -14,9 +14,7 @@ using UnityEngine;
 namespace AC
 {
 
-	/**
-	 * Attaching this component to a GameObject and tagging it "Player" will make it an Adventure Creator Player.
-	 */
+	/** Attaching this component to a GameObject and tagging it "Player" will make it an Adventure Creator Player. */
 	[AddComponentMenu("Adventure Creator/Characters/Player")]
 	[HelpURL("https://www.adventurecreator.org/scripting-guide/class_a_c_1_1_player.html")]
 	public class Player : NPC
@@ -222,9 +220,7 @@ namespace AC
 		}
 
 
-		/**
-		 * <summary>Stops the Player from re-calculating pathfinding calculations.</summary>
-		 */
+		/** Stops the Player from re-calculating pathfinding calculations. */
 		public void CancelPathfindRecalculations ()
 		{
 			pathfindUpdateTime = 0f;
@@ -265,9 +261,29 @@ namespace AC
 				return false;
 			}
 
-			if (IsGrounded () && activePath == null)
+			bool isGrounded = IsGrounded ();
+
+			if (activePath == null)
 			{
-				if (_rigidbody && !_rigidbody.isKinematic)
+				if (_characterController)
+				{
+					if (!isGrounded)
+					{
+						RaycastHit hitDownInfo;
+						bool hitGround = Physics.Raycast (Transform.position + Vector3.up * _characterController.stepOffset, Vector3.down, out hitDownInfo, _characterController.stepOffset * 2f, groundCheckLayerMask);
+						if (!hitGround)
+						{
+							return false;
+						}
+					}
+
+					simulatedVerticalSpeed = KickStarter.settingsManager.jumpSpeed * 0.1f;
+					isJumping = true;
+					_characterController.Move (simulatedVerticalSpeed * Time.deltaTime * Vector3.up);
+					KickStarter.eventManager.Call_OnPlayerJump (this);
+					return true;
+				}
+				else if (_rigidbody && !_rigidbody.isKinematic && isGrounded)
 				{
 					if (useRigidbodyForMovement)
 					{	
@@ -286,7 +302,7 @@ namespace AC
 					KickStarter.eventManager.Call_OnPlayerJump (this);
 					return true;
 				}
-				else
+				else if (isGrounded)
 				{
 					if (motionControl == MotionControl.Automatic)
 					{
@@ -310,10 +326,14 @@ namespace AC
 			return false;
 		}
 
-
+		
 		public override void EndPath ()
 		{
-			lockedPath = false;
+			if (lockedPath)
+			{
+				if (activePath) activePath.pathType = lockedPathType;
+				lockedPath = false;
+			}
 			base.EndPath ();
 		}
 
@@ -326,14 +346,17 @@ namespace AC
 				switch (activePath.pathType)
 				{
 					case AC_PathType.ForwardOnly:
+					case AC_PathType.Loop:
 						activePath.pathType = AC_PathType.ReverseOnly;
 						targetNode --;
+						if (targetNode < 0) targetNode = activePath.nodes.Count - 1;
 						PathUpdate ();
 						break;
 
 					case AC_PathType.ReverseOnly:
 						activePath.pathType = AC_PathType.ForwardOnly;
 						targetNode ++;
+						if (targetNode >= activePath.nodes.Count) targetNode = 0;
 						PathUpdate ();
 						break;
 
@@ -348,14 +371,26 @@ namespace AC
 		 * <summary>Locks the Player to a Paths object during gameplay, if using Direct movement.
 		 * This allows the designer to constrain the Player's movement to a Path, even though they can move freely along it.</summary>
 		 * <param name = "pathOb">The Paths to lock the Player to</param>
+		 * <param name="canReverse">If True, the Player can move in both directions along the Path</param>
+		 * <param name="pathSnapping">The type of snapping to enforce when first placing the Player over the Path</param>
+		 * <param name="startingNode">If pathSnapping = PathSnapping.SnapToNode, the node index to snap to</param>
 		 */
-		public void SetLockedPath (Paths pathOb, bool canReverse = false, int startingNode = 0)
+		public void SetLockedPath (Paths pathOb, bool canReverse = false, PathSnapping pathSnapping = PathSnapping.SnapToStart, int startingNode = 0)
 		{
 			// Ignore if using "point and click" or first person methods
-			if (KickStarter.settingsManager.movementMethod == MovementMethod.Direct)
+			if (KickStarter.settingsManager.movementMethod == MovementMethod.Direct || KickStarter.settingsManager.movementMethod == MovementMethod.FirstPerson)
 			{
 				lockedPath = true;
-				lockedPathCanReverse = canReverse;
+				lockedPathType = pathOb.pathType;
+
+				if (KickStarter.settingsManager.movementMethod == MovementMethod.Direct)
+				{
+					lockedPathCanReverse = canReverse;
+				}
+				else
+				{
+					lockedPathCanReverse = false;
+				}
 
 				if (pathOb.pathSpeed == PathSpeed.Run)
 				{
@@ -365,28 +400,84 @@ namespace AC
 				{
 					isRunning = false;
 				}
-				
-				Vector3 pathPosition = pathOb.Transform.position;
-				if (startingNode > 0 && startingNode < pathOb.nodes.Count)
+
+				switch (pathSnapping)
 				{
-					pathPosition = pathOb.nodes[startingNode];
+					default:
+						startingNode = pathOb.GetNearestNode (Transform.position);
+						break;
+
+					case PathSnapping.SnapToStart:
+						startingNode = 0;
+						break;
+
+					case PathSnapping.SnapToNode:
+						break;
 				}
 
-				if (pathOb.affectY)
+				if (pathOb.nodes == null || pathOb.nodes.Count == 0 || startingNode >= pathOb.nodes.Count)
 				{
-					Teleport (pathPosition);
+					lockedPath = false;
+					ACDebug.LogWarning ("Cannot lock Player to path '" + pathOb + "' - invalid node index " + startingNode, pathOb);
+					return;
 				}
-				else if (SceneSettings.IsUnity2D ())
+
+				Vector3 pathPosition = pathOb.nodes[startingNode];
+
+				if (pathSnapping != PathSnapping.None)
 				{
-					Teleport (new Vector3 (pathPosition.x, pathPosition.y, Transform.position.z));
-				}
-				else
-				{
-					Teleport (new Vector3 (pathPosition.x, Transform.position.y, pathPosition.z));
+					if (pathOb.affectY)
+					{
+						Teleport (pathPosition);
+					}
+					else if (SceneSettings.IsUnity2D ())
+					{
+						Teleport (new Vector3 (pathPosition.x, pathPosition.y, Transform.position.z));
+					}
+					else
+					{
+						Teleport (new Vector3 (pathPosition.x, Transform.position.y, pathPosition.z));
+					}
 				}
 					
 				activePath = pathOb;
-				targetNode = startingNode + 1;
+
+				if (startingNode == pathOb.nodes.Count - 1 && lockedPathType == AC_PathType.Loop)
+				{
+					targetNode = 0;
+				}
+				else
+				{
+					targetNode = startingNode + 1;
+				}
+
+				if (startingNode == pathOb.nodes.Count - 1)
+				{
+					if (lockedPathCanReverse)
+					{
+						activePath.pathType = AC_PathType.ReverseOnly;
+						targetNode = startingNode - 1;
+					}
+					else
+					{
+						ACDebug.LogWarning ("Cannot lock Player to path '" + pathOb + "' - node index " + startingNode + " is the end of the path, and bi-directional movement is disabled.", pathOb);
+
+						Vector3 direction = Transform.position - pathOb.nodes[targetNode-2];
+						Vector3 lookDir = new Vector3 (direction.x, 0f, direction.z);
+						SetLookDirection (lookDir, true);
+
+						lockedPath = false;
+						activePath = null;
+					}
+				}
+
+				if (activePath)
+				{
+					Vector3 direction = activePath.nodes[targetNode] - Transform.position;
+					Vector3 lookDir = new Vector3 (direction.x, 0f, direction.z);
+					SetLookDirection (lookDir, true);
+				}
+
 				charState = CharState.Idle;
 			}
 			else
@@ -622,7 +713,8 @@ namespace AC
 					playerData.playerPathData = string.Empty;
 					playerData.playerActivePath = Serializer.GetConstantID (GetPath ().gameObject);
 					playerData.playerLockedPath = lockedPath;
-					playerData.playerLockedPathReversing = (GetPath ().pathType == AC_PathType.ReverseOnly);
+					playerData.playerLockedPathReversing = lockedPathCanReverse;
+					playerData.playerLockedPathType = (int) lockedPathType;
 				}
 			}
 			
@@ -758,16 +850,6 @@ namespace AC
 
 
 		/**
-		 * <summary>Checks if this Player object is the current active Player</summary>
-		 * <returns>True if this Player is the current active Player</returns>
-		 */
-		public bool IsActivePlayer ()
-		{
-			return (this == KickStarter.player);
-		}
-
-
-		/**
 		 * <summary>Updates its own variables from a PlayerData class.</summary>
 		 * <param name = "playerData">The PlayerData class to load from</param>
 		 */
@@ -891,12 +973,9 @@ namespace AC
 					if (lockedPath)
 					{
 						savedPath.pathType = AC_PathType.ForwardOnly;
-						SetLockedPath (savedPath);
-						Debug.Log (playerData.playerLockedPathReversing);
-						if (playerData.playerLockedPathReversing)
-						{
-							ReverseDirectPathDirection ();
-						}
+						SetLockedPath (savedPath, playerData.playerLockedPathReversing);
+						lockedPathType = (AC_PathType) playerData.playerLockedPathType;
+						
 						Teleport (new Vector3 (playerData.playerLocX, playerData.playerLocY, playerData.playerLocZ));
 						SetRotation (playerData.playerRotY);
 						targetNode = playerData.playerTargetNode;
@@ -1027,11 +1106,11 @@ namespace AC
 
 			if (_ID >= 0)
 			{
-				ACDebug.Log ("Spawned instance of Player '" + GetName () + "'.", newInstance);
+				ACDebug.Log ("Spawned instance of Player '" + newInstance.GetName () + "'.", newInstance);
 			}
 			else
 			{
-				ACDebug.Log ("Spawned instance of Player '" + GetName () + "' into scene " + newInstance.gameObject.scene.name + ".", newInstance);
+				ACDebug.Log ("Spawned instance of Player '" + newInstance.GetName () + "' into scene " + newInstance.gameObject.scene.name + ".", newInstance);
 			}
 
 			if (KickStarter.eventManager)
@@ -1205,6 +1284,12 @@ namespace AC
 			{
 				return true;
 			}
+		}
+
+
+		public override bool IsActivePlayer ()
+		{
+			return this == KickStarter.player;
 		}
 
 

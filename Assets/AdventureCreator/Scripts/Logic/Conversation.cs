@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"Conversation.cs"
  * 
@@ -24,7 +24,7 @@ namespace AC
 	 */
 	[AddComponentMenu("Adventure Creator/Logic/Conversation")]
 	[HelpURL("https://www.adventurecreator.org/scripting-guide/class_a_c_1_1_conversation.html")]
-	public class Conversation : MonoBehaviour, ITranslatable, iActionListAssetReferencer
+	public class Conversation : MonoBehaviour, ITranslatable, iActionListAssetReferencer, IItemReferencer, IVariableReferencer
 	{
 
 		#region Variables
@@ -51,6 +51,7 @@ namespace AC
 		protected float startTime;
 		protected ActiveList overrideActiveList;
 		protected ActiveList onFinishActiveList;
+		protected MenuDialogList linkedDialogList;
 
 		#endregion
 
@@ -275,7 +276,6 @@ namespace AC
 			}
 
 			ButtonDialog buttonDialog = options[i];
-
 			if (!gameObject.activeInHierarchy || interactionSource == AC.InteractionSource.CustomScript)
 			{
 				RunOption (buttonDialog);
@@ -327,8 +327,36 @@ namespace AC
 
 
 		/**
+		 * <summary>Checks if a given slot exists</summary>
+		 * <param name = "slot">The index number of the enabled dialogue option to find</param>
+		 * <returns>True if a given slot exists</returns>
+		 */
+		public bool SlotIsAvailable (int slot)
+		{
+			int i = ConvertSlotToOption (slot);
+			return (i >= 0 && i < options.Count);
+		}
+
+
+		/**
+		 * <summary>Gets the ID of a dialogue option.</summary>
+		 * <param name = "slot">The index number of the enabled dialogue option to find</param>
+		 * <returns>The dialogue option's ID number, if found - or -1 otherwise.</returns>
+		 */
+		public int GetOptionID (int slot)
+		{
+			int i = ConvertSlotToOption (slot);
+			if (i >= 0 && i < options.Count)
+			{
+				return options[i].ID;
+			}
+			return -1;
+		}
+
+
+		/**
 		 * <summary>Gets the display label of a dialogue option.</summary>
-		 * <param name = "slot">The index number of the dialogue option to find</param>
+		 * <param name = "slot">The index number of the enabled dialogue option to find</param>
 		 * <returns>The display label of the dialogue option</returns>
 		 */
 		public string GetOptionName (int slot)
@@ -466,6 +494,28 @@ namespace AC
 			ButtonDialog buttonDialog = GetOptionWithID (ID);
 			if (buttonDialog == null) return false;
 			return buttonDialog.hasBeenChosen;
+		}
+
+
+		/** 
+		 * <summary>Checks if all options have been chosen at least once by the player</summary>
+		 * <param name = "onlyEnabled">If True, then only options that are currently enabled will be included in the check</param>
+		 * <returns>True if all options have been chosen at least once by the player</returns>
+		 */
+		public bool AllOptionsBeenChosen (bool onlyEnabled)
+		{
+			foreach (ButtonDialog option in options)
+			{
+				if (!option.hasBeenChosen)
+				{
+					if (onlyEnabled && !option.isOn)
+					{
+						continue;
+					}
+					return false;
+				}
+			}
+			return true;
 		}
 
 
@@ -639,6 +689,11 @@ namespace AC
 
 		protected void RunOption (ButtonDialog _option)
 		{
+			if (_option.autoTurnOff)
+			{
+				_option.isOn = false;
+			}
+
 			_option.hasBeenChosen = true;
 			if (options.Contains (_option))
 			{
@@ -725,7 +780,14 @@ namespace AC
 		protected IEnumerator RunOptionCo (ButtonDialog buttonDialog)
 		{
 			KickStarter.playerInput.PendingOptionConversation = this;
-			yield return new WaitForSeconds (KickStarter.dialog.conversationDelay);
+
+			float timeElapsed = 0f;
+			while (timeElapsed < KickStarter.dialog.conversationDelay)
+			{
+				timeElapsed += Time.deltaTime;
+				yield return new WaitForEndOfFrame ();
+			}
+
 			RunOption (buttonDialog);
 
 			if (KickStarter.playerInput.PendingOptionConversation == this)
@@ -759,15 +821,15 @@ namespace AC
 			{
 				foreach (ButtonDialog buttonDialog in options)
 				{
-					if (buttonDialog.conversationAction == ConversationAction.ReturnToConversation)
-					{
-						continue;
-					}
-
 					if (interactionSource == InteractionSource.InScene)
 					{
 						if (buttonDialog.dialogueOption == actionList)
 						{
+							if (buttonDialog.conversationAction == ConversationAction.ReturnToConversation && GetNumEnabledOptions () > 0)
+							{
+								continue;
+							}
+
 							KickStarter.eventManager.Call_OnEndConversation (this);
 							return;
 						}
@@ -776,6 +838,11 @@ namespace AC
 					{
 						if (actionListAsset && buttonDialog.assetFile == actionListAsset)
 						{
+							if (buttonDialog.conversationAction == ConversationAction.ReturnToConversation && GetNumEnabledOptions () > 0)
+							{
+								continue;
+							}
+
 							KickStarter.eventManager.Call_OnEndConversation (this);
 							return;
 						}
@@ -842,22 +909,21 @@ namespace AC
 
 
 		/**
-		 * <summary>Gets the number of references to a given local or global variable</summary>
+		 * <summary>Gets the number of references to a given variable</summary>
 		 * <param name = "location">The location of the variable (Global, Local)</param>
 		 * <param name = "varID">The ID number of the variable</param>
 		 * <returns>The number of references to the variable</returns>
 		 */
-		public int GetVariableReferences (VariableLocation location, int varID)
+		public int GetNumVariableReferences (VariableLocation location, int varID, Variables variables = null, int _variablesConstantID = 0)
 		{
 			int numFound = 0;
 			if (options != null)
 			{
-				string tokenText = (location == VariableLocation.Local) ? "[localvar:" + varID.ToString () + "]"
-																		: "[var:" + varID.ToString () + "]";
+				string tokenText = AdvGame.GetVariableTokenText (location, varID, _variablesConstantID);
 
 				foreach (ButtonDialog option in options)
 				{
-					if (option.label.Contains (tokenText))
+					if (option.label.ToLower ().Contains (tokenText))
 					{
 						numFound ++;
 					}
@@ -867,7 +933,27 @@ namespace AC
 		}
 
 
-		public int GetInventoryReferences (int itemID)
+		public int UpdateVariableReferences (VariableLocation location, int oldVariableID, int newVariableID, Variables variables = null, int variablesConstantID = 0)
+		{
+			int numFound = 0;
+			if (options != null)
+			{
+				string oldTokenText = AdvGame.GetVariableTokenText (location, oldVariableID, variablesConstantID);
+				foreach (ButtonDialog option in options)
+				{
+					if (option.label.ToLower ().Contains (oldTokenText))
+					{
+						string newTokenText = AdvGame.GetVariableTokenText (location, newVariableID, variablesConstantID);
+						option.label = option.label.Replace (oldTokenText, newTokenText);
+						numFound++;
+					}
+				}
+			}
+			return numFound;
+		}
+
+
+		public int GetNumItemReferences (int itemID)
 		{
 			int numFound = 0;
 			foreach (ButtonDialog option in options)
@@ -875,6 +961,21 @@ namespace AC
 				if (option.linkToInventory && option.linkedInventoryID == itemID)
 				{
 					numFound ++;
+				}
+			}
+			return numFound;
+		}
+
+
+		public int UpdateItemReferences (int oldItemID, int newItemID)
+		{
+			int numFound = 0;
+			foreach (ButtonDialog option in options)
+			{
+				if (option.linkToInventory && option.linkedInventoryID == oldItemID)
+				{
+					option.linkedInventoryID = newItemID;
+					numFound++;
 				}
 			}
 			return numFound;
@@ -1000,6 +1101,19 @@ namespace AC
 		}
 
 		#endif
+
+
+		public MenuDialogList LinkedDialogList
+		{
+			get
+			{
+				return linkedDialogList;
+			}
+			set
+			{
+				linkedDialogList = value;
+			}
+		}
 
 	}
 

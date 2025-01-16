@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"MenuCrafting.cs"
  * 
@@ -19,9 +19,7 @@ using UnityEditor;
 namespace AC
 {
 
-	/**
-	 * A MenuElement that stores multiple inventory items to be combined to create new ones.
-	 */
+	/** A MenuElement that stores multiple inventory items to be combined to create new ones. */
 	public class MenuCrafting : MenuElement
 	{
 
@@ -48,16 +46,15 @@ namespace AC
 		public bool autoCreate = true;
 		/** How the item count is displayed */
 		public InventoryItemCountDisplay inventoryItemCountDisplay = InventoryItemCountDisplay.OnlyIfMultiple;
-		/** If inventoryBoxType = AC_InventoryBoxType.Container, what happens to items when they are removed from the container */
+		/** If craftingType = CraftingElementType.Ingredients, what happens to items when they are removed from the container */
 		public ContainerSelectMode containerSelectMode = ContainerSelectMode.MoveToInventoryAndSelect;
+		/** If craftingType = CraftingElementType.Output, default click behaiour is disabled */
+		public bool preventDefaultClicks = false;
 
 		private Recipe activeRecipe;
 		private string[] labels = null;
 
 
-		/**
-		 * Initialises the element when it is created within MenuManager.
-		 */
 		public override void Declare ()
 		{
 			uiSlots = null;
@@ -74,16 +71,12 @@ namespace AC
 			linkUIGraphic = LinkUIGraphic.ImageComponent;
 			invInstances = new List<InvInstance>();
 			autoCreate = true;
+			preventDefaultClicks = false;
 			inventoryItemCountDisplay = InventoryItemCountDisplay.OnlyIfMultiple;
 			containerSelectMode = ContainerSelectMode.MoveToInventoryAndSelect;
 		}
 
 
-		/**
-		 * <summary>Creates and returns a new MenuCrafting that has the same values as itself.</summary>
-		 * <param name = "fromEditor">If True, the duplication was done within the Menu Manager and not as part of the gameplay initialisation.</param>
-		 * <returns>A new MenuCrafting with the same values as itself</returns>
-		 */
 		public override MenuElement DuplicateSelf (bool fromEditor, bool ignoreUnityUI)
 		{
 			MenuCrafting newElement = CreateInstance <MenuCrafting>();
@@ -120,6 +113,7 @@ namespace AC
 			autoCreate = _element.autoCreate;
 			inventoryItemCountDisplay = _element.inventoryItemCountDisplay;
 			containerSelectMode = _element.containerSelectMode;
+			preventDefaultClicks = _element.preventDefaultClicks;
 
 			PopulateList ();
 			
@@ -160,11 +154,6 @@ namespace AC
 		}
 		
 
-		/**
-		 * <summary>Gets the boundary of the slot</summary>
-		 * <param name = "_slot">The index number of the slot to get the boundary of</param>
-		 * <returns>The boundary Rect of the slot</returns>
-		 */
 		public override RectTransform GetRectTransform (int _slot)
 		{
 			if (uiSlots != null && _slot >= 0 && _slot < uiSlots.Length)
@@ -210,6 +199,7 @@ namespace AC
 			else
 			{
 				autoCreate = CustomGUILayout.Toggle ("Result is automatic?", autoCreate, apiPrefix + ".autoCreate", "If True, then the output ingredient will appear automatically when the correct ingredients are used. If False, then the player will have to run the 'Inventory: Crafting' Action as an additional step.");
+				preventDefaultClicks = CustomGUILayout.Toggle ("Prevent default clicks?", preventDefaultClicks, apiPrefix + ".preventDefaultClicks", "If True, then default behavior when clicked is disabled.");
 
 				numSlots = 1;
 				actionListOnWrongIngredients = ActionListAssetMenu.AssetGUI ("ActionList on fail:", actionListOnWrongIngredients, menu.title + "_OnFailRecipe", apiPrefix + ".actionListOnWrongIngredients", "Ahe ActionList asset to run if a crafting attempt is made but no succesful recipe is possible. This only works if crafting is performed manually via the Inventory: Crafting Action.");
@@ -282,6 +272,20 @@ namespace AC
 			return false;
 		}
 
+
+		public override int GetSlotIndex (GameObject gameObject)
+		{
+			for (int i = 0; i < uiSlots.Length; i++)
+			{
+				if (uiSlots[i].uiButton && uiSlots[i].uiButton == gameObject)
+				{
+					return 0;
+				}
+			}
+			return base.GetSlotIndex (gameObject);
+		}
+
+
 		public override void HideAllUISlots ()
 		{
 			LimitUISlotVisibility (uiSlots, 0, uiHideStyle);
@@ -295,16 +299,6 @@ namespace AC
 			InvItem invItem = GetItem (_slot);
 			if (invItem != null)
 			{
-				if (_language > 0)
-				{
-					return KickStarter.runtimeLanguages.GetTranslation (invItem.label, invItem.lineID, _language, AC_TextType.InventoryItem);
-				}
-
-				if (!string.IsNullOrEmpty (invItem.altLabel))
-				{
-					return invItem.altLabel;
-				}
-				
 				return invItem.GetLabel (_language);
 			}
 
@@ -374,13 +368,6 @@ namespace AC
 		}
 
 
-		/**
-		 * <summary>Draws the element using OnGUI</summary>
-		 * <param name = "_style">The GUIStyle to draw with</param>
-		 * <param name = "_slot">The index number of the slot to display</param>
-		 * <param name = "zoom">The zoom factor</param>
-		 * <param name = "isActive">If True, then the element will be drawn as though highlighted</param>
-		 */
 		public override void Display (GUIStyle _style, int _slot, float zoom, bool isActive)
 		{
 			base.Display (_style, _slot, zoom, isActive);
@@ -389,7 +376,7 @@ namespace AC
 			{
 				if (Application.isPlaying && KickStarter.settingsManager.selectInventoryDisplay == SelectInventoryDisplay.HideFromMenu && ItemIsSelected (_slot))
 				{
-					if (!invInstances[_slot].IsPartialTransform ())
+					if (!invInstances[_slot].IsPartialTransfer ())
 					{
 						// Display as normal if we only have one selected from many
 						return;
@@ -530,27 +517,31 @@ namespace AC
 			{
 				if (_mouseState == MouseState.SingleClick && !InvInstance.IsValid (KickStarter.runtimeInventory.SelectedInstance))
 				{
-					// Pick up created item
-					switch (activeRecipe.onCreateRecipe)
+					if (!preventDefaultClicks)
 					{
-						case OnCreateRecipe.SelectItem:
-							KickStarter.runtimeInventory.PerformCrafting (activeRecipe, true);
-							break;
+						// Pick up created item
+						switch (activeRecipe.onCreateRecipe)
+						{
+							case OnCreateRecipe.SelectItem:
+								KickStarter.runtimeInventory.PerformCrafting (activeRecipe, true);
+								break;
 
-						case OnCreateRecipe.JustMoveToInventory:
-							KickStarter.runtimeInventory.PerformCrafting (activeRecipe, false);
-							break;
+							case OnCreateRecipe.JustMoveToInventory:
+								KickStarter.runtimeInventory.PerformCrafting (activeRecipe, false);
+								break;
 
-						case OnCreateRecipe.RunActionList:
-							KickStarter.runtimeInventory.PerformCrafting (activeRecipe, false);
-							if (activeRecipe.invActionList)
-							{
-								AdvGame.RunActionListAsset (activeRecipe.invActionList);
-							}
-							break;
+							case OnCreateRecipe.RunActionList:
+								ActionListAsset actionList = activeRecipe.invActionList;
+								KickStarter.runtimeInventory.PerformCrafting (activeRecipe, false);
+								if (actionList)
+								{
+									AdvGame.RunActionListAsset (actionList);
+								}
+								break;
 
-						default:
-							break;
+							default:
+								break;
+						}
 					}
 
 					return true;
@@ -561,11 +552,6 @@ namespace AC
 		}
 
 
-		/**
-		 * <summary>Recalculates the element's size.
-		 * This should be called whenever a Menu's shape is changed.</summary>
-		 * <param name = "source">How the parent Menu is displayed (AdventureCreator, UnityUiPrefab, UnityUiInScene)</param>
-		 */
 		public override void RecalculateSize (MenuSource source)
 		{
 			PopulateList ();
@@ -638,9 +624,7 @@ namespace AC
 		}
 
 
-		/**
-		 * <summary>Creates and displays the correct InvItem, based on the current Recipe, provided craftingType = CraftingElementType.Output.</summary>
-		 */
+		/** Creates and displays the correct InvItem, based on the current Recipe, provided craftingType = CraftingElementType.Output. */
 		public void SetOutput ()
 		{
 			if (craftingType != CraftingElementType.Output)
@@ -700,12 +684,6 @@ namespace AC
 		}
 		
 
-		/**
-		 * <summary>Gets the display text of the element</summary>
-		 * <param name = "i">The index number of the slot</param>
-		 * <param name = "languageNumber">The index number of the language number to get the text in</param>
-		 * <returns>The display text of the element's slot, or the whole element if it only has one slot</returns>
-		 */
 		public override string GetLabel (int i, int languageNumber)
 		{
 			InvItem invItem = GetItem (i);
@@ -714,16 +692,7 @@ namespace AC
 				return string.Empty;
 			}
 
-			if (languageNumber > 0)
-			{
-				return KickStarter.runtimeLanguages.GetTranslation (invItem.label, invItem.lineID, languageNumber, AC_TextType.InventoryItem);
-			}
-			if (!string.IsNullOrEmpty (invItem.altLabel))
-			{
-				return invItem.altLabel;
-			}
-			
-			return invItem.label;
+			return invItem.GetLabel (languageNumber);
 		}
 
 
@@ -790,6 +759,12 @@ namespace AC
 				if (inventoryItemCountDisplay == InventoryItemCountDisplay.OnlyIfStackable && (!invInstance.InvItem.canCarryMultiple || invInstance.InvItem.maxCount <= 1))
 				{
 					return string.Empty;
+				}
+
+				string customText = KickStarter.eventManager.Call_OnRequestInventoryCountText (invInstance, false);
+				if (!string.IsNullOrEmpty (customText))
+				{
+					return customText;
 				}
 
 				if (ItemIsSelected (i))
@@ -928,6 +903,15 @@ namespace AC
 			get
 			{
 				return invInstances;
+			}
+		}
+
+
+		public Recipe ActiveRecipe
+		{
+			get
+			{
+				return activeRecipe;
 			}
 		}
 		

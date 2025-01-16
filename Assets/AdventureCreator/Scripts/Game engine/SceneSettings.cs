@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"SceneSettings.cs"
  * 
@@ -133,11 +133,11 @@ namespace AC
 		}
 
 
-		/**
-		 * Links all SortingMaps with their associated FollowSortingMaps.
-		 */
-		public void UpdateAllSortingMaps ()
+		/** Assigns a new SortingMap */
+		public void SetSortingMap (SortingMap _sortingMap)
 		{
+			sortingMap = _sortingMap;
+			
 			if (KickStarter.stateHandler)
 			{
 				foreach (FollowSortingMap followSortingMap in KickStarter.stateHandler.FollowSortingMaps)
@@ -146,7 +146,21 @@ namespace AC
 				}
 			}
 		}
-		
+
+
+		/** Assigns a new TintMap */
+		public void SetTintMap (TintMap _tintMap)
+		{
+			tintMap = _tintMap;
+
+			// Reset all FollowTintMap components
+			FollowTintMap[] followTintMaps = FindObjectsOfType (typeof (FollowTintMap)) as FollowTintMap[];
+			foreach (FollowTintMap followTintMap in followTintMaps)
+			{
+				followTintMap.ResetTintMap ();
+			}
+		}
+
 
 		/**
 		 * <summary>Gets the appropriate PlayerStart to use when the scene begins.</summary>

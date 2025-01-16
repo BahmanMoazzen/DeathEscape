@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿#if UNITY_EDITOR
+
+using UnityEngine;
 using UnityEditor;
 using UnityEditorInternal;
 using System.Collections.Generic;
@@ -25,7 +27,12 @@ namespace AC
 
 			CustomGUILayout.BeginVertical ();
 			EditorGUILayout.LabelField ("Animation settings", EditorStyles.boldLabel);
+			AnimationEngine animationEngine = _target.animationEngine;
 			_target.animationEngine = (AnimationEngine) CustomGUILayout.EnumPopup ("Animation engine:", _target.animationEngine, "", "The animation engine that the character relies on for animation playback");
+			if (animationEngine != _target.animationEngine)
+			{
+				_target.ResetAnimationEngine ();
+			}
 			if (_target.animationEngine == AnimationEngine.Custom)
 			{
 				_target.customAnimationClass = CustomGUILayout.TextField ("Script name:", _target.customAnimationClass, "", "The class name of the AnimEngine ScriptableObject subclass that animates the character");
@@ -52,7 +59,7 @@ namespace AC
 					_target.turn2DCharactersIn3DSpace = CustomGUILayout.Toggle ("Turn root object in 3D?", _target.turn2DCharactersIn3DSpace, "", "If True, then the root object of a 2D, sprite-based character will rotate around the Z-axis. Otherwise, turning will be simulated and the actual rotation will be unaffected");
 				}
 			}
-			_target.turnBeforeWalking = CustomGUILayout.Toggle ("Turn before walking?", _target.turnBeforeWalking, "", "If True, the character will turn on the spot to face their destination before moving");
+			_target.turnBeforeWalking = CustomGUILayout.Toggle ("Turn before pathfinding?", _target.turnBeforeWalking, "", "If True, the character will turn on the spot to face their destination before moving");
 			_target.retroPathfinding = CustomGUILayout.Toggle ("Retro-style movement?", _target.retroPathfinding, "", "Enables 'retro-style' movement when pathfinding, where characters ignore Acceleration and Deceleration values, and turn instantly when moving");
 
 			_target.headTurnSpeed = CustomGUILayout.Slider ("Head turn speed:", _target.headTurnSpeed, 0.1f, 20f, "", "The speed of head-turning");
@@ -124,10 +131,12 @@ namespace AC
 				}
 			}
 
-			if (_target.GetComponent <Collider>() != null && _target.GetComponent <CharacterController>() == null)
+			if (!_target.ignoreGravity && _target.GetComponent<CharacterController>())
 			{
-				_target.groundCheckLayerMask = LayerMaskField ("Ground-check layer(s):", _target.groundCheckLayerMask);
+				_target.simulatedMass = EditorGUILayout.FloatField ("Simulated mass:", _target.simulatedMass);
 			}
+
+			_target.groundCheckLayerMask = LayerMaskField ("Ground-check layer(s):", _target.groundCheckLayerMask);
 			CustomGUILayout.EndVertical ();
 			
 			
@@ -149,6 +158,7 @@ namespace AC
 
 			_target.speechColor = CustomGUILayout.ColorField ("Speech text colour:", _target.speechColor, "", "");
 			_target.speechLabel = CustomGUILayout.TextField ("Speaker label:", _target.speechLabel, "", "");
+			if (_target.lineID > 0) EditorGUILayout.LabelField ("Speech Manager ID:", _target.lineID.ToString ());
 			_target.speechMenuPlacement = (Transform) CustomGUILayout.ObjectField <Transform> ("Speech menu placement child:", _target.speechMenuPlacement, true, "", "The Transform at which to place Menus set to appear 'Above Speaking Character'. If this is not set, the placement will be set automatically");
 
 			if (_target.useExpressions)
@@ -186,6 +196,11 @@ namespace AC
 					_target.expressions.Add (new Expression (GetExpressionIDArray (_target.expressions)));
 				}
 				CustomGUILayout.EndVertical ();
+
+				if (Application.isPlaying && _target.CurrentExpression != null)
+				{
+					GUILayout.Label ("Current expression:" + _target.CurrentExpression.label, EditorStyles.miniLabel);
+				}
 			}
 
 			CustomGUILayout.EndVertical ();
@@ -290,7 +305,7 @@ namespace AC
 				}
 			}
 
-			maskWithoutEmpty = UnityEditor.EditorGUILayout.MaskField (label, maskWithoutEmpty, layers);
+			maskWithoutEmpty = EditorGUILayout.MaskField (label, maskWithoutEmpty, layers);
 
 			int mask = 0;
 			for (int i = 0; i < layerNumbers.Count; i++)
@@ -308,3 +323,5 @@ namespace AC
 	}
 
 }
+
+#endif

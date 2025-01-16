@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"UnityVersionHandler.cs"
  * 
@@ -67,14 +67,12 @@ namespace AC
 		}
 
 
-		/**
-		 * The 'lock' state of the cursor.
-		 */
+		/** The 'lock' state of the cursor. */
 		public static bool CursorLock
 		{
 			get
 			{
-				return (Cursor.lockState == CursorLockMode.Locked) ? true : false;
+				return Cursor.lockState == CursorLockMode.Locked;
 			}
 			set
 			{
@@ -110,6 +108,17 @@ namespace AC
 		public static int GetSceneIndexFromGameObject (GameObject _gameObject)
 		{
 			return _gameObject.scene.buildIndex;
+		}
+
+
+		/**
+		 * <summary>Gets the name of the scene that a given GameObject is in.</summary>
+		 * <param name = "_gameObject">The GameObject in the scene</param>
+		 * <returns>The name of the scene that a given GameObject is in.</returns>
+		 */
+		public static string GetSceneNameFromGameObject (GameObject _gameObject)
+		{
+			return _gameObject.scene.name;
 		}
 
 
@@ -482,13 +491,34 @@ namespace AC
 		public static bool IsPrefabEditing (Object _target)
 		{
 			#if NEW_PREFABS
+			#if UNITY_2021_2_OR_NEWER
 			UnityEditor.SceneManagement.PrefabStage prefabStage = UnityEditor.SceneManagement.PrefabStageUtility.GetCurrentPrefabStage ();
+			#else
+			UnityEditor.Experimental.SceneManagement.PrefabStage prefabStage = UnityEditor.Experimental.SceneManagement.PrefabStageUtility.GetCurrentPrefabStage ();
+			#endif
 			if (prefabStage != null && _target is GameObject)
 			{
 				return prefabStage.IsPartOfPrefabContents (_target as GameObject);
 			}
 			#endif
 			return false;
+		}
+
+
+		public static GameObject GetPrefabStageRoot ()
+		{
+			#if NEW_PREFABS
+			#if UNITY_2021_2_OR_NEWER
+			UnityEditor.SceneManagement.PrefabStage prefabStage = UnityEditor.SceneManagement.PrefabStageUtility.GetCurrentPrefabStage ();
+			#else
+			UnityEditor.Experimental.SceneManagement.PrefabStage prefabStage = UnityEditor.Experimental.SceneManagement.PrefabStageUtility.GetCurrentPrefabStage ();
+			#endif
+			if (prefabStage != null)
+			{
+				return prefabStage.prefabContentsRoot;
+			}
+			#endif
+			return null;
 		}
 
 

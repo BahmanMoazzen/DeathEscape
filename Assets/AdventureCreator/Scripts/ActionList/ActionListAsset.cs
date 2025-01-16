@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"ActionListAsset.cs"
  * 
@@ -27,7 +27,7 @@ namespace AC
 	[InitializeOnLoad]
 	#endif
 	[HelpURL("https://www.adventurecreator.org/scripting-guide/class_a_c_1_1_action_list_asset.html")]
-	public class ActionListAsset : ScriptableObject
+	public class ActionListAsset : ScriptableObject, IItemReferencer, IDocumentReferencer, IObjectiveReferencer, IMenuReferencer, IVariableReferencer
 	{
 
 		/** The Actions within this asset file */
@@ -93,6 +93,12 @@ namespace AC
 		private void OnDisable ()
 		{
 			EditorApplication.playModeStateChanged -= OnPlayStateChange;
+
+			foreach (Action action in actions)
+			{
+				if (action == null) continue;
+				action.ResetAssetValues ();
+			}
 		}
 
 
@@ -272,27 +278,6 @@ namespace AC
 
 						string suffix = " in scene '" + sceneFile + "'";
 						
-						// ActionLists
-						ActionList[] localActionLists = FindObjectsOfType<ActionList> ();
-						foreach (ActionList actionList in localActionLists)
-						{
-							if (actionList.source == ActionListSource.InScene)
-							{
-								foreach (Action action in actionList.actions)
-								{
-									if (action != null)
-									{
-										if (action.ReferencesAsset (actionListAsset))
-										{
-											string actionLabel = (KickStarter.actionsManager != null) ? (" (" + KickStarter.actionsManager.GetActionTypeLabel (action) + ")") : "";
-											Debug.Log ("'" + actionListAsset.name + "' is referenced by Action #" + actionList.actions.IndexOf (action) + actionLabel + " in ActionList '" + actionList.gameObject.name + "'" + suffix, actionList);
-											foundReference = true;
-										}
-									}
-								}
-							}
-						}
-
 						// iActionListAssetReferencers
 						MonoBehaviour[] sceneObjects = FindObjectsOfType<MonoBehaviour> ();
 						for (int i = 0; i < sceneObjects.Length; i++)
@@ -743,90 +728,81 @@ namespace AC
 
 		#if UNITY_EDITOR
 
-		public int GetInventoryReferences (InvItem item)
+		public int GetNumItemReferences (int itemID)
 		{
 			int totalNumReferences = 0;
 
 			if (NumParameters > 0)
 			{
-				int thisNumReferences = GetParameterReferences (parameters, item.id, ParameterType.InventoryItem);
+				int thisNumReferences = GetParameterReferences (parameters, itemID, ParameterType.InventoryItem);
 				if (thisNumReferences > 0)
 				{
 					totalNumReferences += thisNumReferences;
-					ACDebug.Log ("Found " + thisNumReferences + " references to inventory item '" + item.label + "' in parameter values of ActionList '" + name + "'", this);
 				}
 			}
 
 			foreach (Action action in actions)
 			{
-				int thisNumReferences = action.GetInventoryReferences (DefaultParameters, item.id);
-				if (thisNumReferences > 0)
+				if (action != null && action is IItemReferencerAction)
 				{
-					totalNumReferences += thisNumReferences;
-					ACDebug.Log ("Found " + thisNumReferences + " references to inventory item '" + item.label + "' in Action #" + actions.IndexOf (action) + " of ActionList asset '" + name + "'", this);
+					IItemReferencerAction itemReferencerAction = action as IItemReferencerAction;
+					int thisNumReferences = itemReferencerAction.GetNumItemReferences (itemID, DefaultParameters);
+					if (thisNumReferences > 0)
+					{
+						totalNumReferences += thisNumReferences;
+						ActionList.logSuffix += "\n (" + actions.IndexOf (action) + ") " + action.Category + ": " + action.Title;
+					}
 				}
 			}
 			return totalNumReferences;
 		}
 
 
-		public int GetMenuReferences (Menu menu)
-		{
-			int totalNumReferences = 0;
-
-			foreach (Action action in actions)
-			{
-				int thisNumReferences = action.GetMenuReferences (menu.title);
-				if (thisNumReferences > 0)
-				{
-					totalNumReferences += thisNumReferences;
-					ACDebug.Log("Found " + thisNumReferences + " references to Menu '" + menu.title + "' in Action #" + actions.IndexOf(action) + " of ActionList asset '" + name + "'", this);
-				}
-			}
-
-			return totalNumReferences;
-		}
-
-
-		public int GetMenuElementReferences (Menu menu, MenuElement element)
-		{
-			int totalNumReferences = 0;
-
-			foreach (Action action in actions)
-			{
-				int thisNumReferences = action.GetMenuReferences (menu.title, element.title);
-				if (thisNumReferences > 0)
-				{
-					totalNumReferences += thisNumReferences;
-					ACDebug.Log("Found " + thisNumReferences + " references to element '" + element.title + "' in Action #" + actions.IndexOf(action) + " of ActionList asset '" + name + "'", this);
-				}
-			}
-
-			return totalNumReferences;
-		}
-
-
-		public int GetVariableReferences (GVar _variable)
+		public int UpdateItemReferences (int oldItemID, int newItemID)
 		{
 			int totalNumReferences = 0;
 
 			if (NumParameters > 0)
 			{
-				int thisNumReferences = GetParameterReferences (parameters, _variable.id, ParameterType.GlobalVariable);
+				int thisNumReferences = GetParameterReferences (parameters, oldItemID, ParameterType.InventoryItem, null, 0, true, oldItemID);
 				if (thisNumReferences > 0)
 				{
 					totalNumReferences += thisNumReferences;
-					ACDebug.Log ("Found " + thisNumReferences + " references to variable '" + _variable.label + "' in parameter values of ActionList '" + name + "'", this);
 				}
 			}
 
 			foreach (Action action in actions)
 			{
-				int thisNumReferences = action.GetVariableReferences (DefaultParameters, VariableLocation.Global, _variable.id);
-				if (thisNumReferences > 0)
+				if (action != null && action is IItemReferencerAction)
 				{
-					totalNumReferences += thisNumReferences;
-					ACDebug.Log ("Found " + thisNumReferences + " references to global variable '" + _variable.label + "' in Action #" + actions.IndexOf (action) + " of ActionList asset '" + name + "'", this);
+					IItemReferencerAction itemReferencerAction = action as IItemReferencerAction;
+					int thisNumReferences = itemReferencerAction.UpdateItemReferences (oldItemID, newItemID, DefaultParameters);
+					if (thisNumReferences > 0)
+					{
+						totalNumReferences += thisNumReferences;
+						ActionList.logSuffix += "\n (" + actions.IndexOf (action) + ") " + action.Category + ": " + action.Title;
+					}
+				}
+			}
+			return totalNumReferences;
+		}
+
+
+		public int GetNumMenuReferences (string menuName, string elementName = "")
+		{
+			int totalNumReferences = 0;
+
+			foreach (Action action in actions)
+			{
+				if (action != null && action is IMenuReferencer)
+				{
+					IMenuReferencer menuReferencer = action as IMenuReferencer;
+					int thisNumReferences = menuReferencer.GetNumMenuReferences (menuName, elementName);
+					if (thisNumReferences > 0)
+					{
+						totalNumReferences += thisNumReferences;
+						ActionList.logSuffix += "\n (" + actions.IndexOf (action) + ") " + action.Category + ": " + action.Title;
+					}
 				}
 			}
 
@@ -834,27 +810,38 @@ namespace AC
 		}
 
 
-		public int GetVariableReferences (GVar _variable, int variablesConstantID)
+		public int GetNumVariableReferences (VariableLocation variableLocation, int variableID, Variables _variables = null, int _variablesConstantID = 0)
 		{
 			int totalNumReferences = 0;
 
 			if (NumParameters > 0)
 			{
-				int thisNumReferences = GetParameterReferences (parameters, _variable.id, ParameterType.ComponentVariable, variablesConstantID);
-				if (thisNumReferences > 0)
+				switch (variableLocation)
 				{
-					totalNumReferences += thisNumReferences;
-					ACDebug.Log ("Found " + thisNumReferences + " references to variable '" + _variable.label + "' in parameter values of ActionList '" + name + "'", this);
-				}
-			}
+					case VariableLocation.Global:
+						totalNumReferences += GetParameterReferences (parameters, variableID, ParameterType.GlobalVariable);
+						break;
 
-			foreach (Action action in actions)
-			{
-				int thisNumReferences = action.GetVariableReferences (DefaultParameters, VariableLocation.Component, _variable.id, variablesConstantID);
-				if (thisNumReferences > 0)
+					case VariableLocation.Component:
+						totalNumReferences += GetParameterReferences (parameters, variableID, ParameterType.ComponentVariable, _variables, _variablesConstantID);
+						break;
+
+					default:
+						break;
+				}
+
+				foreach (Action action in actions)
 				{
-					totalNumReferences += thisNumReferences;
-					ACDebug.Log ("Found " + thisNumReferences + " references to global variable '" + _variable.label + "' in Action #" + actions.IndexOf (action) + " of ActionList asset '" + name + "'", this);
+					if (action != null && action is IVariableReferencerAction)
+					{
+						IVariableReferencerAction variableReferencerAction = action as IVariableReferencerAction;
+						int thisNumReferences = variableReferencerAction.GetNumVariableReferences (variableLocation, variableID, DefaultParameters, _variables, _variablesConstantID);
+						if (thisNumReferences > 0)
+						{
+							totalNumReferences += thisNumReferences;
+							ActionList.logSuffix += "\n (" + actions.IndexOf (action) + ") " + action.Category + ": " + action.Title;
+						}
+					}
 				}
 			}
 
@@ -862,27 +849,38 @@ namespace AC
 		}
 
 
-		public int GetDocumentReferences (Document document)
+		public int UpdateVariableReferences (VariableLocation variableLocation, int oldVariableID, int newVariableID, Variables _variables = null, int _variablesConstantID = 0)
 		{
 			int totalNumReferences = 0;
 
 			if (NumParameters > 0)
 			{
-				int thisNumReferences = GetParameterReferences (parameters, document.ID, ParameterType.Document);
-				if (thisNumReferences > 0)
+				switch (variableLocation)
 				{
-					totalNumReferences += thisNumReferences;
-					ACDebug.Log ("Found " + thisNumReferences + " references to Document '" + document.title + "' in parameter values of ActionList '" + name + "'", this);
-				}
-			}
+					case VariableLocation.Global:
+						totalNumReferences += GetParameterReferences (parameters, oldVariableID, ParameterType.GlobalVariable, null, 0, true, newVariableID);
+						break;
 
-			foreach (Action action in actions)
-			{
-				int thisNumReferences = action.GetDocumentReferences (DefaultParameters, document.ID);
-				if (thisNumReferences > 0)
+					case VariableLocation.Component:
+						totalNumReferences += GetParameterReferences (parameters, oldVariableID, ParameterType.ComponentVariable, _variables, _variablesConstantID, true, newVariableID);
+						break;
+
+					default:
+						break;
+				}
+
+				foreach (Action action in actions)
 				{
-					totalNumReferences += thisNumReferences;
-					ACDebug.Log ("Found " + thisNumReferences + " references to Document '" + document.title + "' in Action #" + actions.IndexOf (action) + " of ActionList asset '" + name + "'", this);
+					if (action != null && action is IVariableReferencerAction)
+					{
+						IVariableReferencerAction variableReferencerAction = action as IVariableReferencerAction;
+						int thisNumReferences = variableReferencerAction.UpdateVariableReferences (variableLocation, oldVariableID, newVariableID, DefaultParameters, _variables, _variablesConstantID);
+						if (thisNumReferences > 0)
+						{
+							totalNumReferences += thisNumReferences;
+							ActionList.logSuffix += "\n (" + actions.IndexOf (action) + ") " + action.Category + ": " + action.Title;
+						}
+					}
 				}
 			}
 
@@ -890,17 +888,83 @@ namespace AC
 		}
 
 
-		public int GetObjectiveReferences (Objective objective)
+		public int GetNumDocumentReferences (int documentID)
+		{
+			int totalNumReferences = 0;
+
+			if (NumParameters > 0)
+			{
+				int thisNumReferences = GetParameterReferences (parameters, documentID, ParameterType.Document);
+				if (thisNumReferences > 0)
+				{
+					totalNumReferences += thisNumReferences;
+				}
+			}
+
+			foreach (Action action in actions)
+			{
+				if (action != null && action is IDocumentReferencerAction)
+				{
+					IDocumentReferencerAction documentReferencerAction = action as IDocumentReferencerAction;
+					int thisNumReferences = documentReferencerAction.GetNumDocumentReferences (documentID, DefaultParameters);
+					if (thisNumReferences > 0)
+					{
+						totalNumReferences += thisNumReferences;
+						ActionList.logSuffix += "\n (" + actions.IndexOf (action) + ") " + action.Category + ": " + action.Title;
+					}
+				}
+			}
+
+			return totalNumReferences;
+		}
+
+
+		public int UpdateDocumentReferences (int oldDocumentID, int newDocumentID)
+		{
+			int totalNumReferences = 0;
+
+			if (NumParameters > 0)
+			{
+				int thisNumReferences = GetParameterReferences (parameters, oldDocumentID, ParameterType.Document, null, 0, true, newDocumentID);
+				if (thisNumReferences > 0)
+				{
+					totalNumReferences += thisNumReferences;
+				}
+			}
+
+			foreach (Action action in actions)
+			{
+				if (action != null && action is IDocumentReferencerAction)
+				{
+					IDocumentReferencerAction documentReferencerAction = action as IDocumentReferencerAction;
+					int thisNumReferences = documentReferencerAction.UpdateDocumentReferences (oldDocumentID, newDocumentID, DefaultParameters);
+					if (thisNumReferences > 0)
+					{
+						totalNumReferences += thisNumReferences;
+						ActionList.logSuffix += "\n (" + actions.IndexOf (action) + ") " + action.Category + ": " + action.Title;
+					}
+				}
+			}
+
+			return totalNumReferences;
+		}
+
+
+		public int GetNumObjectiveReferences (int objectiveID)
 		{
 			int totalNumReferences = 0;
 
 			foreach (Action action in actions)
 			{
-				int thisNumReferences = action.GetObjectiveReferences (objective.ID);
-				if (thisNumReferences > 0)
+				if (action != null && action is IObjectiveReferencerAction)
 				{
-					totalNumReferences += thisNumReferences;
-					ACDebug.Log ("Found " + thisNumReferences + " references to objective '" + objective.Title + "' in Action #" + actions.IndexOf (action) + " of ActionList asset '" + name + "'", this);
+					IObjectiveReferencerAction documentReferencerAction = action as IObjectiveReferencerAction;
+					int thisNumReferences = documentReferencerAction.GetNumObjectiveReferences (objectiveID);
+					if (thisNumReferences > 0)
+					{
+						totalNumReferences += thisNumReferences;
+						ActionList.logSuffix += "\n (" + actions.IndexOf (action) + ") " + action.Category + ": " + action.Title;
+					}
 				}
 			}
 
@@ -908,7 +972,29 @@ namespace AC
 		}
 
 
-		private int GetParameterReferences (List<ActionParameter> parameters, int _ID, ParameterType _paramType, int variablesConstantID = 0)
+		public int UpdateObjectiveReferences (int oldObjectiveID, int newObjectiveID)
+		{
+			int totalNumReferences = 0;
+
+			foreach (Action action in actions)
+			{
+				if (action != null && action is IObjectiveReferencerAction)
+				{
+					IObjectiveReferencerAction documentReferencerAction = action as IObjectiveReferencerAction;
+					int thisNumReferences = documentReferencerAction.UpdateObjectiveReferences (oldObjectiveID, newObjectiveID);
+					if (thisNumReferences > 0)
+					{
+						totalNumReferences += thisNumReferences;
+						ActionList.logSuffix += "\n (" + actions.IndexOf (action) + ") " + action.Category + ": " + action.Title;
+					}
+				}
+			}
+
+			return totalNumReferences;
+		}
+
+
+		private int GetParameterReferences (List<ActionParameter> parameters, int _ID, ParameterType _paramType, Variables _variables = null, int _variablesConstantID = 0, bool updateID = false, int _newID = 0)
 		{
 			int thisCount = 0;
 
@@ -916,22 +1002,22 @@ namespace AC
 			{
 				if (parameter != null && parameter.parameterType == _paramType && _ID == parameter.intValue)
 				{
-					if (_paramType == ParameterType.ComponentVariable && variablesConstantID != 0)
+					if (_paramType == ParameterType.ComponentVariable)
 					{
-						if (parameter.variables)
+						if (_variables && parameter.variables != _variables)
 						{
-							ConstantID _constantID = parameter.variables.GetComponent <ConstantID>();
-							if (!_constantID || _constantID.constantID != variablesConstantID)
-							{
-								continue;
-							}
+							continue;
 						}
-						else
+						if (parameter.constantID == 0 || _variablesConstantID == 0 || parameter.constantID != _variablesConstantID)
 						{
 							continue;
 						}
 					}
 
+					if (updateID)
+					{
+						parameter.intValue = _newID;
+					}
 					thisCount++;
 				}
 			}

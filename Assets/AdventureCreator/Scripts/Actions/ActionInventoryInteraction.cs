@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"ActionInventoryInteraction.cs"
  * 
@@ -20,7 +20,7 @@ namespace AC
 {
 
 	[System.Serializable]
-	public class ActionInventoryInteraction : Action
+	public class ActionInventoryInteraction : Action, IItemReferencerAction
 	{
 
 		public int parameterID = -1;
@@ -269,10 +269,21 @@ namespace AC
 		}
 
 
-		public override int GetInventoryReferences (List<ActionParameter> parameters, int _invID)
+		public int GetNumItemReferences (int _itemID, List<ActionParameter> parameters)
 		{
-			if (parameterID < 0 && invID == _invID)
+			if (parameterID < 0 && invID == _itemID)
 			{
+				return 1;
+			}
+			return 0;
+		}
+
+
+		public int UpdateItemReferences (int oldItemID, int newItemID, List<ActionParameter> parameters)
+		{
+			if (parameterID < 0 && invID == oldItemID)
+			{
+				invID = newItemID;
 				return 1;
 			}
 			return 0;

@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"NavigationEngine_PolygonCollider.cs"
  * 
@@ -472,7 +472,8 @@ namespace AC
 
 			foreach (Vector2 point in points)
 			{
-				if ((point != originPos && point != targetPos) || !checkForDuplicates)
+				// Bugfix: Can't check for duplicates since this messes up the cache if the destination is a vertex
+				//if ((point != originPos && point != targetPos) || !checkForDuplicates)
 				{
 					newPoints.Add (point);
 				}
@@ -587,7 +588,7 @@ namespace AC
 
 				if (navPolys[p].transform.lossyScale != Vector3.one)
 				{
-					ACDebug.LogWarning ("Cannot create evasion Polygons inside NavMesh '" + navPolys[p].gameObject.name + "' because it has a non-unit scale.");
+					ACDebug.LogWarning ("Cannot create evasion Polygons inside NavMesh '" + navPolys[p].gameObject.name + "' because it has a non-unit scale.", navigationMesh);
 					continue;
 				}
 

@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"ContainerItem.cs"
  * 
@@ -17,9 +17,7 @@ using UnityEngine;
 namespace AC
 {
 
-	/**
-	 * A data container for an inventory item stored within a Container.
-	 */
+	/** A data container for an inventory item stored within a Container. */
 	[System.Serializable]
 	public class ContainerItem
 	{
@@ -38,7 +36,7 @@ namespace AC
 		/**
 		 * <summary>The default Constructor.</summary>
 		 * <param name = "_linkedID">The ID number of the associated inventory item (InvItem) being stored</param>
-		 * <param name = "otherItems">An array of existing, so that a unique ID can be generated</param>
+		 * <param name = "otherItems">An array of existing items, so that a unique ID can be generated</param>
 		 */
 		public ContainerItem (int _linkedID, ContainerItem[] otherItems)
 		{
@@ -109,6 +107,12 @@ namespace AC
 			{
 				return linkedID;
 			}
+			#if UNITY_EDITOR
+			set
+			{
+				linkedID = value;
+			}
+			#endif
 		}
 
 
@@ -119,6 +123,12 @@ namespace AC
 			{
 				return count;
 			}
+			#if UNITY_EDITOR
+			set
+			{
+				count = value;
+			}
+			#endif
 		}
 
 

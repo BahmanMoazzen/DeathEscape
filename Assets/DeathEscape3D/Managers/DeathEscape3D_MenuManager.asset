@@ -126,7 +126,7 @@ MonoBehaviour:
   relativePosition: {x: 11.6, y: 52}
   numSlots: 1
   uiText: {fileID: 0}
-  label: Drag items on objects to operate
+  _label: Drag items on objects to operate
   anchor: 4
   textEffects: 1
   outlineSize: 2
@@ -252,6 +252,7 @@ MonoBehaviour:
   uiDropdown: {fileID: 0}
   actionListOnClick: {fileID: 0}
   label: Language
+  labelSuffix: ' : '
   textEffects: 1
   outlineSize: 2
   anchor: 4
@@ -399,9 +400,11 @@ MonoBehaviour:
   alreadyChosenFontColour: {r: 1, g: 1, b: 1, a: 1}
   alreadyChosenFontHighlightedColour: {r: 1, g: 1, b: 1, a: 1}
   showIndexNumbers: 0
+  indexPrefixDisplay: 0
   uiHideStyle: 0
   linkUIGraphic: 0
   resetOffsetWhenRestart: 1
+  limitMaxScroll: 1
   elementSlotMapping: 0
 --- !u!114 &-8107394783213713423
 MonoBehaviour:
@@ -417,6 +420,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   menuSource: 0
   canvas: {fileID: 22300000, guid: 28788199fc2abb34085462b6576be22f, type: 3}
+  canvasAssetKey: 
   canvasID: 0
   rectTransform: {fileID: 0}
   rectTransformID: 1386510
@@ -555,7 +559,7 @@ MonoBehaviour:
   relativePosition: {x: 49.6, y: 25.6}
   numSlots: 1
   uiText: {fileID: 0}
-  label: Items Found
+  _label: Items Found
   anchor: 4
   textEffects: 1
   outlineSize: 2
@@ -617,7 +621,7 @@ MonoBehaviour:
   numSlots: 1
   uiButton: {fileID: 0}
   uiPointerState: 0
-  label: Start Game
+  _label: Start Game
   hotspotLabel: 
   hotspotLabelID: -1
   anchor: 4
@@ -686,7 +690,7 @@ MonoBehaviour:
   relativePosition: {x: 77, y: 64.9}
   numSlots: 1
   uiText: {fileID: 0}
-  label: Proudly Presents
+  _label: Proudly Presents
   anchor: 4
   textEffects: 1
   outlineSize: 2
@@ -810,7 +814,7 @@ MonoBehaviour:
   numSlots: 1
   uiButton: {fileID: 0}
   uiPointerState: 0
-  label: Support Us
+  _label: Support Us
   hotspotLabel: 
   hotspotLabelID: -1
   anchor: 4
@@ -872,15 +876,15 @@ MonoBehaviour:
   maxAutoWidthFactor: 0.5
   relativeRect:
     serializedVersion: 2
-    x: 1397.76
-    y: 932.256
-    width: 76.8
-    height: 144
+    x: 576.57605
+    y: 310.75198
+    width: 31.68
+    height: 48
   relativePosition: {x: 91, y: 78}
   numSlots: 1
   uiButton: {fileID: 11435390, guid: f15f8212986624a8899a47f0054ebbc1, type: 3}
   uiPointerState: 0
-  label: 
+  _label: 
   hotspotLabel: 
   hotspotLabelID: -1
   anchor: 4
@@ -949,7 +953,7 @@ MonoBehaviour:
   relativePosition: {x: 67, y: 48}
   numSlots: 1
   uiText: {fileID: 0}
-  label: State type
+  _label: State type
   anchor: 4
   textEffects: 1
   outlineSize: 2
@@ -1010,7 +1014,7 @@ MonoBehaviour:
   relativePosition: {x: 0, y: 0}
   numSlots: 1
   uiText: {fileID: 0}
-  label: 'Helen Game Factory
+  _label: 'Helen Game Factory
 
     Proudly Presents'
   anchor: 4
@@ -1074,7 +1078,7 @@ MonoBehaviour:
   numSlots: 1
   uiButton: {fileID: 0}
   uiPointerState: 0
-  label: 
+  _label: 
   hotspotLabel: 
   hotspotLabelID: -1
   anchor: 4
@@ -1195,7 +1199,7 @@ MonoBehaviour:
   relativePosition: {x: 5, y: 4}
   numSlots: 1
   uiText: {fileID: 0}
-  label: Tutorial
+  _label: Tutorial
   anchor: 7
   textEffects: 1
   outlineSize: 2
@@ -1259,6 +1263,7 @@ MonoBehaviour:
   toggleType: 0
   actionListOnClick: {fileID: 0}
   label: Subtitles
+  labelSuffix: ' : '
   isOn: 1
   textEffects: 1
   outlineSize: 2
@@ -1286,6 +1291,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   menuSource: 0
   canvas: {fileID: 0}
+  canvasAssetKey: 
   canvasID: 0
   rectTransform: {fileID: 0}
   rectTransformID: 0
@@ -1387,6 +1393,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   menuSource: 0
   canvas: {fileID: 0}
+  canvasAssetKey: 
   canvasID: 0
   rectTransform: {fileID: 0}
   rectTransformID: 0
@@ -1521,7 +1528,7 @@ MonoBehaviour:
   numSlots: 1
   uiButton: {fileID: 0}
   uiPointerState: 0
-  label: Back
+  _label: Back
   hotspotLabel: 
   hotspotLabelID: -1
   anchor: 4
@@ -1558,6 +1565,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   menuSource: 0
   canvas: {fileID: 0}
+  canvasAssetKey: 
   canvasID: 0
   rectTransform: {fileID: 0}
   rectTransformID: 0
@@ -1760,7 +1768,7 @@ MonoBehaviour:
   numSlots: 1
   uiButton: {fileID: 0}
   uiPointerState: 0
-  label: Pay More
+  _label: Pay More
   hotspotLabel: 
   hotspotLabelID: -1
   anchor: 4
@@ -1829,7 +1837,7 @@ MonoBehaviour:
   relativePosition: {x: 0, y: 0}
   numSlots: 1
   uiText: {fileID: 0}
-  label: 'Designed and Developed by:
+  _label: 'Designed and Developed by:
 
     BAHMAN Moazzen'
   anchor: 4
@@ -1931,6 +1939,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   menuSource: 0
   canvas: {fileID: 0}
+  canvasAssetKey: 
   canvasID: 0
   rectTransform: {fileID: 0}
   rectTransformID: 0
@@ -2068,7 +2077,7 @@ MonoBehaviour:
   relativePosition: {x: 12.3, y: 0}
   numSlots: 1
   uiText: {fileID: 0}
-  label: Test
+  _label: Test
   anchor: 4
   textEffects: 1
   outlineSize: 2
@@ -2130,7 +2139,7 @@ MonoBehaviour:
   numSlots: 1
   uiButton: {fileID: 0}
   uiPointerState: 0
-  label: 
+  _label: 
   hotspotLabel: 
   hotspotLabelID: -1
   anchor: 4
@@ -2262,7 +2271,7 @@ MonoBehaviour:
   relativePosition: {x: 49.6, y: 25.6}
   numSlots: 1
   uiText: {fileID: 0}
-  label: Use to move
+  _label: Use to move
   anchor: 4
   textEffects: 1
   outlineSize: 2
@@ -2324,7 +2333,7 @@ MonoBehaviour:
   numSlots: 1
   uiButton: {fileID: 0}
   uiPointerState: 0
-  label: Tutorials
+  _label: Tutorials
   hotspotLabel: 
   hotspotLabelID: -1
   anchor: 4
@@ -2394,7 +2403,7 @@ MonoBehaviour:
   numSlots: 1
   uiButton: {fileID: 0}
   uiPointerState: 0
-  label: Goals
+  _label: Goals
   hotspotLabel: 
   hotspotLabelID: -1
   anchor: 4
@@ -2463,7 +2472,7 @@ MonoBehaviour:
   relativePosition: {x: 40, y: 15}
   numSlots: 1
   uiText: {fileID: 0}
-  label: Death Escape
+  _label: Death Escape
   anchor: 4
   textEffects: 1
   outlineSize: 2
@@ -2492,6 +2501,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   menuSource: 0
   canvas: {fileID: 0}
+  canvasAssetKey: 
   canvasID: 0
   rectTransform: {fileID: 0}
   rectTransformID: 0
@@ -2630,7 +2640,7 @@ MonoBehaviour:
   numSlots: 1
   uiButton: {fileID: 0}
   uiPointerState: 0
-  label: Pay More
+  _label: Pay More
   hotspotLabel: 
   hotspotLabelID: -1
   anchor: 4
@@ -2700,7 +2710,7 @@ MonoBehaviour:
   numSlots: 1
   uiButton: {fileID: 0}
   uiPointerState: 0
-  label: Menu
+  _label: Menu
   hotspotLabel: 
   hotspotLabelID: -1
   anchor: 4
@@ -2769,7 +2779,7 @@ MonoBehaviour:
   relativePosition: {x: 7.2, y: 0}
   numSlots: 1
   uiText: {fileID: 0}
-  label: Support Us Improve Our Job?
+  _label: Support Us Improve Our Job?
   anchor: 4
   textEffects: 2
   outlineSize: 2
@@ -2907,13 +2917,13 @@ MonoBehaviour:
     serializedVersion: 2
     x: 384.59525
     y: 295.68
-    width: 222.72
-    height: 115.2
+    width: 91.872
+    height: 38.4
   relativePosition: {x: 51, y: 88}
   numSlots: 1
   uiButton: {fileID: 11470026, guid: f15f8212986624a8899a47f0054ebbc1, type: 3}
   uiPointerState: 0
-  label: Close
+  _label: Close
   hotspotLabel: 
   hotspotLabelID: -1
   anchor: 4
@@ -2982,7 +2992,7 @@ MonoBehaviour:
   relativePosition: {x: 65.3, y: 37}
   numSlots: 1
   uiText: {fileID: 0}
-  label: No Data!
+  _label: No Data!
   anchor: 4
   textEffects: 1
   outlineSize: 2
@@ -3011,6 +3021,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   menuSource: 0
   canvas: {fileID: 22396742, guid: 5278aefc561483847b3a05764b29591e, type: 3}
+  canvasAssetKey: 
   canvasID: 0
   rectTransform: {fileID: 0}
   rectTransformID: 74892
@@ -3021,7 +3032,7 @@ MonoBehaviour:
   title: Document
   manualSize: {x: 60, y: 83}
   positionType: 0
-  manualPosition: {x: 1280, y: 720}
+  manualPosition: {x: 528, y: 240}
   positionSmoothing: 0
   alignment: 4
   toggleKey: 
@@ -3030,8 +3041,8 @@ MonoBehaviour:
   showWhenPaused: 0
   canClickInCutscene: 0
   enabledOnStart: 0
-  actionListOnTurnOn: {fileID: 11400000, guid: 579141d21dd983a4cbb95bec0d98a6e2, type: 2}
-  actionListOnTurnOff: {fileID: 11400000, guid: a9b11786a48370a4ead0096fd5d53468, type: 2}
+  actionListOnTurnOn: {fileID: 0}
+  actionListOnTurnOff: {fileID: 0}
   updateWhenFadeOut: 1
   hideDuringSaveScreenshots: 1
   fitWithinScreen: 1
@@ -3102,10 +3113,10 @@ MonoBehaviour:
   biggestElementSize: {x: 0, y: 0}
   rect:
     serializedVersion: 2
-    x: 512
-    y: 122.400024
-    width: 1536
-    height: 1195.2
+    x: 211.19998
+    y: 40.800003
+    width: 633.60004
+    height: 398.4
   showInFilter: 1
 --- !u!114 &-3426506404938716195
 MonoBehaviour:
@@ -3153,7 +3164,7 @@ MonoBehaviour:
   relativePosition: {x: 0, y: 0}
   numSlots: 1
   uiText: {fileID: 0}
-  label: Pause
+  _label: Pause
   anchor: 4
   textEffects: 1
   outlineSize: 2
@@ -3182,6 +3193,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   menuSource: 0
   canvas: {fileID: 0}
+  canvasAssetKey: 
   canvasID: 0
   rectTransform: {fileID: 0}
   rectTransformID: 0
@@ -3317,7 +3329,7 @@ MonoBehaviour:
   relativePosition: {x: 0, y: 0}
   numSlots: 1
   uiText: {fileID: 0}
-  label: Load game
+  _label: Load game
   anchor: 4
   textEffects: 1
   outlineSize: 2
@@ -3526,7 +3538,7 @@ MonoBehaviour:
   numSlots: 1
   uiButton: {fileID: 0}
   uiPointerState: 0
-  label: Options
+  _label: Options
   hotspotLabel: 
   hotspotLabelID: -1
   anchor: 4
@@ -3595,7 +3607,7 @@ MonoBehaviour:
   relativePosition: {x: 61.8, y: 55.2}
   numSlots: 1
   uiText: {fileID: 0}
-  label: Objective Stat Description
+  _label: Objective Stat Description
   anchor: 1
   textEffects: 3
   outlineSize: 1
@@ -3656,7 +3668,7 @@ MonoBehaviour:
   relativePosition: {x: 4.7, y: 0}
   numSlots: 1
   uiText: {fileID: 0}
-  label: Support Us Improve Our Job?
+  _label: Support Us Improve Our Job?
   anchor: 4
   textEffects: 2
   outlineSize: 2
@@ -3685,6 +3697,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   menuSource: 0
   canvas: {fileID: 0}
+  canvasAssetKey: 
   canvasID: 0
   rectTransform: {fileID: 0}
   rectTransformID: 0
@@ -3796,6 +3809,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   menuSource: 0
   canvas: {fileID: 0}
+  canvasAssetKey: 
   canvasID: 0
   rectTransform: {fileID: 0}
   rectTransformID: 0
@@ -3901,6 +3915,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   menuSource: 0
   canvas: {fileID: 22300000, guid: 123f643ffcdd54b458dba3430546b3f9, type: 3}
+  canvasAssetKey: 
   canvasID: 0
   rectTransform: {fileID: 0}
   rectTransformID: 310968
@@ -4047,7 +4062,7 @@ MonoBehaviour:
   numSlots: 1
   uiButton: {fileID: 0}
   uiPointerState: 0
-  label: Back
+  _label: Back
   hotspotLabel: 
   hotspotLabelID: -1
   anchor: 4
@@ -4180,7 +4195,7 @@ MonoBehaviour:
   numSlots: 1
   uiButton: {fileID: 0}
   uiPointerState: 0
-  label: Next
+  _label: Next
   hotspotLabel: 
   hotspotLabelID: -1
   anchor: 4
@@ -4217,6 +4232,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   menuSource: 0
   canvas: {fileID: 22300000, guid: 1ab628d83f236d244821564e11a02d77, type: 3}
+  canvasAssetKey: 
   canvasID: 0
   rectTransform: {fileID: 0}
   rectTransformID: 710880
@@ -4362,7 +4378,7 @@ MonoBehaviour:
   numSlots: 1
   uiButton: {fileID: 0}
   uiPointerState: 0
-  label: Other Products
+  _label: Other Products
   hotspotLabel: 
   hotspotLabelID: -1
   anchor: 4
@@ -4424,15 +4440,15 @@ MonoBehaviour:
   maxAutoWidthFactor: 0.5
   relativeRect:
     serializedVersion: 2
-    x: 61.44
-    y: 932.256
-    width: 76.8
-    height: 144
+    x: 25.344002
+    y: 310.75198
+    width: 31.68
+    height: 48
   relativePosition: {x: 4, y: 78}
   numSlots: 1
   uiButton: {fileID: 11478532, guid: f15f8212986624a8899a47f0054ebbc1, type: 3}
   uiPointerState: 0
-  label: 
+  _label: 
   hotspotLabel: 
   hotspotLabelID: -1
   anchor: 4
@@ -4501,7 +4517,7 @@ MonoBehaviour:
   relativePosition: {x: 62.5, y: 46.3}
   numSlots: 1
   uiText: {fileID: 0}
-  label: Pick-ups items
+  _label: Pick-ups items
   anchor: 4
   textEffects: 1
   outlineSize: 2
@@ -4562,7 +4578,7 @@ MonoBehaviour:
   relativePosition: {x: 0, y: 0}
   numSlots: 1
   uiText: {fileID: 0}
-  label: Memos
+  _label: Memos
   anchor: 4
   textEffects: 1
   outlineSize: 2
@@ -4623,7 +4639,7 @@ MonoBehaviour:
   relativePosition: {x: 0, y: 0}
   numSlots: 1
   uiText: {fileID: 0}
-  label: 'In Memory of Kian
+  _label: 'In Memory of Kian
 
     Who loved rainbows'
   anchor: 4
@@ -4687,7 +4703,7 @@ MonoBehaviour:
   numSlots: 1
   uiButton: {fileID: 0}
   uiPointerState: 0
-  label: No
+  _label: No
   hotspotLabel: 
   hotspotLabelID: -1
   anchor: 4
@@ -4816,7 +4832,7 @@ MonoBehaviour:
   numSlots: 1
   uiButton: {fileID: 0}
   uiPointerState: 0
-  label: Need Help?
+  _label: Need Help?
   hotspotLabel: 
   hotspotLabelID: -1
   anchor: 4
@@ -4886,7 +4902,7 @@ MonoBehaviour:
   numSlots: 1
   uiButton: {fileID: 0}
   uiPointerState: 0
-  label: Load
+  _label: Load
   hotspotLabel: 
   hotspotLabelID: -1
   anchor: 4
@@ -4923,6 +4939,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   menuSource: 0
   canvas: {fileID: 22300000, guid: bce394f9908d9d241abd61df17296034, type: 3}
+  canvasAssetKey: 
   canvasID: 0
   rectTransform: {fileID: 0}
   rectTransformID: 1765320
@@ -5061,7 +5078,7 @@ MonoBehaviour:
   numSlots: 1
   uiButton: {fileID: 0}
   uiPointerState: 0
-  label: 
+  _label: 
   hotspotLabel: 
   hotspotLabelID: -1
   anchor: 4
@@ -5130,7 +5147,7 @@ MonoBehaviour:
   relativePosition: {x: 49.6, y: 25.6}
   numSlots: 1
   uiText: {fileID: 0}
-  label: Looks the item
+  _label: Looks the item
   anchor: 4
   textEffects: 1
   outlineSize: 2
@@ -5191,7 +5208,7 @@ MonoBehaviour:
   relativePosition: {x: 4.5, y: 4}
   numSlots: 1
   uiText: {fileID: 0}
-  label: Objectives
+  _label: Objectives
   anchor: 4
   textEffects: 1
   outlineSize: 2
@@ -5220,6 +5237,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   menuSource: 0
   canvas: {fileID: 22300000, guid: 42c215fb5ddb33e4997e5806e1323256, type: 3}
+  canvasAssetKey: 
   canvasID: 0
   rectTransform: {fileID: 0}
   rectTransformID: 15198304
@@ -5329,6 +5347,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   menuSource: 0
   canvas: {fileID: 0}
+  canvasAssetKey: 
   canvasID: 0
   rectTransform: {fileID: 0}
   rectTransformID: 0
@@ -5463,7 +5482,7 @@ MonoBehaviour:
   numSlots: 1
   uiButton: {fileID: 0}
   uiPointerState: 0
-  label: Rate Us
+  _label: Rate Us
   hotspotLabel: 
   hotspotLabelID: -1
   anchor: 4
@@ -5533,7 +5552,7 @@ MonoBehaviour:
   numSlots: 1
   uiButton: {fileID: 0}
   uiPointerState: 0
-  label: Close
+  _label: Close
   hotspotLabel: 
   hotspotLabelID: -1
   anchor: 4
@@ -5602,7 +5621,7 @@ MonoBehaviour:
   relativePosition: {x: 0, y: 0}
   numSlots: 1
   uiText: {fileID: 0}
-  label: Save game
+  _label: Save game
   anchor: 4
   textEffects: 1
   outlineSize: 2
@@ -5631,6 +5650,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   menuSource: 0
   canvas: {fileID: 0}
+  canvasAssetKey: 
   canvasID: 0
   rectTransform: {fileID: 0}
   rectTransformID: 0
@@ -5769,6 +5789,7 @@ MonoBehaviour:
   autoSelectValidRaycasts: 0
   horizontalInputAxis: Horizontal
   verticalInputAxis: Vertical
+  useAddressables: 0
   hasUpgraded: 1
   doWindowsPreviewFix: 1
   drawOutlines: 1
@@ -5787,6 +5808,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   menuSource: 0
   canvas: {fileID: 22300000, guid: e2473a0bc3544264fa6bed5258d96bd6, type: 3}
+  canvasAssetKey: 
   canvasID: 0
   rectTransform: {fileID: 0}
   rectTransformID: 87948
@@ -5998,6 +6020,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   menuSource: 0
   canvas: {fileID: 0}
+  canvasAssetKey: 
   canvasID: 0
   rectTransform: {fileID: 0}
   rectTransformID: 0
@@ -6132,7 +6155,7 @@ MonoBehaviour:
   relativePosition: {x: 4.7, y: 0}
   numSlots: 1
   uiText: {fileID: 0}
-  label: Payment Failed!
+  _label: Payment Failed!
   anchor: 4
   textEffects: 2
   outlineSize: 2
@@ -6194,7 +6217,7 @@ MonoBehaviour:
   numSlots: 1
   uiButton: {fileID: 0}
   uiPointerState: 0
-  label: Previous
+  _label: Previous
   hotspotLabel: 
   hotspotLabelID: -1
   anchor: 4
@@ -6326,7 +6349,7 @@ MonoBehaviour:
   numSlots: 1
   uiButton: {fileID: 0}
   uiPointerState: 0
-  label: Load
+  _label: Load
   hotspotLabel: 
   hotspotLabelID: -1
   anchor: 4
@@ -6388,10 +6411,10 @@ MonoBehaviour:
   maxAutoWidthFactor: 0.5
   relativeRect:
     serializedVersion: 2
-    x: 76.799995
-    y: 179.28
-    width: 1382.4
-    height: 648
+    x: 31.680002
+    y: 59.76
+    width: 570.24005
+    height: 216.00002
   relativePosition: {x: 5, y: 15}
   numSlots: 1
   uiImage: {fileID: 11483092, guid: f15f8212986624a8899a47f0054ebbc1, type: 3}
@@ -6425,6 +6448,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   menuSource: 0
   canvas: {fileID: 0}
+  canvasAssetKey: 
   canvasID: 0
   rectTransform: {fileID: 0}
   rectTransformID: 0
@@ -6531,6 +6555,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   menuSource: 0
   canvas: {fileID: 22300000, guid: 3bce5b3458b9d384d8b5c3ae21c27e20, type: 3}
+  canvasAssetKey: 
   canvasID: 0
   rectTransform: {fileID: 0}
   rectTransformID: 14169666
@@ -6667,7 +6692,7 @@ MonoBehaviour:
   numSlots: 1
   uiButton: {fileID: 0}
   uiPointerState: 0
-  label: Resume
+  _label: Resume
   hotspotLabel: 
   hotspotLabelID: -1
   anchor: 4
@@ -6736,7 +6761,7 @@ MonoBehaviour:
   relativePosition: {x: 5, y: 55}
   numSlots: 1
   uiText: {fileID: 0}
-  label: Description
+  _label: Description
   anchor: 1
   textEffects: 1
   outlineSize: 1
@@ -6988,7 +7013,7 @@ MonoBehaviour:
   relativePosition: {x: 0, y: 0}
   numSlots: 1
   uiText: {fileID: 0}
-  label: "Since they took you from me\nrainbow is the begginer\nof the rain \nfrom
+  _label: "Since they took you from me\nrainbow is the begginer\nof the rain \nfrom
     my eyes"
   anchor: 4
   textEffects: 1
@@ -7051,7 +7076,7 @@ MonoBehaviour:
   numSlots: 1
   uiButton: {fileID: 0}
   uiPointerState: 0
-  label: Yes
+  _label: Yes
   hotspotLabel: 
   hotspotLabelID: -1
   anchor: 4
@@ -7236,6 +7261,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   menuSource: 0
   canvas: {fileID: 22300000, guid: a39b47b6471a86d47ba82a3450050db9, type: 3}
+  canvasAssetKey: 
   canvasID: 0
   rectTransform: {fileID: 0}
   rectTransformID: 13953742
@@ -7370,7 +7396,7 @@ MonoBehaviour:
   numSlots: 1
   uiButton: {fileID: 0}
   uiPointerState: 0
-  label: 
+  _label: 
   hotspotLabel: 
   hotspotLabelID: -1
   anchor: 4
@@ -7439,7 +7465,7 @@ MonoBehaviour:
   relativePosition: {x: 4.8, y: 48}
   numSlots: 1
   uiText: {fileID: 0}
-  label: Objective title
+  _label: Objective title
   anchor: 4
   textEffects: 1
   outlineSize: 2
@@ -7501,7 +7527,7 @@ MonoBehaviour:
   numSlots: 1
   uiButton: {fileID: 0}
   uiPointerState: 0
-  label: 
+  _label: 
   hotspotLabel: 
   hotspotLabelID: -1
   anchor: 4
@@ -7571,7 +7597,7 @@ MonoBehaviour:
   numSlots: 1
   uiButton: {fileID: 0}
   uiPointerState: 0
-  label: Save
+  _label: Save
   hotspotLabel: 
   hotspotLabelID: -1
   anchor: 4
@@ -7640,7 +7666,7 @@ MonoBehaviour:
   relativePosition: {x: 5, y: 10.1}
   numSlots: 1
   uiText: {fileID: 0}
-  label: Brain
+  _label: Brain
   anchor: 4
   textEffects: 1
   outlineSize: 2
@@ -7701,7 +7727,7 @@ MonoBehaviour:
   relativePosition: {x: 66.9, y: 37}
   numSlots: 1
   uiText: {fileID: 0}
-  label: No Data!
+  _label: No Data!
   anchor: 4
   textEffects: 1
   outlineSize: 2
@@ -7730,6 +7756,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   menuSource: 0
   canvas: {fileID: 0}
+  canvasAssetKey: 
   canvasID: 0
   rectTransform: {fileID: 0}
   rectTransformID: 0
@@ -7863,7 +7890,7 @@ MonoBehaviour:
   relativePosition: {x: 0, y: 0}
   numSlots: 1
   uiText: {fileID: 0}
-  label: Death Escape
+  _label: Death Escape
   anchor: 4
   textEffects: 1
   outlineSize: 2
@@ -8049,7 +8076,7 @@ MonoBehaviour:
   numSlots: 1
   uiButton: {fileID: 0}
   uiPointerState: 0
-  label: No
+  _label: No
   hotspotLabel: 
   hotspotLabelID: -1
   anchor: 4
@@ -8178,7 +8205,7 @@ MonoBehaviour:
   numSlots: 1
   uiButton: {fileID: 0}
   uiPointerState: 0
-  label: Back
+  _label: Back
   hotspotLabel: 
   hotspotLabelID: -1
   anchor: 4
@@ -8247,7 +8274,7 @@ MonoBehaviour:
   relativePosition: {x: 4.7, y: 0}
   numSlots: 1
   uiText: {fileID: 0}
-  label: Payment Done. Thank You!
+  _label: Payment Done. Thank You!
   anchor: 4
   textEffects: 2
   outlineSize: 2
@@ -8308,7 +8335,7 @@ MonoBehaviour:
   relativePosition: {x: 0, y: 0}
   numSlots: 1
   uiText: {fileID: 0}
-  label: Options
+  _label: Options
   anchor: 4
   textEffects: 1
   outlineSize: 2
@@ -8369,7 +8396,7 @@ MonoBehaviour:
   relativePosition: {x: 4.7, y: 0}
   numSlots: 1
   uiText: {fileID: 0}
-  label: Give us a five start rate if you liked the game?
+  _label: Give us a five start rate if you liked the game?
   anchor: 4
   textEffects: 2
   outlineSize: 2
@@ -8431,7 +8458,7 @@ MonoBehaviour:
   numSlots: 1
   uiButton: {fileID: 0}
   uiPointerState: 0
-  label: Back
+  _label: Back
   hotspotLabel: 
   hotspotLabelID: -1
   anchor: 4
@@ -8501,7 +8528,7 @@ MonoBehaviour:
   numSlots: 1
   uiButton: {fileID: 0}
   uiPointerState: 0
-  label: Back
+  _label: Back
   hotspotLabel: 
   hotspotLabelID: -1
   anchor: 4
@@ -8538,6 +8565,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   menuSource: 0
   canvas: {fileID: 0}
+  canvasAssetKey: 
   canvasID: 0
   rectTransform: {fileID: 0}
   rectTransformID: 0
@@ -8728,10 +8756,10 @@ MonoBehaviour:
   maxAutoWidthFactor: 0.5
   relativeRect:
     serializedVersion: 2
-    x: 153.59999
-    y: 850.98236
-    width: 1228.8
-    height: 302.4
+    x: 63.360004
+    y: 283.6608
+    width: 506.88
+    height: 100.8
   relativePosition: {x: 10, y: 71.2}
   numSlots: 1
   uiText: {fileID: 11435218, guid: f15f8212986624a8899a47f0054ebbc1, type: 3}
@@ -8794,7 +8822,7 @@ MonoBehaviour:
   relativePosition: {x: 73.6, y: 57.9}
   numSlots: 1
   uiText: {fileID: 0}
-  label: Helen Game Factory
+  _label: Helen Game Factory
   anchor: 4
   textEffects: 1
   outlineSize: 2
@@ -8856,7 +8884,7 @@ MonoBehaviour:
   numSlots: 1
   uiButton: {fileID: 0}
   uiPointerState: 0
-  label: Quit
+  _label: Quit
   hotspotLabel: 
   hotspotLabelID: -1
   anchor: 4
@@ -8926,7 +8954,7 @@ MonoBehaviour:
   numSlots: 1
   uiButton: {fileID: 0}
   uiPointerState: 0
-  label: Memos
+  _label: Memos
   hotspotLabel: 
   hotspotLabelID: -1
   anchor: 4
@@ -8963,6 +8991,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   menuSource: 0
   canvas: {fileID: 0}
+  canvasAssetKey: 
   canvasID: 0
   rectTransform: {fileID: 0}
   rectTransformID: 0
@@ -9119,7 +9148,7 @@ MonoBehaviour:
   numSlots: 1
   uiButton: {fileID: 0}
   uiPointerState: 0
-  label: Return
+  _label: Return
   hotspotLabel: 
   hotspotLabelID: -1
   anchor: 4
@@ -9189,7 +9218,7 @@ MonoBehaviour:
   numSlots: 1
   uiButton: {fileID: 0}
   uiPointerState: 0
-  label: Pay For This
+  _label: Pay For This
   hotspotLabel: 
   hotspotLabelID: -1
   anchor: 4
@@ -9258,7 +9287,7 @@ MonoBehaviour:
   relativePosition: {x: 19, y: 23.9}
   numSlots: 1
   uiText: {fileID: 0}
-  label: Drag to look around
+  _label: Drag to look around
   anchor: 4
   textEffects: 1
   outlineSize: 2
@@ -9372,6 +9401,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   menuSource: 0
   canvas: {fileID: 22350434, guid: fb1279bb517036b4b9d6d0cf6a20b5e4, type: 3}
+  canvasAssetKey: 
   canvasID: 0
   rectTransform: {fileID: 0}
   rectTransformID: 80694
@@ -9516,14 +9546,14 @@ MonoBehaviour:
   maxAutoWidthFactor: 0.5
   relativeRect:
     serializedVersion: 2
-    x: 76.799995
-    y: 47.808
-    width: 1382.4
-    height: 144
+    x: 31.680002
+    y: 15.936
+    width: 570.24005
+    height: 48
   relativePosition: {x: 5, y: 4}
   numSlots: 1
   uiText: {fileID: 11405610, guid: f15f8212986624a8899a47f0054ebbc1, type: 3}
-  label: Document title
+  _label: Document title
   anchor: 4
   textEffects: 1
   outlineSize: 2
@@ -9552,6 +9582,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   menuSource: 0
   canvas: {fileID: 0}
+  canvasAssetKey: 
   canvasID: 0
   rectTransform: {fileID: 0}
   rectTransformID: 0
@@ -9658,6 +9689,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   menuSource: 0
   canvas: {fileID: 22300000, guid: f5749e0478f43e144969bf6a6433db3e, type: 3}
+  canvasAssetKey: 
   canvasID: 0
   rectTransform: {fileID: 0}
   rectTransformID: 1313004
@@ -9763,6 +9795,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   menuSource: 0
   canvas: {fileID: 22300000, guid: c918d3e211731354f8fd0bce710d2e42, type: 3}
+  canvasAssetKey: 
   canvasID: 0
   rectTransform: {fileID: 0}
   rectTransformID: 14532472
@@ -9897,7 +9930,7 @@ MonoBehaviour:
   relativePosition: {x: 49.6, y: 25.6}
   numSlots: 1
   uiText: {fileID: 0}
-  label: Operates Item
+  _label: Operates Item
   anchor: 4
   textEffects: 1
   outlineSize: 2
@@ -9958,7 +9991,7 @@ MonoBehaviour:
   relativePosition: {x: 0, y: 0}
   numSlots: 1
   uiText: {fileID: 0}
-  label: Load game
+  _label: Load game
   anchor: 4
   textEffects: 1
   outlineSize: 2
@@ -10020,7 +10053,7 @@ MonoBehaviour:
   numSlots: 1
   uiButton: {fileID: 0}
   uiPointerState: 0
-  label: Pay For This
+  _label: Pay For This
   hotspotLabel: 
   hotspotLabelID: -1
   anchor: 4
@@ -10148,7 +10181,7 @@ MonoBehaviour:
   relativePosition: {x: 0, y: 0}
   numSlots: 1
   uiText: {fileID: 0}
-  label: And left us soon
+  _label: And left us soon
   anchor: 4
   textEffects: 1
   outlineSize: 2
@@ -10209,7 +10242,7 @@ MonoBehaviour:
   relativePosition: {x: 4.9, y: 41}
   numSlots: 1
   uiText: {fileID: 0}
-  label: Hi!
+  _label: Hi!
   anchor: 4
   textEffects: 1
   outlineSize: 2

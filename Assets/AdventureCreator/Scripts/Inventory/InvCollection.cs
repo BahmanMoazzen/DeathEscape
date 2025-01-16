@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"InvCollection.cs"
  * 
@@ -80,8 +80,12 @@ namespace AC
 		}
 
 
-		/** A Constructor that populates itself based on an existing list of inventory item instances. */
-		public InvCollection (List<InvInstance> _invInstances)
+		/**
+		 * <summary>A Constructor that populates itself based on an existing list of inventory item instances.</summary>
+		 * <param name="_invInstances">A List of InvInstances that represent the items to be added</param>
+		 * <param name="allowEmptySlots">If True, then invalid or empty entries in the _invInstances List will be included and used to add empty slots, rather than removed</param>
+		 */
+		public InvCollection (List<InvInstance> _invInstances, bool allowEmptySlots = false)
 		{
 			maxSlots = 0;
 			limitToCategoryIDs = null;
@@ -89,7 +93,23 @@ namespace AC
 
 			foreach (InvInstance invInstance in _invInstances)
 			{
-				AddToEnd (invInstance);
+				if (allowEmptySlots)
+				{
+					if (InvInstance.IsValid (invInstance))
+					{
+						InvInstance addedInstance = new InvInstance (invInstance);
+						invInstances.Add (addedInstance);
+						KickStarter.eventManager.Call_OnChangeInventory (this, addedInstance, InventoryEventType.Add);
+					}
+					else
+					{
+						invInstances.Add (null);
+					}
+				}
+				else
+				{
+					AddToEnd (invInstance);
+				}
 			}
 
 			Clean ();
@@ -267,31 +287,67 @@ namespace AC
 			InvCollection fromCollection = addInstance.GetSource ();
 
 			InvInstance addedInstance = null;
-			for (int i=0; i<invInstances.Count; i++)
+
+			for (int i = 0; i < invInstances.Count; i++)
 			{
-				// Inside
-				
-				if (!InvInstance.IsValid (invInstances[i]))
-				{
-					// Empty slot
-					invInstances[i] = addInstance.CreateTransferInstance ();
-					if (KickStarter.eventManager) KickStarter.eventManager.Call_OnChangeInventory (this, invInstances[i], InventoryEventType.Add);
-					addedInstance = invInstances[i];
-					break;
-				}
-				else if (invInstances[i] == addInstance)
-				{
-					// Same
-				}
-				else if (invInstances[i].InvItem == addInstance.InvItem && addInstance.InvItem.canCarryMultiple && invInstances[i].Capacity > 0)
+				// First find existing
+
+				if (InvInstance.IsValid (invInstances[i]) && invInstances[i] != addInstance && invInstances[i].InvItem == addInstance.InvItem && addInstance.InvItem.canCarryMultiple && invInstances[i].Capacity > 0)
 				{
 					// Merge
-					if (addInstance.TransferCount > invInstances[i].Capacity) addInstance.TransferCount = invInstances[i].Capacity;
+					bool transferredAll = true;
+					if (addInstance.TransferCount > invInstances[i].Capacity)
+					{
+						addInstance.TransferCount = invInstances[i].Capacity;
+						transferredAll = false;
+					}
 					int numAdded = Mathf.Min (addInstance.CreateTransferInstance ().Count, invInstances[i].Capacity);
 					invInstances[i].Count += numAdded;
 					if (KickStarter.eventManager) KickStarter.eventManager.Call_OnChangeInventory (this, invInstances[i], InventoryEventType.Add, numAdded);
-					addedInstance = invInstances[i];
-					break;
+					if (transferredAll)
+					{
+						addedInstance = invInstances[i];
+						break;
+					}
+				}
+			}
+
+			if (!InvInstance.IsValid (addedInstance))
+			{
+				for (int i=0; i<invInstances.Count; i++)
+				{
+					// Inside
+				
+					if (!InvInstance.IsValid (invInstances[i]))
+					{
+						// Empty slot
+						invInstances[i] = addInstance.CreateTransferInstance ();
+						if (KickStarter.eventManager) KickStarter.eventManager.Call_OnChangeInventory (this, invInstances[i], InventoryEventType.Add);
+						addedInstance = invInstances[i];
+						break;
+					}
+					else if (invInstances[i] == addInstance)
+					{
+						// Same
+					}
+					else if (invInstances[i].InvItem == addInstance.InvItem && addInstance.InvItem.canCarryMultiple && invInstances[i].Capacity > 0)
+					{
+						// Merge
+						bool transferredAll = true;
+						if (addInstance.TransferCount > invInstances[i].Capacity)
+						{
+							addInstance.TransferCount = invInstances[i].Capacity;
+							transferredAll = false;
+						}
+						int numAdded = Mathf.Min (addInstance.CreateTransferInstance ().Count, invInstances[i].Capacity);
+						invInstances[i].Count += numAdded;
+						if (KickStarter.eventManager) KickStarter.eventManager.Call_OnChangeInventory (this, invInstances[i], InventoryEventType.Add, numAdded);
+						if (transferredAll)
+						{
+							addedInstance = invInstances[i];
+							break;
+						}
+					}
 				}
 			}
 
@@ -370,7 +426,7 @@ namespace AC
 
 			int numAdded = -1;
 
-			InvCollection fromCollection = (Contains (addInstance)) ? this : addInstance.GetSource ();
+			InvCollection fromCollection = Contains (addInstance) ? this : addInstance.GetSource ();
 			if (index >= 0 && index < invInstances.Count)
 			{
 				// Inside
@@ -422,7 +478,7 @@ namespace AC
 							case OccupiedSlotBehaviour.SwapItems:
 								if (fromCollection != null)
 								{
-									if (addInstance.IsPartialTransform ())
+									if (addInstance.IsPartialTransfer ())
 									{
 										if (KickStarter.eventManager) KickStarter.eventManager.Call_OnUseContainerFail (addInstance.GetSourceContainer (), addInstance);
 										return null;
@@ -929,7 +985,6 @@ namespace AC
 
 		/**
 		 * <summary>Gets the total value of all instances of an Integer inventory property (e.g. currency) within a set of inventory items.</summary>
-		 * <param name = "invInstances">The inventory item instances to get the total value from</param>
 		 * <param name = "propertyID">The ID number of the Inventory property (see InvVar) to get the total value of</param>
 		 * <returns>The total value of all instances of the Integer inventory property within the set of inventory items</returns>
 		 */
@@ -938,6 +993,7 @@ namespace AC
 			int result = 0;
 			foreach (InvInstance invInstance in invInstances)
 			{
+				if (!InvInstance.IsValid (invInstance)) continue;
 				InvVar invVar = invInstance.GetProperty (propertyID);
 				if (invVar != null && invVar.type == VariableType.Integer)
 				{
@@ -949,8 +1005,28 @@ namespace AC
 
 
 		/**
+		 * <summary>Gets the total value of all instances of an Integer inventory property (e.g. currency) within a set of inventory items.</summary>
+		 * <param name = "propertyName">The name of the Inventory property (see InvVar) to get the total value of</param>
+		 * <returns>The total value of all instances of the Integer inventory property within the set of inventory items</returns>
+		 */
+		public int GetTotalIntProperty (string propertyName)
+		{
+			int result = 0;
+			foreach (InvInstance invInstance in invInstances)
+			{
+				if (!InvInstance.IsValid (invInstance)) continue;
+				InvVar invVar = invInstance.GetProperty (propertyName);
+				if (invVar != null && invVar.type == VariableType.Integer)
+				{
+					result += invVar.IntegerValue;
+				}
+			}
+			return result;
+		}
+
+
+		/**
 		 * <summary>Gets the total value of all instances of an Float inventory property (e.g. weight) within a set of inventory items.</summary>
-		 * <param name = "invInstances">The inventory item instances to get the total value from</param>
 		 * <param name = "propertyID">The ID number of the Inventory property (see InvVar) to get the total value of</param>
 		 * <returns>The total value of all instances of the Float inventory property within the set of inventory items</returns>
 		 */
@@ -959,7 +1035,29 @@ namespace AC
 			float result = 0f;
 			foreach (InvInstance invInstance in invInstances)
 			{
+				if (!InvInstance.IsValid (invInstance)) continue;
 				InvVar invVar = invInstance.GetProperty (propertyID);
+				if (invVar != null && invVar.type == VariableType.Float)
+				{
+					result += invVar.FloatValue;
+				}
+			}
+			return result;
+		}
+
+
+		/**
+		 * <summary>Gets the total value of all instances of an Float inventory property (e.g. weight) within a set of inventory items.</summary>
+		 * <param name = "propertyName">The name of the Inventory property (see InvVar) to get the total value of</param>
+		 * <returns>The total value of all instances of the Float inventory property within the set of inventory items</returns>
+		 */
+		public float GetTotalFloatProperty (string propertyName)
+		{
+			float result = 0f;
+			foreach (InvInstance invInstance in invInstances)
+			{
+				if (!InvInstance.IsValid (invInstance)) continue;
+				InvVar invVar = invInstance.GetProperty (propertyName);
 				if (invVar != null && invVar.type == VariableType.Float)
 				{
 					result += invVar.FloatValue;
@@ -983,13 +1081,11 @@ namespace AC
 
 			foreach (InvInstance invInstance in invInstances)
 			{
-				if (InvInstance.IsValid (invInstance))
+				if (!InvInstance.IsValid (invInstance)) continue;
+				InvVar var = invInstance.GetProperty (propertyID);
+				if (var != null)
 				{
-					InvVar var = invInstance.GetProperty (propertyID);
-					if (var != null)
-					{
-						totalVar.TransferValues (var);
-					}
+					totalVar.TransferValues (var);
 				}
 			}
 			return totalVar;
@@ -1006,6 +1102,7 @@ namespace AC
 			List<InvInstance> invList = new List<InvInstance> ();
 			foreach (InvInstance invInstance in invInstances)
 			{
+				if (!InvInstance.IsValid (invInstance)) continue;
 				if (invInstance.InvItem.binID == categoryID)
 				{
 					invList.Add (invInstance);
@@ -1019,7 +1116,7 @@ namespace AC
 		/** Checks if this collection represents the player's inventory */
 		public bool IsPlayerInventory ()
 		{
-			return (KickStarter.runtimeInventory && this == KickStarter.runtimeInventory.PlayerInvCollection);
+			return KickStarter.runtimeInventory && this == KickStarter.runtimeInventory.PlayerInvCollection;
 		}
 
 
@@ -1273,7 +1370,7 @@ namespace AC
 				}
 			}
 
-			return new InvCollection (invInstances);
+			return new InvCollection (invInstances, true);
 		}
 
 		#endregion

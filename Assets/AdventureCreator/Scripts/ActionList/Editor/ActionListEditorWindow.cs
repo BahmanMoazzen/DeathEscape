@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿#if UNITY_EDITOR
+
+using UnityEngine;
 using UnityEditor;
 using System.Collections.Generic;
 
@@ -215,7 +217,6 @@ namespace AC
 					DrawMarquee (true, Event.current);
 				}
 
-				
 				if (GUI.changed)
 				{
 					EditorUtility.SetDirty (windowData.targetAsset);
@@ -245,7 +246,6 @@ namespace AC
 						DrawMarquee (false, Event.current);
 					}
 				}
-
 				
 				if (GUI.changed)
 				{
@@ -258,7 +258,10 @@ namespace AC
 				DrawEmptyNotice ();
 			}
 
-			if (GUI.changed) Repaint ();
+			if ((windowData.targetAsset || windowData.target) && GUI.changed)
+			{
+				Repaint ();
+			}
 		}
 
 
@@ -957,10 +960,21 @@ namespace AC
 		private void BottomToolbarGUI (bool isAsset)
 		{
 			bool noList = false;
+			#if AC_ActionListPrefabs
+			bool isPrefab = false;
+			#endif
 
 			if ((isAsset && windowData.targetAsset == null) || (!isAsset && windowData.target == null) || (!isAsset && !windowData.target.gameObject.activeInHierarchy))
 			{
 				noList = true;
+
+				#if AC_ActionListPrefabs
+				if (!isAsset && !windowData.target.gameObject.activeInHierarchy && UnityVersionHandler.IsPrefabFile (windowData.target.gameObject))
+				{
+					noList = false;
+					isPrefab = true;
+				}
+				#endif
 			}
 
 			GUILayout.BeginArea (new Rect (0, position.height - 24, position.width, 24), CustomStyles.Toolbar);
@@ -975,7 +989,16 @@ namespace AC
 			}
 			else
 			{
-				labelText = "Editing " + windowData.target.GetType ().ToString ().Replace ("AC.", "") + ": " + windowData.target.gameObject.name;
+				#if AC_ActionListPrefabs
+				if (isPrefab)
+				{
+					labelText = "Editing " + windowData.target.GetType ().ToString ().Replace ("AC.", "") + " prefab: " + windowData.target.gameObject.name;
+				}
+				else
+				#endif
+				{
+					labelText = "Editing " + windowData.target.GetType ().ToString ().Replace ("AC.", "") + ": " + windowData.target.gameObject.name;
+				}
 			}
 
 			if (GUI.Button (new Rect (10, 0, 18, 18), "", (windowData.isLocked) ? CustomStyles.IconLock : CustomStyles.IconUnlock))
@@ -1312,9 +1335,8 @@ namespace AC
 		private void EmptyNodeWindow (int i)
 		{
 			Action _action = Actions[i];
-			bool isAsset = (windowData.targetAsset != null);
 
-			_action.SkipActionGUI (Actions, !isAsset);
+			_action.SkipActionGUI (Actions, false);
 			
 			_action.isDisplayed = EditorGUI.Foldout (new Rect (10, 1, 20, 16), _action.isDisplayed, string.Empty);
 
@@ -1404,12 +1426,14 @@ namespace AC
 				OnEnable ();
 				return;
 			}
+			#if !AC_ActionListPrefabs
 			if (!isAsset && UnityVersionHandler.IsPrefabFile (windowData.target.gameObject))
 			{
 				GUILayout.Space (30f);
 				EditorGUILayout.HelpBox ("Scene-based Actions can not live in prefabs - use ActionList assets instead.", MessageType.Info);
 				return;
 			}
+			#endif
 			if (!isAsset && windowData.target != null)
 			{
 				if (windowData.target.source == ActionListSource.AssetFile)
@@ -1468,7 +1492,7 @@ namespace AC
 
 				if (i == 0)
 				{
-					GUI.Label (new Rect (startLabelRect.position - ScrollPosition, startLabelRect.size), startLabel, Resource.NodeSkin.label);
+					GUI.Label (new Rect (startLabelRect.position - ScrollPosition, startLabelRect.size), startLabel, (Resource.NodeSkin != null) ? Resource.NodeSkin.label : new GUIStyle ());
 					if (Mathf.Approximately (_action.NodeRect.x, 50) && Mathf.Approximately (_action.NodeRect.y, 50))
 					{
 						// Upgrade
@@ -1792,8 +1816,8 @@ namespace AC
 				UnityVersionHandler.CustomSetDirty (windowData.target, true);
 			}
 		}
-		
-		
+
+
 		private void Reconnect (Action action1, Action action2, bool isAsset)
 		{
 			dragMode = DragMode.None;
@@ -1806,9 +1830,11 @@ namespace AC
 				ending.skipActionActual = action2;
 			}
 
+			action1.SkipActionGUI (Actions, false); // Force update of ending data in case not on-screen
+
 			actionChanging = null;
 			offsetChanging = 0;
-			
+
 			if (isAsset)
 			{
 				EditorUtility.SetDirty (windowData.targetAsset);
@@ -1818,8 +1844,8 @@ namespace AC
 				UnityVersionHandler.CustomSetDirty (windowData.target, true);
 			}
 		}
-		
-		
+
+
 		private void DrawSockets (Action action, bool isAsset, Event e)
 		{
 			if (action == null) return;
@@ -1915,10 +1941,10 @@ namespace AC
 		{
 			if (NumActionsMarked > 0 || !onlyMarked)
 			{
-				Vector2 maxCorner = (Actions[0]) ? Actions[0].NodeRect.position : Vector2.zero;
+				Vector2 maxCorner = (Actions[0] != null) ? Actions[0].NodeRect.position : Vector2.zero;
 				for (int i=0; i<Actions.Count; i++)
 				{
-					if (Actions[i].isMarked || !onlyMarked)
+					if (Actions[i] != null && (Actions[i].isMarked || !onlyMarked))
 					{
 						maxCorner.x = Mathf.Max (maxCorner.x, Actions[i].NodeRect.x + Actions[i].NodeRect.width);
 						maxCorner.y = Mathf.Max (maxCorner.y, Actions[i].NodeRect.y + Actions[i].NodeRect.height);
@@ -1928,7 +1954,7 @@ namespace AC
 				Vector2 minCorner = maxCorner - new Vector2 (ACEditorPrefs.ActionNodeWidth, 50f);
 				for (int i=0; i<Actions.Count; i++)
 				{
-					if (Actions[i].isMarked || !onlyMarked)
+					if (Actions[i] != null && (Actions[i].isMarked || !onlyMarked))
 					{
 						minCorner.x = Mathf.Min (minCorner.x, Actions[i].NodeRect.x);
 						minCorner.y = Mathf.Min (minCorner.y, Actions[i].NodeRect.y);
@@ -2205,7 +2231,7 @@ namespace AC
 						List<Action> actionsAsList = new List<Action>();
 						foreach (Action action in windowData.targetAsset.actions)
 						{
-							if (action) actionsAsList.Add (action);
+							if (action != null) actionsAsList.Add (action);
 						}
 						actionsArray = actionsAsList.ToArray ();
 					}
@@ -2217,7 +2243,7 @@ namespace AC
 						List<Action> actionsAsList = new List<Action> ();
 						foreach (Action action in windowData.target.actions)
 						{
-							if (action) actionsAsList.Add (action);
+							if (action != null) actionsAsList.Add (action);
 						}
 						actionsArray = actionsAsList.ToArray ();
 					}
@@ -2227,17 +2253,17 @@ namespace AC
 				{
 					Undo.SetCurrentGroupName (objString);
 					Undo.RecordObjects (new Object [] {  windowData.targetAsset }, objString);
-					#if !AC_ActionListPrefabs
+#if !AC_ActionListPrefabs
 					if (actionsArray.Length > 0) Undo.RecordObjects (actionsArray, objString);
-					#endif
+#endif
 				}
 				else
 				{
 					Undo.SetCurrentGroupName (objString);
 					Undo.RecordObjects (new Object [] {  windowData.target }, objString);
-					#if !AC_ActionListPrefabs
+#if !AC_ActionListPrefabs
 					if (actionsArray.Length > 0) Undo.RecordObjects (actionsArray, objString);
-					#endif
+#endif
 				}
 			}
 
@@ -2251,8 +2277,8 @@ namespace AC
 
 			if (objString == "Add new Action")
 			{
-				Action currentAction = actionList[actionList.Count - 1];
-				if (currentAction.NumSockets == 1 && currentAction.endings[0].resultAction == ResultAction.Continue)
+				Action currentAction = (actionList.Count > 0) ? actionList[actionList.Count - 1] : null;
+				if (currentAction != null && currentAction.NumSockets == 1 && currentAction.endings[0].resultAction == ResultAction.Continue)
 				{
 					currentAction.endings[0].resultAction = ResultAction.Stop;
 				}
@@ -2276,16 +2302,16 @@ namespace AC
 					return;
 				}
 
-				int offset = actionList.Count;
+				//int offset = actionList.Count;
 				UnmarkAll ();
 
 				Action currentLastAction = actionList[actionList.Count - 1];
-				if (currentLastAction.endings.Count == 1 && currentLastAction.endings[0].resultAction == ResultAction.Continue)
+				if (currentLastAction != null && currentLastAction.endings.Count == 1 && currentLastAction.endings[0].resultAction == ResultAction.Continue)
 				{
 					currentLastAction.endings[0].resultAction = ResultAction.Stop;
 				}
 
-				List<Action> newActions = JsonAction.CreatePasteBuffer (offset);
+				List<Action> newActions = JsonAction.CreatePasteBuffer (false);
 				Vector2 firstPosition = new Vector2 (newActions[0].NodeRect.x, newActions[0].NodeRect.y);
 				foreach (Action newAction in newActions)
 				{
@@ -2310,7 +2336,11 @@ namespace AC
 						ActionListEditor.AddAction (newAction, -1, windowData.target);
 					}
 				}
-				FocusOnActions (true, true);
+
+				if (KickStarter.actionsManager.focusOnPastedActions)
+				{
+					FocusOnActions (true, true);
+				}
 			}
 			else if (objString == "Select all")
 			{
@@ -2397,7 +2427,7 @@ namespace AC
 					}
 				}
 
-				JsonAction.ToCopyBuffer (cutList);
+				JsonAction.ToCopyBuffer (cutList, false);
 				PerformEmptyCallBack ("Delete selected");
 			}
 			else if (objString == "Copy selected")
@@ -2437,7 +2467,7 @@ namespace AC
 
 								foreach (Action _action in actionList)
 								{
-									if (_action && action != _action)
+									if (_action != null && action != _action)
 									{
 										_action.FixLinkAfterDeleting (action, targetAction, actionList);
 									}
@@ -2609,7 +2639,7 @@ namespace AC
 						int offset = actionList.IndexOf (action) + 1;
 						Vector2 initialPosition = new Vector2 (action.NodeRect.x + 50, action.NodeRect.y + 100);
 
-						List<Action> newActions = JsonAction.CreatePasteBuffer (offset);
+						List<Action> newActions = JsonAction.CreatePasteBuffer (false);
 						Vector2 firstPosition = new Vector2 (newActions[0].NodeRect.x, newActions[0].NodeRect.y);
 						foreach (Action newAction in newActions)
 						{
@@ -2818,6 +2848,22 @@ namespace AC
 					}
 				}
 			}
+			#if UNITY_2019_2_OR_NEWER
+			else if (objString.StartsWith ("BackupAll"))
+			{
+				if (windowData.target)
+				{
+					windowData.target.BackupData ();
+				}
+			}
+			else if (objString.StartsWith ("RestoreAll"))
+			{
+				if (windowData.target)
+				{
+					windowData.target.RestoreData ();
+				}
+			}
+			#endif
 
 			foreach (Action action in actionList)
 			{
@@ -2837,7 +2883,7 @@ namespace AC
 						List<Action> actionsAsList = new List<Action> ();
 						foreach (Action action in windowData.targetAsset.actions)
 						{
-							if (action) actionsAsList.Add (action);
+							if (action != null) actionsAsList.Add (action);
 						}
 						actionsArray = actionsAsList.ToArray ();
 					}
@@ -2849,7 +2895,7 @@ namespace AC
 						List<Action> actionsAsList = new List<Action> ();
 						foreach (Action action in windowData.target.actions)
 						{
-							if (action) actionsAsList.Add (action);
+							if (action != null) actionsAsList.Add (action);
 						}
 						actionsArray = actionsAsList.ToArray ();
 					}
@@ -2858,16 +2904,16 @@ namespace AC
 				if (isAsset)
 				{
 					Undo.RecordObjects (new Object [] { windowData.targetAsset }, objString);
-					#if !AC_ActionListPrefabs
+#if !AC_ActionListPrefabs
 					if (actionsArray.Length > 0) Undo.RecordObjects (actionsArray, objString);
-					#endif
+#endif
 				}
 				else
 				{
 					Undo.RecordObjects (new Object [] { windowData.target }, objString);
-					#if !AC_ActionListPrefabs
+#if !AC_ActionListPrefabs
 					if (actionsArray.Length > 0) Undo.RecordObjects (actionsArray, objString);
-					#endif
+#endif
 				}
 				Undo.CollapseUndoOperations (Undo.GetCurrentGroup ());
 			}
@@ -3466,3 +3512,5 @@ namespace AC
 	}
 
 }
+
+#endif

@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"InvInstance.cs"
  * 
@@ -548,9 +548,9 @@ namespace AC
 					KickStarter.runtimeInventory.SetNull ();
 				}
 
-				if (combineInstance.InvItem.unhandledCombineActionList)
+				if (InvItem.unhandledCombineActionList)
 				{
-					ActionListAsset unhandledActionList = combineInstance.InvItem.unhandledCombineActionList;
+					ActionListAsset unhandledActionList = InvItem.unhandledCombineActionList;
 					AdvGame.RunActionListAsset (unhandledActionList);
 				}
 				else if (KickStarter.inventoryManager.unhandledCombine)
@@ -575,7 +575,7 @@ namespace AC
 
 
 		/** Checks if the item instance is only being partially selected/transferred, in that the number of items being affected is not the same as its total capacity */
-		public bool IsPartialTransform ()
+		public bool IsPartialTransfer ()
 		{
 			return TransferCount != count;
 		}
@@ -1090,7 +1090,7 @@ namespace AC
 					int affectedIndex = -1;
 					for (int i = 0; i < InvItem.combineInteractions.Count; i++)
 					{
-						if (InvItem.interactions[i].ID == ID)
+						if (InvItem.combineInteractions[i].ID == ID)
 						{
 							affectedIndex = i;
 							break;

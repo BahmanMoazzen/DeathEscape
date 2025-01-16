@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"ActionParent.cs"
  * 
@@ -70,26 +70,41 @@ namespace AC
 		
 		public override float Run ()
 		{
-			if (parentAction == ParentAction.SetParent && runtimeParentTransform)
-			{
-				runtimeObToAffect.transform.parent = runtimeParentTransform;
-				
-				if (setPosition)
-				{
-					runtimeObToAffect.transform.localPosition = newPosition;
-				}
-				
-				if (setRotation)
-				{
-					runtimeObToAffect.transform.localRotation = Quaternion.LookRotation (newRotation);
-				}
+			switch (parentAction)
+			{ 
+				case ParentAction.SetParent:
+					if (runtimeParentTransform)
+					{
+						runtimeObToAffect.transform.parent = runtimeParentTransform;
+
+						if (setPosition)
+						{
+							runtimeObToAffect.transform.localPosition = newPosition;
+						}
+
+						if (setRotation)
+						{
+							runtimeObToAffect.transform.localRotation = Quaternion.LookRotation (newRotation);
+						}
+					}
+					break;
+
+				case ParentAction.ClearParent:
+					if (runtimeObToAffect.transform.parent)
+					{
+						if (runtimeObToAffect.transform.parent.gameObject.IsPersistent ())
+						{
+							runtimeObToAffect.transform.parent = null;
+							UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene (runtimeObToAffect, KickStarter.kickStarter.gameObject.scene);
+						}
+						else
+						{
+							runtimeObToAffect.transform.parent = null;
+						}
+					}
+					break;
 			}
 
-			else if (parentAction == ParentAction.ClearParent)
-			{
-				runtimeObToAffect.transform.parent = null;
-			}
-			
 			return 0f;
 		}
 		
@@ -200,15 +215,15 @@ namespace AC
 		{
 			if (parentAction == ParentAction.SetParent && parentTransformParameterID < 0)
 			{
-				if (parentTransform != null && parentTransform.gameObject == gameObject) return true;
+				if (parentTransform && parentTransform.gameObject == gameObject) return true;
 				if (parentTransformID == id) return true;
 			}
 			if (!isPlayer && obToAffectParameterID < 0)
 			{
-				if (obToAffect != null && obToAffect == gameObject) return true;
+				if (obToAffect && obToAffect == gameObject) return true;
 				if (obToAffectID == id && id != 0) return true;
 			}
-			if (isPlayer && gameObject.GetComponent <Player>() != null) return true;
+			if (isPlayer && gameObject && gameObject.GetComponent <Player>()) return true;
 			return base.ReferencesObjectOrID (gameObject, id);
 		}
 

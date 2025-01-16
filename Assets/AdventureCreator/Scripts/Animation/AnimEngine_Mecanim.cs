@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"AnimEngine_Mecanim.cs"
  * 
@@ -47,7 +47,8 @@ namespace AC
 			{
 				if (AdvGame.GetReferences ().speechManager.lipSyncOutput == LipSyncOutput.PortraitAndGameObject)
 				{
-					character.phonemeParameter = CustomGUILayout.TextField ("Phoneme integer:", character.phonemeParameter, "", "The name of the Animator integer parameter set to the lip-syncing phoneme integer");
+					character.phonemeParameter = CustomGUILayout.TextField ("Phoneme integer:", character.phonemeParameter, "", "The name of the Animator integer parameter set to the active lip-syncing phoneme index");
+					character.phonemeNormalisedParameter = CustomGUILayout.TextField ("Normalised phoneme float:", character.phonemeNormalisedParameter, "", "The name of the Animator float parameter set to the active lip-syncing phoneme index, relative to the number of phonemes");
 					if (character.GetShapeable ())
 					{
 						character.lipSyncGroupID = ActionBlendShape.ShapeableGroupGUI ("Phoneme shape group:", character.GetShapeable ().shapeGroups, character.lipSyncGroupID);
@@ -162,13 +163,14 @@ namespace AC
 			#if UNITY_EDITOR
 			if (character.useExpressions)
 			{
-				character.mapExpressionsToShapeable = CustomGUILayout.Toggle ("Map to Shapeable?", character.mapExpressionsToShapeable, "", "If True, a Shapeable component can be mapped to expressions to allow for expression tokens to control blendshapes");
+				character.mapExpressionsToShapeable = CustomGUILayout.Toggle ("Map to Shapeable?", character.mapExpressionsToShapeable, string.Empty, "If True, a Shapeable component can be mapped to expressions to allow for expression tokens to control blendshapes");
 				if (character.mapExpressionsToShapeable)
 				{
 					if (character.GetShapeable ())
 					{
 						character.expressionGroupID = ActionBlendShape.ShapeableGroupGUI ("Expression shape group:", character.GetShapeable ().shapeGroups, character.expressionGroupID);
 						EditorGUILayout.HelpBox ("The names of the expressions below must match the shape key labels.", MessageType.Info);
+						character.expressionTransitionTime = CustomGUILayout.FloatField ("Transition time (s)", character.expressionTransitionTime, string.Empty, "The time to transition between expressions via shapekey");
 					}
 					else
 					{
@@ -257,7 +259,7 @@ namespace AC
 			
 			if (action.methodMecanim == AnimMethodCharMecanim.ChangeParameterValue)
 			{
-				action.parameterNameID = Action.ChooseParameterGUI ("Parameter to affect:", parameters, action.parameterNameID, ParameterType.String);
+				action.parameterNameID = Action.ChooseParameterGUI ("Parameter to affect:", parameters, action.parameterNameID, new ParameterType[2] { ParameterType.String, ParameterType.PopUp });
 				if (action.parameterNameID < 0)
 				{
 					action.parameterName = EditorGUILayout.TextField ("Parameter to affect:", action.parameterName);
@@ -332,12 +334,12 @@ namespace AC
 
 			else if (action.methodMecanim == AnimMethodCharMecanim.PlayCustom)
 			{
-				action.clip2DParameterID = Action.ChooseParameterGUI ("Clip name:", parameters, action.clip2DParameterID, ParameterType.String);
+				action.clip2DParameterID = Action.ChooseParameterGUI ("Clip name:", parameters, action.clip2DParameterID, new ParameterType[2] { ParameterType.String, ParameterType.PopUp });
 				if (action.clip2DParameterID < 0)
 				{
 					action.clip2D = EditorGUILayout.TextField ("Clip name:", action.clip2D);
 				}
-				action.includeDirection = EditorGUILayout.Toggle ("Add directional suffix?", action.includeDirection);
+				//action.includeDirection = EditorGUILayout.Toggle ("Add directional suffix?", action.includeDirection);
 				
 				action.layerInt = EditorGUILayout.IntField ("Mecanim layer:", action.layerInt);
 				action.fadeTime = EditorGUILayout.Slider ("Transition time:", action.fadeTime, 0f, 1f);
@@ -472,10 +474,10 @@ namespace AC
 							action.isRunning = true;
 
 							string clip2DNew = action.clip2D;
-							if (action.includeDirection)
+							/*if (action.includeDirection)
 							{
 								clip2DNew += character.GetSpriteDirection ();
-							}
+							}*/
 							character.GetAnimator ().CrossFade (clip2DNew, action.fadeTime, action.layerInt);
 
 							if (action.willWait)
@@ -542,7 +544,7 @@ namespace AC
 
 			if (action.methodMecanim == AnimMethodMecanim.ChangeParameterValue)
 			{
-				action.parameterNameID = Action.ChooseParameterGUI ("Parameter to affect:", parameters, action.parameterNameID, ParameterType.String);
+				action.parameterNameID = Action.ChooseParameterGUI ("Parameter to affect:", parameters, action.parameterNameID, new ParameterType[2] { ParameterType.String, ParameterType.PopUp });
 				if (action.parameterNameID < 0)
 				{
 					action.parameterName = EditorGUILayout.TextField ("Parameter to affect:", action.parameterName);
@@ -587,7 +589,7 @@ namespace AC
 			}
 			else if (action.methodMecanim == AnimMethodMecanim.PlayCustom)
 			{
-				action.clip2DParameterID = Action.ChooseParameterGUI ("Clip name:", parameters, action.clip2DParameterID, ParameterType.String);
+				action.clip2DParameterID = Action.ChooseParameterGUI ("Clip name:", parameters, action.clip2DParameterID, new ParameterType[2] { ParameterType.String, ParameterType.PopUp });
 				if (action.clip2DParameterID < 0)
 				{
 					action.clip2D = EditorGUILayout.TextField ("Clip name:", action.clip2D);
@@ -738,10 +740,8 @@ namespace AC
 					case AnimMethodMecanim.PlayCustom:
 						if (action.runtimeAnimator && !string.IsNullOrEmpty (action.clip2D))
 						{
-							#if UNITY_EDITOR
-
 							int hash = Animator.StringToHash (action.clip2D);
-							if (action.runtimeAnimator.HasState (0, hash))
+							if (action.runtimeAnimator.HasState (action.layerInt, hash))
 							{
 								action.runtimeAnimator.CrossFade (hash, action.fadeTime, action.layerInt);
 							}
@@ -749,17 +749,6 @@ namespace AC
 							{
 								action.ReportWarning ("Cannot play clip " + action.clip2D + " on " + action.runtimeAnimator.name, action.runtimeAnimator);
 							}
-
-							#else
-						
-							try
-							{
-								action.runtimeAnimator.CrossFade (action.clip2D, action.fadeTime, action.layerInt);
-							}
-							catch
-							{}
-						
-							#endif
 
 							if (action.willWait)
 							{
@@ -961,9 +950,16 @@ namespace AC
 				animator.SetBool (character.talkParameter, character.isTalking);
 			}
 
-			if (!string.IsNullOrEmpty (character.phonemeParameter) && character.LipSyncGameObject ())
+			if (character.LipSyncGameObject ())
 			{
-				animator.SetInteger (character.phonemeParameter, character.GetLipSyncFrame ());
+				if (!string.IsNullOrEmpty (character.phonemeParameter))
+				{
+					animator.SetInteger (character.phonemeParameter, character.GetLipSyncFrame ());
+				}
+				if (!string.IsNullOrEmpty (character.phonemeNormalisedParameter))
+				{
+					animator.SetFloat (character.phonemeNormalisedParameter, character.GetLipSyncNormalised ());
+				}
 			}
 
 			if (!string.IsNullOrEmpty (character.expressionParameter) && character.useExpressions)
@@ -1038,11 +1034,11 @@ namespace AC
 			{
 				if (character.CurrentExpression != null)
 				{
-					character.GetShapeable ().SetActiveKey (character.expressionGroupID, character.CurrentExpression.label, 100f, 0.2f, MoveMethod.Smooth, null);
+					character.GetShapeable ().SetActiveKey (character.expressionGroupID, character.CurrentExpression.label, 100f, character.expressionTransitionTime, MoveMethod.Smooth, null);
 				}
 				else
 				{
-					character.GetShapeable ().DisableAllKeys (character.expressionGroupID, 0.2f, MoveMethod.Smooth, null);
+					character.GetShapeable ().DisableAllKeys (character.expressionGroupID, character.expressionTransitionTime, MoveMethod.Smooth, null);
 				}
 			}
 		}

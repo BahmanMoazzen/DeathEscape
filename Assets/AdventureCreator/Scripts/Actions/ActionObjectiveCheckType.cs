@@ -1,13 +1,12 @@
 ﻿#if UNITY_EDITOR
 using UnityEditor;
 #endif
-using System.Collections.Generic;
 
 namespace AC
 {
 
 	[System.Serializable]
-	public class ActionObjectiveCheckType : Action
+	public class ActionObjectiveCheckType : Action, IObjectiveReferencerAction
 	{
 
 		public int objectiveID;
@@ -98,9 +97,20 @@ namespace AC
 		}
 
 
-		public override int GetObjectiveReferences (int _objectiveID)
+		public int GetNumObjectiveReferences (int _objectiveID)
 		{
 			return (objectiveID == _objectiveID) ? 1 : 0;
+		}
+
+
+		public int UpdateObjectiveReferences (int oldObjectiveID, int newObjectiveID)
+		{
+			if (objectiveID == oldObjectiveID)
+			{
+				objectiveID = newObjectiveID;
+				return 1;
+			}
+			return 0;
 		}
 
 		#endif

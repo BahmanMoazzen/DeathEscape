@@ -1,13 +1,15 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"CharacterAnimation2DShot.cs"
  * 
  *	A PlayableAsset that keeps track of what direction a 2D character should face when controlled by Timeline
  * 
  */
+
+#if !ACIgnoreTimeline
 
 using UnityEngine;
 using UnityEngine.Playables;
@@ -18,7 +20,7 @@ using UnityEditor;
 namespace AC
 {
 
-	public class CharacterAnimation2DShot : PlayableAsset
+	public class CharacterAnimation2DShot : CharacterAnimationShot
 	{
 
 		#region Variables
@@ -66,3 +68,5 @@ namespace AC
 	}
 
 }
+
+#endif

@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"MenuButton.cs"
  * 
@@ -11,6 +11,7 @@
 
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.Serialization;
 #if UNITY_EDITOR
 using UnityEditor;	
 #endif
@@ -30,8 +31,7 @@ namespace AC
 		/** What pointer state registers as a 'click' for Unity UI Menus (PointerClick, PointerDown, PointerEnter) */
 		public UIPointerState uiPointerState = UIPointerState.PointerClick;
 
-		/** The text that's displayed on-screen */
-		public string label = "Element";
+		[SerializeField] [FormerlySerializedAs ("label")] private string _label = "Element";
 		/** The text that appears in the Hotspot label buffer when the mouse hovers over */
 		public string hotspotLabel = "";
 		/** The translation ID of the text that appears in the Hotspot label buffer when the mouse hovers over, as set in SpeechManager */
@@ -100,7 +100,7 @@ namespace AC
 			uiText = null;
 			uiButton = null;
 			uiPointerState = UIPointerState.PointerClick;
-			label = "Button";
+			_label = "Button";
 			hotspotLabel = string.Empty;
 			hotspotLabelID = -1;
 			isVisible = true;
@@ -156,7 +156,7 @@ namespace AC
 			}
 			uiPointerState = _element.uiPointerState;
 
-			label = _element.label;
+			_label = _element._label;
 			hotspotLabel = _element.hotspotLabel;
 			hotspotLabelID = _element.hotspotLabelID;
 			anchor = _element.anchor;
@@ -280,7 +280,7 @@ namespace AC
 				CustomGUILayout.BeginVertical ();
 			}
 
-			label = CustomGUILayout.TextField ("Button text:", label, apiPrefix + ".label", "The text that's displayed on-screen");
+			_label = CustomGUILayout.TextField ("Button text:", _label, apiPrefix + ".label", "The text that's displayed on-screen");
 			buttonClickType = (AC_ButtonClickType) CustomGUILayout.EnumPopup ("Click type:", buttonClickType, apiPrefix + ".buttonClickType", "The type of reaction that occurs when clicked");
 
 			if (buttonClickType == AC_ButtonClickType.TurnOffMenu)
@@ -387,13 +387,25 @@ namespace AC
 
 		public override int GetVariableReferences (int varID)
 		{
-			int numFound = 0;
 			string tokenText = "[var:" + varID.ToString () + "]";
 			if (label.Contains (tokenText))
 			{
-				numFound ++;
+				return 1;
 			}
-			return numFound + base.GetVariableReferences (varID);
+			return 0;
+		}
+
+
+		public override int UpdateVariableReferences (int oldVarID, int newVarID)
+		{
+			string oldTokenText = AdvGame.GetVariableTokenText (VariableLocation.Global, oldVarID);
+			if (label.ToLower ().Contains (oldTokenText))
+			{
+				string newTokenText = AdvGame.GetVariableTokenText (VariableLocation.Local, oldVarID);
+				label = label.Replace (oldTokenText, newTokenText);
+				return 1;
+			}
+			return 0;
 		}
 
 
@@ -415,6 +427,20 @@ namespace AC
 		}
 
 
+		public override int GetSlotIndex (GameObject gameObject)
+		{
+			if (uiButton && uiButton.gameObject == gameObject)
+			{
+				return 0;
+			}
+			if (uiText && uiText.gameObject == gameObject)
+			{
+				return 0;
+			}
+			return base.GetSlotIndex (gameObject);
+		}
+
+
 		/** Shows the assigned clickTexture overlay, which fades out over time. */
 		public void ShowClick ()
 		{
@@ -433,11 +459,17 @@ namespace AC
 		}
 
 
+		protected override string GetLabelToTranslate ()
+		{
+			return label;
+		}
+
+
 		public override void PreDisplay (int _slot, int languageNumber, bool isActive)
 		{
 			SetEffectiveVisibility (true);
 
-			fullText = TranslateLabel (label, languageNumber);
+			fullText = TranslateLabel (languageNumber);
 			fullText = AdvGame.ConvertTokens (fullText, languageNumber);
 
 			if (uiButton)
@@ -459,13 +491,6 @@ namespace AC
 		}
 		
 
-		/**
-		 * <summary>Draws the element using OnGUI</summary>
-		 * <param name = "_style">The GUIStyle to draw with</param>
-		 * <param name = "_slot">Ignored by this subclass</param>
-		 * <param name = "zoom">The zoom factor</param>
-		 * <param name = "isActive">If True, then the element will be drawn as though highlighted</param>
-		 */
 		public override void Display (GUIStyle _style, int _slot, float zoom, bool isActive)
 		{
 			base.Display (_style, _slot, zoom, isActive);
@@ -506,15 +531,9 @@ namespace AC
 		}
 
 
-		/**
-		 * <summary>Gets the display text of the element</summary>
-		 * <param name = "slot">Ignored by this subclass</param>
-		 * <param name = "languageNumber">The index number of the language number to get the text in</param>
-		 * <returns>The display text of the element</returns>
-		 */
 		public override string GetLabel (int slot, int languageNumber)
 		{
-			return TranslateLabel (label, languageNumber);
+			return TranslateLabel (languageNumber);
 		}
 
 
@@ -537,17 +556,12 @@ namespace AC
 			}
 			else
 			{
-				GUIContent content = new GUIContent (TranslateLabel (label, Options.GetLanguage ()));
+				GUIContent content = new GUIContent (TranslateLabel (Options.GetLanguage ()));
 				AutoSize (content);
 			}
 		}
 
 
-		/**
-		 * <summary>Recalculates the element's size.
-		 * This should be called whenever a Menu's shape is changed.</summary>
-		 * <param name = "source">How the parent Menu is displayed (AdventureCreator, UnityUiPrefab, UnityUiInScene)</param>
-		 */
 		public override void RecalculateSize (MenuSource source)
 		{
 			SetEffectiveVisibility (false);
@@ -695,11 +709,7 @@ namespace AC
 		 */
 		public string GetHotspotLabel (int languageNumber)
 		{
-			if (languageNumber > 0)
-			{
-				return KickStarter.runtimeLanguages.GetTranslation (hotspotLabel, hotspotLabelID, languageNumber, GetTranslationType (0));
-			}
-			return hotspotLabel;
+			return KickStarter.runtimeLanguages.GetTranslation (hotspotLabel, hotspotLabelID, languageNumber, GetTranslationType (0));
 		}
 
 
@@ -715,6 +725,24 @@ namespace AC
 				{
 					isVisible = value;
 					KickStarter.eventManager.Call_OnMenuElementChangeVisibility (this);
+				}
+			}
+		}
+
+
+		/** The text that's displayed on-screen */
+		public string label
+		{
+			get
+			{
+				return _label;
+			}
+			set
+			{
+				_label = value;
+				if (Application.isPlaying)
+				{
+					ClearCache ();
 				}
 			}
 		}

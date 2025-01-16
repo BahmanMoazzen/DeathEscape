@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"AnimEngine_Legacy.cs"
  * 
@@ -129,6 +129,7 @@ namespace AC
 					{
 						character.expressionGroupID = ActionBlendShape.ShapeableGroupGUI ("Expression shape group:", character.GetShapeable ().shapeGroups, character.expressionGroupID);
 						EditorGUILayout.HelpBox ("The names of the expressions below must match the shape key labels.", MessageType.Info);
+						character.expressionTransitionTime = CustomGUILayout.FloatField ("Transition time (s)", character.expressionTransitionTime, string.Empty, "The time to transition between expressions via shapekey");
 					}
 					else
 					{
@@ -1191,11 +1192,11 @@ namespace AC
 			{
 				if (character.CurrentExpression != null)
 				{
-					character.GetShapeable ().SetActiveKey (character.expressionGroupID, character.CurrentExpression.label, 100f, 0.2f, MoveMethod.Smooth, null);
+					character.GetShapeable ().SetActiveKey (character.expressionGroupID, character.CurrentExpression.label, 100f, character.expressionTransitionTime, MoveMethod.Smooth, null);
 				}
 				else
 				{
-					character.GetShapeable ().DisableAllKeys (character.expressionGroupID, 0.2f, MoveMethod.Smooth, null);
+					character.GetShapeable ().DisableAllKeys (character.expressionGroupID, character.expressionTransitionTime, MoveMethod.Smooth, null);
 				}
 			}
 		}

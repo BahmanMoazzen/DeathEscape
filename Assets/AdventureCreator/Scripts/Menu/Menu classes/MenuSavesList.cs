@@ -2,7 +2,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"MenuSavesList.cs"
  * 
@@ -85,9 +85,6 @@ namespace AC
 		private int eventSlot;
 
 
-		/**
-		 * Initialises the element when it is created within MenuManager.
-		 */
 		public override void Declare ()
 		{
 			uiSlots = null;
@@ -207,10 +204,6 @@ namespace AC
 		}
 
 
-		/**
-		 * <summary>Gets the first linked Unity UI GameObject associated with this element.</summary>
-		 * <param name = "The first Unity UI GameObject associated with the element</returns>
-		 */
 		public override GameObject GetObjectToSelect (int slotIndex = 0)
 		{
 			if (uiSlots != null && uiSlots.Length > slotIndex && uiSlots[slotIndex].uiButton && numSlots > slotIndex)
@@ -221,11 +214,6 @@ namespace AC
 		}
 		
 
-		/**
-		 * <summary>Gets the boundary of a slot</summary>
-		 * <param name = "_slot">The index number of the slot to get the boundary of</param>
-		 * <returns>The boundary Rect of the slot</returns>
-		 */
 		public override RectTransform GetRectTransform (int _slot)
 		{
 			if (uiSlots != null && uiSlots.Length > _slot)
@@ -330,7 +318,7 @@ namespace AC
 			}
 			else
 			{
-				maxSlots = CustomGUILayout.IntField ("Maximum number of slots:", maxSlots, apiPrefix + ".maxSlots", "The maximum number of slots that can be displayed at once");
+				maxSlots = CustomGUILayout.IntField ("Maximum # of slots:", maxSlots, apiPrefix + ".maxSlots", "The maximum number of slots that can be displayed at once");
 				if (maxSlots < 0) maxSlots = 0;
 				allowEmptySlots = CustomGUILayout.Toggle ("Allow empty slots?", allowEmptySlots, apiPrefix + ".allowEmptySlots", "If True, then all slots will be shown even if they are not already assigned a save file.");
 
@@ -490,13 +478,76 @@ namespace AC
 		public override int GetVariableReferences (int _varID)
 		{
 			int numFound = 0;
+			string tokenText = AdvGame.GetVariableTokenText (VariableLocation.Global, _varID);
 
-			if (saveListType == AC_SaveListType.Import && checkImportBool && checkImportVar == _varID)
+			switch (saveListType)
 			{
-				numFound ++;
+				case AC_SaveListType.Save:
+					if (newSaveText.ToLower ().Contains (tokenText))
+					{
+						numFound++;
+					}
+					break;
+
+				case AC_SaveListType.Load:
+					if (emptySlotText.ToLower ().Contains (tokenText))
+					{
+						numFound++;
+					}
+					break;
+
+				case AC_SaveListType.Import:
+					if (checkImportBool && checkImportVar == _varID)
+					{
+						numFound++;
+					}
+					break;
+
+				default:
+					break;
 			}
 
-			return numFound + base.GetVariableReferences (_varID);
+			return numFound;
+		}
+
+
+		public override int UpdateVariableReferences (int oldVarID, int newVarID)
+		{
+			int numFound = 0;
+			string oldTokenText = AdvGame.GetVariableTokenText (VariableLocation.Global, oldVarID);
+			string newTokenText = AdvGame.GetVariableTokenText (VariableLocation.Global, newVarID);
+
+			switch (saveListType)
+			{
+				case AC_SaveListType.Save:
+					if (newSaveText.ToLower ().Contains (oldTokenText))
+					{
+						newSaveText = newSaveText.Replace (oldTokenText, newTokenText);
+						numFound++;
+					}
+					break;
+
+				case AC_SaveListType.Load:
+					if (emptySlotText.ToLower ().Contains (oldTokenText))
+					{
+						emptySlotText = emptySlotText.Replace (oldTokenText, newTokenText);
+						numFound++;
+					}
+					break;
+
+				case AC_SaveListType.Import:
+					if (checkImportBool && checkImportVar == oldVarID)
+					{
+						checkImportVar = newVarID;
+						numFound++;
+					}
+					break;
+
+				default:
+					break;
+			}
+
+			return numFound;
 		}
 
 
@@ -521,12 +572,19 @@ namespace AC
 		}
 
 
-		/**
-		 * <summary>Gets the display text of the element</summary>
-		 * <param name = "slot">The index number of the slot</param>
-		 * <param name = "languageNumber">The index number of the language number to get the text in</param>
-		 * <returns>The display text of the element's slot, or the whole element if it only has one slot</returns>
-		 */
+		public override int GetSlotIndex (GameObject gameObject)
+		{
+			for (int i = 0; i < uiSlots.Length; i++)
+			{
+				if (uiSlots[i].uiButton && uiSlots[i].uiButton == gameObject)
+				{
+					return 0;
+				}
+			}
+			return base.GetSlotIndex (gameObject);
+		}
+
+
 		public override string GetLabel (int _slot, int languageNumber)
 		{
 			if (saveListType == AC_SaveListType.Save)
@@ -652,7 +710,8 @@ namespace AC
 					}
 				}
 
-				labels [_slot] = fullText;
+				if (_slot < labels.Length)
+					labels [_slot] = fullText;
 			}
 
 			if (Application.isPlaying)
@@ -700,13 +759,6 @@ namespace AC
 		}
 		
 
-		/**
-		 * <summary>Draws the element using OnGUI</summary>
-		 * <param name = "_style">The GUIStyle to draw with</param>
-		 * <param name = "_slot">The index number of the slot to display</param>
-		 * <param name = "zoom">The zoom factor</param>
-		 * <param name = "isActive If True, then the element will be drawn as though highlighted</param>
-		 */
 		public override void Display (GUIStyle _style, int _slot, float zoom, bool isActive)
 		{
 			base.Display (_style, _slot, zoom, isActive);
@@ -907,11 +959,6 @@ namespace AC
 		}
 
 
-		/**
-		 * <summary>Recalculates the element's size.
-		 * This should be called whenever a Menu's shape is changed.</summary>
-		 * <param name = "source">How the parent Menu is displayed (AdventureCreator, UnityUiPrefab, UnityUiInScene)</param>
-		 */
 		public override void RecalculateSize (MenuSource source)
 		{
 			newSaveSlot = false;
@@ -955,7 +1002,6 @@ namespace AC
 
 						if (saveListType == AC_SaveListType.Save &&
 							numSlots < KickStarter.settingsManager.maxSaves &&
-							numSlots < maxSlots &&
 							showNewSaveOption)
 						{
 							newSaveSlot = true;
@@ -1022,11 +1068,6 @@ namespace AC
 		}
 
 
-		/**
-		 * <summary>Checks if the element's slots can be shifted in a particular direction.</summary>
-		 * <param name = "shiftType">The direction to shift slots in (Left, Right)</param>
-		 * <returns>True if the element's slots can be shifted in the particular direction</returns>
-		 */
 		public override bool CanBeShifted (AC_ShiftInventory shiftType)
 		{
 			if (numSlots == 0 || fixedOption)
@@ -1062,11 +1103,6 @@ namespace AC
 		}
 
 
-		/**
-		 * <summary>Shifts which slots are on display, if the number of slots the element has exceeds the number of slots it can show at once.</summary>
-		 * <param name = "shiftType">The direction to shift slots in (Left, Right)</param>
-		 * <param name = "amount">The amount to shift slots by</param>
-		 */
 		public override void Shift (AC_ShiftInventory shiftType, int amount)
 		{
 			if (fixedOption) return;
@@ -1094,7 +1130,7 @@ namespace AC
 
 		private string TranslateLabel (string label, int _lineID, int languageNumber)
 		{
-			if (languageNumber == 0)
+			if (KickStarter.runtimeLanguages == null)
 			{
 				return label;
 			}

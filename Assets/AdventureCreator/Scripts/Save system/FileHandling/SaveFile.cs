@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"SaveFile.cs"
  * 
@@ -49,7 +49,7 @@ namespace AC
 			fileName = _fileName;
 			screenShot = _screenShot;
 			screenshotFilename = _screenshotFilename;
-
+			
 			if (_updatedTime > 0)
 			{
 				updatedTime = 200000000 - _updatedTime;

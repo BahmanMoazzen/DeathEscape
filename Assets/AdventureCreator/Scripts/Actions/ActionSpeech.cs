@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"ActionSpeech.cs"
  * 
@@ -95,6 +95,11 @@ namespace AC
 				runtimeSpeaker = AssignFile<Char> (parameters, parameterID, constantID, speaker);
 			}
 
+			if (runtimeSpeaker && !runtimeSpeaker.gameObject.activeInHierarchy && runtimeSpeaker.displayLineID == -1 && runtimeSpeaker.lineID >= 0)
+			{ 
+				runtimeSpeaker.displayLineID = runtimeSpeaker.lineID;
+			}
+
 			#if AddressableIsPresent
 			isAwaitingAddressableAudio = false;
 			isAwaitingAddressableLipsync = false;
@@ -166,6 +171,7 @@ namespace AC
 						}
 
 						string filename = speechLine.GetFilename (overrideName);
+						
 						Addressables.LoadAssetAsync<AudioClip>(filename).Completed += OnCompleteLoadAudio;
 						isAwaitingAddressableAudio = true;
 
@@ -210,7 +216,7 @@ namespace AC
 							string[] textArray = messageText.Split (stringSeparators, System.StringSplitOptions.None);
 							if (textArray != null && textArray.Length > 1)
 							{
-								LogWarning ("Cannot separate multiple speech lines when 'Is Background?' is checked - will only play '" + textArray[0] + "'");
+								LogWarning ("Cannot separate multiple speech lines when 'Play in background?' is checked - will only play '" + textArray[0] + "'");
 							}
 						}
 
@@ -221,14 +227,14 @@ namespace AC
 				}
 				else
 				{
-					if (stopAction || (speech != null && speech.continueFromSpeech))
+					if (stopAction || (speech != null && speech.continueState == Speech.ContinueState.Pending))
 					{
 						if (speech != null)
 						{
-							speech.continueFromSpeech = false;
+							speech.continueState = Speech.ContinueState.Continued;
 						}
 						isRunning = false;
-
+						stopAction = false;
 						return 0;
 					}
 
@@ -404,7 +410,7 @@ namespace AC
 				}
 			}
 			
-			messageParameterID = Action.ChooseParameterGUI ("Line text:", parameters, messageParameterID, ParameterType.String);
+			messageParameterID = Action.ChooseParameterGUI ("Line text:", parameters, messageParameterID, new ParameterType[2] { ParameterType.String, ParameterType.PopUp });
 			if (messageParameterID < 0)
 			{
 				EditorGUILayout.BeginHorizontal ();
@@ -529,16 +535,32 @@ namespace AC
 		}
 
 
-		public override int GetVariableReferences (List<ActionParameter> parameters, VariableLocation location, int varID, Variables _variables, int _variablesConstantID = 0)
+		public override int GetNumVariableReferences (VariableLocation location, int varID, List<ActionParameter> parameters, Variables _variables = null, int _variablesConstantID = 0)
 		{
 			int thisCount = 0;
 
-			string tokenText = AdvGame.GetVariableTokenText (location, varID);
+			string tokenText = AdvGame.GetVariableTokenText (location, varID, _variablesConstantID);
 			if (!string.IsNullOrEmpty (tokenText) && !string.IsNullOrEmpty (messageText) && messageText.Contains (tokenText) && messageParameterID < 0)
 			{
 				thisCount ++;
 			}
-			thisCount += base.GetVariableReferences (parameters, location, varID, _variables);
+			thisCount += base.GetNumVariableReferences (location, varID, parameters, _variables, _variablesConstantID);
+			return thisCount;
+		}
+
+
+		public override int UpdateVariableReferences (VariableLocation location, int oldVarID, int newVarID, List<ActionParameter> parameters, Variables _variables = null, int _variablesConstantID = 0)
+		{
+			int thisCount = 0;
+
+			string oldTokenText = AdvGame.GetVariableTokenText (location, oldVarID, _variablesConstantID);
+			if (!string.IsNullOrEmpty (oldTokenText) && !string.IsNullOrEmpty (messageText) && messageText.Contains (oldTokenText) && messageParameterID < 0)
+			{
+				string newTokenText = AdvGame.GetVariableTokenText (location, newVarID, _variablesConstantID);
+				messageText = messageText.Replace (oldTokenText, newTokenText);
+				thisCount++;
+			}
+			thisCount += base.UpdateVariableReferences (location, oldVarID, newVarID, parameters, _variables, _variablesConstantID);
 			return thisCount;
 		}
 
@@ -547,10 +569,10 @@ namespace AC
 		{
 			if (!isPlayer && parameterID < 0)
 			{
-				if (speaker != null && speaker.gameObject == gameObject) return true;
+				if (speaker && speaker.gameObject == gameObject) return true;
 				if (constantID == id && id != 0) return true;
 			}
-			if (isPlayer && gameObject.GetComponent <Player>()) return true;
+			if (isPlayer && gameObject && gameObject.GetComponent <Player>()) return true;
 			return base.ReferencesObjectOrID (gameObject, id);
 		}
 
@@ -788,11 +810,7 @@ namespace AC
 			int _lineID = lineID;
 			
 			int languageNumber = Options.GetLanguage ();
-			if (languageNumber > 0)
-			{
-				// Not in original language, so pull translation in from Speech Manager
-				_text = KickStarter.runtimeLanguages.GetTranslation (_text, lineID, languageNumber, AC_TextType.Speech);
-			}
+			_text = KickStarter.runtimeLanguages.GetTranslation (_text, lineID, languageNumber, AC_TextType.Speech);
 			
 			_text = _text.Replace ("\\n", "\n");
 
@@ -815,10 +833,7 @@ namespace AC
 						}
 					}
 
-					if (languageNumber > 0)
-					{
-						_text = KickStarter.runtimeLanguages.GetTranslation (_text, _lineID, languageNumber, AC_TextType.Speech);
-					}
+					_text = KickStarter.runtimeLanguages.GetTranslation (_text, _lineID, languageNumber, AC_TextType.Speech);
 				}
 			}
 			

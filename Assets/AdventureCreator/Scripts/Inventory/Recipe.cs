@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"Recipe.cs"
  * 
@@ -20,7 +20,7 @@ namespace AC
 	 * A recipe requires multiple inventory items, optionally arranged in a specific pattern, and replaces them with a new inventory item.
 	 */
 	[System.Serializable]
-	public class Recipe
+	public class Recipe : IItemReferencer
 	{
 
 		#region Variables
@@ -221,6 +221,44 @@ namespace AC
 			{
 				return id.ToString () + " (" + label + ")";
 			}
+		}
+
+
+		public int GetNumItemReferences (int itemID)
+		{
+			int numReferences = 0;
+			if (resultID == itemID)
+			{
+				numReferences++;
+			}
+			foreach (Ingredient ingredient in ingredients)
+			{
+				if (ingredient.ItemID == itemID)
+				{
+					numReferences++;
+				}
+			}
+			return numReferences;
+		}
+
+
+		public int UpdateItemReferences (int oldItemID, int newItemID)
+		{
+			int numReferences = 0;
+			if (resultID == oldItemID)
+			{
+				resultID = newItemID;
+				numReferences++;
+			}
+			foreach (Ingredient ingredient in ingredients)
+			{
+				if (ingredient.ItemID == oldItemID)
+				{
+					ingredient.ItemID = newItemID;
+					numReferences++;
+				}
+			}
+			return numReferences;
 		}
 
 		#endif

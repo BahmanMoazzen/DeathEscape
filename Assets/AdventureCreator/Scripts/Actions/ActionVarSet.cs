@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"ActionVarSet.cs"
  * 
@@ -37,6 +37,7 @@ namespace AC
 		public int setParameterID = -1;
 		public int slotNumber = 0;
 		public int slotNumberParameterID = -1;
+		public bool slotAccountsForOffset = false;
 		
 		public int intValue;
 		public float floatValue;
@@ -45,6 +46,7 @@ namespace AC
 		public string formula;
 		public Vector3 vector3Value;
 		public GameObject gameObjectValue;
+		public Object unityObjectValue;
 
 		private string runtimeFormula;
 
@@ -67,6 +69,7 @@ namespace AC
 		protected Variables runtimeVariables;
 		protected string runtimeStringValue;
 		protected GameObject runtimeGameObjectValue;
+		protected Object runtimeUnityObjectValue;
 
 		#if UNITY_EDITOR
 		[SerializeField] protected VariableType placeholderType;
@@ -90,6 +93,7 @@ namespace AC
 			formula = AssignString (parameters, setParameterID, formula);
 			slotNumber = AssignInteger (parameters, slotNumberParameterID, slotNumber);
 			runtimeGameObjectValue = AssignFile (parameters, setParameterID, 0, gameObjectValue);
+			runtimeUnityObjectValue = AssignObject <Object> (parameters, setParameterID, unityObjectValue);
 
 			runtimeVariable = null;
 			switch (location)
@@ -306,6 +310,12 @@ namespace AC
 						break;
 					}
 
+				case VariableType.UnityObject:
+					{
+						var.UnityObjectValue = runtimeUnityObjectValue;
+						break;
+					}
+
 				case VariableType.PopUp:
 					{
 						int _value = 0;
@@ -316,11 +326,11 @@ namespace AC
 						}
 						else if (setVarMethod == SetVarMethod.SetAsRandom)
 						{
-							_value = var.GetNumPopUpValues ();
+							_value = Random.Range (0, var.GetNumPopUpValues ());
 						}
 						else
 						{
-							_value = Mathf.Clamp (intValue, 0, var.GetNumPopUpValues () - 1);
+							_value = intValue;
 						}
 
 						if (setVarMethod == SetVarMethod.IncreaseByValue && doSkip)
@@ -380,8 +390,11 @@ namespace AC
 								else
 								{
 									PlayerMenus.GetMenuWithName (menuName).Recalculate ();
-									menuElement.PreDisplay (slotNumber, Options.GetLanguage (), false);
-									_value = menuElement.GetLabel (slotNumber, Options.GetLanguage ());
+
+									int _slot = slotAccountsForOffset ? (slotNumber - menuElement.GetOffset ()) : slotNumber;
+
+									menuElement.PreDisplay (_slot, Options.GetLanguage (), false);
+									_value = menuElement.GetLabel (_slot, Options.GetLanguage ());
 								}
 							}
 							else
@@ -391,7 +404,7 @@ namespace AC
 						}
 						else if (setVarMethodString == SetVarMethodString.CombinedWithOtherString)
 						{
-							_value = var.TextValue + AdvGame.ConvertTokens (stringValue, Options.GetLanguage (), localVariables);
+							_value = var.TextValue + AdvGame.ConvertTokens (runtimeStringValue, Options.GetLanguage (), localVariables);
 						}
 
 						var.SetStringValue (_value, lineID);
@@ -567,7 +580,7 @@ namespace AC
 						{
 							label += "=";
 
-							setParameterID = Action.ChooseParameterGUI (label, parameters, setParameterID, ParameterType.String);
+							setParameterID = Action.ChooseParameterGUI (label, parameters, setParameterID, new ParameterType[2] { ParameterType.String, ParameterType.PopUp });
 							if (setParameterID < 0)
 							{
 								formula = EditorGUILayout.TextField (label, formula);
@@ -621,7 +634,7 @@ namespace AC
 						{
 							label += "=";
 							
-							setParameterID = Action.ChooseParameterGUI (label, parameters, setParameterID, ParameterType.String);
+							setParameterID = Action.ChooseParameterGUI (label, parameters, setParameterID, new ParameterType[2] { ParameterType.String, ParameterType.PopUp });
 							if (setParameterID < 0)
 							{
 								formula = EditorGUILayout.TextField (label, formula);
@@ -646,7 +659,7 @@ namespace AC
 								label += ("= 0 to");
 							}
 
-							setParameterID = Action.ChooseParameterGUI (label, parameters, setParameterID, ParameterType.Integer);
+							setParameterID = Action.ChooseParameterGUI (label, parameters, setParameterID, new ParameterType[2] { ParameterType.Integer, ParameterType.PopUp });
 							if (setParameterID < 0)
 							{
 								intValue = EditorGUILayout.IntField (label, intValue);
@@ -671,7 +684,7 @@ namespace AC
 					{
 						label += "=";
 						
-						setParameterID = Action.ChooseParameterGUI (label, parameters, setParameterID, ParameterType.String);
+						setParameterID = Action.ChooseParameterGUI (label, parameters, setParameterID, new ParameterType[2] { ParameterType.String, ParameterType.PopUp });
 						if (setParameterID < 0)
 						{
 							formula = EditorGUILayout.TextField (label, formula);
@@ -692,7 +705,7 @@ namespace AC
 							label += "=";
 						}
 
-						setParameterID = Action.ChooseParameterGUI (label, parameters, setParameterID, ParameterType.Integer);
+						setParameterID = Action.ChooseParameterGUI (label, parameters, setParameterID, new ParameterType[2] { ParameterType.Integer, ParameterType.PopUp });
 						if (setParameterID < 0)
 						{
 							if (setVarMethod == SetVarMethod.SetValue && changeID && _vars != null)
@@ -744,7 +757,7 @@ namespace AC
 
 					if (setVarMethodString == SetVarMethodString.EnteredHere || setVarMethodString == SetVarMethodString.CombinedWithOtherString)
 					{
-						setParameterID = Action.ChooseParameterGUI (label, parameters, setParameterID, ParameterType.String);
+						setParameterID = Action.ChooseParameterGUI (label, parameters, setParameterID, new ParameterType[2] { ParameterType.String, ParameterType.PopUp });
 						if (setParameterID < 0)
 						{
 							EditorGUILayout.BeginHorizontal ();
@@ -759,11 +772,12 @@ namespace AC
 						menuName = EditorGUILayout.TextField ("Menu name:", menuName);
 						elementName = EditorGUILayout.TextField ("Element name:", elementName);
 
-						slotNumberParameterID = Action.ChooseParameterGUI ("Slot # (optional):", parameters, slotNumberParameterID, ParameterType.Integer);
+						slotNumberParameterID = Action.ChooseParameterGUI ("Slot # (optional):", parameters, slotNumberParameterID, new ParameterType[2] { ParameterType.Integer, ParameterType.PopUp });
 						if (slotNumberParameterID < 0)
 						{
 							slotNumber = EditorGUILayout.IntField ("Slot # (optional):", slotNumber);
 						}
+						slotAccountsForOffset = EditorGUILayout.Toggle ("Slot # includes offset?", slotAccountsForOffset);
 					}
 					break;
 
@@ -791,6 +805,14 @@ namespace AC
 					if (setParameterID < 0)
 					{
 						gameObjectValue = (GameObject) EditorGUILayout.ObjectField (label, gameObjectValue, typeof (GameObject), location != VariableLocation.Global);
+					}
+					break;
+
+				case VariableType.UnityObject:
+					setParameterID = Action.ChooseParameterGUI (label, parameters, setParameterID, ParameterType.UnityObject);
+					if (setParameterID < 0)
+					{
+						unityObjectValue = EditorGUILayout.ObjectField (label, unityObjectValue, typeof (Object), false);
 					}
 					break;
 
@@ -960,6 +982,13 @@ namespace AC
 						labelAdd += " = " + gameObjectValue;
 					}
 				}
+				else if (vars[variableNumber].type == VariableType.UnityObject)
+				{
+					if (unityObjectValue)
+					{
+						labelAdd += " = " + unityObjectValue;
+					}
+				}
 			}
 
 			return labelAdd;
@@ -997,19 +1026,37 @@ namespace AC
 		}
 
 
-		public override int GetVariableReferences (List<ActionParameter> parameters, VariableLocation _location, int varID, Variables _variables, int _variablesConstantID = 0)
+		public override int GetNumVariableReferences (VariableLocation _location, int varID, List<ActionParameter> parameters, Variables _variables = null, int _variablesConstantID = 0)
 		{
 			int thisCount = 0;
 
 			if (location == _location && variableID == varID && parameterID < 0)
 			{
-				if (location != VariableLocation.Component || (variables && variables == _variables) || (_variablesConstantID != 0 && variablesConstantID == _variablesConstantID))
+				if (location != VariableLocation.Component || (variables && variables == _variables) || (variablesConstantID != 0 && _variablesConstantID == variablesConstantID))
 				{
 					thisCount ++;
 				}
 			}
 
-			thisCount += base.GetVariableReferences (parameters, location, varID, _variables);
+			thisCount += base.GetNumVariableReferences (location, varID, parameters, _variables, _variablesConstantID);
+			return thisCount;
+		}
+
+
+		public override int UpdateVariableReferences (VariableLocation _location, int oldVarID, int newVarID, List<ActionParameter> parameters, Variables _variables = null, int _variablesConstantID = 0)
+		{
+			int thisCount = 0;
+
+			if (location == _location && variableID == oldVarID && parameterID < 0)
+			{
+				if (location != VariableLocation.Component || (variables && variables == _variables) || (variablesConstantID != 0 && _variablesConstantID == variablesConstantID))
+				{
+					variableID = newVarID;
+					thisCount++;
+				}
+			}
+
+			thisCount += base.UpdateVariableReferences (location, oldVarID, newVarID, parameters, _variables, _variablesConstantID);
 			return thisCount;
 		}
 
@@ -1018,6 +1065,11 @@ namespace AC
 		{
 			if (location == VariableLocation.Component)
 			{
+				if (saveScriptsToo && variables && parameterID < 0)
+				{
+					AddSaveScript<RememberVariables> (variables);
+				}
+
 				AssignConstantID <Variables> (variables, variablesConstantID, parameterID);
 			}
 		}
@@ -1052,14 +1104,14 @@ namespace AC
 
 		public override bool ReferencesObjectOrID (GameObject gameObject, int id)
 		{
-			if (parameterID < 0 && gameObjectValue == gameObject)
+			if (parameterID < 0 && gameObjectValue && gameObjectValue == gameObject)
 			{
 				return true;
 			}
 
 			if (parameterID < 0 && location == VariableLocation.Component)
 			{
-				if (variables != null && variables.gameObject == gameObject) return true;
+				if (variables && variables.gameObject == gameObject) return true;
 				return (variablesConstantID == id && id != 0);
 			}
 			return base.ReferencesObjectOrID (gameObject, id);
@@ -1188,6 +1240,7 @@ namespace AC
 			newAction.location = VariableLocation.Global;
 			newAction.variableID = globalVariableID;
 			newAction.intValue = (newValue) ? 1 : 0;
+			newAction.boolValue = (newValue) ? BoolValue.True : BoolValue.False;
 			return newAction;
 		}
 
@@ -1269,6 +1322,7 @@ namespace AC
 			newAction.location = VariableLocation.Local;
 			newAction.variableID = localVariableID;
 			newAction.intValue = (newValue) ? 1 : 0;
+			newAction.boolValue = (newValue) ? BoolValue.True : BoolValue.False;
 			return newAction;
 		}
 
@@ -1356,6 +1410,7 @@ namespace AC
 			newAction.variables = variables;
 			newAction.variableID = componentVariableID;
 			newAction.intValue = (newValue) ? 1 : 0;
+			newAction.boolValue = (newValue) ? BoolValue.True : BoolValue.False;
 			return newAction;
 		}
 

@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"MenuManager.cs"
  * 
@@ -50,7 +50,9 @@ namespace AC
 		public string horizontalInputAxis = "Horizontal";
 		/** The input axis used to directly-navigate AC menus vertically */
 		public string verticalInputAxis = "Vertical";
-		
+		/** If True, then Unity UI prefab menus will be referenced by Addressable instead of directly */
+		public bool useAddressables = false;
+
 		[SerializeField] private bool hasUpgraded = false;
 
 		#if UNITY_EDITOR
@@ -77,6 +79,7 @@ namespace AC
 		private Vector2 scrollPos;
 		private Vector2 elementScrollPos;
 		private string nameFilter = "";
+		private bool filterIncludesElements = false;
 		private bool oldVisibility;
 		private int typeNumber = 0;
 		private string[] elementTypes = { "Button", "Crafting", "Cycle", "DialogList", "Drag", "Graphic", "Input", "Interaction", "InventoryBox", "Journal", "Label", "ProfilesList", "SavesList", "Slider", "Timer", "Toggle" };
@@ -91,9 +94,7 @@ namespace AC
 		}
 
 
-		/**
-		 * Shows the GUI.
-		 */
+		/** Shows the GUI. */
 		public void ShowGUI ()
 		{
 			EditorGUILayout.BeginVertical (CustomStyles.thinBox);
@@ -139,6 +140,14 @@ namespace AC
 						autoSelectValidRaycasts = CustomGUILayout.ToggleLeft ("Auto-select valid UI raycasts?", autoSelectValidRaycasts, "AC.KickStarter.menuManager.autoSelectValidRaycasts", "If True, then the simulated cursor will auto-select valid Unity UI elements");
 					}
 				}
+
+				useAddressables = CustomGUILayout.ToggleLeft ("Use Addressables for UI prefab references?", useAddressables, "AC.KickStarter.menuManager.useAddressables", "If True, then Unity UI Prefab menus are loaded using Unit's Addressable system");
+				#if !AddressableIsPresent
+				if (useAddressables)
+				{
+					EditorGUILayout.HelpBox ("The 'AddressableIsPresent' preprocessor define must be declared in the Player Settings.", MessageType.Warning);
+				}
+				#endif
 
 				if (drawInEditor && KickStarter.menuPreview == null)
 				{	
@@ -193,12 +202,12 @@ namespace AC
 					EditorGUILayout.Space ();
 					
 					string elementName = selectedMenuElement.title;
-					if (elementName == "")
+					if (string.IsNullOrEmpty (elementName))
 					{
 						elementName = "(Untitled)";
 					}
 					
-					string elementType = "";
+					string elementType = string.Empty;
 					foreach (string _elementType in elementTypes)
 					{
 						if (selectedMenuElement.GetType ().ToString ().Contains (_elementType))
@@ -244,7 +253,10 @@ namespace AC
 			{
 				if (menus != null && menus.Count > 1)
 				{
+					EditorGUILayout.BeginHorizontal ();
 					nameFilter = EditorGUILayout.TextField ("Filter by name:", nameFilter);
+					filterIncludesElements = GUILayout.Toggle (filterIncludesElements, "Include elements", "toolbarbutton", GUILayout.MaxWidth (130f));
+					EditorGUILayout.EndHorizontal ();
 					EditorGUILayout.Space ();
 				}
 
@@ -264,6 +276,20 @@ namespace AC
 					{
 						_menu.showInFilter = true;
 						numInFilter ++;
+						continue;
+					}
+
+					if (filterIncludesElements)
+					{
+						foreach (MenuElement element in _menu.elements)
+						{
+							if (element.title.ToLower ().Contains (nameFilter.ToLower ()))
+							{
+								_menu.showInFilter = true;
+								numInFilter ++;
+								break;
+							}
+						}
 					}
 				}
 
@@ -437,7 +463,7 @@ namespace AC
 		
 		
 		private void CreateElementsGUI (AC.Menu _menu)
-		{	
+		{
 			if (_menu.elements != null && _menu.elements.Count > 0)
 			{
 				elementScrollPos = EditorGUILayout.BeginScrollView (elementScrollPos, GUILayout.Height (Mathf.Min (_menu.elements.Count * 22, 295f) + 9));
@@ -447,8 +473,16 @@ namespace AC
 					if (_element != null)
 					{
 						string elementName = _element.title;
-						
-						if (elementName == "")
+
+						if (filterIncludesElements && !string.IsNullOrEmpty (nameFilter))
+						{
+							if (!elementName.ToLower ().Contains (nameFilter.ToLower ()))
+							{
+								continue;
+							}
+						}
+
+						if (string.IsNullOrEmpty (elementName))
 						{
 							elementName = "(Untitled)";
 						}
@@ -464,7 +498,7 @@ namespace AC
 							}
 						}
 
-						if (GUILayout.Button ("", CustomStyles.IconCog))
+						if (GUILayout.Button (string.Empty, CustomStyles.IconCog))
 						{
 							SideMenu (_menu, _element);
 						}
@@ -520,7 +554,7 @@ namespace AC
 		{
 			foreach (MenuElement menuElement in menu.elements)
 			{
-				UnityEngine.Object.DestroyImmediate (menuElement, true);
+				DestroyImmediate (menuElement, true);
 				AssetDatabase.SaveAssets();
 			}
 			CleanUpAsset ();
@@ -589,7 +623,7 @@ namespace AC
 			idArray.Sort ();
 			
 			className = "Menu" + className;
-			MenuElement newElement = (MenuElement) CreateInstance (className);
+			MenuElement newElement = (MenuElement) CreateInstance ("AC." + className);
 			newElement.Declare ();
 			newElement.title = className.Substring (4);
 			
@@ -886,7 +920,7 @@ namespace AC
 			}
 
 			menu.AddSeparator (string.Empty);
-			menu.AddItem (new GUIContent ("Find references"), false, ElementCallback, "Find refences");
+			menu.AddItem (new GUIContent ("Find references"), false, ElementCallback, "Find references");
 			
 			menu.ShowAsContext ();
 		}
@@ -1027,7 +1061,7 @@ namespace AC
 				return;
 			}
 
-			if (EditorUtility.DisplayDialog("Search '" + menu.title + "' references?", "The Editor will search assets, and active scenes listed in the Build Settings, for references to the Menu.  The current scene will need to be saved and listed to be included in the search process. Continue?", "OK", "Cancel"))
+			if (EditorUtility.DisplayDialog ("Search '" + menu.title + "' references?", "The Editor will search assets, and active scenes listed in the Build Settings, for references to the Menu.  The current scene will need to be saved and listed to be included in the search process. Continue?", "OK", "Cancel"))
 			{
 				if (UnityEditor.SceneManagement.EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo ())
 				{
@@ -1046,7 +1080,7 @@ namespace AC
 								if (button.buttonClickType == AC_ButtonClickType.Crossfade && button.switchMenuTitle == menu.title)
 								{
 									totalNumReferences++;
-									ACDebug.Log ("Found reference to menu '" + menu.title+ "' in Button element '" + element.title + "' in Menu '" + _menu.title + "'");
+									ACDebug.Log ("Found reference to menu '" + menu.title + "' in Button element '" + element.title + "' in Menu '" + _menu.title + "'");
 								}
 							}
 						}
@@ -1057,16 +1091,27 @@ namespace AC
 					string[] sceneFiles = AdvGame.GetSceneFiles ();
 					foreach (string sceneFile in sceneFiles)
 					{
-						UnityVersionHandler.OpenScene(sceneFile);
+						UnityVersionHandler.OpenScene (sceneFile);
 
-						ActionList[] actionLists = FindObjectsOfType <ActionList>();
-						foreach (ActionList actionList in actionLists)
+						MonoBehaviour[] sceneObjects = FindObjectsOfType<MonoBehaviour> ();
+						for (int i = 0; i < sceneObjects.Length; i++)
 						{
-							totalNumReferences += actionList.GetMenuReferences (menu, sceneFile);
+							MonoBehaviour currentObj = sceneObjects[i];
+							IMenuReferencer currentComponent = currentObj as IMenuReferencer;
+							if (currentComponent != null)
+							{
+								ActionList.logSuffix = string.Empty;
+								int thisNumReferences = currentComponent.GetNumMenuReferences (menu.title);
+								if (thisNumReferences > 0)
+								{
+									totalNumReferences += thisNumReferences;
+									ACDebug.Log ("Found " + thisNumReferences + " reference(s) to Menu '" + menu.title + "' in " + currentComponent.GetType () + " in scene '" + sceneFile + "'" + ActionList.logSuffix, currentObj);
+								}
+							}
 						}
 					}
 
-					UnityVersionHandler.OpenScene(originalScene);
+					UnityVersionHandler.OpenScene (originalScene);
 
 					// Search assets
 					if (AdvGame.GetReferences().speechManager != null)
@@ -1074,7 +1119,13 @@ namespace AC
 						ActionListAsset[] allActionListAssets = AdvGame.GetReferences ().speechManager.GetAllActionListAssets ();
 						foreach (ActionListAsset actionListAsset in allActionListAssets)
 						{
-							totalNumReferences += actionListAsset.GetMenuReferences (menu);
+							ActionList.logSuffix = string.Empty;
+							int thisNumReferences = actionListAsset.GetNumMenuReferences (menu.title);
+							if (thisNumReferences > 0)
+							{
+								ACDebug.Log ("Found " + thisNumReferences + " reference(s) to Menu '" + menu.title + "' in ActionList asset '" + actionListAsset.name + "'" + ActionList.logSuffix, actionListAsset);
+								totalNumReferences += thisNumReferences;
+							}
 						}
 					}
 
@@ -1094,7 +1145,7 @@ namespace AC
 				return;
 			}
 
-			if (EditorUtility.DisplayDialog("Search '" + element.title + "' references?", "The Editor will search assets, and active scenes listed in the Build Settings, for references to the Menu Element.  The current scene will need to be saved and listed to be included in the search process. Continue?", "OK", "Cancel"))
+			if (EditorUtility.DisplayDialog ("Search '" + element.title + "' references?", "The Editor will search assets, and active scenes listed in the Build Settings, for references to the Menu Element.  The current scene will need to be saved and listed to be included in the search process. Continue?", "OK", "Cancel"))
 			{
 				if (UnityEditor.SceneManagement.EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
 				{
@@ -1113,7 +1164,7 @@ namespace AC
 								if ((button.buttonClickType == AC_ButtonClickType.OffsetElementSlot || button.buttonClickType == AC_ButtonClickType.OffsetJournal) && button.inventoryBoxTitle == element.title)
 								{
 									totalNumReferences++;
-									ACDebug.Log ("Found reference to element '" + element.title + "' in Button element '" + _element.title + "' in Menu '" + _menu.title + "'");
+									ACDebug.Log ("Found reference to Menu element  '" + element.title + "' in Button element '" + _element.title + "' in Menu '" + _menu.title + "'");
 								}
 							}
 						}
@@ -1126,10 +1177,21 @@ namespace AC
 					{
 						UnityVersionHandler.OpenScene(sceneFile);
 
-						ActionList[] actionLists = FindObjectsOfType <ActionList>();
-						foreach (ActionList actionList in actionLists)
+						MonoBehaviour[] sceneObjects = FindObjectsOfType<MonoBehaviour> ();
+						for (int i = 0; i < sceneObjects.Length; i++)
 						{
-							totalNumReferences += actionList.GetMenuElementReferences (menu, element, sceneFile);
+							MonoBehaviour currentObj = sceneObjects[i];
+							IMenuReferencer currentComponent = currentObj as IMenuReferencer;
+							if (currentComponent != null)
+							{
+								ActionList.logSuffix = string.Empty;
+								int thisNumReferences = currentComponent.GetNumMenuReferences (menu.title, element.title);
+								if (thisNumReferences > 0)
+								{
+									totalNumReferences += thisNumReferences;
+									ACDebug.Log ("Found " + thisNumReferences + " reference(s) to Menu element '" + element.title + "' in " + currentComponent.GetType () + " " + currentObj.name + " in scene '" + sceneFile + "'" + ActionList.logSuffix, currentObj);
+								}
+							}
 						}
 					}
 
@@ -1141,7 +1203,13 @@ namespace AC
 						ActionListAsset[] allActionListAssets = AdvGame.GetReferences ().speechManager.GetAllActionListAssets ();
 						foreach (ActionListAsset actionListAsset in allActionListAssets)
 						{
-							totalNumReferences += actionListAsset.GetMenuElementReferences (menu, element);
+							ActionList.logSuffix = string.Empty;
+							int thisNumReferences = actionListAsset.GetNumMenuReferences (menu.title, element.title);
+							if (thisNumReferences > 0)
+							{
+								totalNumReferences += thisNumReferences;
+								ACDebug.Log ("Found " + thisNumReferences + " reference(s) to Menu element '" + element.title + "' in ActionList asset '" + actionListAsset.name + "'" + ActionList.logSuffix, actionListAsset);
+							}
 						}
 					}
 

@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"ActionTransformRecord.cs"
  * 
@@ -272,13 +272,13 @@ namespace AC
 		{
 			if (!isPlayer && obToReadParameterID < 0)
 			{
-				if (obToRead != null && obToRead == gameObject) return true;
+				if (obToRead && obToRead == gameObject) return true;
 				if (obToReadConstantID == id && id != 0) return true;
 			}
-			if (isPlayer && gameObject.GetComponent <Player>() != null) return true;
+			if (isPlayer && gameObject && gameObject.GetComponent <Player>()) return true;
 			if (variableParameterID < 0 && variableLocation == VariableLocation.Component)
 			{
-				if (variables != null && variables.gameObject == gameObject) return true;
+				if (variables && variables.gameObject == gameObject) return true;
 				if (variablesConstantID == id && id != 0) return true;
 			}
 			return base.ReferencesObjectOrID (gameObject, id);

@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"DragTrack_Linear.cs"
  * 
@@ -121,6 +121,12 @@ namespace AC
 			else
 			{
 				float newPosition = Mathf.Lerp (draggable.trackValue, _position, Time.deltaTime * _speed * 100f);
+
+				if (!Loops)
+				{
+					newPosition = Mathf.Clamp01 (newPosition);
+				}
+
 				SetPositionAlong (newPosition, draggable);
 			}
 		}
@@ -137,7 +143,7 @@ namespace AC
 				if (dragMustScrew)
 				{
 					draggable.UpdateScrewVector();
-					dotProduct = Vector3.Dot (force, draggable._dragVector);
+					dotProduct = Vector3.Dot (force, draggable.dragVector);
 				}
 				else dotProduct = Vector3.Dot (force, Transform.up);
 			}
@@ -246,6 +252,8 @@ namespace AC
 			{
 				SetRotation (draggable, draggable.trackValue);
 			}
+
+			DoRegionAudioCheck (draggable);
 
 			if (!onlySnapOnPlayerRelease)
 			{

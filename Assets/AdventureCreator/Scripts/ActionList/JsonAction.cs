@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"JsonAction.cs"
  * 
@@ -38,9 +38,9 @@ namespace AC
 		#if NewCopying
 		private static JsonAction[] jsonCopiedActions = new JsonAction[0];
 		private const string instanceChecker = "{\"instanceID\":";
+		private static HashSet<ActionObjectReference> cachedGlobalObjectIds;
 		#endif
 		private static AC.Action[] copiedActions = new AC.Action[0];
-
 
 		#endif
 
@@ -51,11 +51,6 @@ namespace AC
 
 		private JsonAction (string _className, string _jsonData, int _endings)
 		{
-			if (_className.StartsWith ("AC."))
-			{
-				_className = _className.Substring (3);
-			}
-
 			className = _className;
 			jsonData = _jsonData;
 			endingReferencesBuffer = new bool[_endings];
@@ -73,6 +68,18 @@ namespace AC
 			JsonUtility.FromJsonOverwrite (jsonData, newAction);
 			return newAction;
 		}
+
+
+		#if UNITY_EDITOR
+
+		private void ClearIDs ()
+		{
+			Action action = CreateAction ();
+			action.ClearIDs ();
+			jsonData = JsonUtility.ToJson (action);
+		}
+
+		#endif
 
 
 		#if UNITY_EDITOR && NewCopying
@@ -99,7 +106,7 @@ namespace AC
 				string _old = instanceChecker + objectReference.PersistentID + "}";
 				string _new = instanceChecker + objectReference.InstanceID + "}";
 
-				if (jsonData != null && jsonData.Contains (_old))
+				if (!string.IsNullOrEmpty (jsonData) && jsonData.Contains (_old))
 				{
 					jsonData = jsonData.Replace (_old, _new);
 				}
@@ -140,16 +147,18 @@ namespace AC
 
 		/**
 		 * <summary>Stores an list of Actions in a temporary buffer</summary>
+		 * <param name = "clearIDs">If True, then Speech Manager line IDs in the Actions will be reset</param>
 		 * <param name="actions">The list of Actions to store.</param>
 		 */
-		public static void ToCopyBuffer (List<Action> actions)
+		public static void ToCopyBuffer (List<Action> actions, bool clearIDs = true)
 		{
-			#if NewCopying
-			jsonCopiedActions = BackupActions (actions);
+			#if NewCopying || AC_ActionListPrefabs
+			jsonCopiedActions = BackupActions (actions, clearIDs);
 			UnityEditor.SceneManagement.EditorSceneManager.activeSceneChangedInEditMode -= OnEditorSceneChange;
 			UnityEditor.SceneManagement.EditorSceneManager.activeSceneChangedInEditMode += OnEditorSceneChange;
 			#endif
 
+			#if !AC_ActionListPrefabs
 			copiedActions = actions.ToArray ();
 
 			copiedActions = new Action[actions.Count];
@@ -158,42 +167,97 @@ namespace AC
 				Action copyAction = Object.Instantiate (actions[i]) as Action;
 				copyAction.name = copyAction.name.Replace ("(Clone)", "");
 				copyAction.isMarked = false;
+
+				if (clearIDs)
+				{
+					copyAction.ClearIDs ();
+				}
+
+				for (int e = 0; e < actions[i].endings.Count; e++)
+				{
+					if (actions[i].endings[e].resultAction == ResultAction.Skip && actions[i].endings[e].skipActionActual != null && actions.Contains (actions[i].endings[e].skipActionActual))
+					{
+						// References an Action inside the copy buffer, so record the index in the buffer
+						copyAction.endings[e].skipAction = -10 - actions.IndexOf (actions[i].endings[e].skipActionActual);
+						copyAction.endings[e].skipActionActual = null;
+					}
+				}
+
 				copiedActions[i] = copyAction;
 			}
+			#endif
 		}
-		
+
 
 		/**
 		 * <summary>Generates Actions based on the buffer created with ToCopyBuffer</summary>
+		 * <param name = "clearIDs">If True, then Speech Manager line IDs in the Actions will be reset</param>
 		 * <returns>The Actions stored in the buffer, recreated.</returns>
 		 */
-		public static List<Action> CreatePasteBuffer (int index = 0)
+		public static List<Action> CreatePasteBuffer (bool clearIDs = true)
 		{
+			#if AC_ActionListPrefabs
+			return RestoreActions (jsonCopiedActions, true);
+			#else
+
 			List<AC.Action> tempList = new List<AC.Action>();
 			foreach (AC.Action action in copiedActions)
 			{
 				if (action != null)
 				{
 					Action copyAction = Object.Instantiate (action) as Action;
-					copyAction.ClearIDs ();
+					if (clearIDs)
+					{
+						copyAction.ClearIDs ();
+					}
 					foreach (ActionEnd ending in copyAction.endings)
 					{
 						ending.skipActionActual = null;
-						if (ending.skipAction >= 0) ending.skipAction += index;
 					}
 					tempList.Add (copyAction);
+				}
+			}
+
+			foreach (AC.Action action in tempList)
+			{
+				foreach (ActionEnd ending in action.endings)
+				{
+					if (ending.resultAction == ResultAction.Skip)
+					{
+						// Correct skip endings for those that reference others in the same list
+						bool endingIsOffset = ending.skipAction <= -10;
+						if (endingIsOffset)
+						{
+							int newIndex = -(ending.skipAction + 10);
+							if (newIndex >= 0 && newIndex < tempList.Count)
+							{
+								ending.skipActionActual = tempList[newIndex];
+								ending.skipAction = -1;
+							}
+						}
+						else
+						{
+							ending.resultAction = ResultAction.Stop;
+						}
+					}
 				}
 			}
 			
 			//copiedActions = new AC.Action[0];
 			return tempList;
+
+			#endif
 		}
 
 
 		/** Return True if Action data is stored in the copy buffer */
 		public static bool HasCopyBuffer ()
 		{
+			#if AC_ActionListPrefabs
+			return (jsonCopiedActions != null && jsonCopiedActions.Length > 0);
+			#else
 			return (copiedActions != null && copiedActions.Length > 0);
+			#endif
 		}
 
 		#if NewCopying
@@ -207,10 +271,15 @@ namespace AC
 		}
 
 
-		public static JsonAction[] BackupActions (List<Action> actions)
+		public static JsonAction[] BackupActions (List<Action> actions, bool clearIDs = false)
 		{
 			int length = actions.Count;
 			JsonAction[] backupActions = new JsonAction[length];
+
+			if (length == 0 || (length == 1 && actions[0] == null))
+			{
+				return null;
+			}
 
 			// Create initial Json data
 			for (int i = 0; i < length; i++)
@@ -226,6 +295,11 @@ namespace AC
 				string className = actions[i].GetType ().ToString ();
 				backupActions[i] = new JsonAction (className, jsonAction, actions[i].endings.Count);
 
+				if (clearIDs)
+				{
+					backupActions[i].ClearIDs ();
+				}
+
 				for (int e = 0; e < actions[i].endings.Count; e++)
 				{
 					if (actions[i].endings[e].resultAction == ResultAction.Skip && actions[i].endings[e].skipActionActual != null && actions.Contains (actions[i].endings[e].skipActionActual))
@@ -238,18 +312,44 @@ namespace AC
 			}
 
 			// Get reference data for all scene objects
-			HashSet<ActionObjectReference> globalObjectIds = GetSceneObjectReferences ();
-
-			// Amend Json data by replacing InstanceID references with TargetID references
-			foreach (JsonAction backupAction in backupActions)
+			if (cachedGlobalObjectIds != null)
 			{
-				if (backupAction != null)
+				// Amend Json data by replacing InstanceID references with TargetID references
+				foreach (JsonAction backupAction in backupActions)
 				{
-					backupAction.InstanceToTarget (globalObjectIds);
+					if (backupAction != null)
+					{
+						backupAction.InstanceToTarget (cachedGlobalObjectIds);
+					}
+				}
+			}
+			else
+			{
+				HashSet<ActionObjectReference> globalObjectIds = GetSceneObjectReferences ();
+
+				// Amend Json data by replacing InstanceID references with TargetID references
+				foreach (JsonAction backupAction in backupActions)
+				{
+					if (backupAction != null)
+					{
+						backupAction.InstanceToTarget (globalObjectIds);
+					}
 				}
 			}
 
 			return backupActions;
+		}
+
+
+		public static void CacheSceneObjectReferences ()
+		{
+			cachedGlobalObjectIds = GetSceneObjectReferences ();
+		}
+
+
+		public static void ClearSceneObjectReferencesCache ()
+		{
+			cachedGlobalObjectIds = null;
 		}
 
 
@@ -357,16 +457,21 @@ namespace AC
 		private class ActionObjectReference
 		{
 
-			public string PersistentID { get; private set; }
+			private string targetObjectID;
+			private string targetPrefabID;
 			public string InstanceID { get; private set; }
 
 
 			public ActionObjectReference (Object _object)
 			{
 				GlobalObjectId globalObjectId = GlobalObjectId.GetGlobalObjectIdSlow (_object);
-				PersistentID = globalObjectId.targetObjectId.ToString ();
+				targetObjectID = globalObjectId.targetObjectId.ToString ();
+				targetPrefabID = globalObjectId.targetPrefabId.ToString ();
 				InstanceID = _object.GetInstanceID ().ToString ();
 			}
+
+
+			public string PersistentID { get { return targetObjectID + "_" + targetPrefabID; } }
 
 		}
 

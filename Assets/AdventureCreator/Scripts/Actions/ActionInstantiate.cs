@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"ActionInstantiate.cs"
  * 
@@ -18,7 +18,6 @@ using UnityEditor;
 #endif
 
 #if AddressableIsPresent
-using System.Collections;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.AddressableAssets;
 #endif
@@ -220,7 +219,11 @@ namespace AC
 			}
 			#endif
 
+			#if AddressableIsPresent
+			if (_gameObject == null && !referenceByAddressable)
+			#else
 			if (_gameObject == null)
+			#endif
 			{
 				return 0f;
 			}
@@ -270,7 +273,7 @@ namespace AC
 
 						KickStarter.sceneChanger.ScheduleForDeletion (replaceGameObject);
 
-						GameObject newObject = Instantiate (_gameObject, position, rotation);
+						GameObject newObject = Object.Instantiate (_gameObject, position, rotation);
 						newObject.name = _gameObject.name;
 						KickStarter.stateHandler.IgnoreNavMeshCollisions ();
 					}
@@ -365,7 +368,7 @@ namespace AC
 				}
 			}
 
-			GameObject newObject = Instantiate (newOb, position, rotation);
+			GameObject newObject = Object.Instantiate (newOb, position, rotation);
 			newObject.name = newOb.name;
 
 			if (newObject.GetComponent<RememberTransform> ())
@@ -398,10 +401,16 @@ namespace AC
 			referenceByAddressable = EditorGUILayout.Toggle ("Reference Addressable?", referenceByAddressable);
 			if (referenceByAddressable)
 			{
-				addressableNameParameterID = ChooseParameterGUI ("Addressable name:", parameters, addressableNameParameterID, ParameterType.String);
+				addressableNameParameterID = ChooseParameterGUI ("Addressable name:", parameters, addressableNameParameterID, new ParameterType[2] { ParameterType.String, ParameterType.PopUp });
 				if (addressableNameParameterID < 0)
 				{
 					addressableName = EditorGUILayout.TextField ("Addressable name:", addressableName);
+				}
+
+				if (gameObject)
+				{
+					Log ("Clearing reference to GameObject '" + gameObject + "' to save memory.");
+					gameObject = null;
 				}
 			}
 			else
@@ -586,14 +595,14 @@ namespace AC
 		{
 			if (parameterID < 0)
 			{
-				if (gameObject != null && gameObject == _gameObject) return true;
+				if (gameObject && gameObject == _gameObject) return true;
 				if (constantID == id) return true;
 			}
 			if (invAction == InvAction.Add && positionRelativeTo == PositionRelativeTo.RelativeToGameObject)
 			{
 				if (relativeGameObjectParameterID < 0)
 				{
-					if (relativeGameObject != null && relativeGameObject == _gameObject) return true;
+					if (relativeGameObject && relativeGameObject == _gameObject) return true;
 					if (relativeGameObjectID == id) return true;
 				}
 			}
@@ -601,7 +610,7 @@ namespace AC
 			{
 				if (replaceParameterID < 0)
 				{
-					if (replaceGameObject != null && replaceGameObject == _gameObject) return true;
+					if (replaceGameObject && replaceGameObject == _gameObject) return true;
 					if (replaceConstantID == id) return true;
 				}
 			}
@@ -609,7 +618,7 @@ namespace AC
 			{
 				if (variableLocation == VariableLocation.Component && vectorVarParameterID < 0)
 				{
-					if (variables != null && variables.gameObject == _gameObject) return true;
+					if (variables && variables.gameObject == _gameObject) return true;
 					if (variablesConstantID == id) return true;
 				}
 			}

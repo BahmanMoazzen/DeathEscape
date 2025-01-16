@@ -1,4 +1,6 @@
-﻿#if UNITY_ANDROID || UNITY_IOS
+﻿#if UNITY_EDITOR
+
+#if UNITY_ANDROID || UNITY_IOS
 #define ON_MOBILE
 #endif
 
@@ -295,18 +297,31 @@ namespace AC
 						CursorIcon useIcon = new CursorIcon ();
 						useIcon.Copy (defaultCursorManager.cursorIcons[0], false);
 						newCursorManager.cursorIcons.Add (useIcon);
+
+						if (defaultCursorManager.uiCursorPrefab)
+						{
+							CreateUICursorPrefab (defaultCursorManager.uiCursorPrefab, newCursorManager, "Assets/" + gameName + "/" + defaultCursorManager.uiCursorPrefab.name + ".prefab");
+						}
+
 						EditorUtility.SetDirty (newCursorManager);
 					}
 				}
 				else
 				{
-					if (defaultCursorManager != null)
+					System.IO.Directory.CreateDirectory (Application.dataPath + "/" + gameName + "/UI");
+
+					if (defaultCursorManager)
 					{
 						foreach (CursorIcon defaultIcon in defaultCursorManager.cursorIcons)
 						{
 							CursorIcon newIcon = new CursorIcon ();
 							newIcon.Copy (defaultIcon, false);
 							newCursorManager.cursorIcons.Add (newIcon);
+						}
+
+						if (defaultCursorManager.uiCursorPrefab)
+						{
+							CreateUICursorPrefab (defaultCursorManager.uiCursorPrefab, newCursorManager, "Assets/" + gameName + "/UI/" + defaultCursorManager.uiCursorPrefab.name + ".prefab");
 						}
 
 						CursorIconBase pointerIcon = new CursorIconBase ();
@@ -331,11 +346,6 @@ namespace AC
 						newMenuManager.drawInEditor = defaultMenuManager.drawInEditor;
 						#endif
 						newMenuManager.pauseTexture = defaultMenuManager.pauseTexture;
-
-						if (wizardMenu != WizardMenu.Blank)
-						{
-							System.IO.Directory.CreateDirectory (Application.dataPath + "/" + gameName + "/UI");
-						}
 
 						foreach (Menu defaultMenu in defaultMenuManager.menus)
 						{
@@ -408,12 +418,16 @@ namespace AC
 
 						EditorUtility.SetDirty (newMenuManager);
 
+						if (newMenuManager.menus.Count != defaultMenuManager.menus.Count)
+						{
+							ACDebug.LogWarning ("Menu mismatch detected - not all Menus were created by the New Game Wizard - you may wish to delete the new Managers and run the Wizard again.");
+						}
+
 						if (newSpeechManager != null)
 						{
 							newSpeechManager.previewMenuName = "Subtitles";
 							EditorUtility.SetDirty (newSpeechManager);
 						}
-
 
 						if (wizardMenu != WizardMenu.Blank)
 						{
@@ -536,6 +550,27 @@ namespace AC
 				ACDebug.LogWarning ("Could not create Manager. Does the subdirectory " + managerPath + " exist?");
 				Debug.LogException (e, this);
 				pageNumber --;
+			}
+		}
+
+
+		private void CreateUICursorPrefab (GameObject uiCursorPrefab, CursorManager newCursorManager, string newPath)
+		{
+			if (uiCursorPrefab)
+			{
+				string oldPath = AssetDatabase.GetAssetPath (uiCursorPrefab.gameObject);
+
+				if (AssetDatabase.CopyAsset (oldPath, newPath))
+				{
+					AssetDatabase.ImportAsset(newPath);
+					GameObject uiCursorNewPrefab = (GameObject) AssetDatabase.LoadAssetAtPath (newPath, typeof (GameObject));
+					newCursorManager.uiCursorPrefab = uiCursorNewPrefab;
+				}
+				else
+				{
+					newCursorManager.uiCursorPrefab = null;
+					ACDebug.LogWarning("Could not copy asset " + oldPath + " to " + newPath);
+				}
 			}
 		}
 
@@ -966,3 +1001,5 @@ namespace AC
 	}
 
 }
+
+#endif

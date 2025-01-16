@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿#if UNITY_EDITOR
+
+using UnityEngine;
 using UnityEditor;
 using System.Collections.Generic;
 using UnityEditor.Callbacks;
@@ -418,7 +420,7 @@ namespace AC
 				case "Cut":
 					List<Action> actionsToCut = new List<Action>();
 					actionsToCut.Add (_action);
-					JsonAction.ToCopyBuffer (actionsToCut);
+					JsonAction.ToCopyBuffer (actionsToCut, false);
 					DeleteAction (_action, _target);
 					break;
 				
@@ -430,7 +432,7 @@ namespace AC
 				
 				case "Paste after":
 					int j = i + 1;
-					List<Action> pasteList = JsonAction.CreatePasteBuffer ();
+					List<Action> pasteList = JsonAction.CreatePasteBuffer (false);
 					foreach (Action action in pasteList)
 					{
 						AddAction (action, j, _target);
@@ -477,9 +479,9 @@ namespace AC
 			if (doUndo)
 			{
 				Undo.RecordObjects (new Object [] { _target }, callback);
-				#if !AC_ActionListPrefabs
+#if !AC_ActionListPrefabs
 				if (_target.actions != null) Undo.RecordObjects (_target.actions.ToArray (), callback);
-				#endif
+#endif
 				Undo.CollapseUndoOperations (Undo.GetCurrentGroup ());
 				EditorUtility.SetDirty (_target);
 			}
@@ -601,3 +603,5 @@ namespace AC
 	}
 
 }
+
+#endif

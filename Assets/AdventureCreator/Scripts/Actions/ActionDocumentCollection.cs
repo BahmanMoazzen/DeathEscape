@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"ActionDocumentCollection.cs"
  * 
@@ -20,7 +20,7 @@ namespace AC
 {
 
 	[System.Serializable]
-	public class ActionDocumentCollection : Action
+	public class ActionDocumentCollection : Action, IDocumentReferencerAction
 	{
 
 		public int documentID;
@@ -85,10 +85,21 @@ namespace AC
 		}
 
 
-		public override int GetDocumentReferences (List<ActionParameter> parameters, int _docID)
+		public int GetNumDocumentReferences (int _docID, List<ActionParameter> parameters)
 		{
 			if (parameterID < 0 && documentID == _docID)
 			{
+				return 1;
+			}
+			return 0;
+		}
+
+
+		public int UpdateDocumentReferences (int oldDocumentID, int newDocumentID, List<ActionParameter> actionParameters)
+		{
+			if (parameterID < 0 && documentID == oldDocumentID)
+			{
+				documentID = newDocumentID;
 				return 1;
 			}
 			return 0;

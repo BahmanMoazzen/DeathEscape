@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"ActionMenuJournal.cs"
  * 
@@ -20,7 +20,7 @@ namespace AC
 {
 	
 	[System.Serializable]
-	public class ActionMenuJournal : Action
+	public class ActionMenuJournal : Action, IMenuReferencer
 	{
 
 		public string menuToChange = "";
@@ -91,13 +91,13 @@ namespace AC
 		
 		public override void ShowGUI (List<ActionParameter> parameters)
 		{
-			menuToChangeParameterID = Action.ChooseParameterGUI ("Menu containing element:", parameters, menuToChangeParameterID, ParameterType.String);
+			menuToChangeParameterID = Action.ChooseParameterGUI ("Menu containing element:", parameters, menuToChangeParameterID, new ParameterType[2] { ParameterType.String, ParameterType.PopUp });
 			if (menuToChangeParameterID < 0)
 			{
 				menuToChange = EditorGUILayout.TextField ("Menu containing element:", menuToChange);
 			}
 			
-			elementToChangeParameterID = Action.ChooseParameterGUI ("Journal element:", parameters, elementToChangeParameterID, ParameterType.String);
+			elementToChangeParameterID = Action.ChooseParameterGUI ("Journal element:", parameters, elementToChangeParameterID, new ParameterType[2] { ParameterType.String, ParameterType.PopUp });
 			if (elementToChangeParameterID < 0)
 			{
 				elementToChange = EditorGUILayout.TextField ("Journal element:", elementToChange);
@@ -121,7 +121,7 @@ namespace AC
 		}
 
 
-		public override int GetMenuReferences (string _menuName, string _elementName = "")
+		public int GetNumMenuReferences (string _menuName, string _elementName = "")
 		{
 			if (menuToChangeParameterID < 0 && menuToChange == _menuName)
 			{

@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"ActionInputCheck.cs"
  * 
@@ -11,7 +11,7 @@
  */
 
 using System.Collections.Generic;
-
+using UnityEngine;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -59,6 +59,11 @@ namespace AC
 		
 		public override void ShowGUI (List<ActionParameter> parameters)
 		{
+			if (GUILayout.Button ("Actve Inputs window"))
+			{
+				ActiveInputsEditor.Init ();
+			}
+
 			int tempNumber = -1;
 
 			if (KickStarter.settingsManager != null && KickStarter.settingsManager.activeInputs != null && KickStarter.settingsManager.activeInputs.Count > 0)
@@ -91,7 +96,7 @@ namespace AC
 			}
 			else
 			{
-				EditorGUILayout.HelpBox ("No active inputs exist! They can be defined in Adventure Creator -> Editors -> Active Inputs.", MessageType.Info);
+				EditorGUILayout.HelpBox ("No active inputs exist!", MessageType.Info);
 				activeInputID = 0;
 				tempNumber = 0;
 			}

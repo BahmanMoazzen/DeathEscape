@@ -1,3 +1,5 @@
+#if UNITY_EDITOR
+
 using UnityEngine;
 using UnityEditor;
 using System.Collections.Generic;
@@ -26,7 +28,7 @@ namespace AC
 
 			if (Application.isPlaying)
 			{
-				if (!_target.IsOn ())
+				if (!_target.enabled || !_target.IsOn ())
 				{
 					EditorGUILayout.HelpBox ("Current state: OFF", MessageType.Info);
 				}
@@ -167,3 +169,5 @@ namespace AC
 	}
 
 }
+
+#endif

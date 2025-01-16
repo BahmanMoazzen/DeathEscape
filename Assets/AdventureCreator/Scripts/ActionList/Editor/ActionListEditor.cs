@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿#if UNITY_EDITOR
+
+using UnityEngine;
 using UnityEditor;
 using System.Collections.Generic;
 
@@ -135,13 +137,13 @@ namespace AC
 		
 		protected void DrawSharedElements (ActionList _target)
 		{
-			#if !AC_ActionListPrefabs
+#if !AC_ActionListPrefabs
 			if (IsActionListPrefab (_target))
 			{
 				EditorGUILayout.HelpBox ("Scene-based Actions can not live in prefabs - use ActionList assets instead.", MessageType.Info);
 				return;
 			}
-			#endif
+#endif
 
 			int numActions = 0;
 			if (_target.source != ActionListSource.AssetFile)
@@ -428,12 +430,15 @@ namespace AC
 				}
 			}
 
+			string[] subCategories = KickStarter.actionsManager.GetActionSubCategories (category);
+
 			if (category != oldCategory)
 			{
-				enabledSubcategory = 0;
+				enabledSubcategory = KickStarter.actionsManager.GetDefaultActionInCategory (category);
+				if (enabledSubcategory >= subCategories.Length) enabledSubcategory = 0;
 			}
 
-			enabledSubcategory = EditorGUILayout.Popup (enabledSubcategory, KickStarter.actionsManager.GetActionSubCategories (category));
+			enabledSubcategory = EditorGUILayout.Popup (enabledSubcategory, subCategories);
 			int newTypeIndex = KickStarter.actionsManager.GetEnabledActionTypeIndex (category, enabledSubcategory);
 
 			EditorGUILayout.EndHorizontal ();
@@ -696,7 +701,7 @@ namespace AC
 				case "Cut":
 					List<Action> actionsToCut = new List<Action>();
 					actionsToCut.Add (_action);
-					JsonAction.ToCopyBuffer (actionsToCut);
+					JsonAction.ToCopyBuffer (actionsToCut, false);
 					DeleteAction (_action, _target);
 					break;
 
@@ -707,7 +712,7 @@ namespace AC
 					break;
 
 				case "Paste after":
-					List<Action> pasteList = JsonAction.CreatePasteBuffer ();
+					List<Action> pasteList = JsonAction.CreatePasteBuffer (false);
 					_target.actions.InsertRange (i + 1, pasteList);
 					break;
 
@@ -765,9 +770,9 @@ namespace AC
 			if (doUndo)
 			{
 				Undo.RecordObjects (new Object [] { _target }, callback);
-				#if !AC_ActionListPrefabs
+#if !AC_ActionListPrefabs
 				if (_target.actions != null) Undo.RecordObjects (_target.actions.ToArray (), callback);
-				#endif
+#endif
 				Undo.CollapseUndoOperations (Undo.GetCurrentGroup ());
 				EditorUtility.SetDirty (_target);
 			}
@@ -780,9 +785,9 @@ namespace AC
 			{
 				_target.actions.Remove (action);
 
-				#if !AC_ActionListPrefabs
+#if !AC_ActionListPrefabs
 				Undo.DestroyObjectImmediate (action);
-				#endif
+#endif
 				//SyncAssetObjects (_target);
 			}
 		}
@@ -798,6 +803,7 @@ namespace AC
 			List<int> idArray = new List<int>();
 			foreach (AC.Action _action in _target.actions)
 			{
+				if (_action == null) continue;
 				idArray.Add (_action.id);
 			}
 			idArray.Sort ();
@@ -1181,3 +1187,5 @@ namespace AC
 	}
 
 }
+
+#endif

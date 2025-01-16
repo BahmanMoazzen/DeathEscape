@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"ActionParamCheck.cs"
  * 
@@ -21,7 +21,7 @@ namespace AC
 {
 	
 	[System.Serializable]
-	public class ActionParamCheck : ActionCheck
+	public class ActionParamCheck : ActionCheck, IDocumentReferencerAction, IItemReferencerAction
 	{
 
 		public ActionListSource actionListSource = ActionListSource.InScene;
@@ -200,7 +200,7 @@ namespace AC
 				}
 			}
 			
-			else if (_parameter.parameterType == ParameterType.Integer)
+			else if (_parameter.parameterType == ParameterType.Integer || _parameter.parameterType == ParameterType.PopUp)
 			{
 				int fieldValue = _parameter.intValue;
 				int compareValue = intValue;
@@ -506,6 +506,24 @@ namespace AC
 				if (compareParameterID < 0)
 				{
 					intValue = EditorGUILayout.IntField (intValue);
+				}
+			}
+			else if (parameter.parameterType == ParameterType.PopUp)
+			{
+				intCondition = (IntCondition) EditorGUILayout.EnumPopup (intCondition);
+
+				compareParameterID = Action.ChooseParameterGUI ("", parameters, compareParameterID, parameter.parameterType, parameter.ID);
+				if (compareParameterID < 0)
+				{
+					PopUpLabelData popUpLabelData = KickStarter.variablesManager.GetPopUpLabelData (parameter.popUpID);
+					if (popUpLabelData != null)
+					{
+						intValue = EditorGUILayout.Popup (intValue, popUpLabelData.GenerateEditorPopUpLabels ());
+					}
+					else
+					{
+						intValue = EditorGUILayout.IntField (intValue);
+					}
 				}
 			}
 			else if (parameter.parameterType == ParameterType.Float)
@@ -833,7 +851,7 @@ namespace AC
 		}
 
 
-		public override int GetVariableReferences (List<ActionParameter> parameters, VariableLocation location, int varID, Variables _variables, int _variablesConstantID = 0)
+		public override int GetNumVariableReferences (VariableLocation location, int varID, List<ActionParameter> parameters, Variables _variables = null, int _variablesConstantID = 0)
 		{
 			int thisCount = 0;
 
@@ -864,7 +882,6 @@ namespace AC
 				}
 			}
 
-
 			if (_param != null && _param.parameterType == ParameterType.LocalVariable && location == VariableLocation.Local && varID == intValue)
 			{
 				thisCount ++;
@@ -873,29 +890,101 @@ namespace AC
 			{
 				thisCount ++;
 			}
-			else if (_param != null && _param.parameterType == ParameterType.ComponentVariable && location == VariableLocation.Component && varID == intValue && _param.variables == _variables)
+			else if (_param != null && _param.parameterType == ParameterType.ComponentVariable && location == VariableLocation.Component && varID == intValue && _variables)
 			{
-				thisCount ++;
+				if ((_variables && _param.variables == _variables) ||
+					(_param.constantID != 0 && _variablesConstantID == _param.constantID))
+				{
+					thisCount ++;
+				}
 			}
 
-			thisCount += base.GetVariableReferences (parameters, location, varID, _variables);
+			thisCount += base.GetNumVariableReferences (location, varID, parameters, _variables, _variablesConstantID);
 			return thisCount;
 		}
 
 
-		public override int GetInventoryReferences (List<ActionParameter> parameters, int _invID)
+		public override int UpdateVariableReferences (VariableLocation location, int oldVarID, int newVarID, List<ActionParameter> parameters, Variables _variables = null, int _variablesConstantID = 0)
 		{
-			return GetParamReferences (parameters, _invID, ParameterType.InventoryItem);
+			int thisCount = 0;
+
+			ActionParameter _param = null;
+			if (checkOwn)
+			{
+				if (parameters != null)
+				{
+					_param = GetParameterWithID (parameters, parameterID);
+				}
+			}
+			else
+			{
+				if (actionListSource == ActionListSource.InScene && actionList != null)
+				{
+					if (actionList.source == ActionListSource.InScene && actionList.useParameters)
+					{
+						_param = GetParameterWithID (actionList.parameters, parameterID);
+					}
+					else if (actionList.source == ActionListSource.AssetFile && actionList.assetFile != null && actionList.assetFile.useParameters)
+					{
+						_param = GetParameterWithID (actionList.assetFile.DefaultParameters, parameterID);
+					}
+				}
+				else if (actionListSource == ActionListSource.AssetFile && actionListAsset != null && actionListAsset.useParameters)
+				{
+					_param = GetParameterWithID (actionListAsset.DefaultParameters, parameterID);
+				}
+			}
+
+			if (_param != null && _param.parameterType == ParameterType.LocalVariable && location == VariableLocation.Local && oldVarID == intValue)
+			{
+				intValue = newVarID;
+				thisCount++;
+			}
+			else if (_param != null && _param.parameterType == ParameterType.GlobalVariable && location == VariableLocation.Global && oldVarID == intValue)
+			{
+				intValue = newVarID;
+				thisCount++;
+			}
+			else if (_param != null && _param.parameterType == ParameterType.ComponentVariable && location == VariableLocation.Component && oldVarID == intValue && _variables)
+			{
+				if ((_variables && _param.variables == _variables) ||
+					(_param.constantID != 0 && _variablesConstantID == _param.constantID))
+				{
+					intValue = newVarID;
+					thisCount++;
+				}
+			}
+
+			thisCount += base.UpdateVariableReferences (location, oldVarID, newVarID, parameters, _variables, _variablesConstantID);
+			return thisCount;
 		}
 
 
-		public override int GetDocumentReferences (List<ActionParameter> parameters, int _docID)
+		public int GetNumItemReferences (int _itemID, List<ActionParameter> parameters)
+		{
+			return GetParamReferences (parameters, _itemID, ParameterType.InventoryItem);
+		}
+
+
+		public int UpdateItemReferences (int oldItemID, int newItemID, List<ActionParameter> parameters)
+		{
+			return GetParamReferences (parameters, oldItemID, ParameterType.InventoryItem, true, newItemID);
+		}
+
+
+		public int GetNumDocumentReferences (int _docID, List<ActionParameter> parameters)
 		{
 			return GetParamReferences (parameters, _docID, ParameterType.Document);
 		}
 
 
-		private int GetParamReferences (List<ActionParameter> parameters, int _ID, ParameterType _paramType)
+		public int UpdateDocumentReferences (int oldDocumentID, int newDocumentID, List<ActionParameter> parameters)
+		{
+			return GetParamReferences (parameters, oldDocumentID, ParameterType.Document, true, newDocumentID);
+		}
+
+
+		private int GetParamReferences (List<ActionParameter> parameters, int _ID, ParameterType _paramType, bool updateID = false, int newID = 0)
 		{
 			ActionParameter _param = null;
 
@@ -925,8 +1014,12 @@ namespace AC
 				}
 			}
 
-			if (_param != null && _param.parameterType == _paramType && _ID == intValue)
+			if (_param != null && _param.parameterType == _paramType && _ID == compareVariableID && compareParameterID < 0)
 			{
+				if (updateID)
+				{
+					compareVariableID = newID;
+				}
 				return 1;
 			}
 
@@ -938,12 +1031,12 @@ namespace AC
 		{
 			if (!checkOwn && actionListSource == ActionListSource.InScene)
 			{
-				if (actionList != null && actionList.gameObject == _gameObject) return true;
+				if (actionList && actionList.gameObject == _gameObject) return true;
 				if (actionListConstantID == id) return true;
 			}
 			if (compareParameterID < 0)
 			{
-				if (compareObject != null && compareObject == _gameObject) return true;
+				if (compareObject && compareObject == _gameObject) return true;
 				if (compareObjectConstantID == id) return true;
 			}
 			return base.ReferencesObjectOrID (_gameObject, id);

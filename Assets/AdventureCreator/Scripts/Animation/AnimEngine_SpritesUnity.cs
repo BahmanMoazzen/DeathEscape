@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"AnimEngine_SpritesUnity.cs"
  * 
@@ -25,6 +25,7 @@ namespace AC
 
 		protected string hideHeadClip = "HideHead";
 		protected string headDirection;
+		private string clip2DNew;
 
 
 		public override void Declare (AC.Char _character)
@@ -210,7 +211,7 @@ namespace AC
 			
 			if (action.method == ActionCharAnim.AnimMethodChar.PlayCustom)
 			{
-				action.clip2DParameterID = Action.ChooseParameterGUI ("Clip:", parameters, action.clip2DParameterID, ParameterType.String);
+				action.clip2DParameterID = Action.ChooseParameterGUI ("Clip:", parameters, action.clip2DParameterID, new ParameterType[2] { ParameterType.String, ParameterType.PopUp });
 				if (action.clip2DParameterID < 0)
 				{
 					action.clip2D = EditorGUILayout.TextField ("Clip:", action.clip2D);
@@ -243,7 +244,7 @@ namespace AC
 			{
 				action.standard = (AnimStandard) EditorGUILayout.EnumPopup ("Change:", action.standard);
 
-				action.clip2DParameterID = Action.ChooseParameterGUI ("Clip:", parameters, action.clip2DParameterID, ParameterType.String);
+				action.clip2DParameterID = Action.ChooseParameterGUI ("Clip:", parameters, action.clip2DParameterID, new ParameterType[2] { ParameterType.String, ParameterType.PopUp });
 				if (action.clip2DParameterID < 0)
 				{
 					action.clip2D = EditorGUILayout.TextField ("Clip:", action.clip2D);
@@ -282,30 +283,37 @@ namespace AC
 		
 		public override float ActionCharAnimRun (ActionCharAnim action)
 		{
-			string clip2DNew = action.clip2D;
-			if (action.includeDirection)
-			{
-				clip2DNew += character.GetSpriteDirection ();
-			}
-			
 			if (!action.isRunning)
 			{
 				action.isRunning = true;
+
+				clip2DNew = action.clip2D;
+				if (action.includeDirection)
+				{
+					clip2DNew += character.GetSpriteDirection ();
+				}
 				
 				if (action.method == ActionCharAnim.AnimMethodChar.PlayCustom && !string.IsNullOrEmpty (action.clip2D))
 				{
 					if (character.GetAnimator ())
 					{
-						#if UNITY_EDITOR
 						int hash = Animator.StringToHash (clip2DNew);
 						if (!character.GetAnimator ().HasState (action.layerInt, hash))
 						{
 							action.ReportWarning ("Cannot play clip " + clip2DNew + " on " + character.name);
+							action.isRunning = false;
+							return 0f;
 						}
-						#endif
 
 						character.charState = CharState.Custom;
-						character.GetAnimator ().CrossFade (clip2DNew, action.fadeTime, action.layerInt);
+						if (action.fadeTime > 0f)
+						{
+							character.GetAnimator ().CrossFade (clip2DNew, action.fadeTime, action.layerInt);
+						}
+						else
+						{ 
+							character.GetAnimator ().Play (clip2DNew, action.layerInt);
+						}
 
 						if (character.talkingAnimation == TalkingAnimation.Standard && character.separateTalkingLayer)
 						{
@@ -400,12 +408,7 @@ namespace AC
 				{
 					if (action.method == ActionCharAnim.AnimMethodChar.PlayCustom)
 					{
-						// In 2019, sometimes more than 1 frame is necessary for the transition to kick in
-						#if UNITY_2019_1_OR_NEWER
-						return Time.fixedDeltaTime * 2f;
-						#else
 						return action.defaultPauseTime;
-						#endif
 					}
 				}
 			}	
@@ -414,6 +417,11 @@ namespace AC
 			{
 				if (character.GetAnimator ())
 				{
+					if (action.method == ActionCharAnim.AnimMethodChar.PlayCustom && character.GetAnimator ().GetCurrentAnimatorStateInfo (action.layerInt).shortNameHash != Animator.StringToHash (clip2DNew))
+					{
+						return action.defaultPauseTime;
+					}
+
 					// Calc how much longer left to wait
 					float totalLength = character.GetAnimator ().GetCurrentAnimatorStateInfo (action.layerInt).length;
 					float timeLeft = (1f - character.GetAnimator ().GetCurrentAnimatorStateInfo (action.layerInt).normalizedTime) * totalLength;
@@ -476,7 +484,7 @@ namespace AC
 				return;
 			}
 			
-			string clip2DNew = action.clip2D;
+			clip2DNew = action.clip2D;
 			if (action.includeDirection)
 			{
 				clip2DNew += character.GetSpriteDirection ();
@@ -565,7 +573,7 @@ namespace AC
 					action.animator = action.IDToField <Animator> (action.animator, action.constantID, false);
 				}
 
-				action.clip2DParameterID = Action.ChooseParameterGUI ("Clip:", parameters, action.clip2DParameterID, ParameterType.String);
+				action.clip2DParameterID = Action.ChooseParameterGUI ("Clip:", parameters, action.clip2DParameterID, new ParameterType[2] { ParameterType.String, ParameterType.PopUp });
 				if (action.clip2DParameterID < 0)
 				{
 					action.clip2D = EditorGUILayout.TextField ("Clip:", action.clip2D);
@@ -622,24 +630,26 @@ namespace AC
 				{
 					if (action.method == AnimMethod.PlayCustom)
 					{
-						#if UNITY_EDITOR
 						int hash = Animator.StringToHash (action.clip2D);
 						if (!action.runtimeAnimator.HasState (action.layerInt, hash))
 						{
 							action.ReportWarning ("Cannot play clip " + action.clip2D + " on " + action.runtimeAnimator.name, action.runtimeAnimator.gameObject);
+							action.isRunning = false;
+							return 0f;
 						}
-						#endif
 
-						action.runtimeAnimator.CrossFade (action.clip2D, action.fadeTime, action.layerInt);
-						
+						if (action.fadeTime > 0f)
+						{
+							action.runtimeAnimator.CrossFade (action.clip2D, action.fadeTime, action.layerInt);
+						}
+						else
+						{
+							action.runtimeAnimator.Play (action.clip2D, action.layerInt);
+						}
+
 						if (action.willWait)
 						{
-							// In 2019, sometimes more than 1 frame is necessary for the transition to kick in
-							#if UNITY_2019_1_OR_NEWER
-							return Time.fixedDeltaTime * 2f;
-							#else
 							return action.defaultPauseTime;
-							#endif
 						}
 					}
 					else if (action.method == AnimMethod.BlendShape)
@@ -653,15 +663,28 @@ namespace AC
 			{
 				if (action.runtimeAnimator && !string.IsNullOrEmpty (action.clip2D))
 				{
-					if (action.runtimeAnimator.GetCurrentAnimatorStateInfo (action.layerInt).normalizedTime < 1f)
+					if (action.method == AnimMethod.PlayCustom && action.runtimeAnimator.GetCurrentAnimatorStateInfo (action.layerInt).shortNameHash != Animator.StringToHash (action.clip2D))
 					{
-						return (action.defaultPauseTime / 6f);
+						return action.defaultPauseTime;
+					}
+
+					// Calc how much longer left to wait
+					float totalLength = action.runtimeAnimator.GetCurrentAnimatorStateInfo (action.layerInt).length;
+					float timeLeft = (1f - action.runtimeAnimator.GetCurrentAnimatorStateInfo (action.layerInt).normalizedTime) * totalLength;
+
+					// Subtract a small amount of time to prevent overshooting
+					timeLeft -= 0.1f;
+
+					if (timeLeft > 0f)
+					{
+						return timeLeft;
 					}
 					else
 					{
 						action.isRunning = false;
 						return 0f;
 					}
+
 				}
 			}
 			
@@ -867,8 +890,6 @@ namespace AC
 			}
 			character.GetAnimator ().speed = 0f;
 			
-			#if UNITY_EDITOR
-			
 			int hash = Animator.StringToHash (clip);
 			if (character.GetAnimator ().HasState (layer, hash))
 			{
@@ -878,17 +899,6 @@ namespace AC
 			{
 				ACDebug.LogWarning ("Cannot play clip " + clip + " (layer " + layer + ") on " + character.name, character);
 			}
-			
-			#else
-			
-			try
-			{
-				character.GetAnimator ().Play (clip, layer, character.GetLipSyncNormalised ());
-			}
-			catch
-			{}
-			
-			#endif
 			
 			character.GetAnimator ().speed = 1f;
 		}
@@ -967,8 +977,6 @@ namespace AC
 
 		protected void PlayCharAnim (string clip, int layer)
 		{
-			#if UNITY_EDITOR
-
 			int hash = Animator.StringToHash (clip);
 			if (character.GetAnimator ().HasState (layer, hash))
 			{
@@ -995,39 +1003,6 @@ namespace AC
 			{
 				ACDebug.LogWarning ("Cannot play animation " + clip + " (layer " + layer + ") on character " + character.name + "'s Animator, " + character.GetAnimator ().name, character.GetAnimator ());
 			}
-			
-			#else
-			
-			if (character.crossfadeAnims)
-			{
-				try
-				{
-					// Already playing?
-					if (character.GetAnimator ().GetNextAnimatorStateInfo (layer).IsName (clip))
-					{
-						return;
-					}
-					if (character.GetAnimator ().GetCurrentAnimatorStateInfo (layer).IsName (clip))
-					{
-						return;
-					}
-
-					character.GetAnimator ().CrossFade (clip, character.animCrossfadeSpeed, layer);
-				}
-				catch
-				{}
-			}
-			else
-			{
-				try
-				{
-					character.GetAnimator ().Play (clip, layer);
-				}
-				catch
-				{}
-			}
-			
-			#endif
 		}
 		
 	}

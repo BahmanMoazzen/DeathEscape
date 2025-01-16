@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"InvItem.cs"
  * 
@@ -23,7 +23,7 @@ namespace AC
 	 * Items are stored in InventoryManager, and referenced in InvInstance classes when added to the Player's inventory at runtime.
 	 */
 	[System.Serializable]
-	public class InvItem : ITranslatable
+	public class InvItem : ITranslatable, IItemReferencer
 	{
 
 		#region Variables
@@ -828,6 +828,37 @@ namespace AC
 			}
 		}
 
+
+		public int GetNumItemReferences (int _itemID)
+		{
+			int numReferences = 0;
+			foreach (InvCombineInteraction invCombineInteraction in combineInteractions)
+			{
+				if (invCombineInteraction.combineID == _itemID)
+				{
+					numReferences++;
+				}
+			}
+
+			return numReferences;
+		}
+
+
+		public int UpdateItemReferences (int oldItemID, int newItemID)
+		{
+			int numReferences = 0;
+			foreach (InvCombineInteraction invCombineInteraction in combineInteractions)
+			{
+				if (invCombineInteraction.combineID == oldItemID)
+				{
+					invCombineInteraction.combineID = newItemID;
+					numReferences++;
+				}
+			}
+
+			return numReferences;
+		}
+
 		#endif
 
 
@@ -923,18 +954,22 @@ namespace AC
 		 */
 		public string GetLabel (int languageNumber)
 		{
-			if (languageNumber > 0)
-			{
-				return AdvGame.ConvertTokens (KickStarter.runtimeLanguages.GetTranslation (label, lineID, languageNumber, GetTranslationType (0)));
-			}
-			else
+			#if UNITY_EDITOR
+			if (!Application.isPlaying)
 			{
 				if (!string.IsNullOrEmpty (altLabel))
 				{
-					return AdvGame.ConvertTokens (altLabel);
+					return altLabel;
 				}
+				return label;
 			}
-			return AdvGame.ConvertTokens (label);
+			#endif
+
+			if (!string.IsNullOrEmpty (altLabel))
+			{
+				return AdvGame.ConvertTokens (KickStarter.runtimeLanguages.GetTranslation (altLabel, lineID, languageNumber, GetTranslationType (0)));
+			}
+			return AdvGame.ConvertTokens (KickStarter.runtimeLanguages.GetTranslation (label, lineID, languageNumber, GetTranslationType (0)));
 		}
 
 

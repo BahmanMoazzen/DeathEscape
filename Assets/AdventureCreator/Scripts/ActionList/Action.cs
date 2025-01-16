@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"Action.cs"
  * 
@@ -28,9 +28,9 @@ namespace AC
 	 */
 	[System.Serializable]
 	#if AC_ActionListPrefabs
-	abstract public class Action
+	abstract public class Action : iActionListAssetReferencer, IVariableReferencerAction
 	#else
-	abstract public class Action : ScriptableObject
+	abstract public class Action : ScriptableObject, iActionListAssetReferencer, IVariableReferencerAction
 	#endif
 	{
 
@@ -61,11 +61,11 @@ namespace AC
 		/** Deprecated */
 		[SerializeField] private int skipAction = -1;
 		/** Deprecated */
-		[SerializeField] private AC.Action skipActionActual;
+		[SerializeField] private AC.Action skipActionActual = null;
 		/** Deprecated */
-		[SerializeField] private Cutscene linkedCutscene;
+		[SerializeField] private Cutscene linkedCutscene = null;
 		/** Deprecated */
-		[SerializeField] private ActionListAsset linkedAsset;
+		[SerializeField] private ActionListAsset linkedAsset = null;
 
 		/** A List of the various outcomes that running the Action can have */
 		public List<ActionEnd> endings = new List<ActionEnd> ();
@@ -87,12 +87,14 @@ namespace AC
 		/** The Action's parent ActionList, if in the scene.  This is not 100% reliable and should not be used in custom scripts */
 		public ActionList parentActionListInEditor = null;
 
-		public const int skipSocketSeparation = 44;
 		#if UNITY_EDITOR_OSX
+		public const int skipSocketSeparation = 44;
 		public const int socketSeparation = 26;
 		#else
+		public const int skipSocketSeparation = 48;
 		public const int socketSeparation = 28;
 		#endif
+
 		#endif
 
 
@@ -171,9 +173,7 @@ namespace AC
 		}
 
 
-		/**
-		 * Runs the Action instantaneously.
-		 */
+		/** Runs the Action instantaneously. */
 		public virtual void Skip ()
 		{
 			Run ();
@@ -288,7 +288,11 @@ namespace AC
 			
 			int numSockets = Mathf.Max (NumSockets, 0);
 
-			if (numSockets < endings.Count)
+			if (numSockets == 0)
+			{
+				endings.Clear ();
+			}
+			else if (numSockets < endings.Count)
 			{
 				endings.RemoveRange (Mathf.Max (1, numSockets), endings.Count - Mathf.Max (1, numSockets));
 			}
@@ -305,7 +309,7 @@ namespace AC
 					endings.Add (newEnd);
 				}
 			}
-
+			
 			for (int i=0; i<numSockets; i++)
 			{
 				if (showGUI)
@@ -425,7 +429,7 @@ namespace AC
 			{
 				if (endings[0].resultAction == ResultAction.Continue)
 				{
-					if (actions.Count > i + 1)
+					if (actions.Count > i + 1 && actions[i + 1] != null)
 					{
 						AdvGame.DrawNodeCurve (new Rect (NodeRect.position - scrollPosition, NodeRect.size),
 											   new Rect (actions[i + 1].NodeRect.position - scrollPosition, actions[i + 1].NodeRect.size),
@@ -454,7 +458,7 @@ namespace AC
 
 				if (ending.resultAction == ResultAction.Continue)
 				{
-					if (actions.Count > i + 1)
+					if (actions.Count > i + 1 && actions[i + 1] != null)
 					{
 						AdvGame.DrawNodeCurve (new Rect (NodeRect.position - scrollPosition, NodeRect.size),
 											   new Rect (actions[i + 1].NodeRect.position - scrollPosition, actions[i + 1].NodeRect.size),
@@ -660,11 +664,11 @@ namespace AC
 		{
 			if (field != null)
 			{
-				if (alwaysAssign || isAssetFile || (!isAssetFile && !field.gameObject.activeInHierarchy))
+				if (alwaysAssign || isAssetFile || (!isAssetFile && !ObjectIsInScene (field.gameObject)))
 				{
 					if (field.GetComponent <ConstantID>())
 					{
-						if (!field.gameObject.activeInHierarchy && field.GetComponent <ConstantID>().constantID == 0)
+						if (!ObjectIsInScene (field.gameObject) && field.GetComponent <ConstantID>().constantID == 0)
 						{
 							UnityVersionHandler.AddConstantIDToGameObject <ConstantID> (field.gameObject);
 						}
@@ -689,11 +693,11 @@ namespace AC
 		{
 			if (field != null)
 			{
-				if (isAssetFile || (!isAssetFile && !field.gameObject.activeInHierarchy))
+				if (isAssetFile || (!isAssetFile && !ObjectIsInScene (field.gameObject)))
 				{
 					if (field.GetComponent <ConstantID>())
 					{
-						if (!field.gameObject.activeInHierarchy && field.GetComponent <ConstantID>().constantID == 0)
+						if (!ObjectIsInScene (field.gameObject) && field.GetComponent <ConstantID>().constantID == 0)
 						{
 							UnityVersionHandler.AddConstantIDToGameObject <ConstantID> (field.gameObject);
 						}
@@ -753,7 +757,7 @@ namespace AC
 		}
 
 
-		public void AssignConstantID <T> (T field, int _constantID, int _parameterID) where T : Behaviour
+		protected void AssignConstantID <T> (T field, int _constantID, int _parameterID) where T : Behaviour
 		{
 			if (_parameterID >= 0)
 			{
@@ -766,7 +770,7 @@ namespace AC
 		}
 
 
-		public void AssignConstantID (Collider field, int _constantID, int _parameterID)
+		protected void AssignConstantID (Collider field, int _constantID, int _parameterID)
 		{
 			if (_parameterID >= 0)
 			{
@@ -779,7 +783,7 @@ namespace AC
 		}
 
 
-		public void AssignConstantID (Transform field, int _constantID, int _parameterID)
+		protected void AssignConstantID (Transform field, int _constantID, int _parameterID)
 		{
 			if (_parameterID >= 0)
 			{
@@ -792,7 +796,7 @@ namespace AC
 		}
 
 
-		public void AssignConstantID (GameObject field, int _constantID, int _parameterID)
+		protected void AssignConstantID (GameObject field, int _constantID, int _parameterID)
 		{
 			if (_parameterID >= 0)
 			{
@@ -807,7 +811,7 @@ namespace AC
 		
 		public T IDToField <T> (T field, int _constantID, bool moreInfo) where T : Behaviour
 		{
-			if (isAssetFile || (!isAssetFile && (field == null || !field.gameObject.activeInHierarchy)))
+			if (isAssetFile || (!isAssetFile && (field == null || !ObjectIsInScene (field.gameObject))))
 			{
 				T newField = field;
 				if (_constantID != 0)
@@ -845,7 +849,7 @@ namespace AC
 
 		public Collider IDToField (Collider field, int _constantID, bool moreInfo)
 		{
-			if (isAssetFile || (!isAssetFile && (field == null || !field.gameObject.activeInHierarchy)))
+			if (isAssetFile || (!isAssetFile && (field == null || !ObjectIsInScene (field.gameObject))))
 			{
 				Collider newField = field;
 				if (_constantID != 0)
@@ -885,11 +889,11 @@ namespace AC
 		{
 			if (field != null)
 			{
-				if (alwaysAssign || isAssetFile || (!isAssetFile && !field.gameObject.activeInHierarchy))
+				if (alwaysAssign || isAssetFile || (!isAssetFile && !ObjectIsInScene (field.gameObject)))
 				{
 					if (field.GetComponent <ConstantID>())
 					{
-						if (!field.gameObject.activeInHierarchy && field.GetComponent <ConstantID>().constantID == 0)
+						if (!ObjectIsInScene (field.gameObject) && field.GetComponent <ConstantID>().constantID == 0)
 						{
 							UnityVersionHandler.AddConstantIDToGameObject <ConstantID> (field.gameObject);
 						}
@@ -912,7 +916,7 @@ namespace AC
 		
 		public Transform IDToField (Transform field, int _constantID, bool moreInfo)
 		{
-			if (isAssetFile || (!isAssetFile && (field == null || !field.gameObject.activeInHierarchy)))
+			if (isAssetFile || (!isAssetFile && (field == null || !ObjectIsInScene (field.gameObject))))
 			{
 				if (_constantID != 0)
 				{
@@ -959,15 +963,21 @@ namespace AC
 		}
 
 
+		private static bool ObjectIsInScene (GameObject gameObject)
+		{
+			return gameObject != null && gameObject.activeInHierarchy && !UnityVersionHandler.IsPrefabEditing (gameObject);
+		}
+
+
 		public static int FieldToID (GameObject field, int _constantID, bool alwaysAssign, bool _isAssetFile)
 		{
 			if (field != null)
 			{
-				if (alwaysAssign || _isAssetFile || (!_isAssetFile && !field.gameObject.activeInHierarchy))
+				if (alwaysAssign || _isAssetFile || (!_isAssetFile && !ObjectIsInScene (field.gameObject)))
 				{
 					if (field.GetComponent <ConstantID>())
 					{
-						if (!field.gameObject.activeInHierarchy && field.GetComponent <ConstantID>().constantID == 0)
+						if (!ObjectIsInScene (field.gameObject) && field.GetComponent <ConstantID>().constantID == 0)
 						{
 							UnityVersionHandler.AddConstantIDToGameObject <ConstantID> (field.gameObject);
 						}
@@ -1002,7 +1012,7 @@ namespace AC
 
 		public static GameObject IDToField (GameObject field, int _constantID, bool moreInfo, bool alwaysShow, bool _isAssetFile)
 		{
-			if (alwaysShow || _isAssetFile || (!_isAssetFile && (field == null || !field.activeInHierarchy)))
+			if (alwaysShow || _isAssetFile || (!_isAssetFile && (field == null || !ObjectIsInScene (field))))
 			{
 				if (_constantID != 0)
 				{
@@ -1075,22 +1085,16 @@ namespace AC
 
 
 		/**
-		 * <summary>Gets the number of references the Action makes to a local or global variable</summary>
-		 * <param name = "parameters">The List of ActionParameters associated with the ActionList that contains the Action</param>
+		 * <summary>Gets the number of references the Action makes to a variable</summary>
 		 * <param name = "location">The variable's location (Global, Local)</param>
 		 * <param name = "varID">The variable's ID number</param>
-		 * <param name="variablesConstantID">The Constant ID of the associated Variabels component, if a Component variable</param>
+		 * <param name = "parameters">The List of ActionParameters associated with the ActionList that contains the Action</param>
+		 * <param name = "variables">The Variables component, if location = VariableLocation.Component</param>
 		 * <returns>The number of references the Action makes to the variable</returns>
 		 */
-		public virtual int GetVariableReferences (List<ActionParameter> parameters, VariableLocation location, int varID, int variablesConstantID = 0)
+		public virtual int GetNumVariableReferences (VariableLocation location, int varID, List<ActionParameter> parameters, Variables variables = null, int variablesConstantID = 0)
 		{
-			return GetVariableReferences (parameters, location, varID, null, variablesConstantID);
-		}
-
-
-		public virtual int GetVariableReferences (List<ActionParameter> parameters, VariableLocation location, int varID, Variables variables, int variablesConstantID = 0)
-		{
-			string tokenText = AdvGame.GetVariableTokenText (location, varID);
+			string tokenText = AdvGame.GetVariableTokenText (location, varID, variablesConstantID);
 
 			if (!string.IsNullOrEmpty (tokenText) && !string.IsNullOrEmpty (comment) && comment.Contains (tokenText))
 			{
@@ -1100,26 +1104,24 @@ namespace AC
 		}
 
 
-		public virtual int GetInventoryReferences (List<ActionParameter> parameters, int invID)
+		/**
+		 * <summary>Updated references the Action makes to a variable</summary>
+		 * <param name = "location">The variable's location (Global, Local)</param>
+		 * <param name = "oldVarID">The variable's original ID number</param>
+		 * <param name = "newVarID">The variable's new ID number</param>
+		 * <param name = "parameters">The List of ActionParameters associated with the ActionList that contains the Action</param>
+		 * <param name = "variables">The Variables component, if location = VariableLocation.Component</param>
+		 * <returns>The number of references the Action makes to the variable</returns>
+		 */
+		public virtual int UpdateVariableReferences (VariableLocation location, int oldVarID, int newVarID, List<ActionParameter> parameters, Variables variables = null, int variablesConstantID = 0)
 		{
-			return 0;
-		}
-
-		
-		public virtual int GetMenuReferences (string menuTitle, string elementTitle = "")
-		{
-			return 0;
-		}
-
-
-		public virtual int GetDocumentReferences (List<ActionParameter> parameters, int documentID)
-		{
-			return 0;
-		}
-
-
-		public virtual int GetObjectiveReferences (int objectiveID)
-		{
+			string oldTokenText = AdvGame.GetVariableTokenText (location, oldVarID, variablesConstantID);
+			if (!string.IsNullOrEmpty (oldTokenText) && !string.IsNullOrEmpty (comment) && comment.Contains (oldTokenText))
+			{
+				string newTokenText = AdvGame.GetVariableTokenText (location, newVarID, variablesConstantID);
+				comment = comment.Replace (oldTokenText, newTokenText);
+				return 1;
+			}
 			return 0;
 		}
 
@@ -1140,7 +1142,7 @@ namespace AC
 				{
 					if (ending.resultAction == ResultAction.RunCutscene)
 					{
-						if (ending.linkedCutscene != null && ending.linkedCutscene.gameObject == gameObject) return true;
+						if (ending.linkedCutscene && ending.linkedCutscene.gameObject == gameObject) return true;
 					}
 				}
 			}
@@ -1148,11 +1150,6 @@ namespace AC
 		}
 
 
-		/**
-		 * <summary>Checks if the Action makes reference to a particular ActionList asset</summary>
-		 * <param name = "actionListAsset">The ActionList to check for</param>
-		 * <returns>True if Action Menu references the ActionList</param>
-		 */
 		public virtual bool ReferencesAsset (ActionListAsset actionListAsset)
 		{
 			Upgrade ();
@@ -1369,9 +1366,19 @@ namespace AC
 		protected string AssignString (List<ActionParameter> parameters, int _parameterID, string field)
 		{
 			ActionParameter parameter = GetParameterWithID (parameters, _parameterID);
-			if (parameter != null && parameter.parameterType == ParameterType.String)
+			if (parameter != null)
 			{
-				return (parameter.stringValue);
+				switch (parameter.parameterType)
+				{
+					case ParameterType.String:
+						return parameter.stringValue;
+
+					case ParameterType.PopUp:
+						return parameter.GetValueAsString ();
+
+					default:
+						break;
+				}
 			}
 			return field;
 		}
@@ -1409,9 +1416,17 @@ namespace AC
 		public int AssignInteger (List<ActionParameter> parameters, int _parameterID, int field)
 		{
 			ActionParameter parameter = GetParameterWithID (parameters, _parameterID);
-			if (parameter != null && parameter.parameterType == ParameterType.Integer)
+			if (parameter != null)
 			{
-				return (parameter.intValue);
+				switch (parameter.parameterType)
+				{
+					case ParameterType.Integer:
+					case ParameterType.PopUp:
+						return (parameter.intValue);
+
+					default:
+						break;
+				}
 			}
 			return field;
 		}
@@ -1728,24 +1743,24 @@ namespace AC
 				{
 					file = ConstantID.GetComponent <T> (parameter.intValue);
 
-					if (file == null && parameter.gameObject != null && parameter.intValue != -1 && doLog)
+					if (file == null && parameter.gameObject && parameter.intValue != -1 && doLog)
 					{
-						ACDebug.LogWarning ("No " + typeof(T) + " component attached to " + parameter.gameObject + "!", parameter.gameObject);
+						LogWarning ("No " + typeof(T) + " component attached to " + parameter.gameObject + "!", parameter.gameObject);
 					}
 				}
 				if (file == null)
 				{
-					if (parameter.gameObject != null && parameter.gameObject.GetComponent <T>())
+					if (parameter.gameObject && parameter.gameObject.GetComponent<T> ())
 					{
-						file = parameter.gameObject.GetComponent <T>();
+						file = parameter.gameObject.GetComponent<T> ();
 					}
 					else if (parameter.intValue != 0)
 					{
-						file = ConstantID.GetComponent <T> (parameter.intValue);
+						file = ConstantID.GetComponent<T> (parameter.intValue);
 					}
-					else if (parameter.gameObject != null && parameter.gameObject.GetComponent <T>() == null && doLog)
+					if (doLog && file == null && parameter.gameObject && parameter.gameObject.GetComponent<T> () == null)
 					{
-						ACDebug.LogWarning ("No " + typeof(T) + " component attached to " + parameter.gameObject + "!", parameter.gameObject);
+						LogWarning ("No " + typeof (T) + " component attached to " + parameter.gameObject + "!", parameter.gameObject);
 					}
 				}
 			}
@@ -1940,6 +1955,11 @@ namespace AC
 		}
 
 
+		/** Use this in Action subclasses to reset any value in an asset-based Action when the game resets */
+		public virtual void ResetAssetValues ()
+		{}
+
+
 		public int LastRunOutput
 		{
 			get
@@ -1955,11 +1975,7 @@ namespace AC
 		 */
 		public void SetOutput (ActionEnd actionEnd)
 		{
-			endAction = actionEnd.resultAction;
-			skipAction = actionEnd.skipAction;
-			skipActionActual = actionEnd.skipActionActual;
-			linkedCutscene = actionEnd.linkedCutscene;
-			linkedAsset = actionEnd.linkedAsset;
+			SetOutputs (new ActionEnd[1] { actionEnd });
 		}
 
 
@@ -1976,6 +1992,12 @@ namespace AC
 
 		public static Action CreateNew (string className)
 		{
+			if (className == "ActionEvent")
+			{
+				// Dirty hack due to shared class name with Unity
+				className = "AC." + className;
+			}
+
 			#if AC_ActionListPrefabs
 			System.Runtime.Remoting.ObjectHandle handle = System.Activator.CreateInstance ("Assembly-CSharp", "AC." + className);
 			Action newAction = (Action) handle.Unwrap ();

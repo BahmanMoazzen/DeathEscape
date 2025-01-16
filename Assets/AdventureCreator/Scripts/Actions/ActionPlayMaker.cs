@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"ActionPlayMaker.cs"
  * 
@@ -117,12 +117,12 @@ namespace AC
 					}
 				}
 
-				fsmNameParameterID = Action.ChooseParameterGUI ("FSM to call (optional):", parameters, fsmNameParameterID, ParameterType.String);
+				fsmNameParameterID = Action.ChooseParameterGUI ("FSM to call (optional):", parameters, fsmNameParameterID, new ParameterType[2] { ParameterType.String, ParameterType.PopUp });
 				if (fsmNameParameterID < 0)
 				{
 					fsmName = EditorGUILayout.TextField ("FSM to call (optional):", fsmName);
 				}
-				eventNameParameterID = Action.ChooseParameterGUI ("Event to call:", parameters, eventNameParameterID, ParameterType.String);
+				eventNameParameterID = Action.ChooseParameterGUI ("Event to call:", parameters, eventNameParameterID, new ParameterType[2] { ParameterType.String, ParameterType.PopUp });
 				if (eventNameParameterID < 0)
 				{
 					eventName = EditorGUILayout.TextField ("Event to call:", eventName);
@@ -148,7 +148,7 @@ namespace AC
 		{
 			if (parameterID < 0 && !isPlayer)
 			{
-				if (linkedObject != null && linkedObject == gameObject) return true;
+				if (linkedObject && linkedObject == gameObject) return true;
 				if (constantID == id && id != 0) return true;
 			}
 			return base.ReferencesObjectOrID (gameObject, id);

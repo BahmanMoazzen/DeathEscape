@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"ActiveList.cs"
  * 
@@ -19,9 +19,7 @@ using UnityEngine.AddressableAssets;
 namespace AC
 {
 	
-	/**
-	 * A container for data about ActionLists and ActionListAssets that have been run.  It stores information about what to skip, pause-points and current parameter data.
-	 */
+	/** A container for data about ActionLists and ActionListAssets that have been run.  It stores information about what to skip, pause-points and current parameter data. */
 	public class ActiveList
 	{
 
@@ -300,7 +298,8 @@ namespace AC
 		public void Resume (RuntimeActionList runtimeActionList = null, bool rerunPausedActions = false)
 		{
 			if (runtimeActionList != null)
-			{
+			{ 
+				isRunning = true;
 				actionList = runtimeActionList;
 				runtimeActionList.Resume (startIndex, resumeIndices, parameterData, rerunPausedActions);
 			}
@@ -361,7 +360,11 @@ namespace AC
 					{
 						// OK
 					}
-					else if (subScene && UnityVersionHandler.GetSceneIndexFromGameObject (actionList.gameObject) == subScene.SceneIndex)
+					else if (KickStarter.settingsManager.referenceScenesInSave == ChooseSceneBy.Number && subScene && UnityVersionHandler.GetSceneIndexFromGameObject (actionList.gameObject) == subScene.SceneIndex)
+					{
+						// OK
+					}
+					else if (KickStarter.settingsManager.referenceScenesInSave == ChooseSceneBy.Name && subScene && UnityVersionHandler.GetSceneNameFromGameObject (actionList.gameObject) == subScene.SceneName)
 					{
 						// OK
 					}

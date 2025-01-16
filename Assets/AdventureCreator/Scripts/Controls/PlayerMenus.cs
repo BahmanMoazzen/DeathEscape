@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"PlayerMenus.cs"
  * 
@@ -48,10 +48,10 @@ namespace AC
 		protected List<Menu> dupSpeechMenus = new List<Menu>();
 		protected List<Menu> customMenus = new List<Menu>();
 		protected Texture2D pauseTexture;
-		protected string menuIdentifier = string.Empty;
-		protected string lastMenuIdentifier = string.Empty;
-		protected string elementIdentifier = string.Empty;
-		protected string lastElementIdentifier = string.Empty;
+		protected int menuIdentifier = -1;
+		protected int lastMenuIdentifier = -1;
+		protected int elementIdentifier = -1;
+		protected int lastElementIdentifier = -1;
 		protected MenuInput selectedInputBox;
 		protected string selectedInputBoxMenuName;
 		protected MenuInventoryBox activeInventoryBox;
@@ -104,15 +104,19 @@ namespace AC
 			EventManager.OnAddSubScene += OnAddSubScene;
 			EventManager.OnEnterGameState += OnEnterGameState;
 			EventManager.OnExitGameState += OnExitGameState;
+			EventManager.OnMouseOverMenu += OnMouseOverMenu;
+			EventManager.OnChangeLanguage += OnChangeLanguage;
 		}
 
 
 		private void OnDisable ()
 		{
+			EventManager.OnChangeLanguage -= OnChangeLanguage;
 			EventManager.OnInitialiseScene -= OnInitialiseScene;
 			EventManager.OnAddSubScene -= OnAddSubScene;
 			EventManager.OnEnterGameState -= OnEnterGameState;
 			EventManager.OnExitGameState -= OnExitGameState;
+			EventManager.OnMouseOverMenu -= OnMouseOverMenu;
 		}
 
 
@@ -174,46 +178,68 @@ namespace AC
 			}
 			
 			CreateEventSystem ();
+			OnChangeLanguage (Options.GetLanguage ());
 			
 			foreach (AC.Menu menu in menus)
 			{
 				menu.Recalculate ();
 			}
 			
-			#if UNITY_WEBPLAYER && !UNITY_EDITOR
+			#if (UNITY_WEBPLAYER || UNITY_WEBGL) && !UNITY_EDITOR
 			// WebPlayer takes another second to get the correct screen dimensions
-			foreach (AC.Menu menu in menus)
-			{
-				menu.Recalculate ();
-			}
-			#endif
-
+			StartCoroutine (RecalcWebMenus ());
 			KickStarter.eventManager.Call_OnGenerateMenus ();
-
-			StartCoroutine (CycleMouseOverUIs ());
+			#else
+			KickStarter.eventManager.Call_OnGenerateMenus ();
+			CycleMouseOverUIs ();
+			#endif
 		}
 
 
-		protected IEnumerator CycleMouseOverUIs ()
+		private IEnumerator RecalcWebMenus ()
+		{
+			yield return null;
+			foreach (AC.Menu menu in menus)
+			{
+				menu.Recalculate ();
+			}
+			CycleMouseOverUIs ();
+		}
+
+
+		protected void CycleMouseOverUIs ()
+		{
+			List<Menu> mouseOverMenus = new List<Menu>();
+
+			for (int i = 0; i < menus.Count; i++)
+			{
+				if (menus[i].menuSource != MenuSource.AdventureCreator && menus[i].appearType == AppearType.MouseOver)
+				{
+					mouseOverMenus.Add (menus[i]);
+				}
+			}
+			
+			if (mouseOverMenus.Count > 0)
+			{
+				StartCoroutine (CycleMouseOverUIsCo (mouseOverMenus.ToArray ()));
+			}
+		}
+
+
+		protected IEnumerator CycleMouseOverUIsCo (Menu[] _menus)
 		{
 			// MouseOver UI menus need to be enabled in the first frame so that their RectTransforms can be recognised by Unity
 
-			foreach (Menu menu in menus)
+			for (int i = 0; i < _menus.Length; i++)
 			{
-				if (menu.menuSource != MenuSource.AdventureCreator && menu.appearType == AppearType.MouseOver)
-				{
-					menu.EnableUI ();
-				}
+				_menus[i].EnableUI ();
 			}
 
 			yield return new WaitForEndOfFrame ();
 
-			foreach (Menu menu in menus)
+			for (int i = 0; i < _menus.Length; i++)
 			{
-				if (menu.menuSource != MenuSource.AdventureCreator && menu.appearType == AppearType.MouseOver)
-				{
-					menu.DisableUI ();
-				}
+				_menus[i].DisableUI ();
 			}
 		}
 
@@ -291,7 +317,8 @@ namespace AC
 				customMenu.AfterSceneChange ();
 			}
 
-			StartCoroutine (CycleMouseOverUIs ());
+			KickStarter.playerMenus.UpdatePauseMenusRecord ();
+			CycleMouseOverUIs ();
 		}
 
 
@@ -322,6 +349,42 @@ namespace AC
 			if (gameState == GameState.Cutscene)
 			{
 				MakeUIInteractive ();
+			}
+		}
+
+
+		protected void OnMouseOverMenu (AC.Menu menu, MenuElement element, int slot)
+		{
+			if (element != null)
+			{
+				if (!menu.CanCurrentlyKeyboardControl (KickStarter.stateHandler.gameState) && !menu.ignoreMouseClicks)
+				{
+					if ((!interactionMenuIsOn || menu.appearType == AppearType.OnInteraction)
+						&& (KickStarter.playerInput.GetDragState () == DragState.None || (KickStarter.playerInput.GetDragState () == DragState.Inventory && CanElementBeDroppedOnto (element))))
+					{
+						KickStarter.sceneSettings.PlayDefaultSound (element.GetHoverSound (slot), false);
+					}
+				}
+			}
+		}
+
+
+		private void OnChangeLanguage (int language)
+		{
+			if (menus.Count > 0)
+			{
+				List<Menu> _menus = GetMenus (true);
+				foreach (Menu menu in _menus)
+				{
+					if (menu == null) continue;
+
+					foreach (MenuElement element in menu.elements)
+					{
+						if (element == null) continue;
+
+						element.UpdateLabel (language);
+					}
+				}
 			}
 		}
 
@@ -749,7 +812,7 @@ namespace AC
 								{
 									if (!MoveUIMenuToHotspot (menu, KickStarter.playerInteraction.GetActiveHotspot ()))
 									{
-										if (AreInteractionMenusOn ())
+										if (AreInteractionMenusOn () || menu.IsFadingOut ())
 										{
 											MoveUIMenuToHotspot (menu, KickStarter.playerInteraction.GetLastOrActiveHotspot ());
 										}
@@ -900,7 +963,7 @@ namespace AC
 						{
 							if (!MoveMenuToHotspot (menu, KickStarter.playerInteraction.GetActiveHotspot ()))
 							{
-								if (AreInteractionMenusOn ())
+								if (AreInteractionMenusOn () || menu.IsFadingOut ())
 								{
 									MoveMenuToHotspot (menu, KickStarter.playerInteraction.GetLastOrActiveHotspot ());
 								}
@@ -1373,7 +1436,10 @@ namespace AC
 							}
 							else if (!menu.IsPointInside (invertedMouse) && !menu.ignoreMouseClicks && KickStarter.settingsManager.interactionMethod == AC_InteractionMethod.ChooseHotspotThenInteraction && KickStarter.settingsManager.cancelInteractions == CancelInteractions.CursorLeavesMenu && KickStarter.settingsManager.SelectInteractionMethod () == SelectInteractions.ClickingMenu && !menu.IsFadingIn ())
 							{
-								menu.TurnOff (true);
+								if (menu != repositionMenu)
+								{
+									menu.TurnOff (true);
+								}
 							}
 							else if (KickStarter.playerInteraction.GetActiveHotspot () == null && !InvInstance.IsValid (KickStarter.runtimeInventory.HoverInstance) &&
 								KickStarter.settingsManager.interactionMethod == AC_InteractionMethod.ChooseHotspotThenInteraction && KickStarter.settingsManager.selectInteractions == AC.SelectInteractions.CyclingMenuAndClickingHotspot)
@@ -1496,7 +1562,7 @@ namespace AC
 				menu.IsPointInside (KickStarter.playerInput.GetInvertedMouse ()) &&
 				!menu.ignoreMouseClicks)
 			{
-				menuIdentifier = menu.IDString;
+				menuIdentifier = menu.ID;
 				mouseOverMenu = menu;
 				mouseOverElement = null;
 				mouseOverElementSlot = 0;
@@ -1560,22 +1626,9 @@ namespace AC
 
 					if (menu.elements[j].IsVisible && SlotIsInteractive (menu, j, i, gameState))
 					{
-						if (!menu.CanCurrentlyKeyboardControl (gameState) && !menu.ignoreMouseClicks)
-						{
-							if ((!interactionMenuIsOn || menu.appearType == AppearType.OnInteraction)
-								&& (KickStarter.playerInput.GetDragState () == DragState.None || (KickStarter.playerInput.GetDragState () == DragState.Inventory && CanElementBeDroppedOnto (menu.elements[j]))))
-							{
-								if (lastElementIdentifier != (menu.IDString + menu.elements[j].IDString + i.ToString ()))
-								{
-									KickStarter.sceneSettings.PlayDefaultSound (menu.elements[j].GetHoverSound (i), false);
-								}
-							}
-						}
-
 						if (!menu.ignoreMouseClicks)
 						{
-							elementIdentifier = menu.IDString + menu.elements[j].IDString + i.ToString ();
-
+							elementIdentifier = (menu.ID * 10000) + (menu.elements[j].ID * 100) + i;
 							mouseOverMenu = menu;
 							mouseOverElement = menu.elements[j];
 							mouseOverElementSlot = i;
@@ -1847,25 +1900,28 @@ namespace AC
 		}
 
 		
-		protected void CheckClicks (AC.Menu menu)
+		protected bool CheckClicks (AC.Menu menu)
 		{
 			if (!menu.HasTransition () && menu.IsFading ())
 			{
 				// Stop until no longer "fading" so that it appears in right place
-				return;
+				return false;
 			}
 
-			if (KickStarter.settingsManager.inputMethod == InputMethod.MouseAndKeyboard &&
-				menu.IsPointInside (KickStarter.playerInput.GetInvertedMouse ()) &&
-				!menu.ignoreMouseClicks)
+			bool mouseOver = false;
+			if (!menu.ignoreMouseClicks &&
+				!menu.CanCurrentlyKeyboardControl (KickStarter.stateHandler.gameState) &&
+				menu.IsPointInside (KickStarter.playerInput.GetInvertedMouse ()))
 			{
-				menuIdentifier = menu.IDString;
+				menuIdentifier = menu.ID;
 				mouseOverMenu = menu;
 				mouseOverElement = null;
 				mouseOverElementSlot = 0;
+				mouseOver = true;
 			}
 
-			for (int j=0; j<menu.NumElements; j++)
+			//for (int j=0; j<menu.NumElements; j++)
+			for (int j=menu.NumElements-1; j>=0; j--)
 			{
 				if (menu.elements[j].IsVisible)
 				{
@@ -1873,18 +1929,20 @@ namespace AC
 					{
 						if (SlotIsInteractive (menu, j, i, KickStarter.stateHandler.gameState))
 						{
-							if (!menu.IsUnityUI () && KickStarter.playerInput.GetMouseState () != MouseState.Normal && (KickStarter.playerInput.GetDragState () == DragState.None || KickStarter.playerInput.GetDragState () == DragState.Menu))
+							MouseState mouseState = KickStarter.playerInput.GetMouseState (false);
+
+							if (!menu.IsUnityUI () && mouseState != MouseState.Normal && (KickStarter.playerInput.GetDragState () == DragState.None || KickStarter.playerInput.GetDragState () == DragState.Menu))
 							{
-								if (KickStarter.playerInput.GetMouseState () == MouseState.SingleClick || KickStarter.playerInput.GetMouseState () == MouseState.LetGo || KickStarter.playerInput.GetMouseState () == MouseState.RightClick)
+								if (mouseState == MouseState.SingleClick || mouseState == MouseState.LetGo || mouseState == MouseState.RightClick)
 								{
 									if (menu.elements[j] is MenuInput) {}
 									else DeselectInputBox ();
 									
-									CheckClick (menu, menu.elements[j], i, KickStarter.playerInput.GetMouseState ());
+									CheckClick (menu, menu.elements[j], i, mouseState);
 								}
-								else if (KickStarter.playerInput.GetMouseState () == MouseState.HeldDown)
+								else if (mouseState == MouseState.HeldDown)
 								{
-									CheckContinuousClick (menu, menu.elements[j], i, KickStarter.playerInput.GetMouseState ());
+									CheckContinuousClick (menu, menu.elements[j], i, mouseState);
 								}
 							}
 							else if (menu.IsUnityUI () &&
@@ -1925,12 +1983,12 @@ namespace AC
 					}
 				}
 			}
+
+			return mouseOver;
 		}
 
 
-		/**
-		 * Refreshes any active MenuDialogList elements, after changing the state of dialogue options.
-		 */
+		/** Refreshes any active MenuDialogList elements, after changing the state of dialogue options. */
 		public void RefreshDialogueOptions ()
 		{
 			Menu[] allMenus = GetMenus (true).ToArray ();
@@ -1941,9 +1999,7 @@ namespace AC
 		}
 
 
-		/**
-		 * Updates the state of all Menus set to appear while the game is loading.
-		 */
+		/** Updates the state of all Menus set to appear while the game is loading. */
 		public void UpdateLoadingMenus ()
 		{
 			int languageNumber = Options.GetLanguage ();
@@ -1958,38 +2014,45 @@ namespace AC
 		}
 
 
-		/**
-		 * Checks for inputs made to all Menus.
-		 * This is called every frame by StateHandler.
-		 */
+		/** Checks for inputs made to all Menus. This is called every frame by StateHandler. */
 		public void CheckForInput ()
 		{
 			if (customMenus != null)
 			{
 				for (int i=customMenus.Count-1; i>=0; i--)
 				{
-					CheckForInput (customMenus[i]);
+					if (CheckForInput (customMenus[i]))
+					{
+						return;
+					}
 				}
 			}
 
 			for (int i=dupSpeechMenus.Count-1; i>=0; i--)
 			{
-				CheckForInput (dupSpeechMenus[i]);
+				if (CheckForInput (dupSpeechMenus[i]))
+				{
+					return;
+				}
 			}
 
 			for (int i=menus.Count-1; i>=0; i--)
 			{
-				CheckForInput (menus[i]);
+				if (CheckForInput (menus[i]))
+				{
+					return;
+				}
 			}
 		}
 
 
-		private void CheckForInput (Menu menu)
+		private bool CheckForInput (Menu menu)
 		{
 			if (menu.IsEnabled () && !menu.ignoreMouseClicks)
 			{
-				CheckClicks (menu);
+				return CheckClicks (menu);
 			}
+			return false;
 		}
 
 
@@ -2036,10 +2099,7 @@ namespace AC
 		}
 
 
-		/**
-		 * Updates the state of all Menus.
-		 * This is called every frame by StateHandler.
-		 */
+		/** Updates the state of all Menus. This is called every frame by StateHandler. */
 		public void UpdateAllMenus ()
 		{
 			#if (UNITY_IPHONE || UNITY_ANDROID) && !UNITY_EDITOR
@@ -2066,7 +2126,7 @@ namespace AC
 				}
 			}
 
-			elementIdentifier = string.Empty;
+			elementIdentifier = -1;
 			foundMouseOverMenu = false;
 			foundMouseOverInteractionMenu = false;
 			foundMouseOverInventory = false;
@@ -2077,9 +2137,9 @@ namespace AC
 			for (int i=0; i<menus.Count; i++)
 			{
 				UpdateMenu (menus[i], languageNumber, false, menus[i].IsEnabled ());
-				if (!menus[i].IsEnabled () && menus[i].IsOff () && menuIdentifier == menus[i].IDString)
+				if (!menus[i].IsEnabled () && menus[i].IsOff () && menuIdentifier == menus[i].ID)
 				{
-					menuIdentifier = string.Empty;
+					menuIdentifier = -1;
 				}
 			}
 
@@ -2103,9 +2163,9 @@ namespace AC
 			for (int i=0; i<customMenus.Count; i++)
 			{
 				UpdateMenu (customMenus[i], languageNumber, false, customMenus[i].IsEnabled ());
-				if (customMenus.Count > i && customMenus[i] != null && !customMenus[i].IsEnabled () && customMenus[i].IsOff () && menuIdentifier == customMenus[i].IDString)
+				if (customMenus.Count > i && customMenus[i] != null && !customMenus[i].IsEnabled () && customMenus[i].IsOff () && menuIdentifier == customMenus[i].ID)
 				{
-					menuIdentifier = string.Empty;
+					menuIdentifier = -1;
 				}
 			}
 
@@ -2427,9 +2487,7 @@ namespace AC
 		}
 
 
-		/**
-		 * <summary>Closes all "Interaction" Menus.</summary>
-		 */
+		/** Closes all "Interaction" Menus. */
 		public void CloseInteractionMenus ()
 		{
 			SetInteractionMenus (false, null, null);
@@ -2569,9 +2627,37 @@ namespace AC
 		}
 
 
-		/**
-		 * Turns off any Menus with appearType = AppearType.OnHotspot.
+		/** 
+		 * <summary>Repositions a menu a frame later, so that its scale values can be properly calculated after spawning. This normally only needs to be called internally.</summary>
+		 * <param name="menu">The menu to reposition</param>
+		 * <param name="screenPosition">The position to take.</param>
 		 */
+		public void RequestRepositionUpdate (Menu menu, Vector2 screenPosition)
+		{
+			StartCoroutine (RequestRepositionUpdateCoroutine (menu, screenPosition));
+		}
+
+
+		private Menu repositionMenu;
+		private IEnumerator RequestRepositionUpdateCoroutine (Menu menu, Vector2 screenPosition)
+		{
+			repositionMenu = menu;
+			CanvasGroup canvasGroup = menu.RuntimeCanvas.GetComponent <CanvasGroup>();
+			if (canvasGroup && menu.uiTransitionType == UITransition.None)
+			{
+				canvasGroup.alpha = 0f;
+			}
+			yield return null;
+			menu.SetCentre (screenPosition);
+			if (canvasGroup && menu.uiTransitionType == UITransition.None)
+			{
+				canvasGroup.alpha = 1f;
+			}
+			repositionMenu = null;
+		}
+
+
+		/** Turns off any Menus with appearType = AppearType.OnHotspot. */
 		public void DisableHotspotMenus ()
 		{
 			Menu[] allMenus = GetMenus (true).ToArray ();
@@ -3108,9 +3194,7 @@ namespace AC
 		}
 
 
-		/**
-		 * <summary>Destroys and unregisters all custom Menus registered with PlayerMenus</summary>
-		 */
+		/** Destroys and unregisters all custom Menus registered with PlayerMenus */
 		public void DestroyCustomMenus ()
 		{
 			for (int i=0; i<customMenus.Count; i++)
@@ -3296,28 +3380,30 @@ namespace AC
 		}
 
 
-		/**
-		 * Makes all Menus linked to Unity UI interactive.
-		 */
+		/** Makes all Menus linked to Unity UI interactive. */
 		public void MakeUIInteractive ()
 		{
 			Menu[] allMenus = GetMenus (true).ToArray ();
 			foreach (Menu menu in allMenus)
 			{
-				menu.MakeUIInteractive ();
+				if (!menu.IsOff ())
+				{
+					menu.UpdateInteractability ();
+				}
 			}
 		}
 		
 		
-		/**
-		 * Makes all Menus linked to Unity UI non-interactive.
-		 */
+		/** Makes all Menus linked to Unity UI non-interactive. */
 		public void MakeUINonInteractive ()
 		{
 			Menu[] allMenus = GetMenus (true).ToArray ();
 			foreach (Menu menu in allMenus)
 			{
-				menu.MakeUINonInteractive ();
+				if (!menu.IsOff ())
+				{
+					menu.UpdateInteractability ();
+				}
 			}
 		}
 
@@ -3369,7 +3455,7 @@ namespace AC
 			
 			foreach (AC.Menu _menu in menus)
 			{
-				menuString.Append (_menu.IDString);
+				menuString.Append (_menu.ID.ToString ());
 				menuString.Append (SaveSystem.colon);
 				menuString.Append (_menu.isLocked.ToString ());
 				menuString.Append (SaveSystem.pipe);
@@ -3393,7 +3479,7 @@ namespace AC
 				if (_menu.IsManualControlled ())
 				{
 					changeMade = true;
-					menuString.Append (_menu.IDString);
+					menuString.Append (_menu.ID.ToString ());
 					menuString.Append (SaveSystem.colon);
 					menuString.Append (_menu.IsEnabled ().ToString ());
 					menuString.Append (SaveSystem.pipe);
@@ -3416,15 +3502,12 @@ namespace AC
 			{
 				if (_menu.NumElements > 0)
 				{
-					visibilityString.Append (_menu.IDString);
+					visibilityString.Append (_menu.ID.ToString ());
 					visibilityString.Append (SaveSystem.colon);
 					
 					foreach (MenuElement _element in _menu.elements)
 					{
-						visibilityString.Append (_element.IDString);
-						visibilityString.Append ("=");
-						visibilityString.Append (_element.IsVisible.ToString ());
-						visibilityString.Append ("+");
+						visibilityString.Append (_element.GetVisibilitySaveData ());
 					}
 					
 					visibilityString.Remove (visibilityString.Length-1, 1);
@@ -3452,7 +3535,7 @@ namespace AC
 					if (_element is MenuJournal)
 					{
 						MenuJournal journal = (MenuJournal) _element;
-						journalString.Append (_menu.IDString);
+						journalString.Append (_menu.ID.ToString ());
 						journalString.Append (SaveSystem.colon);
 						journalString.Append (journal.ID);
 						journalString.Append (SaveSystem.colon);
@@ -3768,9 +3851,7 @@ namespace AC
 		}
 
 
-		/**
-		 * Restores the menu and cursor systems to their former states, after taking a screenshot.
-		 */
+		/** Restores the menu and cursor systems to their former states, after taking a screenshot. */
 		public virtual void PostScreenshotBackup ()
 		{
 			foreach (Menu menu in menus)
@@ -3786,6 +3867,50 @@ namespace AC
 			foreach (Menu customMenu in customMenus)
 			{
 				customMenu.PostScreenshotBackup ();
+			}
+		}
+
+
+		/** Disables a given menu's UI canvas after a frame delay, provided that it is still off by then */
+		public void DiableUIInNextFrame (Menu menu)
+		{
+			StartCoroutine (DisableUIInNextFrameCo (menu));
+		}
+
+
+		private IEnumerator DisableUIInNextFrameCo (Menu menu)
+		{
+			yield return null;
+			if (menu.IsOff ())
+			{
+				menu.DisableUI ();
+			}
+		}
+
+
+		public Menu MouseOverMenu
+		{
+			get
+			{
+				return mouseOverMenu;
+			}
+		}
+
+
+		public MenuElement MouseOverMenuElement
+		{
+			get
+			{
+				return mouseOverElement;
+			}
+		}
+
+
+		public int MouseOverElementSlot
+		{
+			get
+			{
+				return mouseOverElementSlot;
 			}
 		}
 

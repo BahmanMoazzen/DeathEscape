@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"Dialog.cs"
  * 
@@ -30,7 +30,7 @@ namespace AC
 		/** The Sound prefab to use to play narration speech audio from */
 		public Sound narratorSound;
 		/** The delay in seconds between choosing a Conversation's dialogue option and it triggering */
-		[Range (0f, 1f)] public float conversationDelay = 0.3f;
+		public float conversationDelay = 0.3f;
 		/** An array of rich-text tag names that can be detected when scrolling speech, to prevent them from displaying incorrectly.  If a name ends with an '=' symbol, the tag has a parameter */
 		public string[] richTextTags = new string[]
 		{
@@ -439,6 +439,23 @@ namespace AC
 
 
 		/**
+		 * <summary>Checks if narration is currently playing.</summary>
+		 * <returns>True if narrtion is currently playing</returns>
+		 */
+		public bool NarrationIsPlaying ()
+		{
+			for (int i = 0; i < speechList.Count; i++)
+			{
+				if (speechList[i].GetSpeakingCharacter () == null)
+				{
+					return true;
+				}
+			}
+			return false;
+		}
+
+
+		/**
 		 * <summary>Checks if a speech line with a given ID is currently playing.</summary>
 		 * <param name = "lineID".The line ID to check</param>
 		 * <returns>True if the line is playing</returns>
@@ -580,6 +597,15 @@ namespace AC
 			{
 				case LipSyncMode.FromSpeechText:
 					{
+						if (lineID > -1 && !KickStarter.speechManager.translateAudio && Options.GetLanguage () > 0)
+						{
+							SpeechLine speechLine = KickStarter.speechManager.GetLine (lineID);
+							if (speechLine != null)
+							{
+								_message = speechLine.text;
+							}
+						}
+
 						for (int i=0; i<_message.Length; i++)
 						{
 							int maxSearch = Mathf.Min (5, _message.Length - i);
@@ -730,7 +756,6 @@ namespace AC
 										string searchText = papagoyoLineArray[1].ToLower ().Substring (0, papagoyoLineArray[1].Length);
 										
 										bool found = false;
-										if (!searchText.Contains ("rest"))
 										{
 											foreach (string phoneme in KickStarter.speechManager.phonemes)
 											{
@@ -749,7 +774,7 @@ namespace AC
 													}
 												}
 											}
-											if (!found && !searchText.Contains ("etc"))
+											if (!found)
 											{
 												lipSyncShapes.Add (new LipSyncShape (0, timeIndex, KickStarter.speechManager.lipSyncSpeed, 24f));
 											}
@@ -828,6 +853,7 @@ namespace AC
 		protected void EndSpeech (int i, bool stopCharacter = false)
 		{
 			Speech oldSpeech = speechList[i];
+			
 			KickStarter.playerMenus.RemoveSpeechFromMenu (oldSpeech);
 			if (stopCharacter)
 			{
@@ -970,9 +996,7 @@ namespace AC
 	}
 
 
-	/**
-	 * A data struct of lipsync animation
-	 */
+	/** A data struct of lipsync animation */
 	public struct LipSyncShape
 	{
 

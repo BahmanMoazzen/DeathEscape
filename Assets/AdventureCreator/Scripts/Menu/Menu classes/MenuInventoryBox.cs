@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"MenuInventoryBox.cs"
  * 
@@ -95,9 +95,6 @@ namespace AC
 		#endif
 
 
-		/**
-		 * Initialises the element when it is created within MenuManager.
-		 */
 		public override void Declare ()
 		{
 			uiSlots = null;
@@ -152,7 +149,7 @@ namespace AC
 			}
 			else
 			{
-				uiSlots = new UISlot[_element.uiSlots.Length];
+				uiSlots = (_element.uiSlots != null) ? new UISlot[_element.uiSlots.Length] : new UISlot[0];
 				for (int i=0; i<uiSlots.Length; i++)
 				{
 					uiSlots[i] = new UISlot (_element.uiSlots[i]);
@@ -177,7 +174,16 @@ namespace AC
 			uiHideStyle = _element.uiHideStyle;
 			emptySlotTexture = _element.emptySlotTexture;
 			objectiveDisplayType = _element.objectiveDisplayType;
-			categoryIDs = _element.categoryIDs;
+
+			categoryIDs = new List<int> ();
+			if (_element.categoryIDs != null)
+			{
+				foreach (int _categoryID in _element.categoryIDs)
+				{
+					categoryIDs.Add (_categoryID);
+				}
+			}
+
 			linkUIGraphic = _element.linkUIGraphic;
 			autoOpenDocument = _element.autoOpenDocument;
 			updateHotspotLabelWhenHover = _element.updateHotspotLabelWhenHover;
@@ -190,9 +196,9 @@ namespace AC
 
 			UpdateLimitCategory ();
 
+			base.Copy (_element);
 			invInstances = GetItemList ();
 
-			base.Copy (_element);
 
 			if (Application.isPlaying)
 			{
@@ -294,10 +300,6 @@ namespace AC
 		}
 
 
-		/**
-		 * <summary>Gets the linked Unity UI GameObject associated with this element.</summary>
-		 * <returns>The Unity UI GameObject associated with the element</returns>
-		 */
 		public override GameObject GetObjectToSelect (int slotIndex = 0)
 		{
 			if (uiSlots != null && uiSlots.Length > slotIndex && uiSlots[slotIndex].uiButton)
@@ -308,11 +310,6 @@ namespace AC
 		}
 		
 
-		/**
-		 * <summary>Gets the boundary of the slot</summary>
-		 * <param name = "_slot">The index number of the slot to get the boundary of</param>
-		 * <returns>The boundary Rect of the slot</returns>
-		 */
 		public override RectTransform GetRectTransform (int _slot)
 		{
 			if (uiSlots != null && _slot >= 0 && _slot < uiSlots.Length)
@@ -466,7 +463,7 @@ namespace AC
 
 			}
 
-			if (source == MenuSource.AdventureCreator && KickStarter.settingsManager && KickStarter.settingsManager.canReorderItems && highlightTexture)
+			if (source == MenuSource.AdventureCreator && ((KickStarter.settingsManager && KickStarter.settingsManager.canReorderItems) || uiHideStyle == UIHideStyle.ClearContent) && highlightTexture)
 			{
 				highlightEmptySlots = CustomGUILayout.Toggle ("Highlight empty slots?", highlightEmptySlots, apiPrefix + ".highlightEmptySlots", "If True, then the highlight texture will display for empty slots as well as those with items.");
 			}
@@ -615,6 +612,19 @@ namespace AC
 				if (uiSlot.uiButtonID == id && id != 0) return true;
 			}
 			return false;
+		}
+
+
+		public override int GetSlotIndex (GameObject gameObject)
+		{
+			for (int i = 0; i < uiSlots.Length; i++)
+			{
+				if (uiSlots[i].uiButton && uiSlots[i].uiButton == gameObject)
+				{
+					return 0;
+				}
+			}
+			return base.GetSlotIndex (gameObject);
 		}
 
 
@@ -892,7 +902,7 @@ namespace AC
 							{
 								if (KickStarter.settingsManager.selectInventoryDisplay == SelectInventoryDisplay.HideFromMenu && ItemIsSelected (_slot+offset))
 								{
-									if (!invInstances[_slot+offset].IsPartialTransform ())
+									if (!invInstances[_slot+offset].IsPartialTransfer ())
 									{
 										// Display as normal if we are only doing a partial transfer
 										uiSlots[_slot].SetImage (null);
@@ -930,7 +940,6 @@ namespace AC
 					}
 				}
 			}
-
 			return;
 		}
 
@@ -1005,7 +1014,7 @@ namespace AC
 			{
 				if (Application.isPlaying && KickStarter.settingsManager.selectInventoryDisplay == SelectInventoryDisplay.HideFromMenu && ItemIsSelected (_slot+offset))
 				{
-					if (!invInstances[_slot + offset].IsPartialTransform ())
+					if (!invInstances[_slot + offset].IsPartialTransfer ())
 					{
 						// Display as normal if we only have one selected from many
 						return;
@@ -1053,7 +1062,7 @@ namespace AC
 				Rect slotRect = GetSlotRectRelative (_slot);
 				Texture2D _tex = emptySlotTexture;
 
-				if (KickStarter.settingsManager && KickStarter.settingsManager.canReorderItems && highlightEmptySlots)
+				if (((KickStarter.settingsManager && KickStarter.settingsManager.canReorderItems) || uiHideStyle == UIHideStyle.ClearContent) && highlightEmptySlots)
 				{
 					if (emptySlotTexture == null)
 					{
@@ -1456,11 +1465,6 @@ namespace AC
 		}
 
 
-		/**
-		 * <summary>Recalculates the element's size.
-		 * This should be called whenever a Menu's shape is changed.</summary>
-		 * <param name = "source">How the parent Menu is displayed (AdventureCreator, UnityUiPrefab, UnityUiInScene)</param>
-		 */
 		public override void RecalculateSize (MenuSource source)
 		{
 			switch (inventoryBoxType)
@@ -1696,6 +1700,20 @@ namespace AC
 					foreach (InvItem _item in AdvGame.GetReferences ().inventoryManager.items)
 					{
 						newItemList.Add (new InvInstance (_item));
+
+						if (newItemList.Count >= maxSlots)
+						{
+							break;
+						}
+					}
+				}
+
+				if (newItemList.Count > 0 && newItemList.Count < maxSlots)
+				{
+					InvItem lastItem = newItemList[newItemList.Count-1].InvItem;
+					while (newItemList.Count < maxSlots)
+					{
+						newItemList.Add (new InvInstance (lastItem));
 					}
 				}
 			}
@@ -1790,11 +1808,6 @@ namespace AC
 		}
 
 
-		/**
-		 * <summary>Checks if the element's slots can be shifted in a particular direction.</summary>
-		 * <param name = "shiftType">The direction to shift slots in (Left, Right)</param>
-		 * <returns>True if the element's slots can be shifted in the particular direction</returns>
-		 */
 		public override bool CanBeShifted (AC_ShiftInventory shiftType)
 		{
 			if (inventoryBoxType == AC_InventoryBoxType.CollectedDocuments || inventoryBoxType == AC_InventoryBoxType.Objectives)
@@ -1883,22 +1896,20 @@ namespace AC
 		}
 		
 
-		/**
-		 * <summary>Shifts which slots are on display, if the number of slots the element has exceeds the number of slots it can show at once.</summary>
-		 * <param name = "shiftType">The direction to shift slots in (Left, Right)</param>
-		 * <param name = "amount">The amount to shift slots by</param>
-		 */
 		public override void Shift (AC_ShiftInventory shiftType, int amount)
 		{
 			if (numSlots >= maxSlots)
 			{
-				if (inventoryBoxType == AC_InventoryBoxType.CollectedDocuments || inventoryBoxType == AC_InventoryBoxType.Objectives)
+				switch (inventoryBoxType)
 				{
-					Shift (shiftType, maxSlots, numDocuments, amount);
-				}
-				else
-				{
-					Shift (shiftType, maxSlots, invInstances.Count, amount);
+					case AC_InventoryBoxType.CollectedDocuments:
+					case AC_InventoryBoxType.Objectives:
+						Shift (shiftType, maxSlots, numDocuments, amount);
+						break;
+
+					default:
+						Shift (shiftType, maxSlots, invInstances.Count, amount);
+						break;
 				}
 			}
 		}
@@ -1964,12 +1975,6 @@ namespace AC
 		}
 
 
-		/**
-		 * <summary>Gets the display text of the element</summary>
-		 * <param name = "slot">The index number of the slot</param>
-		 * <param name = "languageNumber">The index number of the language number to get the text in</param>
-		 * <returns>The display text of the element's slot, or the whole element if it only has one slot</returns>
-		 */
 		public override string GetLabel (int i, int languageNumber)
 		{
 			switch (inventoryBoxType)
@@ -2063,11 +2068,20 @@ namespace AC
 					return string.Empty;
 				}
 
+				string customText = KickStarter.eventManager.Call_OnRequestInventoryCountText (invInstances[i + offset], false);
+				if (!string.IsNullOrEmpty (customText))
+				{
+					return customText;
+				}
+
 				if (ItemIsSelected (i+offset))
 				{
-					return invInstances[i+offset].GetInventoryDisplayCount ().ToString ();
+					int displayCount = invInstances[i + offset].GetInventoryDisplayCount ();
+					return (displayCount > 0) ? displayCount.ToString () : string.Empty;
 				}
-				return invInstances[i + offset].Count.ToString ();
+				
+				int count = invInstances[i + offset].Count;
+				return (count > 0) ? count.ToString () : string.Empty;
 			}
 
 			if (invInstances[i+offset].InvItem.canCarryMultiple && invInstances[i+offset].InvItem.maxCount > 1)
@@ -2149,7 +2163,14 @@ namespace AC
 					}
 				}
 			}
-			AutoSize (GUIContent.none);
+			else if (emptySlotTexture)
+			{
+				AutoSize (new GUIContent (emptySlotTexture));
+			}
+			else
+			{
+				AutoSize (GUIContent.none);
+			}
 		}
 
 
@@ -2331,6 +2352,14 @@ namespace AC
 					}
 					break;
 
+				case AC_InventoryBoxType.HotspotBased:
+					clickConsumed = KickStarter.runtimeInventory.ProcessInventoryBoxClick (_menu, this, _slot, _mouseState);
+					if (clickConsumed && KickStarter.stateHandler.IsInGameplay () && KickStarter.settingsManager.alwaysCloseInteractionMenus)
+					{
+						KickStarter.playerMenus.CloseInteractionMenus ();
+					}
+					break;
+
 				default:
 					clickConsumed = KickStarter.runtimeInventory.ProcessInventoryBoxClick (_menu, this, _slot, _mouseState);
 					break;
@@ -2433,9 +2462,7 @@ namespace AC
 		}
 
 
-		/**
-		 * If set, and inventoryBoxType = AC_InventoryBoxType.Container, then this Container will be used instead of the global 'active' one.  Note that its Menu's 'Appear type' should not be set to 'On Container'.
-		 */
+		/** If set, and inventoryBoxType = AC_InventoryBoxType.Container, then this Container will be used instead of the global 'active' one.  Note that its Menu's 'Appear type' should not be set to 'On Container'. */
 		public Container OverrideContainer
 		{
 			get
@@ -2444,7 +2471,11 @@ namespace AC
 			}
 			set
 			{
-				overrideContainer = value;
+				if (overrideContainer != value)
+				{
+					overrideContainer = value;
+					PlayerMenus.ResetInventoryBoxes ();
+				}
 			}
 		}
 

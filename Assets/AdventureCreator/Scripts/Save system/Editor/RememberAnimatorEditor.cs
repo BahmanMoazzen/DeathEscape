@@ -1,5 +1,6 @@
-﻿using UnityEditor;
-using UnityEngine;
+﻿#if UNITY_EDITOR
+
+using UnityEditor;
 
 namespace AC
 {
@@ -18,3 +19,5 @@ namespace AC
 	}
 	
 }
+
+#endif

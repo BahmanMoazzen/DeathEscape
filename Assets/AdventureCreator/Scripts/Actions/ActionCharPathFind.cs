@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"ActionCharPathFind.cs"
  * 
@@ -384,13 +384,13 @@ namespace AC
 		{
 			if (!isPlayer && charToMoveParameterID < 0)
 			{
-				if (charToMove != null && charToMove.gameObject == _gameObject) return true;
+				if (charToMove && charToMove.gameObject == _gameObject) return true;
 				if (charToMoveID == id) return true;
 			}
-			if (isPlayer && _gameObject.GetComponent <Player>() != null) return true;
+			if (isPlayer && _gameObject && _gameObject.GetComponent <Player>()) return true;
 			if (markerParameterID < 0)
 			{
-				if (marker != null && marker.gameObject == _gameObject) return true;
+				if (marker && marker.gameObject == _gameObject) return true;
 				if (markerID == id) return true;
 			}
 			return base.ReferencesObjectOrID (_gameObject, id);

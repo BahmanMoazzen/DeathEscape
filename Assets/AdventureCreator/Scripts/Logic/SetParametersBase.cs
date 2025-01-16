@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"SetInteractionBase.cs"
  * 
@@ -583,7 +583,41 @@ namespace AC
 								}
 							}
 						}
-					break;
+						break;
+
+					case ParameterType.PopUp:
+						{
+							linkedID = Action.ChooseParameterGUI (label + ":", ownParameters, linkedID, ParameterType.PopUp, -1, tooltip);
+							if (linkedID < 0)
+							{
+								if (guiData.fromParameters[i].intValue < 0)
+								{
+									guiData.fromParameters[i].intValue = 0;
+								}
+
+								PopUpLabelData popUpLabelData = KickStarter.variablesManager.GetPopUpLabelData (guiData.fromParameters[i].popUpID);
+								if (popUpLabelData != null)
+								{
+									string[] labels = popUpLabelData.GenerateEditorPopUpLabels ();
+									if (guiData.fromParameters[i].intValue >= labels.Length)
+									{
+										if (labels.Length == 0)
+										{
+											EditorGUILayout.HelpBox ("The PopUp parameter " + guiData.fromParameters[i].label + " has no labels defined.", MessageType.Warning);
+											break;
+										}
+										guiData.fromParameters[i].intValue = labels.Length - 1;
+										Debug.LogWarning ("Value for PopUp parameter " + guiData.fromParameters[i].label + " was reduced because it exceeded the maximum value.");
+									}
+									guiData.fromParameters[i].intValue = EditorGUILayout.Popup (label + ":", guiData.fromParameters[i].intValue, labels);
+								}
+								else
+								{
+									guiData.fromParameters[i].intValue = EditorGUILayout.IntField (label + " index:", guiData.fromParameters[i].intValue);
+								}
+							}
+						}
+						break;
 
 					default:
 						break;

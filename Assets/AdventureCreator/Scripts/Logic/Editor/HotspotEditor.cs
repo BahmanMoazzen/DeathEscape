@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿#if UNITY_EDITOR
+
+using UnityEngine;
 using UnityEditor;
 using System.Collections.Generic;
 
@@ -55,7 +57,7 @@ namespace AC
 
 				if (Application.isPlaying)
 				{
-					if (settingsManager && _target.gameObject.layer != LayerMask.NameToLayer (settingsManager.hotspotLayer))
+					if ((settingsManager && _target.gameObject.layer != LayerMask.NameToLayer (settingsManager.hotspotLayer)) || !_target.enabled)
 					{
 						EditorGUILayout.HelpBox ("Current state: OFF", MessageType.Info);
 					}
@@ -546,11 +548,11 @@ namespace AC
 					{
 						string defaultName = GenerateInteractionName (suffix, true);
 
-						#if !(UNITY_WP8 || UNITY_WINRT)
+#if !(UNITY_WP8 || UNITY_WINRT)
 						defaultName = System.Text.RegularExpressions.Regex.Replace (defaultName, "[^\\w\\._]", string.Empty);
-						#else
+#else
 						defaultName = string.Empty;
-						#endif
+#endif
 
 						button.assetFile = ActionListAssetMenu.CreateAsset (defaultName);
 					}
@@ -794,3 +796,5 @@ namespace AC
 	}
 	
 }
+
+#endif

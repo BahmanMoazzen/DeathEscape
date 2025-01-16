@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"ActionAnim.cs"
  * 
@@ -146,7 +146,7 @@ namespace AC
 			animationEngine = (AnimationEngine) EditorGUILayout.EnumPopup ("Animation engine:", animationEngine);
 			if (animationEngine == AnimationEngine.Custom)
 			{
-				customClassName = EditorGUILayout.TextField ("Script name:", customClassName);
+				customClassName = EditorGUILayout.DelayedTextField ("Script name:", customClassName);
 			}
 
 			if (animEngine)
@@ -213,7 +213,7 @@ namespace AC
 		{
 			if (parameterID < 0)
 			{
-				if (_anim != null && _anim.gameObject == _gameObject) return true;
+				if (_anim != null && _anim.gameObject && _anim.gameObject == _gameObject) return true;
 				if (animator && animator.gameObject == _gameObject) return true;
 				if (constantID == id) return true;
 			}
@@ -221,9 +221,9 @@ namespace AC
 			{
 				if (!isPlayer)
 				{
-					if (shapeObject != null && shapeObject.gameObject == _gameObject) return true;
+					if (shapeObject && shapeObject.gameObject == _gameObject) return true;
 				}
-				if (isPlayer && _gameObject.GetComponent <Player>() != null) return true;
+				if (isPlayer && _gameObject && _gameObject.GetComponent <Player>() != null) return true;
 			}
 			return base.ReferencesObjectOrID (_gameObject, id);
 		}

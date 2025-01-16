@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"ActionListManager.cs"
  * 
@@ -426,18 +426,14 @@ namespace AC
 		}
 
 
-		/**
-		 * Inform ActionListManager that a Variable's value has changed.
-		 */
+		/** Inform ActionListManager that a Variable's value has changed. */
 		public void VariableChanged ()
 		{
 			playCutsceneOnVarChange = true;
 		}
 
 
-		/**
-		 * Ends all currently-running ActionLists and ActionListAssets.
-		 */
+		/** Ends all currently-running ActionLists and ActionListAssets. */
 		public void KillAllLists ()
 		{
 			foreach (ActiveList activeList in activeLists)
@@ -449,11 +445,11 @@ namespace AC
 				activeList.Reset (true);
 			}
 		}
-		
+
 
 		/**
 		 * <summary>Ends all currently-running ActionLists present within a given scene.</summary>
-		 * <param name = "sceneInfo">A data container for information about the scene in question</param>
+		 * <param name = "sceneIndex">The index of the scene</param>
 		 */
 		public void KillAllFromScene (int sceneIndex)
 		{
@@ -464,7 +460,23 @@ namespace AC
 					activeList.Reset (true);
 				}
 			}
-		} 
+		}
+
+
+		/**
+		 * <summary>Ends all currently-running ActionLists present within a given scene.</summary>
+		 * <param name = "sceneName">The name of the scene</param>
+		 */
+		public void KillAllFromScene (string sceneName)
+		{
+			foreach (ActiveList activeList in activeLists)
+			{
+				if (activeList.actionList != null && UnityVersionHandler.GetSceneNameFromGameObject (activeList.actionList.gameObject) == sceneName && activeList.actionListAsset == null)
+				{
+					activeList.Reset (true);
+				}
+			}
+		}
 
 
 		/**

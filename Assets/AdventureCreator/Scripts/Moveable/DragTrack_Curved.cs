@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"DragTrack_Curved.cs"
  * 
@@ -160,7 +160,23 @@ namespace AC
 			float reversedMidAngle = 180f + (startToEndAngle / 2f);
 			if (startToPointAngle > reversedMidAngle) startToPointAngle -= 360f;
 
-			return startToPointAngle / startToEndAngle;
+			float result = startToPointAngle / startToEndAngle;
+
+			if (Loops)
+			{
+				// Prevent turning a revolution when crossing over the maxangle
+				float currentPositionAlong = drag.GetPositionAlong ();
+				if ((currentPositionAlong - result) > 0.5f)
+				{
+					result += 1f;
+				}
+				else if ((result - currentPositionAlong) > 0.5f)
+				{
+					result -= 1f;
+				}
+			}
+
+			return result;
 		}
 
 
@@ -237,6 +253,8 @@ namespace AC
 			{
 				UpdateColliders (draggable.trackValue, draggable);
 			}
+
+			DoRegionAudioCheck (draggable);
 
 			if (!onlySnapOnPlayerRelease)
 			{

@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"Button.cs"
  * 
@@ -164,7 +164,6 @@ namespace AC
 				{
 					hotspotName = hotspotName.ToLower ();
 				}
-
 				return AdvGame.CombineLanguageString (prefix, hotspotName, _language);
 			}
 			else if (_hotspot.invButtons.Contains (this) && InvInstance.IsValid (invInstance))

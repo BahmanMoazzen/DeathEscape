@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"ShapeablePlayableBehaviour.cs"
  * 
@@ -12,7 +12,6 @@
 using UnityEngine;
 using UnityEngine.Playables;
 #if !ACIgnoreTimeline
-using UnityEngine.Timeline;
 
 namespace AC
 {
@@ -37,7 +36,6 @@ namespace AC
 			get
 			{
 				return true;
-				//return headTurnTarget != null;
 			}
 		}
 

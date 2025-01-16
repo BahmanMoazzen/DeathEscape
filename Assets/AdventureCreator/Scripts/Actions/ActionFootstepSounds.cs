@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"ActionFootstepSounds.cs"
  * 
@@ -210,10 +210,10 @@ namespace AC
 		{
 			if (!isPlayer && parameterID < 0)
 			{
-				if (footstepSounds != null && footstepSounds.gameObject == _gameObject) return true;
+				if (footstepSounds && footstepSounds.gameObject == _gameObject) return true;
 				if (constantID == id) return true;
 			}
-			if (isPlayer && _gameObject.GetComponent <Player>() != null) return true;
+			if (isPlayer && _gameObject && _gameObject.GetComponent <Player>()) return true;
 			return base.ReferencesObjectOrID (_gameObject, id);
 		}
 

@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"ActionTagCheck.cs"
  * 
@@ -82,7 +82,7 @@ namespace AC
 				objectToCheck = IDToField (objectToCheck, objectToCheckConstantID, false);
 			}
 
-			tagsToCheckParameterID = Action.ChooseParameterGUI ("Check has tag(s):", parameters, tagsToCheckParameterID, ParameterType.String);
+			tagsToCheckParameterID = Action.ChooseParameterGUI ("Check has tag(s):", parameters, tagsToCheckParameterID, new ParameterType[2] { ParameterType.String, ParameterType.PopUp });
 			if (tagsToCheckParameterID < 0)
 			{
 				tagsToCheck = EditorGUILayout.TextField ("Check has tag(s):", tagsToCheck);
@@ -111,7 +111,7 @@ namespace AC
 		{
 			if (objectToCheckParameterID < 0)
 			{
-				if (objectToCheck != null && objectToCheck == gameObject) return true;
+				if (objectToCheck && objectToCheck == gameObject) return true;
 				if (objectToCheckConstantID == id && id != 0) return true;
 			}
 			return base.ReferencesObjectOrID (gameObject, id);

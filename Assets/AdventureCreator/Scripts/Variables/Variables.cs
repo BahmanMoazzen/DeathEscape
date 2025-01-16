@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"Variables.cs"
  * 
@@ -10,7 +10,6 @@
  */
 
 using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
 
 namespace AC
@@ -80,7 +79,12 @@ namespace AC
 			{
 				if (_var.id == _id)
 				{
-					_var.Download (VariableLocation.Component, this);
+					#if UNITY_EDITOR
+					if (Application.isPlaying)
+					#endif
+					{
+						_var.Download (VariableLocation.Component, this);
+					}
 					return _var;
 				}
 			}
@@ -100,7 +104,12 @@ namespace AC
 			GVar _var = GetVariable (_id);
 			if (_var.type == _type)
 			{
-				_var.Download (VariableLocation.Component, this);
+				#if UNITY_EDITOR
+				if (Application.isPlaying)
+				#endif
+				{
+					_var.Download (VariableLocation.Component, this);
+				}
 				return _var;
 			}
 			return null;
@@ -118,7 +127,12 @@ namespace AC
 			{
 				if (_var.label == _name)
 				{
-					_var.Download (VariableLocation.Component, this);
+					#if UNITY_EDITOR
+					if (Application.isPlaying)
+					#endif
+					{
+						_var.Download (VariableLocation.Component, this);
+					}
 					return _var;
 				}
 			}
@@ -138,7 +152,12 @@ namespace AC
 			GVar _var = GetVariable (_name);
 			if (_var != null && _var.type == _type)
 			{
-				_var.Download (VariableLocation.Component, this);
+				#if UNITY_EDITOR
+				if (Application.isPlaying)
+				#endif
+				{
+					_var.Download (VariableLocation.Component, this);
+				}
 				return _var;
 			}
 			return null;

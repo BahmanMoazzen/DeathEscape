@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"RememberHotspot.cs"
  * 
@@ -15,22 +15,28 @@ using UnityEngine;
 namespace AC
 {
 
-	/**
-	 * Attach this script to Hotspot objects in the scene whose state you wish to save.
-	 */
+	/** Attach this script to Hotspot objects in the scene whose state you wish to save. */
 	[AddComponentMenu("Adventure Creator/Save system/Remember Hotspot")]
 	[HelpURL("https://www.adventurecreator.org/scripting-guide/class_a_c_1_1_remember_hotspot.html")]
 	public class RememberHotspot : Remember
 	{
 
+		#region Variables
+
 		/** Determines whether the Hotspot is on or off when the game begins */
 		public AC_OnOff startState = AC_OnOff.On;
-
 		private bool loadedData = false;
+		private Hotspot ownHotspot;
+
+		#endregion
 
 
-		private void Awake ()
+		#region UnityStandards
+
+		protected override void OnEnable ()
 		{
+			base.OnEnable ();
+
 			if (loadedData) return;
 
 			if (OwnHotspot != null &&
@@ -49,6 +55,10 @@ namespace AC
 			}
 		}
 
+		#endregion
+
+
+		#region PublicFunctions
 
 		/**
 		 * <summary>Serialises appropriate GameObject values into a string.</summary>
@@ -119,6 +129,10 @@ namespace AC
 			loadedData = true;
 		}
 
+		#endregion
+
+
+		#region PrivateFunctions
 
 		private void StringToButtonStates (Hotspot hotspot, string stateString)
 		{
@@ -267,8 +281,11 @@ namespace AC
 			return true;
 		}
 
+		#endregion
 
-		private Hotspot ownHotspot;
+
+		#region GetSet
+		
 		private Hotspot OwnHotspot
 		{
 			get
@@ -281,12 +298,12 @@ namespace AC
 			}
 		}
 
+		#endregion
+
 	}
 
 
-	/**
-	 * A data container used by the RememberHotspot script.
-	 */
+	/** A data container used by the RememberHotspot script. */
 	[System.Serializable]
 	public class HotspotData : RememberData
 	{
@@ -300,9 +317,7 @@ namespace AC
 		/** The Hotspot's display name */
 		public string hotspotName;
 
-		/**
-		 * The default Constructor.
-		 */
+		/** The default Constructor. */
 		public HotspotData () { }
 	}
 

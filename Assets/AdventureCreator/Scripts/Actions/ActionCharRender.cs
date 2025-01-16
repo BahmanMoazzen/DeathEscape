@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"ActionCharRender.cs"
  * 
@@ -188,7 +188,7 @@ namespace AC
 					}
 					else if (mapType == SortingMapType.SortingLayer)
 					{
-						sortingLayerParameterID = Action.ChooseParameterGUI ("New layer:", parameters, sortingLayerParameterID, ParameterType.String);
+						sortingLayerParameterID = Action.ChooseParameterGUI ("New layer:", parameters, sortingLayerParameterID, new ParameterType[2] { ParameterType.String, ParameterType.PopUp });
 						if (sortingLayerParameterID < 0)
 						{
 							sortingLayer = EditorGUILayout.TextField ("New layer:", sortingLayer);
@@ -249,13 +249,13 @@ namespace AC
 		{
 			if (!isPlayer && parameterID < 0)
 			{
-				if (_char != null && _char.gameObject == _gameObject) return true;
+				if (_char && _char.gameObject == _gameObject) return true;
 				if (constantID == id) return true;
 			}
-			if (isPlayer && _gameObject.GetComponent <Player>() != null) return true;
+			if (isPlayer && _gameObject && _gameObject.GetComponent <Player>() != null) return true;
 			if (sortingMapParameterID < 0)
 			{
-				if (sortingMap != null && sortingMap.gameObject == _gameObject) return true;
+				if (sortingMap && sortingMap.gameObject == _gameObject) return true;
 				if (sortingMapConstantID == id) return true;
 			}
 			return base.ReferencesObjectOrID (_gameObject, id);

@@ -1,13 +1,12 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"MenuElement.cs"
  * 
  *	This is the base class for all menu elements.  It should never
  *	be added itself to a menu, as it is only a container of shared data.
- * ecal
  */
 
 using UnityEngine;
@@ -46,7 +45,6 @@ namespace AC
 		public float slotSpacing = 0f;
 		/** The translation ID, as set within SpeechManager */
 		public int lineID = -1;
-		private SpeechLine speechLine;
 		/** The name of the input button that triggers the element when pressed */
 		public string alternativeInputButton = "";
 
@@ -89,7 +87,6 @@ namespace AC
 		public int linkedUiID;
 
 		protected int offset = 0;
-		private string idString;
 		private Vector2 dragOffset;
 
 		/** If an AC element and set to scale automatically, how much of the width of the screen it can cover */
@@ -99,6 +96,7 @@ namespace AC
 		private bool doProportionalScaling = false;
 		#endif
 
+		private string cachedLabel;
 		protected Menu parentMenu;
 
 		[SerializeField] protected Rect relativeRect;
@@ -184,8 +182,6 @@ namespace AC
 			cursorID = _element.cursorID;
 			alternativeInputButton = _element.alternativeInputButton;
 			maxAutoWidthFactor = _element.maxAutoWidthFactor;
-
-			idString = ID.ToString ();
 		}
 
 
@@ -248,6 +244,12 @@ namespace AC
 
 		protected void CreateHoverSoundHandler (Selectable selectable, AC.Menu _menu, int _slotIndex = 0)
 		{
+			if (selectable == null)
+			{
+				ACDebug.LogWarning ("No linked Selectable found for element " + title + " inside menu " + _menu, _menu.RuntimeCanvas);
+				return;
+			}
+
 			UISlotClick uiSlotClick = selectable.gameObject.GetComponent <UISlotClick>();
 			if (uiSlotClick == null)
 			{
@@ -348,23 +350,47 @@ namespace AC
 		}
 
 
-		protected string TranslateLabel (string label, int languageNumber)
+		protected virtual string GetLabelToTranslate ()
 		{
-			if (languageNumber == 0)
+			return string.Empty;
+		}
+
+
+		public void UpdateLabel (int languageNumber)
+		{
+			string label = GetLabelToTranslate ();
+			if (!string.IsNullOrEmpty (label))
 			{
-				return label;
+				cachedLabel = KickStarter.runtimeLanguages.GetTranslation (label, lineID, languageNumber, AC_TextType.MenuElement);
 			}
-			
-			if (speechLine == null)
+		}
+
+
+		protected void ClearCache ()
+		{
+			cachedLabel = string.Empty;
+		}
+
+
+		protected string TranslateLabel (int languageNumber)
+		{
+			#if UNITY_EDITOR
+			if (!Application.isPlaying)
 			{
-				speechLine = KickStarter.runtimeLanguages.GetSpeechLine (label, lineID, languageNumber, AC_TextType.MenuElement);
+				return GetLabelToTranslate ();
+			}
+			#endif
+
+			if (languageNumber == Options.GetLanguage ())
+			{
+				if (string.IsNullOrEmpty (cachedLabel))
+				{
+					UpdateLabel (languageNumber);
+				}
+				return cachedLabel;
 			}
 
-			if (speechLine != null)
-			{
-				return speechLine.GetTranslation (label, languageNumber);
-			}
-			return label;
+			return KickStarter.runtimeLanguages.GetTranslation (GetLabelToTranslate (), lineID, languageNumber, AC_TextType.MenuElement);
 		}
 
 
@@ -685,6 +711,18 @@ namespace AC
 
 
 		/**
+		 * <summary>Updates references the MenuElement makes to a global variable</summary>
+		 * <param name = "varID">The global variable's original ID number</param>
+		 * <param name = "varID">The global variable's new ID number</param>
+		 * <returns>The number of references the MenuElement makes to the variable</returns>
+		 */
+		public virtual int UpdateVariableReferences (int oldVarID, int newVarID)
+		{
+			return 0;
+		}
+
+
+		/**
 		 * <summary>Checks if the Menu makes reference to a particular ActionList asset</summary>
 		 * <param name = "actionListAsset">The ActionList to check for</param>
 		 * <returns>True if the Menu references the ActionList</param>
@@ -710,8 +748,17 @@ namespace AC
 
 
 		/**
-		 * Hides all linked Unity UI GameObjects associated with the element.
+		 * <summary>Gets the slot index that reference a particular GameObject</summary>
+		 * <param name = "gameObject">The GameObject to check for</param>
+		 * <returns>The slot index that references the GameObject</param>
 		 */
+		public virtual int GetSlotIndex (GameObject gameObject)
+		{
+			return -1;
+		}
+
+
+		/** Hides all linked Unity UI GameObjects associated with the element. */
 		public virtual void HideAllUISlots ()
 		{}
 
@@ -908,23 +955,31 @@ namespace AC
 		{
 			int newOffset = offset;
 
-			if (shiftType == AC_ShiftInventory.ShiftNext)
-			{
-				newOffset += amount;
+			switch (shiftType)
+			{ 
+				case AC_ShiftInventory.ShiftPrevious:
+					if (offset > 0)
+					{
+						newOffset -= amount;
+						if (newOffset < 0)
+						{
+							newOffset = 0;
+						}
+					}
+					break;
 
-				if ((maxSlots + newOffset) >= arraySize)
-				{
-					newOffset = arraySize - maxSlots;
-				}
-			}
-			else if (shiftType == AC_ShiftInventory.ShiftPrevious && offset > 0)
-			{
-				newOffset -= amount;
+				case AC_ShiftInventory.ShiftNext:
+					{
+						newOffset += amount;
+						if ((maxSlots + newOffset) >= arraySize)
+						{
+							newOffset = arraySize - maxSlots;
+						}
+					}
+					break;
 
-				if (newOffset < 0)
-				{
-					newOffset = 0;
-				}
+				default:
+					break;
 			}
 
 			if (newOffset != offset)
@@ -1289,7 +1344,7 @@ namespace AC
 
 				if (field == null)
 				{
-					ACDebug.LogWarning ("Cannot find linked UI Element for " + title, canvas);
+					ACDebug.LogWarning ("Cannot find " + typeof (T) + " for menu element " + title + " in Canvas " + canvas.name, canvas);
 				}
 				return field;
 			}
@@ -1393,15 +1448,15 @@ namespace AC
 		}
 
 
-		/**
-		 * The Menu's id number as a string.
-		 */
-		public string IDString
+		/** Gets the data related to the element's visiblity as a serialized string */
+		public string GetVisibilitySaveData ()
 		{
-			get
-			{
-				return idString;
-			}
+			System.Text.StringBuilder sb = new System.Text.StringBuilder ();
+			sb.Append (ID.ToString ());
+			sb.Append ("=");
+			sb.Append (isVisible.ToString ());
+			sb.Append ("+");
+			return sb.ToString ();
 		}
 
 

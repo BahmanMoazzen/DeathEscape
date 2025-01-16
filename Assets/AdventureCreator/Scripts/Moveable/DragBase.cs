@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"DragBase.cs"
  * 
@@ -66,7 +66,7 @@ namespace AC
 		/** If True, then the collision sound will only play when the object collides with its lower boundary collider */
 		public bool onlyPlayLowerCollisionSound = false;
 
-		/** If True, then the Physics system will ignore collisions between this object and the bounday colliders of any DragTrack that this is not locked to */
+		/** If True, then the Physics system will ignore collisions between this object and the boundary colliders of any DragTrack that this is not locked to */
 		public bool ignoreMoveableRigidbodies;
 		/** If True, then the Physics system will ignore collisions between this object and the player */
 		public bool ignorePlayerCollider;
@@ -87,7 +87,9 @@ namespace AC
 
 		protected CursorIconBase icon;
 		protected Sound collideSound;
-		protected Sound moveSound;
+
+		/** The Sound component to play move sounds from */
+		public Sound moveSound;
 		protected bool isOn = true;
 
 		#endregion
@@ -104,14 +106,15 @@ namespace AC
 			grabPoint = newOb.transform;
 			grabPoint.parent = this.transform;
 
-			if (moveSoundClip)
+			if (moveSoundClip && moveSound == null)
 			{
 				GameObject newSoundOb = new GameObject ();
 				newSoundOb.name = this.name + " (Move sound)";
 				newSoundOb.transform.parent = this.transform;
 				newSoundOb.AddComponent <Sound>();
-				newSoundOb.GetComponent <AudioSource>().playOnAwake = false;
 				moveSound = newSoundOb.GetComponent <Sound>();
+				moveSound.audioSource.playOnAwake = false;
+				moveSound.audioSource.spatialBlend = SceneSettings.IsUnity2D () ? 0f : 1f;
 			}
 
 			icon = GetMainIcon ();
@@ -239,18 +242,14 @@ namespace AC
 		}
 
 
-		/**
-		 * If True, 'ToggleCursor' can be used while the object is held.
-		 */
+		/** If True, 'ToggleCursor' can be used while the object is held. */
 		public virtual bool CanToggleCursor ()
 		{
 			return false;
 		}
 
 
-		/**
-		 * Draws an icon at the point of contact on the object, if appropriate.
-		 */
+		/** Draws an icon at the point of contact on the object, if appropriate. */
 		public virtual void DrawGrabIcon ()
 		{
 			if (isHeld && showIcon && KickStarter.CameraMain.WorldToScreenPoint (Transform.position).z > 0f && icon != null)
@@ -278,9 +277,7 @@ namespace AC
 		}
 
 
-		/**
-		 * Detaches the object from the player's control.
-		 */
+		/** Detaches the object from the player's control. */
 		public virtual void LetGo (bool ignoreInteractions = false)
 		{
 			isHeld = false;

@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"Char.cs"
  * 
@@ -64,6 +64,8 @@ namespace AC
 		public int lineID = -1;
 		/** The translation ID number of the Hotspot's name, if it was changed mid-game */
 		public int displayLineID = -1;
+		private string cachedLabel;
+
 		/** The colour of the character's speech text */
 		public Color speechColor = Color.white;
 		/** The character's portrait graphic, used in MenuGraphic elements when speaking */
@@ -78,6 +80,8 @@ namespace AC
 		public bool mapExpressionsToShapeable = false;
 		/** The Shapeable group ID that controls expression blendshapes, if using AnimEngine_Legacy / AnimEngine_Mecanim */
 		public int expressionGroupID;
+		/** The transition time when changing expressions via shapekey */
+		public float expressionTransitionTime = 0.2f;
 		/** A speed tfactor to apply to the changing of blend-shapes based on lipsyncing */
 		public float lipSyncBlendShapeSpeedFactor = 1f;
 		private Expression currentExpression = null;
@@ -96,8 +100,10 @@ namespace AC
 
 		/** If True, the character is currently lip-syncing */
 		public bool isLipSyncing = false;
-		/** The name of the Animator integer parameter set to the lip-syncing phoneme integer, if using AnimEngine_SpritesUnityComplex */
+		/** The name of the Animator integer parameter set to the lip-syncing phoneme index, if using AnimEngine_SpritesUnityComplex */
 		public string phonemeParameter = "";
+		/** The name of the Animator float parameter set to the lip-syncing phoneme index, relative to the total number of phonemes */
+		public string phonemeNormalisedParameter = "";
 		/** The Shapeable group ID that controls phoneme blendshapes, if using AnimEngine_Legacy / AnimEngine_Mecanim */
 		public int lipSyncGroupID;
 
@@ -158,6 +164,7 @@ namespace AC
 
 		/** The layermask to use when Raycasting to determine if the character is grounded or not */
 		public int groundCheckLayerMask = 1;
+		private RaycastHit hitDownInfo;
 
 		// Mecanim variables
 
@@ -290,6 +297,7 @@ namespace AC
 		private Vector3 newVel;
 		private float nonFacingFactor = 1f;
 		protected Paths ownPath;
+		protected AC_PathType lockedPathType;
 
 		private Quaternion actualRotation;
 		private Vector3 actualForward = Vector3.forward;
@@ -313,6 +321,9 @@ namespace AC
 		private CapsuleCollider capsuleCollider;
 		private CapsuleCollider[] capsuleColliders;
 		protected CharacterController _characterController;
+		/** The character's simulated mass, if using a Character Controller */
+		public float simulatedMass = 1;
+		public float simulatedVerticalSpeed;
 
 		// Wall detection vargiables
 
@@ -392,7 +403,9 @@ namespace AC
 		private Sound speechSound;
 		
 		private bool isUnderTimelineControl;
-		private CharacterAnimation2DShot activeCharacterAnimation2DShot;
+		#if !ACIgnoreTimeline
+		private CharacterAnimationShot activeCharacterAnimationShot;
+		#endif
 
 		protected bool timelineHeadTurnOverride;
 		protected Vector3 timelineHeadTurnTargetOffset;
@@ -581,10 +594,11 @@ namespace AC
 		protected virtual void OnEnable ()
 		{
 			if (KickStarter.stateHandler) KickStarter.stateHandler.Register (this);
-			//EventManager.OnInitialiseScene += OnInitialiseScene;
+			
 			EventManager.OnManuallyTurnACOff += OnManuallyTurnACOff;
 			EventManager.OnStartSpeech_Alt += OnStartSpeech;
 			EventManager.OnStopSpeech_Alt += OnStopSpeech;
+			EventManager.OnChangeLanguage += OnChangeLanguage;
 		}
 
 
@@ -597,10 +611,11 @@ namespace AC
 		protected virtual void OnDisable ()
 		{
 			if (KickStarter.stateHandler) KickStarter.stateHandler.Unregister (this);
-			//EventManager.OnInitialiseScene -= OnInitialiseScene;
-			EventManager.OnManuallyTurnACOff -= OnManuallyTurnACOff;
-			EventManager.OnStartSpeech_Alt -= OnStartSpeech;
+			
+			EventManager.OnChangeLanguage += OnChangeLanguage;
 			EventManager.OnStopSpeech_Alt -= OnStopSpeech;
+			EventManager.OnStartSpeech_Alt -= OnStartSpeech;
+			EventManager.OnManuallyTurnACOff -= OnManuallyTurnACOff;
 		}
 
 
@@ -611,6 +626,13 @@ namespace AC
 			{
 				return false;
 			}
+		}
+
+
+		/** Returns True if the character is the active Player. */
+		public virtual bool IsActivePlayer ()
+		{
+			return false;
 		}
 
 
@@ -627,11 +649,11 @@ namespace AC
 			UpdateWallReductionFactor ();
 			CalcHeightChange ();
 
-			if (spriteChild && KickStarter.settingsManager)
+			if (spriteChild)
 			{
 				PrepareSpriteChild (SceneSettings.IsTopDown (), SceneSettings.IsUnity2D ());
 			}
-
+			
 			AnimUpdate ();
 			SpeedUpdate ();
 
@@ -652,13 +674,13 @@ namespace AC
 			{
 				MoveUpdate ();
 
-				if (spriteChild && KickStarter.settingsManager)
+				if (spriteChild)
 				{
 					PrepareSpriteChild (SceneSettings.IsTopDown (), SceneSettings.IsUnity2D ());
 				}
 			}
 
-			if (spriteChild && KickStarter.settingsManager)
+			if (spriteChild)
 			{
 				UpdateSpriteChild (SceneSettings.IsTopDown (), SceneSettings.IsUnity2D ());
 			}
@@ -882,14 +904,20 @@ namespace AC
 			}
 		}
 
+		public float MoveSpeed { get { return moveSpeed; } }
+
 
 		private void SpeedUpdate ()
 		{
+			#if !ACIgnoreTimeline
 			if (AnimationControlledByAnimationShot)
 			{
 				moveSpeed = moveSpeedLerp.Update (moveSpeed, GetTargetSpeed (), acceleration);
 			}
 			else if (charState == CharState.Move)
+			#else
+			if (charState == CharState.Move)
+			#endif
 			{
 				lastDist = Mathf.Infinity;
 				Accelerate ();
@@ -981,10 +1009,12 @@ namespace AC
 				AnimateHeadTurn ();
 			}
 
+			#if !ACIgnoreTimeline
 			if (AnimationControlledByAnimationShot)
 			{
 				return;
 			}
+			#endif
 			
 			if (isJumping)
 			{
@@ -1136,7 +1166,11 @@ namespace AC
 							}
 						}
 
+						#if !ACIgnoreTimeline
 						if (!noMove && !AnimationControlledByAnimationShot)
+						#else
+						if (!noMove)
+						#endif
 						{
 							float _deltaTime = (antiGlideMode) ? Time.fixedDeltaTime : Time.deltaTime;
 
@@ -1150,11 +1184,19 @@ namespace AC
 									{
 										if (IsGrounded ())
 										{
-											newVel.y = -_characterController.stepOffset / Time.deltaTime;
+											newVel.y = -0.001f;
+											simulatedVerticalSpeed = 0f;
+
+											/*bool hitGround = Physics.Raycast (Transform.position, Vector3.down, out hitDownInfo, _characterController.skinWidth, groundCheckLayerMask);
+											if (hitGround && hitDownInfo.normal.y < 1)
+											{
+												newVel.y = -hitDownInfo.normal.y;
+											}*/
 										}
 										else
 										{
-											newVel += Physics.gravity;
+											simulatedVerticalSpeed -= simulatedMass * Time.deltaTime;
+											newVel += simulatedVerticalSpeed * -Physics.gravity;
 										}
 									}
 
@@ -1190,7 +1232,8 @@ namespace AC
 						{
 							if (!_characterController.isGrounded && !ignoreGravity)
 							{
-								_characterController.Move (Physics.gravity * Time.deltaTime);
+								simulatedVerticalSpeed -= simulatedMass * Time.deltaTime;
+								_characterController.Move (simulatedVerticalSpeed * Time.deltaTime * -Physics.gravity);
 							}
 						}
 					}
@@ -1321,6 +1364,7 @@ namespace AC
 			}
 			else
 			{
+				#if !ACIgnoreTimeline
 				if (AnimationControlledByAnimationShot)
 				{
 					if (isRunning)
@@ -1329,6 +1373,7 @@ namespace AC
 					}
 					return 1f;
 				}
+				#endif
 
 				if (isRunning)
 				{
@@ -1508,6 +1553,7 @@ namespace AC
 			prevHeight = _position.y;
 
 			SendMessage ("OnTeleport", SendMessageOptions.DontRequireReceiver);
+			if (KickStarter.eventManager) KickStarter.eventManager.Call_OnCharacterTeleport (this, _position, GetTargetRotation ());
 		}
 
 
@@ -1533,9 +1579,7 @@ namespace AC
 		}
 
 
-		/**
-		 * Instantly stops the character turning.
-		 */
+		/** Instantly stops the character turning. */
 		public void StopTurning ()
 		{
 			SetLookDirection (TransformForward, true);
@@ -1963,15 +2007,8 @@ namespace AC
 
 			int tempPrev = targetNode;
 
-			if (IsPlayer && KickStarter.stateHandler.IsInGameplay ())
-			{
-				targetNode = activePath.GetNextNode (targetNode, prevNode, true);
-			}
-			else
-			{
-				targetNode = activePath.GetNextNode (targetNode, prevNode, false);
-			}
-
+			targetNode = activePath.GetNextNode (targetNode, prevNode, this == KickStarter.player && KickStarter.stateHandler.IsInGameplay () && KickStarter.player.IsLockedToPath (), lockedPathType);
+			
 			prevNode = tempPrev;
 
 			if (targetNode == 0 && activePath.pathType == AC_PathType.Loop && activePath.teleportToStart)
@@ -2791,7 +2828,7 @@ namespace AC
 		}
 		
 		
-		private void ResetAnimationEngine ()
+		public void ResetAnimationEngine ()
 		{
 			string className = "AnimEngine";
 			
@@ -3203,8 +3240,8 @@ namespace AC
 		 */
 		public bool IsMovingHead ()
 		{
-			if (Mathf.Abs (actualHeadAngles.x - targetHeadAngles.x) < 0.1f &&
-				Mathf.Abs (actualHeadAngles.y - targetHeadAngles.y) < 0.1f)
+			if (Mathf.Abs (actualHeadAngles.x - targetHeadAngles.x) < 0.01f &&
+				Mathf.Abs (actualHeadAngles.y - targetHeadAngles.y) < 0.01f)
 			{
 				return false;
 			}
@@ -3524,6 +3561,12 @@ namespace AC
 		}
 
 
+		private void OnChangeLanguage (int language)
+		{
+			UpdateLabel (language);
+		}
+
+
 		private void OnManuallyTurnACOff ()
 		{
 			EndPath ();
@@ -3593,7 +3636,7 @@ namespace AC
 			
 			if (lipSyncShapes.Count > 0)
 			{
-				return ((float) lipSyncShapes[0].frame / (float) (KickStarter.speechManager.phonemes.Count - 1));
+				return ((float) lipSyncShapes[0].frame / (float) KickStarter.speechManager.phonemes.Count);
 			}
 			return 0f;
 		}
@@ -3628,8 +3671,10 @@ namespace AC
 				}
 				#endif
 				
-				if (Time.time > lipSyncShapes[0].timeIndex)
+				if (lipSyncShapes.Count > 1 && Time.time >= lipSyncShapes[1].timeIndex)
 				{
+					lipSyncShapes.RemoveAt (0);
+
 					if (KickStarter.speechManager.lipSyncOutput == LipSyncOutput.PortraitAndGameObject && shapeable)
 					{
 						if (lipSyncShapes.Count > 1)
@@ -3646,8 +3691,6 @@ namespace AC
 					{
 						lipSyncTexture.SetFrame (lipSyncShapes[0].frame);
 					}
-
-					lipSyncShapes.RemoveAt (0);
 				}
 			}
 		}
@@ -3739,6 +3782,7 @@ namespace AC
 			{
 				currentExpression = null;
 				if (animEngine) animEngine.OnSetExpression ();
+				KickStarter.eventManager.Call_OnCharacterSetExpression (this, currentExpression);
 			}
 				
 			if (portraitIcon != null)
@@ -3772,11 +3816,14 @@ namespace AC
 		 */
 		public void SetExpression (int ID)
 		{
+			Expression oldExpression = currentExpression;
+
 			currentExpression = null;
 
 			if (ID == 99)
 			{
 				if (animEngine) animEngine.OnSetExpression ();
+				if (oldExpression != currentExpression) KickStarter.eventManager.Call_OnCharacterSetExpression (this, currentExpression);
 				return;
 			}
 
@@ -3788,6 +3835,7 @@ namespace AC
 					{
 						currentExpression = expression;
 						if (animEngine) animEngine.OnSetExpression ();
+						if (oldExpression != currentExpression) KickStarter.eventManager.Call_OnCharacterSetExpression (this, currentExpression);
 					}
 					return;
 				}
@@ -3937,6 +3985,10 @@ namespace AC
 		 */
 		public Quaternion GetTargetRotation ()
 		{
+			if (lookDirection == Vector3.zero)
+			{
+				return new Quaternion ();
+			}
 			return Quaternion.LookRotation (lookDirection, Vector3.up);
 		}
 
@@ -3957,9 +4009,7 @@ namespace AC
 		 */
 		public AnimEngine GetAnimEngine ()
 		{
-			#if !UNITY_EDITOR
 			if (animEngine == null)
-			#endif
 			{
 				ResetAnimationEngine ();
 			}
@@ -4019,14 +4069,25 @@ namespace AC
 		 */
 		public bool IsTurning ()
 		{
-			if (lookDirection == Vector3.zero || Quaternion.Angle (Quaternion.LookRotation (lookDirection), TransformRotation) < turningAngleThreshold)
+			return IsTurning (turningAngleThreshold);
+		}
+
+
+		/**
+		 * <summary>Checks if the character is turning.</summary>
+		 * <param name = "maxAngleThreshold">The maximum angle difference between the character's actual direction, and their intended direction, for a turn to be detected</param>
+		 * <returns>True if the character is turning</returns>
+		 */
+		public bool IsTurning (float maxAngleThreshold)
+		{
+			if (lookDirection == Vector3.zero || Quaternion.Angle (Quaternion.LookRotation (lookDirection), TransformRotation) < maxAngleThreshold)
 			{
 				return false;
 			}
 			return true;
 		}
-		
-		
+
+
 		/**
 		 * <summary>Checks if the character is moving along a path.</summary>
 		 * <returns>True if the character is moving along a path</returns>
@@ -4048,18 +4109,48 @@ namespace AC
 		 */
 		public string GetName (int languageNumber = 0)
 		{
+			#if UNITY_EDITOR
+			if (!Application.isPlaying)
+			{
+				if (!string.IsNullOrEmpty (speechLabel))
+				{
+					return speechLabel;
+				}
+				return gameObject.name;
+			}
+			#endif
+
+			if (string.IsNullOrEmpty (speechLabel))
+			{
+				return gameObject.name;
+			}
+
+			if (languageNumber == Options.GetLanguage ())
+			{
+				if (string.IsNullOrEmpty (cachedLabel))
+				{
+					UpdateLabel (languageNumber);
+				}
+				return cachedLabel;
+			}
+
 			string newName = gameObject.name;
 			if (!string.IsNullOrEmpty (speechLabel))
 			{
 				newName = speechLabel;
-
-				if (languageNumber > 0)
-				{
-					return KickStarter.runtimeLanguages.GetTranslation (newName, displayLineID, languageNumber, GetTranslationType (0));
-				}
+				return KickStarter.runtimeLanguages.GetTranslation (newName, displayLineID, languageNumber, GetTranslationType (0));
 			}
 			
 			return newName;
+		}
+
+
+		private void UpdateLabel (int languageNumber)
+		{
+			if (!string.IsNullOrEmpty (speechLabel))
+			{
+				cachedLabel = KickStarter.runtimeLanguages.GetTranslation (speechLabel, displayLineID, languageNumber, GetTranslationType (0));
+			}
 		}
 
 
@@ -4087,6 +4178,8 @@ namespace AC
 			{
 				Debug.Log ("Character " + GetName () + " cannot have a blank name.", this);
 			}
+
+			UpdateLabel (Options.GetLanguage ());
 		}
 
 
@@ -4371,16 +4464,18 @@ namespace AC
 		}
 
 
-		/** The CharacterAnimation2DShot that's currently being applied to the character, if sprite-based */
-		public CharacterAnimation2DShot ActiveCharacterAnimation2DShot
+		#if !ACIgnoreTimeline
+
+		/** The CharacterAnimationShot that's currently being applied to the character, if sprite-based */
+		public CharacterAnimationShot ActiveCharacterAnimationShot
 		{
 			get
 			{
-				return activeCharacterAnimation2DShot;
+				return activeCharacterAnimationShot;
 			}
 			set
 			{
-				activeCharacterAnimation2DShot = value;
+				activeCharacterAnimationShot = value;
 			}
 		}
 
@@ -4389,9 +4484,11 @@ namespace AC
 		{
 			get
 			{
-				return (activeCharacterAnimation2DShot != null);
+				return activeCharacterAnimationShot != null;
 			}
 		}
+
+		#endif
 
 
 		public IKLimbController LeftHandIKController
@@ -4457,9 +4554,14 @@ namespace AC
 				if (_transform == null) _transform = transform;
 				return _transform;
 			}
+			set
+			{
+				_transform = value;
+			}
 		}
 
 
+		/** Checks if the character is currently speaking */
 		public bool isTalking
 		{
 			get

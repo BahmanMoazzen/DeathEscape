@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"NavMeshAgentIntegration.cs"
  * 
@@ -51,7 +51,8 @@ namespace AC
 		private Char _char;
 		private bool disableDuringGameplay;
 		private Vector3 targetPosition;
-
+		private float directSpeed;
+		
 
 		private void Awake ()
 		{
@@ -125,9 +126,35 @@ namespace AC
 					SetMotionControl ();
 					SetCharacterPosition ();
 				}
+				else if (_char.IsPlayer && KickStarter.settingsManager && KickStarter.settingsManager.movementMethod == MovementMethod.Direct)
+				{
+					/*
+					 * Move with the NavMeshAgent, so as to do without colliders
+					 */
+
+					float targetSpeed = 0f;
+					if (_char.charState == CharState.Move)
+					{
+						if (useACForSpeedValues)
+						{
+							targetSpeed = (_char.isRunning) ? (_char.runSpeedScale) : _char.walkSpeedScale;
+						}
+						else
+						{
+							targetSpeed = (_char.isRunning) ? (originalSpeed * runSpeedFactor) : originalSpeed;
+						}
+					}
+
+					navMeshAgent.enabled = true;
+					navMeshAgent.ResetPath ();
+
+					directSpeed = Mathf.Lerp (directSpeed, targetSpeed, Time.deltaTime * _char.acceleration);
+					_char.motionControl = MotionControl.JustTurning;
+					navMeshAgent.Move (_char.TransformForward * directSpeed * Time.deltaTime);
+				}
 				else
 				{
-					/**
+					/*
 					 * We are in regular gameplay, so disable the NavMeshAgent and let AC take full control.
 					 */
 
@@ -137,7 +164,7 @@ namespace AC
 			}
 			else
 			{
-				/**
+				/*
 				 * This code block will be run if we can override the character's movement at all times.
 				 */
 

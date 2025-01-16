@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"MenuJournal.cs"
  * 
@@ -66,9 +66,6 @@ namespace AC
 		#endif
 
 
-		/**
-		 * Initialises the element when it is created within MenuManager.
-		 */
 		public override void Declare ()
 		{
 			uiText = null;
@@ -174,11 +171,6 @@ namespace AC
 		}
 		
 
-		/**
-		 * <summary>Gets the boundary of the element</summary>
-		 * <param name = "_slot">Ignored by this subclass</param>
-		 * <returns>The boundary Rect of the element</returns>
-		 */
 		public override RectTransform GetRectTransform (int _slot)
 		{
 			if (uiText)
@@ -454,7 +446,7 @@ namespace AC
 		public override int GetVariableReferences (int _varID)
 		{
 			int numFound = 0;
-			string tokenText = "[var:" + _varID.ToString () + "]";
+			string tokenText = AdvGame.GetVariableTokenText (VariableLocation.Global, _varID);
 			if (journalType == JournalType.NewJournal)
 			{
 				foreach (JournalPage page in pages)
@@ -466,7 +458,28 @@ namespace AC
 				}
 			}
 
-			return numFound + base.GetVariableReferences (_varID);
+			return numFound;
+		}
+
+
+		public override int UpdateVariableReferences (int oldVarID, int newVarID)
+		{
+			int numFound = 0;
+			string oldTokenText = AdvGame.GetVariableTokenText (VariableLocation.Global, oldVarID);
+			string newTokenText = AdvGame.GetVariableTokenText (VariableLocation.Global, newVarID);
+			if (journalType == JournalType.NewJournal)
+			{
+				foreach (JournalPage page in pages)
+				{
+					if (page.text.Contains (oldTokenText))
+					{
+						page.text = page.text.Replace (oldTokenText, newTokenText);
+						numFound++;
+					}
+				}
+			}
+
+			return numFound;
 		}
 
 
@@ -485,6 +498,16 @@ namespace AC
 			if (uiText && uiText.gameObject == gameObject) return true;
 			if (linkedUiID == id && id != 0) return true;
 			return false;
+		}
+
+
+		public override int GetSlotIndex (GameObject gameObject)
+		{
+			if (uiText && uiText.gameObject == gameObject)
+			{
+				return 0;
+			}
+			return base.GetSlotIndex (gameObject);
 		}
 
 
@@ -553,13 +576,6 @@ namespace AC
 		}
 		
 
-		/**
-		 * <summary>Draws the element using OnGUI</summary>
-		 * <param name = "_style">The GUIStyle to draw with</param>
-		 * <param name = "_slot">Ignored by this subclass</param>
-		 * <param name = "zoom">The zoom factor</param>
-		 * <param name = "isActive">If True, then the element will be drawn as though highlighted</param>
-		 */
 		public override void Display (GUIStyle _style, int _slot, float zoom, bool isActive)
 		{
 			base.Display (_style, _slot, zoom, isActive);
@@ -585,12 +601,6 @@ namespace AC
 		}
 
 
-		/**
-		 * <summary>Gets the display text of the current page</summary>
-		 * <param name = "slot">Ignored by this subclass</param>
-		 * <param name = "languageNumber">The index number of the language number to get the text in</param>
-		 * <returns>The display text of the current page</returns>
-		 */
 		public override string GetLabel (int slot, int languageNumber)
 		{
 			if (journalType == JournalType.DisplayExistingJournal)
@@ -852,9 +862,7 @@ namespace AC
 		}
 
 
-		/**
-		 * <summary>Removes all page from the journal.</summary>
-		 */
+		/** Removes all page from the journal. */
 		public void RemoveAllPages ()
 		{
 			if (journalType == JournalType.DisplayExistingJournal)
@@ -951,9 +959,7 @@ namespace AC
 	}
 
 
-	/**
-	 * A data container for the contents of each page in a MenuJournal.
-	 */
+	/** A data container for the contents of each page in a MenuJournal. */
 	[System.Serializable]
 	public class JournalPage
 	{

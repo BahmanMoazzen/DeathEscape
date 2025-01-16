@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"ActionDialogOptionRename.cs"
  * 
@@ -172,23 +172,39 @@ namespace AC
 		}
 
 
-		public override int GetVariableReferences (List<ActionParameter> parameters, VariableLocation location, int varID, Variables _variables, int _variablesConstantID = 0)
+		public override int GetNumVariableReferences (VariableLocation location, int varID, List<ActionParameter> parameters, Variables _variables = null, int _variablesConstantID = 0)
 		{
 			int thisCount = 0;
-			string tokenText = AdvGame.GetVariableTokenText (location, varID);
+			string tokenText = AdvGame.GetVariableTokenText (location, varID, _variablesConstantID);
 
 			if (!string.IsNullOrEmpty (tokenText) && newLabel.Contains (tokenText))
 			{
 				thisCount ++;
 			}
-			thisCount += base.GetVariableReferences (parameters, location, varID, _variables);
+			thisCount += base.GetNumVariableReferences (location, varID, parameters, _variables, _variablesConstantID);
+			return thisCount;
+		}
+
+
+		public override int UpdateVariableReferences (VariableLocation location, int oldVarID, int newVarID, List<ActionParameter> parameters, Variables _variables = null, int _variablesConstantID = 0)
+		{
+			int thisCount = 0;
+			string oldTokenText = AdvGame.GetVariableTokenText (location, oldVarID, _variablesConstantID);
+
+			if (!string.IsNullOrEmpty (oldTokenText) && newLabel.Contains (oldTokenText))
+			{
+				string newTokenText = AdvGame.GetVariableTokenText (location, oldVarID, _variablesConstantID);
+				newLabel = newLabel.Replace (oldTokenText, newTokenText);
+				thisCount++;
+			}
+			thisCount += base.UpdateVariableReferences (location, oldVarID, newVarID, parameters, _variables, _variablesConstantID);
 			return thisCount;
 		}
 
 
 		public override bool ReferencesObjectOrID (GameObject _gameObject, int id)
 		{
-			if (linkedConversation != null && linkedConversation.gameObject == _gameObject) return true;
+			if (linkedConversation && linkedConversation.gameObject == _gameObject) return true;
 			if (constantID == id) return true;
 			return base.ReferencesObjectOrID (_gameObject, id);
 		}

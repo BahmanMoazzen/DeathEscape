@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"SortingMap.cs"
  * 
@@ -26,6 +26,8 @@ namespace AC
 
 		#region Variables
 
+		/** True if characters that follow this map should have their sorting affected */
+		public bool affectSorting = true;
 		/** How SpriteRenderer components that follow this map are effected (OrderInLayer, SortingLayer) */
 		public SortingMapType mapType = SortingMapType.OrderInLayer;
 		/** A List of SortingArea data that makes up the map */
@@ -96,9 +98,7 @@ namespace AC
 
 		#region PublicFunctions
 
-		/**
-		 * <summary>Adjusts all relevant FollowSortingMaps that are within the same region, so that they are all displayed correctly.</summary>
-		 */
+		/** Adjusts all relevant FollowSortingMaps that are within the same region, so that they are all displayed correctly. */
 		public void UpdateSimilarFollowers ()
 		{
 			if (KickStarter.sceneSettings.sharedLayerSeparationDistance <= 0f)

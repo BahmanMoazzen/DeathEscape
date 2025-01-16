@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"ActionVarProperty.cs"
  * 
@@ -172,6 +172,10 @@ namespace AC
 
 					case VariableType.GameObject:
 						runtimeVariable.GameObjectValue = invVar.GameObjectValue;
+						break;
+
+					case VariableType.UnityObject:
+						runtimeVariable.UnityObjectValue = invVar.UnityObjectValue;
 						break;
 
 					default:
@@ -524,19 +528,37 @@ namespace AC
 		}
 
 
-		public override int GetVariableReferences (List<ActionParameter> parameters, VariableLocation _location, int varID, Variables _variables, int _variablesConstantID = 0)
+		public override int GetNumVariableReferences (VariableLocation _location, int varID, List<ActionParameter> parameters, Variables _variables = null, int _variablesConstantID = 0)
 		{
 			int thisCount = 0;
 
 			if (varLocation == _location && variableID == varID && varParameterID < 0)
 			{
-				if (varLocation != VariableLocation.Component || (variables != null && variables == _variables))
+				if (_location != VariableLocation.Component || (variables != null && variables == _variables) || (variablesConstantID != 0 && _variablesConstantID == variablesConstantID))
 				{
 					thisCount ++;
 				}
 			}
 
-			thisCount += base.GetVariableReferences (parameters, _location, varID, _variables);
+			thisCount += base.GetNumVariableReferences (_location, varID, parameters, _variables, _variablesConstantID);
+			return thisCount;
+		}
+
+
+		public override int UpdateVariableReferences (VariableLocation _location, int oldVarID, int newVarID, List<ActionParameter> parameters, Variables _variables = null, int _variablesConstantID = 0)
+		{
+			int thisCount = 0;
+
+			if (varLocation == _location && variableID == oldVarID && varParameterID < 0)
+			{
+				if (_location != VariableLocation.Component || (variables != null && variables == _variables) || (variablesConstantID != 0 && _variablesConstantID == variablesConstantID))
+				{
+					variableID = newVarID;
+					thisCount++;
+				}
+			}
+
+			thisCount += base.UpdateVariableReferences (_location, oldVarID, newVarID, parameters, _variables, _variablesConstantID);
 			return thisCount;
 		}
 
@@ -554,7 +576,7 @@ namespace AC
 		{
 			if (varLocation == VariableLocation.Component && varParameterID < 0)
 			{
-				if (variables != null && variables.gameObject == _gameObject) return true;
+				if (variables && variables.gameObject == _gameObject) return true;
 				if (variablesConstantID == id) return true;
 			}
 			return base.ReferencesObjectOrID (_gameObject, id);

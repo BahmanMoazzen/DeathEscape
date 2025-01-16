@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"ActionNavMesh.cs"
  * 
@@ -181,8 +181,7 @@ namespace AC
 				case SceneSetting.SortingMap:
 					if (runtimeSortingMap != null)
 					{
-						sceneSettings.sortingMap = runtimeSortingMap;
-						sceneSettings.UpdateAllSortingMaps ();
+						sceneSettings.SetSortingMap (runtimeSortingMap);
 
 						if (runtimeSortingMap.GetComponent <ConstantID>() == null)
 						{
@@ -194,14 +193,7 @@ namespace AC
 				case SceneSetting.TintMap:
 					if (runtimeTintMap != null)
 					{
-						sceneSettings.tintMap = runtimeTintMap;
-				
-						// Reset all FollowSortingMap components
-						FollowTintMap[] followTintMaps = Object.FindObjectsOfType (typeof (FollowTintMap)) as FollowTintMap[];
-						foreach (FollowTintMap followTintMap in followTintMaps)
-						{
-							followTintMap.ResetTintMap ();
-						}
+						sceneSettings.SetTintMap (runtimeTintMap);
 						
 						if (runtimeTintMap.GetComponent <ConstantID>() == null)
 						{
@@ -484,35 +476,35 @@ namespace AC
 		{
 			if (sceneSetting == SceneSetting.DefaultNavMesh && holeAction == InvAction.Replace && replaceParameterID < 0)
 			{
-				if (replaceHole != null && replaceHole.gameObject == _gameObject) return true;
+				if (replaceHole && replaceHole.gameObject == _gameObject) return true;
 				if (replaceConstantID == id) return true;
 			}
 			if (parameterID < 0)
 			{
 				if (sceneSetting == SceneSetting.DefaultNavMesh)
 				{
-					if (newNavMesh != null && newNavMesh.gameObject == _gameObject) return true;
-					if (hole != null && hole.gameObject == _gameObject) return true;
+					if (newNavMesh && newNavMesh.gameObject == _gameObject) return true;
+					if (hole && hole.gameObject == _gameObject) return true;
 					if (constantID == id) return true;
 				}
 				if (sceneSetting == SceneSetting.DefaultPlayerStart)
 				{
-					if (playerStart != null && playerStart.gameObject == _gameObject) return true;
+					if (playerStart && playerStart.gameObject == _gameObject) return true;
 					if (constantID == id) return true;
 				}
 				if (sceneSetting == SceneSetting.SortingMap)
 				{
-					if (sortingMap != null && sortingMap.gameObject == _gameObject) return true;
+					if (sortingMap && sortingMap.gameObject == _gameObject) return true;
 					if (constantID == id) return true;
 				}
 				if (sceneSetting == SceneSetting.TintMap)
 				{
-					if (tintMap != null && tintMap.gameObject == _gameObject) return true;
+					if (tintMap && tintMap.gameObject == _gameObject) return true;
 					if (constantID == id) return true;
 				}
 				if (sceneSetting == SceneSetting.OnLoadCutscene || sceneSetting == SceneSetting.OnStartCutscene)
 				{
-					if (cutscene != null && cutscene.gameObject == _gameObject) return true;
+					if (cutscene && cutscene.gameObject == _gameObject) return true;
 					if (constantID == id) return true;
 				}
 			}

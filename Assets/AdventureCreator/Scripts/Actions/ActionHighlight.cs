@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"ActionHighlight.cs"
  * 
@@ -244,7 +244,7 @@ namespace AC
 		{
 			if (parameterID < 0 && whatToHighlight == WhatToHighlight.SceneObject)
 			{
-				if (highlightObject != null && highlightObject.gameObject == _gameObject) return true;
+				if (highlightObject && highlightObject.gameObject == _gameObject) return true;
 				if (constantID == id) return true;
 			}
 			return base.ReferencesObjectOrID (_gameObject, id);

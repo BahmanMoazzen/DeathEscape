@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"UISlot.cs"
  * 
@@ -48,15 +48,15 @@ namespace AC
 		private Color originalHighlightedColour;
 		private UnityEngine.Sprite emptySprite;
 		private Texture cacheTexture;
+		private Sprite originalSprite;
+		private bool canSetOriginalImage;
 
 		#endregion
 
 
 		#region Constructors
 
-		/**
-		 * The default Constructor.
-		 */
+		/** The default Constructor. */
 		public UISlot ()
 		{
 			uiButton = null;
@@ -169,6 +169,7 @@ namespace AC
 
 				originalNormalColour = uiButton.colors.normalColor;
 				originalHighlightedColour = uiButton.colors.highlightedColor;
+				originalSprite = (uiImage) ? uiImage.sprite : null;
 			}
 
 			if (emptySlotTexture)
@@ -199,6 +200,11 @@ namespace AC
 		{
 			if (uiRawImage)
 			{
+				if (_texture == null)
+				{
+					_texture = EmptySprite.texture;
+				}
+
 				uiRawImage.texture = _texture;
 			}
 			else if (uiImage)
@@ -262,6 +268,10 @@ namespace AC
 				if (uiHideStyle == UIHideStyle.DisableObject && !uiButton.gameObject.activeSelf)
 				{
 					uiButton.gameObject.SetActive (true);
+				}
+				else if (uiHideStyle == UIHideStyle.ClearContent)
+				{
+					if (originalSprite && canSetOriginalImage) SetImageAsSprite (originalSprite);
 				}
 			}
 		}
@@ -402,6 +412,19 @@ namespace AC
 					emptySprite = Resource.EmptySlot;
 				}
 				return emptySprite;
+			}
+		}
+
+
+		public bool CanSetOriginalImage
+		{
+			get
+			{
+				return canSetOriginalImage;
+			}
+			set
+			{
+				canSetOriginalImage = value;
 			}
 		}
 

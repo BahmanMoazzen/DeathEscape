@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"VariablesManager.cs"
  * 
@@ -237,6 +237,7 @@ namespace AC
 			{
 				menu.AddItem (new GUIContent ("Convert to Local"), false, Callback, "Convert to Local");
 				menu.AddItem (new GUIContent ("Find references"), false, Callback, "Find global references");
+				menu.AddItem (new GUIContent ("Change ID"), false, Callback, "Change global ID");
 			}
 			else if (sideVarLocation == VariableLocation.Component)
 			{
@@ -338,6 +339,10 @@ namespace AC
 
 					case "Find global references":
 						FindGlobalReferences (tempVar);
+						break;
+
+					case "Change global ID":
+						ReferenceUpdaterWindow.Init (ReferenceUpdaterWindow.ReferenceType.GlobalVariable, tempVar.label, tempVar.id);
 						break;
 
 					case "Find component references":
@@ -455,20 +460,20 @@ namespace AC
 
 			int totalNumReferences = 0;
 
-			ActionList[] actionLists = FindObjectsOfType <ActionList>();
-			foreach (ActionList actionList in actionLists)
+			MonoBehaviour[] sceneObjects = FindObjectsOfType<MonoBehaviour> ();
+			for (int i = 0; i < sceneObjects.Length; i++)
 			{
-				totalNumReferences += actionList.GetVariableReferences (VariableLocation.Local, localVariable);
-			}
-
-			Conversation[] conversations = FindObjectsOfType <Conversation>();
-			foreach (Conversation conversation in conversations)
-			{
-				int thisNumReferences = conversation.GetVariableReferences (VariableLocation.Local, localVariable.id);
-				if (thisNumReferences > 0)
+				MonoBehaviour currentObj = sceneObjects[i];
+				IVariableReferencer currentComponent = currentObj as IVariableReferencer;
+				if (currentComponent != null)
 				{
-					totalNumReferences += thisNumReferences;
-					ACDebug.Log ("Found " + thisNumReferences + " references to local variable '" + localVariable.label + "' in Conversation '" + conversation.name + "'", conversation);
+					ActionList.logSuffix = string.Empty;
+					int thisNumReferences = currentComponent.GetNumVariableReferences (VariableLocation.Local, localVariable.id);
+					if (thisNumReferences > 0)
+					{
+						totalNumReferences += thisNumReferences;
+						ACDebug.Log ("Found " + thisNumReferences + " reference(s) to Local variable '" + localVariable.label + "' in " + currentObj.name + ActionList.logSuffix, currentObj);
+					}
 				}
 			}
 
@@ -482,20 +487,36 @@ namespace AC
 
 			int totalNumReferences = 0;
 
-			ActionList[] actionLists = FindObjectsOfType <ActionList>();
-			foreach (ActionList actionList in actionLists)
+			MonoBehaviour[] sceneObjects = FindObjectsOfType<MonoBehaviour> ();
+			for (int i = 0; i < sceneObjects.Length; i++)
 			{
-				totalNumReferences += actionList.GetVariableReferences (VariableLocation.Component, componentVariable, _variables);
+				MonoBehaviour currentObj = sceneObjects[i];
+				IVariableReferencer currentComponent = currentObj as IVariableReferencer;
+				if (currentComponent != null)
+				{
+					ActionList.logSuffix = string.Empty;
+					int thisNumReferences = currentComponent.GetNumVariableReferences (VariableLocation.Local, componentVariable.id, _variables);
+					if (thisNumReferences > 0)
+					{
+						totalNumReferences += thisNumReferences;
+						ACDebug.Log ("Found " + thisNumReferences + " reference(s) to Component variable '" + componentVariable.label + "' in " + currentObj.name + ActionList.logSuffix, currentObj);
+					}
+				}
 			}
 
 			// Search assets
-			ConstantID variablesConstantID = _variables.GetComponent <ConstantID>();
-			if (AdvGame.GetReferences().speechManager && variablesConstantID && variablesConstantID.constantID != 0)
+			if (AdvGame.GetReferences().speechManager)
 			{
 				ActionListAsset[] allActionListAssets = AdvGame.GetReferences ().speechManager.GetAllActionListAssets ();
 				foreach (ActionListAsset actionListAsset in allActionListAssets)
 				{
-					totalNumReferences += actionListAsset.GetVariableReferences (componentVariable, variablesConstantID.constantID);
+					ActionList.logSuffix = string.Empty;
+					int thisNumReferences = actionListAsset.GetNumVariableReferences (VariableLocation.Component, componentVariable.id, _variables);
+					if (thisNumReferences > 0)
+					{
+						ACDebug.Log ("Found " + thisNumReferences + " reference(s) to Component variable '" + componentVariable.label + "' in ActionList asset " + actionListAsset.name + ActionList.logSuffix, actionListAsset);
+						totalNumReferences += thisNumReferences;
+					}
 				}
 			}
 
@@ -521,20 +542,20 @@ namespace AC
 					{
 						UnityVersionHandler.OpenScene (sceneFile);
 
-						ActionList[] actionLists = FindObjectsOfType <ActionList>();
-						foreach (ActionList actionList in actionLists)
+						MonoBehaviour[] sceneObjects = FindObjectsOfType<MonoBehaviour> ();
+						for (int i = 0; i < sceneObjects.Length; i++)
 						{
-							totalNumReferences += actionList.GetVariableReferences (VariableLocation.Global, globalVariable, null, sceneFile);
-						}
-
-						Conversation[] conversations = FindObjectsOfType <Conversation>();
-						foreach (Conversation conversation in conversations)
-						{
-							int thisNumReferences = conversation.GetVariableReferences (VariableLocation.Global, globalVariable.id);
-							if (thisNumReferences > 0)
+							MonoBehaviour currentObj = sceneObjects[i];
+							IVariableReferencer currentComponent = currentObj as IVariableReferencer;
+							if (currentComponent != null)
 							{
-								totalNumReferences += thisNumReferences;
-								ACDebug.Log ("Found " + thisNumReferences + " references to global variable '" + globalVariable.label + "' in Conversation '" + conversation.name + "' in scene '" + sceneFile + "'", conversation);
+								ActionList.logSuffix = string.Empty;
+								int thisNumReferences = currentComponent.GetNumVariableReferences (VariableLocation.Global, globalVariable.id);
+								if (thisNumReferences > 0)
+								{
+									totalNumReferences += thisNumReferences;
+									ACDebug.Log ("Found " + thisNumReferences + " reference(s) to Global variable '" + globalVariable.label + "' in '" + currentComponent.GetType () + "' in scene '" + sceneFile + "'" + ActionList.logSuffix, currentObj);
+								}
 							}
 						}
 					}
@@ -547,7 +568,13 @@ namespace AC
 						ActionListAsset[] allActionListAssets = AdvGame.GetReferences ().speechManager.GetAllActionListAssets ();
 						foreach (ActionListAsset actionListAsset in allActionListAssets)
 						{
-							totalNumReferences += actionListAsset.GetVariableReferences (globalVariable);
+							ActionList.logSuffix = string.Empty;
+							int thisNumReferences = actionListAsset.GetNumVariableReferences (VariableLocation.Global, globalVariable.id);
+							if (thisNumReferences > 0)
+							{
+								ACDebug.Log ("Found " + thisNumReferences + " reference(s) to Global variable '" + globalVariable.label + "' in ActionList asset '" + actionListAsset.name + ActionList.logSuffix, actionListAsset);
+								totalNumReferences += thisNumReferences;
+							}
 						}
 					}
 
@@ -562,13 +589,110 @@ namespace AC
 								if (thisNumReferences > 0)
 								{
 									totalNumReferences += thisNumReferences;
-									ACDebug.Log ("Found " + thisNumReferences + " references to global variable '" + globalVariable.label + "' in Menu '" + menu.title + "'");
+									ACDebug.Log ("Found " + thisNumReferences + " references to Global variable '" + globalVariable.label + "' in Menu '" + menu.title + "'");
 								}
 							}
 						}
 					}
 
 					EditorUtility.DisplayDialog ("Variable search complete", "In total, found " + totalNumReferences + " references to global variable '" + globalVariable.label + "' in the project.  Please see the Console window for full details.", "OK");
+				}
+			}
+		}
+
+
+		public void ChangeGlobalVariableID (int oldID, int newID)
+		{
+			GVar globalVariable = GetVariable (oldID);
+			if (globalVariable == null || oldID == newID) return;
+
+			if (GetVariable (newID) != null)
+			{
+				ACDebug.LogWarning ("Cannot update Global variable " + globalVariable.label + " to ID " + newID + " because another Global variable uses the same ID");
+				return;
+			}
+
+			if (EditorUtility.DisplayDialog ("Update '" + globalVariable.label + "' references?", "The Editor will update assets, and active scenes listed in the Build Settings, that reference the variable.  It is recommended to back up the project first. Continue?", "OK", "Cancel"))
+			{
+				if (UnityEditor.SceneManagement.EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo ())
+				{
+					int totalNumReferences = 0;
+
+					// Search scenes
+					string originalScene = UnityVersionHandler.GetCurrentSceneFilepath ();
+					string[] sceneFiles = AdvGame.GetSceneFiles ();
+
+					foreach (string sceneFile in sceneFiles)
+					{
+						UnityVersionHandler.OpenScene (sceneFile);
+
+						bool modifiedScene = false;
+						MonoBehaviour[] sceneObjects = FindObjectsOfType<MonoBehaviour> ();
+						for (int i = 0; i < sceneObjects.Length; i++)
+						{
+							MonoBehaviour currentObj = sceneObjects[i];
+							IVariableReferencer currentComponent = currentObj as IVariableReferencer;
+							if (currentComponent != null)
+							{
+								ActionList.logSuffix = string.Empty;
+								int thisNumReferences = currentComponent.UpdateVariableReferences (VariableLocation.Global, globalVariable.id, newID);
+								if (thisNumReferences > 0)
+								{
+									totalNumReferences += thisNumReferences;
+									modifiedScene = true;
+									ACDebug.Log ("Updated " + thisNumReferences + " reference(s) to Global variable '" + globalVariable.label + "' in '" + currentComponent.GetType () + "' in scene '" + sceneFile + "'" + ActionList.logSuffix, currentObj);
+
+									EditorUtility.SetDirty (currentObj);
+								}
+							}
+						}
+
+						if (modifiedScene)
+						{
+							UnityVersionHandler.SaveScene ();
+						}
+					}
+
+					UnityVersionHandler.OpenScene (originalScene);
+
+					// Search assets
+					if (AdvGame.GetReferences ().speechManager != null)
+					{
+						ActionListAsset[] allActionListAssets = AdvGame.GetReferences ().speechManager.GetAllActionListAssets ();
+						foreach (ActionListAsset actionListAsset in allActionListAssets)
+						{
+							ActionList.logSuffix = string.Empty;
+							int thisNumReferences = actionListAsset.UpdateVariableReferences (VariableLocation.Global, globalVariable.id, newID);
+							if (thisNumReferences > 0)
+							{
+								ACDebug.Log ("Updated " + thisNumReferences + " reference(s) to Global variable '" + globalVariable.label + "' in ActionList asset '" + actionListAsset.name + "'" + ActionList.logSuffix, actionListAsset);
+								totalNumReferences += thisNumReferences;
+							}
+							EditorUtility.SetDirty (actionListAsset);
+						}
+					}
+
+					// Search menus
+					if (AdvGame.GetReferences ().menuManager && AdvGame.GetReferences ().menuManager.menus != null)
+					{
+						foreach (Menu menu in AdvGame.GetReferences ().menuManager.menus)
+						{
+							if (menu != null)
+							{
+								int thisNumReferences = menu.UpdateVariableReferences (globalVariable.id, newID);
+								if (thisNumReferences > 0)
+								{
+									totalNumReferences += thisNumReferences;
+									ACDebug.Log ("Updated " + thisNumReferences + " references to Global variable '" + globalVariable.label + "' in Menu '" + menu.title + "'");
+									EditorUtility.SetDirty (AdvGame.GetReferences ().menuManager);
+								}
+							}
+						}
+					}
+
+					globalVariable.id = newID;
+					EditorUtility.SetDirty (this);
+					EditorUtility.DisplayDialog ("Variable update complete", "In total, updated " + totalNumReferences + " references to Global variable '" + globalVariable.label + "' in the project.  Please see the Console window for full details.", "OK");
 				}
 			}
 		}
@@ -1155,7 +1279,7 @@ namespace AC
 				else if (j == popUpPresetLabels.Count-1)
 				{
 					// Create new
-					if (popUpPresetLabels.Count > 50)
+					if (popUpPresetLabels.Count > PopUpLabelData.MaxPresets)
 					{
 						ACDebug.LogWarning ("The maximum number of popup presets has been reached!");
 						return;

@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"ActionMovie.cs"
  * 
@@ -9,9 +9,9 @@
  * 
  */
 
-#if !UNITY_SWITCH
+//#if !UNITY_SWITCH
 #define ALLOW_VIDEO
-#endif
+//#endif
 
 using UnityEngine;
 using System.Collections;
@@ -45,12 +45,14 @@ namespace AC
 		public int videoPlayerConstantID;
 		public bool prepareOnly = false;
 		public bool pauseWithGame = false;
+		private bool waitedAtLeastOneFrame;
 
 			#if UNITY_WEBGL
 			public string movieURL = "http://";
 			public int movieURLParameterID = -1;
 			#else
 			public VideoClip newClip;
+			public int newClipParameterID = -1;
 			#endif
 			protected bool isPaused;
 
@@ -79,8 +81,11 @@ namespace AC
 
 				#if UNITY_WEBGL
 				movieURL = AssignString (parameters, movieURLParameterID, movieURL);
+				#else
+				newClip = (VideoClip) AssignObject<VideoClip> (parameters, newClipParameterID, newClip);
 				#endif
 
+			waitedAtLeastOneFrame = false;
 			#endif
 		}
 		
@@ -124,19 +129,19 @@ namespace AC
 								KickStarter.playerInput.skipMovieKey = string.Empty;
 								runtimeVideoPlayer.Play ();
 
-								if (runtimeVideoPlayer.isLooping)
-								{
-									LogWarning ("Cannot wait for " + runtimeVideoPlayer.name + " to finish because it is looping!");
-									return 0f;
-								}
-
-								if (canSkip && !string.IsNullOrEmpty (skipKey))
-								{
-									KickStarter.playerInput.skipMovieKey = skipKey;
-								}
-
 								if (willWait)
 								{
+									if (runtimeVideoPlayer.isLooping)
+									{
+										LogWarning ("Cannot wait for " + runtimeVideoPlayer.name + " to finish because it is looping!");
+										return 0f;
+									}
+
+									if (canSkip && !string.IsNullOrEmpty (skipKey))
+									{
+										KickStarter.playerInput.skipMovieKey = skipKey;
+									}
+
 									return defaultPauseTime;
 								}
 							}
@@ -193,6 +198,12 @@ namespace AC
 
 							if (!runtimeVideoPlayer.isPrepared || runtimeVideoPlayer.isPlaying)
 							{
+								return defaultPauseTime;
+							}
+
+							if (!waitedAtLeastOneFrame)
+							{
+								waitedAtLeastOneFrame = true;
 								return defaultPauseTime;
 							}
 						}
@@ -309,13 +320,17 @@ namespace AC
 				if (movieMaterialMethod == MovieMaterialMethod.PlayMovie)
 				{
 					#if UNITY_WEBGL
-					movieURLParameterID = Action.ChooseParameterGUI ("Movie URL:", parameters, movieURLParameterID, ParameterType.String);
+					movieURLParameterID = Action.ChooseParameterGUI ("Movie URL:", parameters, movieURLParameterID, new ParameterType[2] { ParameterType.String, ParameterType.PopUp });
 					if (movieURLParameterID < 0)
 					{
 						movieURL = EditorGUILayout.TextField ("Movie URL:", movieURL);
 					}
 					#else
-					newClip = (VideoClip) EditorGUILayout.ObjectField ("New Clip (optional):", newClip, typeof (VideoClip), true);
+					newClipParameterID = Action.ChooseParameterGUI ("New clip (optional):", parameters, newClipParameterID, ParameterType.UnityObject);
+					if (newClipParameterID < 0)
+					{
+						newClip = (VideoClip) EditorGUILayout.ObjectField ("New Clip (optional):", newClip, typeof (VideoClip), true);
+					}
 					#endif
             
 					prepareOnly = EditorGUILayout.Toggle ("Prepare only?", prepareOnly);
@@ -409,7 +424,7 @@ namespace AC
 			#if ALLOW_VIDEO
 			if (movieClipType == MovieClipType.VideoPlayer && videoPlayerParameterID < 0)
 			{
-				if (videoPlayer != null && videoPlayer.gameObject == _gameObject) return true;
+				if (videoPlayer && videoPlayer.gameObject == _gameObject) return true;
 				if (videoPlayerConstantID == id) return true;
 			}
 			#endif

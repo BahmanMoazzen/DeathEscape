@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"ActionVarCopy.cs"
  * 
@@ -318,6 +318,7 @@ namespace AC
 				else
 				{
 					variableNumber = EditorGUILayout.Popup (label, variableNumber, labelList.ToArray());
+					variableNumber = Mathf.Max (0, variableNumber);
 					variableID = vars [variableNumber].id;
 				}
 			}
@@ -446,13 +447,13 @@ namespace AC
 		}
 
 
-		public override int GetVariableReferences (List<ActionParameter> parameters, VariableLocation _location, int varID, Variables _variables, int _variablesConstantID = 0)
+		public override int GetNumVariableReferences (VariableLocation _location, int varID, List<ActionParameter> parameters, Variables _variables = null, int _variablesConstantID = 0)
 		{
 			int thisCount = 0;
 
 			if (oldLocation == _location && oldVariableID == varID)
 			{
-				if (_location != VariableLocation.Component || (_variables && _variables == oldVariables) || (_variablesConstantID != 0 && _variablesConstantID == oldVariablesConstantID))
+				if (_location != VariableLocation.Component || (_variables && _variables == oldVariables) || (oldVariablesConstantID != 0 && _variablesConstantID == oldVariablesConstantID))
 				{
 					thisCount ++;
 				}
@@ -460,13 +461,40 @@ namespace AC
 
 			if (newLocation == _location && newVariableID == varID)
 			{
-				if (_location != VariableLocation.Component || (_variables && _variables == newVariables) || (_variablesConstantID != 0 && _variablesConstantID == newVariablesConstantID))
+				if (_location != VariableLocation.Component || (_variables && _variables == newVariables) || (newVariablesConstantID != 0 && _variablesConstantID == newVariablesConstantID))
 				{
 					thisCount ++;
 				}
 			}
 
-			thisCount += base.GetVariableReferences (parameters, _location, varID, _variables);
+			thisCount += base.GetNumVariableReferences (_location, varID, parameters, _variables, _variablesConstantID);
+			return thisCount;
+		}
+
+
+		public override int UpdateVariableReferences (VariableLocation _location, int oldVarID, int newVarID, List<ActionParameter> parameters, Variables _variables = null, int _variablesConstantID = 0)
+		{
+			int thisCount = 0;
+
+			if (oldLocation == _location && oldVariableID == oldVarID)
+			{
+				if (_location != VariableLocation.Component || (_variables && _variables == oldVariables) || (oldVariablesConstantID != 0 && _variablesConstantID == oldVariablesConstantID))
+				{
+					oldVariableID = newVarID;
+					thisCount++;
+				}
+			}
+
+			if (newLocation == _location && newVariableID == newVarID)
+			{
+				if (_location != VariableLocation.Component || (_variables && _variables == newVariables) || (newVariablesConstantID != 0 && _variablesConstantID == newVariablesConstantID))
+				{
+					newVariableID = newVarID;
+					thisCount++;
+				}
+			}
+
+			thisCount += base.UpdateVariableReferences (_location, oldVarID, newVarID, parameters, _variables, _variablesConstantID);
 			return thisCount;
 		}
 
@@ -475,11 +503,21 @@ namespace AC
 		{
 			if (oldLocation == VariableLocation.Component)
 			{
+				if (saveScriptsToo && oldVariables && oldParameterID < 0)
+				{
+					AddSaveScript<RememberVariables> (oldVariables);
+				}
+
 				AssignConstantID <Variables> (oldVariables, oldVariablesConstantID, oldParameterID);
 			}
 
 			if (newLocation == VariableLocation.Component)
 			{
+				if (saveScriptsToo && newVariables && newParameterID < 0)
+				{
+					AddSaveScript<RememberVariables> (newVariables);
+				}
+
 				AssignConstantID <Variables> (newVariables, newVariablesConstantID, newParameterID);
 			}
 		}
@@ -489,12 +527,12 @@ namespace AC
 		{
 			if (oldParameterID < 0 && oldLocation == VariableLocation.Component)
 			{
-				if (oldVariables != null && oldVariables.gameObject == gameObject) return true;
+				if (oldVariables && oldVariables.gameObject == gameObject) return true;
 				if (oldVariablesConstantID == id && id != 0) return true;
 			}
 			if (newParameterID < 0 && oldLocation == VariableLocation.Component)
 			{
-				if (newVariables != null && newVariables.gameObject == gameObject) return true;
+				if (newVariables && newVariables.gameObject == gameObject) return true;
 				if (newVariablesConstantID == id && id != 0) return true;
 			}
 			return base.ReferencesObjectOrID (gameObject, id);

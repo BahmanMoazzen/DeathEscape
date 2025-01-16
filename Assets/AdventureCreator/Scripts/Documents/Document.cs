@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"Document.cs"
  * 
@@ -104,7 +104,7 @@ namespace AC
 		 */
 		public string GetPageText (int pageIndex, int languageNumber = 0)
 		{
-			if (pages != null && pageIndex < pages.Count && pageIndex > 0)
+			if (pages != null && pageIndex < pages.Count && pageIndex >= 0)
 			{
 				JournalPage page = pages[pageIndex];
 				return KickStarter.runtimeLanguages.GetTranslation (page.text, page.lineID, languageNumber, GetTranslationType (0));
@@ -128,9 +128,7 @@ namespace AC
 
 		#region GetSet
 
-		/**
-		 * The Document's title.  This will set the title to '(Untitled)' if empty.
-		 */
+		/** The Document's title.  This will set the title to '(Untitled)' if empty. */
 		public string Title
 		{
 			get
@@ -180,7 +178,7 @@ namespace AC
 		}
 
 
-		public void ShowGUI (string apiPrefix, List<InvBin> bins)
+		public void ShowGUI (string apiPrefix, List<InvBin> bins, float windowWidth)
 		{
 			title = CustomGUILayout.TextField ("Title:", title, apiPrefix + ".title");
 			if (titleLineID > -1)
@@ -235,7 +233,7 @@ namespace AC
 					}
 				}
 
-				if (GUILayout.Button ("", CustomStyles.IconCog))
+				if (GUILayout.Button (string.Empty, CustomStyles.IconCog))
 				{
 					sidePage = i;
 					EditorGUIUtility.editingTextField = false;
@@ -268,7 +266,7 @@ namespace AC
 				{
 					CustomGUILayout.LabelField ("Page text:", apiPrefix + ".pages[" + selectedPage + "].text");
 					EditorStyles.textField.wordWrap = true;
-					pages[selectedPage].text = EditorGUILayout.TextArea (pages[selectedPage].text, GUILayout.MaxWidth (400f));
+					pages[selectedPage].text = EditorGUILayout.TextArea (pages[selectedPage].text, GUILayout.MaxWidth (windowWidth));
 				}
 				CustomGUILayout.EndVertical ();
 			}

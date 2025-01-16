@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"ActionMoveableCheck.cs"
  * 
@@ -90,7 +90,7 @@ namespace AC
 		{
 			if (parameterID < 0)
 			{
-				if (dragObject != null && dragObject.gameObject == _gameObject) return true;
+				if (dragObject && dragObject.gameObject == _gameObject) return true;
 				if (constantID == id) return true;
 			}
 			return base.ReferencesObjectOrID (_gameObject, id);

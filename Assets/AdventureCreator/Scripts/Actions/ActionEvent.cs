@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"ActionSendMessage.cs"
  * 
@@ -80,7 +80,9 @@ namespace AC
 			serializedObject.ApplyModifiedProperties ();
 			#endif
 
+			#if !UNITY_2019_1_OR_NEWER
 			EditorGUILayout.HelpBox ("Parameters passed from here cannot be set, unfortunately, due to a Unity limitation.", MessageType.Warning);
+			#endif
 		}
 
 		#endif

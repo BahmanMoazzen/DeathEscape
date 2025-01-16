@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"PlayerQTE.cs"
  * 
@@ -59,8 +59,8 @@ namespace AC
 		#region PublicFunctions
 
 		/**
-		 * <summary>Gets the current QTE state (None, Win, Lose)</summary>
-		 * <returns>The current QTE state (None, Win, Lose)</returns>
+		 * <summary>Gets the current QTE state (None, Win, Lose, Running)</summary>
+		 * <returns>The current QTE state (None, Win, Lose, Running)</returns>
 		 */
 		public QTEState GetState ()
 		{
@@ -68,13 +68,19 @@ namespace AC
 		}
 
 
-		/**
-		 * Automatically wins the current QTE.
-		 */
+		/** Automatically wins the current QTE. */
 		public void SkipQTE ()
 		{
 			endTime = 0f;
 			qteState = QTEState.Win;
+		}
+
+
+		/** Automatically end the current QTE. */
+		public void KillQTE ()
+		{
+			endTime = 0f;
+			qteState = QTEState.None;
 		}
 
 
@@ -233,33 +239,44 @@ namespace AC
 		 */
 		public float GetProgress ()
 		{
-			if (qteState == QTEState.Win)
+			switch (qteState)
 			{
-				progress = 1f;
-			}
-			else if (qteState == QTEState.Lose)
-			{
-				progress = 0f;
-			}
-			else if (endTime > 0f)
-			{
-				switch (qteType)
-				{
-					case QTEType.HoldKey:
-						progress = (lastPressTime > 0f) ? ((Time.time - lastPressTime) / holdDuration) : 0f;
-						break;
+				case QTEState.Win:
+					progress = 1f;
+					break;
 
-					case QTEType.ButtonMash:
-						progress = (float) numPresses / (float) targetPresses;
-						break;
+				case QTEState.Lose:
+					progress = 1f;
+					break;
 
-					case QTEType.ThumbstickRotation:
-						progress = Mathf.Clamp01 (currentRotations / targetRotations);
-						break;
+				case QTEState.Running:
+					{
+						if (endTime > 0f)
+						{
+							switch (qteType)
+							{
+								case QTEType.HoldKey:
+									progress = (lastPressTime > 0f) ? ((Time.time - lastPressTime) / holdDuration) : 0f;
+									break;
 
-					default:
-						break;
-				}
+								case QTEType.ButtonMash:
+									progress = (float) numPresses / (float) targetPresses;
+									break;
+
+								case QTEType.ThumbstickRotation:
+									progress = Mathf.Clamp01 (currentRotations / targetRotations);
+									break;
+
+								default:
+									break;
+							}
+						}
+					}
+					break;
+
+				default:
+					progress = 0f;
+					break;
 			}
 
 			return progress;
@@ -280,9 +297,7 @@ namespace AC
 		}
 
 
-		/**
-		 * Updates the current QTE. This is called every frame by StateHandler.
-		 */
+		/**  Updates the current QTE. This is called every frame by StateHandler. */
 		public void UpdateQTE ()
 		{
 			if (endTime <= 0f)
@@ -577,7 +592,7 @@ namespace AC
 		protected void Setup (QTEType _qteType, string _inputName, float _duration, Animator _animator, bool _wrongKeyFails, float _axisThreshold)
 		{
 			qteType = _qteType;
-			qteState = QTEState.None;
+			qteState = QTEState.Running;
 
 			progress = 0f;
 			inputName = _inputName;

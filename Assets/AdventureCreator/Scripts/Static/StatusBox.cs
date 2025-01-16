@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"StatusBox.cs"
  * 
@@ -22,9 +22,7 @@ namespace AC
 		private static GUISkin sceneManagerSkin = null;
 
 
-		/**
-		 * <summary>Draws the debug window in the top-left corner of the Game window</summar>
-		 */
+		/** Draws the debug window in the top-left corner of the Game window */
 		public static void DrawDebugWindow ()
 		{
 			if (KickStarter.settingsManager.showActiveActionLists != DebugWindowDisplays.Never)
@@ -70,16 +68,6 @@ namespace AC
 				KickStarter.mainCamera.DrawStatus ();
 			}
 
-			if (KickStarter.stateHandler.gameState == GameState.DialogOptions && KickStarter.playerInput.IsInConversation ())
-			{
-				if (GUILayout.Button ("Conversation: " + KickStarter.playerInput.activeConversation.gameObject.name))
-				{
-					#if UNITY_EDITOR
-					UnityEditor.EditorGUIUtility.PingObject (KickStarter.playerInput.activeConversation.gameObject);
-					#endif
-				}
-			}
-
 			KickStarter.playerInput.DrawStatus ();
 			
 			GUILayout.Space (4f);
@@ -87,12 +75,22 @@ namespace AC
 			KickStarter.actionListManager.DrawStatus ();
 			KickStarter.actionListAssetManager.DrawStatus ();
 
-			if (KickStarter.actionListManager.IsGameplayBlocked ())
+			if (KickStarter.actionListManager.IsGameplayBlocked () || KickStarter.stateHandler.MovementIsOff || !KickStarter.stateHandler.CanInteract ())
 			{
 				GUILayout.Space (4f);
-				GUILayout.Label ("Gameplay is blocked");
+				if (KickStarter.actionListManager.IsGameplayBlocked ())
+				{
+					GUILayout.Label ("Gameplay is blocked");
+				}
+				if (KickStarter.stateHandler.MovementIsOff)
+				{
+					GUILayout.Label ("Movement system disabled");
+				}
+				if (!KickStarter.stateHandler.CanInteract ())
+				{
+					GUILayout.Label ("Interaction system disabled");
+				}
 			}
-
 			GUI.DragWindow ();
 		}
 

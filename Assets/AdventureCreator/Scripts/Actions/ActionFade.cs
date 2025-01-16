@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"ActionFade.cs"
  * 
@@ -135,7 +135,7 @@ namespace AC
 					fadeSpeed = EditorGUILayout.Slider ("Time to fade (s):", fadeSpeed, 0f, 10f);
 				}
 
-				forceCompleteTransition = EditorGUILayout.Toggle ("Force complete transition?", forceCompleteTransition);
+				forceCompleteTransition = EditorGUILayout.Toggle ("Force full transition?", forceCompleteTransition);
 				if (forceCompleteTransition)
 				{ 
 					fadeCurve = (AnimationCurve) EditorGUILayout.CurveField ("Transition curve:", fadeCurve);

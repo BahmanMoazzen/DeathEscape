@@ -2,7 +2,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"MenuCycle.cs"
  * 
@@ -38,6 +38,9 @@ namespace AC
 		public ActionListAsset actionListOnClick = null;
 		/** The text that's displayed on-screen, which prefixes the varying text */
 		public string label = "Element";
+		/** A string to append to the label, before the value */
+		public string labelSuffix = defaultLabelSuffix;
+		private const string defaultLabelSuffix = " : ";
 		/** The special FX applied to the text (None, Outline, Shadow, OutlineAndShadow) */
 		public TextEffects textEffects;
 		/** The outline thickness, if textEffects != TextEffects.None */
@@ -81,6 +84,7 @@ namespace AC
 			uiText = null;
 			uiButton = null;
 			label = "Cycle";
+			labelSuffix = defaultLabelSuffix;
 			selected = 0;
 			isVisible = true;
 			isClickable = true;
@@ -129,11 +133,18 @@ namespace AC
 			uiText = null;
 
 			label = _element.label;
+			labelSuffix = _element.labelSuffix;
 			textEffects = _element.textEffects;
 			outlineSize = _element.outlineSize;
 			anchor = _element.anchor;
 			selected = _element.selected;
-			optionsArray = _element.optionsArray;
+			
+			optionsArray = new List<string>();
+			foreach (string option in _element.optionsArray)
+			{
+				optionsArray.Add (option);
+			}
+			
 			cycleType = _element.cycleType;
 			splitLanguageType = _element.splitLanguageType;
 			varID = _element.varID;
@@ -199,12 +210,12 @@ namespace AC
 						if (addEventListeners)
 						{
 							uiDropdown.onValueChanged.AddListener (delegate {
-	         					uiDropdownValueChangedHandler (uiDropdown);
-	     					});
+								uiDropdownValueChangedHandler (uiDropdown);
+							});
 						}
 
 						CreateHoverSoundHandler (uiDropdown, _menu, 0);
-	     			}
+		 			}
 				}
 			}
 		}
@@ -271,6 +282,10 @@ namespace AC
 			if (source == MenuSource.AdventureCreator || cycleUIBasis == CycleUIBasis.Button)
 			{
 				label = CustomGUILayout.TextField ("Label text:", label, apiPrefix + ".label", "The text that's displayed on-screen, which prefixes the varying text");
+				if (!string.IsNullOrEmpty (label))
+				{
+					labelSuffix = CustomGUILayout.TextField ("Label suffix:", labelSuffix, apiPrefix + ".labelSuffix", "A string to append to the label, before the value");
+				}
 			}
 
 			GVar popUpVariable = null;
@@ -350,13 +365,13 @@ namespace AC
 			showOptionTextures = EditorGUILayout.Toggle ("Per-option textures?", showOptionTextures);
 			if (showOptionTextures)
 			{
-				int numOptions = (cycleType == AC_CycleType.Language) ? KickStarter.speechManager.languages.Count : optionsArray.Count;
+				int numOptions = (cycleType == AC_CycleType.Language) ? KickStarter.speechManager.Languages.Count : optionsArray.Count;
 				if (cycleType == AC_CycleType.Language)
 				{
 					numOptions = 0;
-					if (KickStarter.speechManager && KickStarter.speechManager.languages != null)
+					if (KickStarter.speechManager && KickStarter.speechManager.Languages != null)
 					{
-						numOptions = KickStarter.speechManager.languages.Count;
+						numOptions = KickStarter.speechManager.Languages.Count;
 					}
 				}
 				else if (popUpVariable != null)
@@ -418,29 +433,76 @@ namespace AC
 		public override int GetVariableReferences (int _varID)
 		{
 			int numFound = 0;
-			string tokenText = "[var:" + _varID.ToString () + "]";
-			if (label.Contains (tokenText))
+			string tokenText = AdvGame.GetVariableTokenText (VariableLocation.Global, _varID);
+			if (label.ToLower ().Contains (tokenText))
 			{
 				numFound ++;
 			}
 
-			if (cycleType == AC_CycleType.Variable && varID == _varID)
+			switch (cycleType)
 			{
-				numFound ++;
-			}
-
-			if (cycleType == AC_CycleType.CustomScript || cycleType == AC_CycleType.Variable)
-			{
-				foreach (string optionLabel in optionsArray)
-				{
-					if (optionLabel.Contains (tokenText))
+				case AC_CycleType.Variable:
+					if (varID == _varID)
 					{
 						numFound ++;
 					}
-				}
+					break;
+
+				case AC_CycleType.Language:
+				case AC_CycleType.CustomScript:
+					foreach (string optionLabel in optionsArray)
+					{
+						if (optionLabel.Contains (tokenText))
+						{
+							numFound++;
+						}
+					}
+					break;
+
+				default:
+					break;
+			}
+			return numFound;
+		}
+
+
+		public override int UpdateVariableReferences (int oldVarID, int newVarID)
+		{
+			int numFound = 0;
+			string oldTokenText = AdvGame.GetVariableTokenText (VariableLocation.Global, oldVarID);
+			string newTokenText = AdvGame.GetVariableTokenText (VariableLocation.Global, newVarID);
+			if (label.ToLower ().Contains (oldTokenText))
+			{
+				label = label.Replace (oldTokenText, newTokenText);
+				numFound++;
 			}
 
-			return numFound + base.GetVariableReferences (_varID);
+			switch (cycleType)
+			{
+				case AC_CycleType.Variable:
+					if (varID == oldVarID)
+					{
+						varID = newVarID;
+						numFound++;
+					}
+					break;
+
+				case AC_CycleType.Language:
+				case AC_CycleType.CustomScript:
+					for (int i = 0; i < optionsArray.Count; i++)
+					{
+						if (optionsArray[i].Contains (oldTokenText))
+						{
+							optionsArray[i] = optionsArray[i].Replace (oldTokenText, newTokenText);
+							numFound++;
+						}
+					}
+					break;
+
+				default:
+					break;
+			}
+			return numFound;
 		}
 
 
@@ -463,11 +525,35 @@ namespace AC
 		}
 
 
+		public override int GetSlotIndex (GameObject gameObject)
+		{
+			if (cycleUIBasis == CycleUIBasis.Button && uiButton && uiButton.gameObject == gameObject)
+			{
+				return 0;
+			}
+			if (cycleUIBasis == CycleUIBasis.Dropdown && uiDropdown && uiDropdown.gameObject == gameObject)
+			{
+				return 0;
+			}
+			return base.GetSlotIndex (gameObject);
+		}
+
+
+		protected override string GetLabelToTranslate ()
+		{
+			return label;
+		}
+
+
 		public override void PreDisplay (int _slot, int languageNumber, bool isActive)
 		{
-			CalculateValue ();
+			//CalculateValue ();
 
-			cycleText = TranslateLabel (label, languageNumber) + " : ";
+			cycleText = TranslateLabel (languageNumber);
+			if (!string.IsNullOrEmpty (cycleText))
+			{
+				cycleText += labelSuffix;
+			}
 
 			if (Application.isPlaying && uiDropdown)
 			{
@@ -509,7 +595,11 @@ namespace AC
 			#if UNITY_EDITOR
 			if (!Application.isPlaying && cycleType == AC_CycleType.Language)
 			{
-				optionsArray = AdvGame.GetReferences ().speechManager.languages;
+				optionsArray = new List<string> ();
+				for (int i = 0; i < AdvGame.GetReferences ().speechManager.Languages.Count; i++)
+				{
+					optionsArray.Add (AdvGame.GetReferences ().speechManager.Languages[i].name);
+				}
 			}
 			#endif
 
@@ -569,13 +659,6 @@ namespace AC
 		}
 
 
-		/**
-		 * <summary>Draws the element using OnGUI.</summary>
-		 * <param name = "_style">The GUIStyle to draw with</param>
-		 * <param name = "_slot">The index number of the slot to display</param>
-		 * <param name = "zoom">The zoom factor</param>
-		 * <param name = "isActive">If True, then the element will be drawn as though highlighted</param>
-		 */
 		public override void Display (GUIStyle _style, int _slot, float zoom, bool isActive)
 		{
 			base.Display (_style, _slot, zoom, isActive);
@@ -597,20 +680,20 @@ namespace AC
 		}
 		
 
-		/**
-		 * <summary>Gets the display text of the element</summary>
-		 * <param name = "slot">Ignored by this subclass</param>
-		 * <param name = "languageNumber">The index number of the language number to get the text in</param>
-		 * <returns>The display text of the element's slot, or the whole element if it only has one slot</returns>
-		 */
 		public override string GetLabel (int slot, int languageNumber)
 		{
 			string optionLabel = GetOptionLabel (selected);
-			if (!string.IsNullOrEmpty (optionLabel))
+			string prefixLabel = TranslateLabel (languageNumber);
+
+			if (!string.IsNullOrEmpty (prefixLabel) && !string.IsNullOrEmpty (optionLabel))
 			{
-				return TranslateLabel (label, languageNumber) + " : " + optionLabel;
+				return prefixLabel + labelSuffix + optionLabel;
 			}
-			return TranslateLabel (label, languageNumber);
+			else if (!string.IsNullOrEmpty (optionLabel))
+			{
+				return optionLabel;
+			}
+			return prefixLabel;
 		}
 
 
@@ -647,33 +730,28 @@ namespace AC
 			switch (cycleType)
 			{
 				case AC_CycleType.Language:
-					if (selected == 0 && KickStarter.speechManager.ignoreOriginalText && KickStarter.runtimeLanguages.Languages.Count > 1)
-					{
-						// Ignore original text by skipping to first language
-						selected = 1;
-					}
-
+					int trueIndex = KickStarter.runtimeLanguages.EnabledLanguageToTrueIndex (selected);
 					if (KickStarter.speechManager && KickStarter.speechManager.separateVoiceAndTextLanguages)
 					{
 						switch (splitLanguageType)
 						{
 							case SplitLanguageType.TextAndVoice:
-								Options.SetLanguage (selected);
-								Options.SetVoiceLanguage (selected);
+								Options.SetLanguage (trueIndex);
+								Options.SetVoiceLanguage (trueIndex);
 								break;
 
 							case SplitLanguageType.TextOnly:
-								Options.SetLanguage (selected);
+								Options.SetLanguage (trueIndex);
 								break;
 
 							case SplitLanguageType.VoiceOnly:
-								Options.SetVoiceLanguage (selected);
+								Options.SetVoiceLanguage (trueIndex);
 								break;
 						}
 					}
 					else
 					{
-						Options.SetLanguage (selected);
+						Options.SetLanguage (trueIndex);
 					}
 					break;
 
@@ -704,6 +782,8 @@ namespace AC
 
 		public override void RecalculateSize (MenuSource source)
 		{
+			CalculateValue ();
+
 			if (Application.isPlaying && uiDropdown)
 			{
 				if (uiDropdown.captionText)
@@ -715,16 +795,26 @@ namespace AC
 					}
 				}
 
-				if (Application.isPlaying && uiDropdown.options.Count < GetNumOptions ())
+				int numOptions = GetNumOptions ();
+
+				if (Application.isPlaying)
 				{
-					while (uiDropdown.options.Count < GetNumOptions ())
+					if (uiDropdown.options.Count < numOptions)
 					{
-						uiDropdown.options.Add (new Dropdown.OptionData ("New option"));
+						while (uiDropdown.options.Count < numOptions)
+						{
+							uiDropdown.options.Add (new Dropdown.OptionData ("New option"));
+							Debug.Log ("Add " + uiDropdown.options.Count);
+						}
+						ACDebug.Log ("Cycle element '" + title + " is linked to a UI Dropdown with fewer options - adding them in automatically.");
 					}
-					ACDebug.Log ("Cycle element '" + title + " is linked to a UI Dropdown with fewer options - adding them in automatically.");
+					else if (uiDropdown.options.Count > numOptions)
+					{
+						uiDropdown.options.RemoveRange (numOptions, uiDropdown.options.Count - numOptions);
+					}
 				}
 
-				for (int i=0; i<GetNumOptions (); i++)
+				for (int i=0; i< numOptions; i++)
 				{
 					if (uiDropdown.options.Count > i && uiDropdown.options[i] != null)
 					{
@@ -768,22 +858,36 @@ namespace AC
 
 			if (cycleType == AC_CycleType.Language)
 			{
+				optionsArray = new List<string> ();
 				if (Application.isPlaying)
 				{
-					optionsArray = KickStarter.runtimeLanguages.Languages;
+					for (int i = 0; i < KickStarter.runtimeLanguages.Languages.Count; i++)
+					{
+						if (!KickStarter.runtimeLanguages.Languages[i].isDisabled)
+						{
+							optionsArray.Add (KickStarter.runtimeLanguages.Languages[i].name);
+						}
+					}
 				}
 				else
 				{
-					optionsArray = AdvGame.GetReferences ().speechManager.languages;
+					for (int i = 0; i < AdvGame.GetReferences ().speechManager.Languages.Count; i++)
+					{
+						optionsArray.Add (AdvGame.GetReferences ().speechManager.Languages[i].name);
+					}
 				}
 
 				if (Options.optionsData != null)
 				{
-					selected = Options.optionsData.language;
-
 					if (KickStarter.speechManager && KickStarter.speechManager.separateVoiceAndTextLanguages && splitLanguageType == SplitLanguageType.VoiceOnly)
 					{
-						selected = Options.optionsData.voiceLanguage;
+						int trueIndex = Options.optionsData.voiceLanguage;
+						selected = KickStarter.runtimeLanguages.TrueLanguageIndexToEnabledIndex (trueIndex);
+					}
+					else
+					{
+						int trueIndex = Options.optionsData.language;
+						selected = KickStarter.runtimeLanguages.TrueLanguageIndexToEnabledIndex (trueIndex);
 					}
 				}
 			}
@@ -806,7 +910,7 @@ namespace AC
 
 		protected override void AutoSize ()
 		{
-			AutoSize (new GUIContent (TranslateLabel (label, Options.GetLanguage ()) + " : Default option"));
+			AutoSize (new GUIContent (TranslateLabel (Options.GetLanguage ()) + " : Default option"));
 		}
 
 

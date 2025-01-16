@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"PopUpLabelData.cs"
  * 
@@ -18,9 +18,7 @@ using UnityEditor;
 namespace AC
 {
 
-	/**
-	 * A data container for PopUp labels that are shared amongst multiple variables.
-	 */
+	/** A data container for PopUp labels that are shared amongst multiple variables. */
 	[System.Serializable]
 	public class PopUpLabelData : ITranslatable
 	{
@@ -34,6 +32,8 @@ namespace AC
 		[SerializeField] protected string[] labels = new string[0];
 		[SerializeField] protected int lineID = -1;
 		[SerializeField] protected bool canTranslate = false;
+
+		public const int MaxPresets = 50;
 
 		#endregion
 

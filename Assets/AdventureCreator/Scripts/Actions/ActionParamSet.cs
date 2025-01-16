@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"ActionParamSet.cs"
  * 
@@ -20,7 +20,7 @@ namespace AC
 {
 	
 	[System.Serializable]
-	public class ActionParamSet : Action
+	public class ActionParamSet : Action, IItemReferencerAction, IDocumentReferencerAction
 	{
 
 		public ActionListSource actionListSource = ActionListSource.InScene;
@@ -175,6 +175,7 @@ namespace AC
 						break;
 
 					case ParameterType.Integer:
+					case ParameterType.PopUp:
 						intValue = AssignInteger (parameters, ownParamID, intValue);
 						break;
 
@@ -223,6 +224,7 @@ namespace AC
 					{
 						case ParameterType.Boolean:
 						case ParameterType.Integer:
+						case ParameterType.PopUp:
 							_parameter.intValue = gVar.IntegerValue;
 							break;
 
@@ -240,6 +242,10 @@ namespace AC
 
 						case ParameterType.GameObject:
 							_parameter.SetValue (gVar.GameObjectValue);
+							break;
+
+						case ParameterType.UnityObject:
+							_parameter.SetValue (gVar.UnityObjectValue);
 							break;
 
 						case ParameterType.InventoryItem:
@@ -288,6 +294,7 @@ namespace AC
 					case ParameterType.LocalVariable:
 					case ParameterType.InventoryItem:
 					case ParameterType.Document:
+					case ParameterType.PopUp:
 						_parameter.intValue = intValue;
 						break;
 
@@ -332,6 +339,16 @@ namespace AC
 						_parameter.intValue = Random.Range (intValue, intValueMax + 1);
 						break;
 
+					case ParameterType.PopUp:
+						{
+							PopUpLabelData popUpLabelData = KickStarter.variablesManager.GetPopUpLabelData (_parameter.popUpID);
+							if (popUpLabelData != null)
+							{
+								_parameter.intValue = Random.Range (0, popUpLabelData.Length);
+							}
+						}
+						break;
+
 					case ParameterType.Float:
 						_parameter.floatValue = Random.Range (floatValue, floatValueMax);
 						break;
@@ -373,6 +390,7 @@ namespace AC
 						break;
 
 					case ParameterType.Integer:
+					case ParameterType.PopUp:
 						_parameter.SetValue (runtimeAnimator.GetInteger (animatorParameterName));
 						break;
 
@@ -511,6 +529,21 @@ namespace AC
 						intValue = EditorGUILayout.IntField ("Set as:", intValue);
 						break;
 
+					case ParameterType.PopUp:
+						{
+							PopUpLabelData popUpLabelData = KickStarter.variablesManager.GetPopUpLabelData (_parameter.popUpID);
+							if (popUpLabelData != null)
+							{
+								intValue = EditorGUILayout.Popup ("Set as:", intValue, popUpLabelData.GenerateEditorPopUpLabels ());
+							}
+							else
+							{
+								intValue = EditorGUILayout.IntField ("Set as:", intValue);
+								EditorGUILayout.HelpBox ("No PopUp label data found for ID = " + _parameter.popUpID, MessageType.Warning);
+							}
+						}
+						break;
+
 					case ParameterType.Float:
 						floatValue = EditorGUILayout.FloatField ("Set as:", floatValue);
 						break;
@@ -597,6 +630,7 @@ namespace AC
 						if (floatValueMax < floatValue) floatValueMax = floatValue;
 						break;
 
+					case ParameterType.PopUp:
 					case ParameterType.Boolean:
 						break;
 
@@ -618,8 +652,10 @@ namespace AC
 						case ParameterType.Boolean:
 						case ParameterType.Float:
 						case ParameterType.Integer:
+						case ParameterType.PopUp:
 						case ParameterType.String:
 						case ParameterType.GameObject:
+						case ParameterType.UnityObject:
 							globalVariableID = AdvGame.GlobalVariableGUI ("Variable:", globalVariableID);
 							break;
 
@@ -706,6 +742,7 @@ namespace AC
 					case ParameterType.Boolean:
 					case ParameterType.Float:
 					case ParameterType.Integer:
+					case ParameterType.PopUp:
 						animatorParameterID = Action.ChooseParameterGUI ("Animator:", parameters, animatorParameterID, ParameterType.GameObject);
 						if (animatorParameterID >= 0)
 						{
@@ -868,7 +905,7 @@ namespace AC
 		}
 
 
-		public override int GetVariableReferences (List<ActionParameter> parameters, VariableLocation location, int varID, Variables _variables, int _variablesConstantID = 0)
+		public override int GetNumVariableReferences (VariableLocation location, int varID, List<ActionParameter> parameters, Variables _variables = null, int _variablesConstantID = 0)
 		{
 			int thisCount = 0;
 			if (setParamMethod == SetParamMethod.CopiedFromGlobalVariable && location == VariableLocation.Global && globalVariableID == varID)
@@ -914,30 +951,111 @@ namespace AC
 				{
 					thisCount ++;
 				}
-				else if (_param != null && _param.parameterType == ParameterType.ComponentVariable && location == VariableLocation.Component && varID == intValue && _param.variables == _variables)
+				else if (_param != null && _param.parameterType == ParameterType.ComponentVariable && location == VariableLocation.Component && varID == intValue && _variables)
 				{
-					thisCount ++;
+					if ((_param.variables && _param.variables == _variables) || 
+						(_param.constantID != 0 && _param.constantID == _variablesConstantID))
+					{
+						thisCount++;
+					}
 				}
 			}
 
-			thisCount += base.GetVariableReferences (parameters, location, varID, _variables);
+			thisCount += base.GetNumVariableReferences (location, varID, parameters, _variables, _variablesConstantID);
 			return thisCount;
 		}
 
 
-		public override int GetInventoryReferences (List<ActionParameter> parameters, int _invID)
+		public override int UpdateVariableReferences (VariableLocation location, int oldVarID, int newVarID, List<ActionParameter> parameters, Variables _variables = null, int _variablesConstantID = 0)
 		{
-			return GetParamReferences (parameters, _invID, ParameterType.InventoryItem);
+			int thisCount = 0;
+			if (setParamMethod == SetParamMethod.CopiedFromGlobalVariable && location == VariableLocation.Global && globalVariableID == oldVarID)
+			{
+				globalVariableID = newVarID;
+				thisCount++;
+			}
+
+			if (setParamMethod == SetParamMethod.EnteredHere)
+			{
+				ActionParameter _param = null;
+
+				if (changeOwn)
+				{
+					if (parameters != null)
+					{
+						_param = GetParameterWithID (parameters, parameterID);
+					}
+				}
+				else
+				{
+					if (actionListSource == ActionListSource.InScene && actionList != null)
+					{
+						if (actionList.source == ActionListSource.InScene && actionList.useParameters)
+						{
+							_param = GetParameterWithID (actionList.parameters, parameterID);
+						}
+						else if (actionList.source == ActionListSource.AssetFile && actionList.assetFile != null && actionList.assetFile.useParameters)
+						{
+							_param = GetParameterWithID (actionList.assetFile.DefaultParameters, parameterID);
+						}
+					}
+					else if (actionListSource == ActionListSource.AssetFile && actionListAsset != null && actionListAsset.useParameters)
+					{
+						_param = GetParameterWithID (actionListAsset.DefaultParameters, parameterID);
+					}
+				}
+
+				if (_param != null && _param.parameterType == ParameterType.LocalVariable && location == VariableLocation.Local && oldVarID == intValue)
+				{
+					intValue = newVarID;
+					thisCount++;
+				}
+				else if (_param != null && _param.parameterType == ParameterType.GlobalVariable && location == VariableLocation.Global && oldVarID == intValue)
+				{
+					intValue = newVarID;
+					thisCount++;
+				}
+				else if (_param != null && _param.parameterType == ParameterType.ComponentVariable && location == VariableLocation.Component && oldVarID == intValue && _variables)
+				{
+					if ((_param.variables && _param.variables == _variables) ||
+						(_param.constantID != 0 && _param.constantID == _variablesConstantID))
+					{
+						intValue = newVarID;
+						thisCount++;
+					}
+				}
+			}
+
+			thisCount += base.UpdateVariableReferences (location, oldVarID, newVarID, parameters, _variables, _variablesConstantID);
+			return thisCount;
 		}
 
 
-		public override int GetDocumentReferences (List<ActionParameter> parameters, int _docID)
+		public int GetNumItemReferences (int _itemID, List<ActionParameter> parameters)
+		{
+			return GetParamReferences (parameters, _itemID, ParameterType.InventoryItem);
+		}
+
+
+		public int UpdateItemReferences (int oldItemID, int newItemID, List<ActionParameter> parameters)
+		{
+			return GetParamReferences (parameters, oldItemID, ParameterType.InventoryItem, true, newItemID);
+		}
+
+
+		public int GetNumDocumentReferences (int _docID, List<ActionParameter> parameters)
 		{
 			return GetParamReferences (parameters, _docID, ParameterType.Document);
 		}
 
 
-		private int GetParamReferences (List<ActionParameter> parameters, int _ID, ParameterType _paramType)
+		public int UpdateDocumentReferences (int oldDocumentID, int newDocumentID, List<ActionParameter> parameters)
+		{
+			return GetParamReferences (parameters, oldDocumentID, ParameterType.Document, true, newDocumentID);
+		}
+
+
+		private int GetParamReferences (List<ActionParameter> parameters, int _ID, ParameterType _paramType, bool updateID = false, int newID = 0)
 		{
 			if (setParamMethod == SetParamMethod.EnteredHere)
 			{
@@ -971,6 +1089,10 @@ namespace AC
 
 				if (_param != null && _param.parameterType == _paramType && _ID == intValue)
 				{
+					if (updateID)
+					{
+						intValue = newID;
+					}
 					return 1;
 				}
 			}
@@ -983,10 +1105,10 @@ namespace AC
 		{
 			if (!changeOwn && actionListSource == ActionListSource.InScene)
 			{
-				if (actionList != null && actionList.gameObject == _gameObject) return true;
+				if (actionList && actionList.gameObject == _gameObject) return true;
 				if (actionListConstantID == id) return true;
 			}
-			if (gameobjectValue != null && gameobjectValue == _gameObject) return true;
+			if (gameobjectValue && gameobjectValue == _gameObject) return true;
 			if (gameObjectConstantID == id) return true;
 			return base.ReferencesObjectOrID (_gameObject, id);
 		}

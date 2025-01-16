@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"MenuInput.cs"
  * 
@@ -19,9 +19,7 @@ using UnityEditor;
 namespace AC
 {
 
-	/**
-	 * A MenuElement that provides an input box that the player can enter text into.
-	 */
+	/** A MenuElement that provides an input box that the player can enter text into. */
 	public class MenuInput : MenuElement, ITranslatable
 	{
 
@@ -133,11 +131,6 @@ namespace AC
 		}
 		
 
-		/**
-		 * <summary>Gets the boundary of the element</summary>
-		 * <param name = "_slot">Ignored by this subclass</param>
-		 * <returns>The boundary Rect of the element</returns>
-		 */
 		public override RectTransform GetRectTransform (int _slot)
 		{
 			if (uiInput)
@@ -230,7 +223,17 @@ namespace AC
 			if (linkedUiID == id && id != 0) return true;
 			return false;
 		}
-		
+
+
+		public override int GetSlotIndex (GameObject gameObject)
+		{
+			if (uiInput && uiInput.gameObject == gameObject)
+			{
+				return 0;
+			}
+			return base.GetSlotIndex (gameObject);
+		}
+
 
 		/**
 		 * <summary>Gets the contents of the text box.</summary>
@@ -278,13 +281,6 @@ namespace AC
 		}
 
 
-		/**
-		 * <summary>Draws the element using OnGUI.</summary>
-		 * <param name = "_style">The GUIStyle to draw with</param>
-		 * <param name = "_slot">Ignored by this subclass</param>
-		 * <param name = "zoom">The zoom factor</param>
-		 * <param name = "isActive">If True, then the element will be drawn as though highlighted</param>
-		 */
 		public override void Display (GUIStyle _style, int _slot, float zoom, bool isActive)
 		{
 			base.Display (_style, _slot, zoom, isActive);
@@ -313,15 +309,15 @@ namespace AC
 		}
 
 
-		/**
-		 * <summary>Gets the display text of the element.</summary>
-		 * <param name = "slot">Ignored by this subclass</param>
-		 * <param name = "languageNumber">The index number of the language number to get the text in</param>
-		 * <returns>The display text of the element's slot, or the whole element if it only has one slot</returns>
-		 */
+		protected override string GetLabelToTranslate ()
+		{
+			return label;
+		}
+
+
 		public override string GetLabel (int slot, int languageNumber)
 		{
-			return TranslateLabel (label, languageNumber);
+			return TranslateLabel (languageNumber);
 		}
 
 
@@ -363,6 +359,7 @@ namespace AC
 
 			string input = keycode;
 
+
 			if (inputType == AC_InputType.AllowSpecialCharacters)
 			{
 				if (!(input == "KeypadEnter" || input == "Return" || input == "Enter" || input == "Backspace"))
@@ -372,7 +369,7 @@ namespace AC
 			}
 
 			bool rightToLeft = KickStarter.runtimeLanguages.LanguageReadsRightToLeft (Options.GetLanguage ());
-
+			
 			isSelected = true;
 			if (input == "Backspace")
 			{
@@ -389,7 +386,7 @@ namespace AC
 				}
 				else if (label.Length == 1)
 				{
-					label = "";
+					label = string.Empty;
 				}
 			}
 			else if (input == "KeypadEnter" || input == "Return" || input == "Enter")
@@ -397,12 +394,14 @@ namespace AC
 				ProcessReturn (input, menuName);
 			}
 			else if ((inputType == AC_InputType.AlphaNumeric && (input.Length == 1 || input.Contains ("Alpha"))) ||
-			         (inputType == AC_InputType.AlphaNumeric && allowSpaces && input == "Space") ||
-			         (inputType == AC_InputType.NumbericOnly && input.Contains ("Alpha")) ||
-					 (inputType == AC_InputType.NumbericOnly && allowDecimals && input == "Period" && !label.Contains (".")) ||
-					 (inputType == AC_InputType.NumbericOnly && allowDecimals && input == "KeypadPeriod" && !label.Contains (".")) ||
-					 (inputType == AC_InputType.AllowSpecialCharacters && (input.Length == 1 || input == "Space")))
+					(inputType == AC_InputType.AlphaNumeric && allowSpaces && input == "Space") ||
+					(inputType == AC_InputType.NumbericOnly && input.Contains ("Alpha")) ||
+					(inputType == AC_InputType.NumbericOnly && allowDecimals && input == "Period" && !label.Contains (".")) ||
+					(inputType == AC_InputType.NumbericOnly && allowDecimals && input == "KeypadPeriod" && !label.Contains (".")) ||
+					(inputType == AC_InputType.AllowSpecialCharacters && (input.Length == 1 || input == "Space")))
 			{
+				if (inputType == AC_InputType.AllowSpecialCharacters && keycode != "None") return;
+				
 				input = input.Replace ("Alpha", "");
 				input = input.Replace ("Space", " ");
 
@@ -437,15 +436,13 @@ namespace AC
 					}
 				}
 			}
-			else Debug.LogWarning ("Invalid character: '" + input + "'");
+			else if (input != "None")
+			{
+				Debug.LogWarning ("Invalid character: '" + input + "'");
+			}
 		}
 
 
-		/**
-		 * <summary>Recalculates the element's size.
-		 * This should be called whenever a Menu's shape is changed.</summary>
-		 * <param name = "source">How the parent Menu is displayed (AdventureCreator, UnityUiPrefab, UnityUiInScene)</param>
-		 */
 		public override void RecalculateSize (MenuSource source)
 		{
 			if (source == MenuSource.AdventureCreator)
@@ -457,9 +454,7 @@ namespace AC
 		}
 
 
-		/**
-		 * De-selects the text box (OnGUI-based Menus only).
-		 */
+		/** De-selects the text box (OnGUI-based Menus only). */
 		public void Deselect ()
 		{
 			isSelected = false;
@@ -481,7 +476,7 @@ namespace AC
 		
 		protected override void AutoSize ()
 		{
-			GUIContent content = new GUIContent (TranslateLabel (label, Options.GetLanguage ()));
+			GUIContent content = new GUIContent (TranslateLabel (Options.GetLanguage ()) + "|");
 			AutoSize (content);
 		}
 

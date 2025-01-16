@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"ActionVarSequence.cs"
  * 
@@ -30,7 +30,7 @@ namespace AC
 
 		public int numSockets = 2;
 
-		public bool saveToVariable = true;
+		public bool saveToVariable = false;
 		protected int ownVarValue = 0;
 
 		public VariableLocation location = VariableLocation.Global;
@@ -85,19 +85,28 @@ namespace AC
 
 		public override void AssignParentList (ActionList actionList)
 		{
-			if (actionList != null)
+			if (saveToVariable)
 			{
-				localVariables = UnityVersionHandler.GetLocalVariablesOfGameObject (actionList.gameObject);
-			}
-			if (localVariables == null)
-			{
-				localVariables = KickStarter.localVariables;
+				if (actionList != null)
+				{
+					localVariables = UnityVersionHandler.GetLocalVariablesOfGameObject (actionList.gameObject);
+				}
+				if (localVariables == null)
+				{
+					localVariables = KickStarter.localVariables;
+				}
 			}
 
 			base.AssignParentList (actionList);
 		}
 		
+
+		public override void ResetAssetValues ()
+		{
+			ownVarValue = 0;
+		}
 		
+
 		public override int GetNextOutputIndex ()
 		{
 			if (numSockets <= 0)
@@ -308,28 +317,50 @@ namespace AC
 		}
 
 
-		public override int GetVariableReferences (List<ActionParameter> parameters, VariableLocation _location, int varID, Variables _variables, int _variablesConstantID = 0)
+		public override int GetNumVariableReferences (VariableLocation _location, int varID, List<ActionParameter> parameters, Variables _variables = null, int _variablesConstantID = 0)
 		{
 			int thisCount = 0;
 
 			if (saveToVariable && location == _location && variableID == varID && parameterID < 0)
 			{
-				if (location != VariableLocation.Component || (variables && variables == _variables) || (_variablesConstantID != 0 && variablesConstantID == _variablesConstantID))
+				if (location != VariableLocation.Component || (variables && variables == _variables) || (variablesConstantID != 0 && _variablesConstantID == variablesConstantID))
 				{
 					thisCount ++;
 				}
 			}
 
-			thisCount += base.GetVariableReferences (parameters, _location, varID, _variables);
+			thisCount += base.GetNumVariableReferences (_location, varID, parameters, _variables, _variablesConstantID);
+			return thisCount;
+		}
+
+
+		public override int UpdateVariableReferences (VariableLocation _location, int oldVarID, int newVarID, List<ActionParameter> parameters, Variables _variables = null, int _variablesConstantID = 0)
+		{
+			int thisCount = 0;
+
+			if (saveToVariable && location == _location && variableID == oldVarID && parameterID < 0)
+			{
+				if (location != VariableLocation.Component || (variables && variables == _variables) || (variablesConstantID != 0 && _variablesConstantID == variablesConstantID))
+				{
+					variableID = newVarID;
+					thisCount++;
+				}
+			}
+
+			thisCount += base.UpdateVariableReferences (_location, oldVarID, newVarID, parameters, _variables, _variablesConstantID);
 			return thisCount;
 		}
 
 
 		public override void AssignConstantIDs (bool saveScriptsToo, bool fromAssetFile)
 		{
-			if (saveScriptsToo &&
-				location == VariableLocation.Component)
+			if (location == VariableLocation.Component)
 			{
+				if (saveScriptsToo && variables && parameterID < 0)
+				{
+					AddSaveScript<RememberVariables> (variables);
+				}
+
 				AssignConstantID <Variables> (variables, variablesConstantID, parameterID);
 			}
 		}
@@ -339,7 +370,7 @@ namespace AC
 		{
 			if (parameterID < 0 && location == VariableLocation.Component)
 			{
-				if (variables != null && variables.gameObject == gameObject) return true;
+				if (variables && variables.gameObject == gameObject) return true;
 				return (variablesConstantID == id && id != 0);
 			}
 			return base.ReferencesObjectOrID (gameObject, id);

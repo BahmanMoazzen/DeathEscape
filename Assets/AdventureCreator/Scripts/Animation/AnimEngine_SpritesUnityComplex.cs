@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"AnimEngine_SpritesUnityComplex.cs"
  * 
@@ -65,11 +65,12 @@ namespace AC
 
 			character.talkParameter = CustomGUILayout.TextField ("Talk bool:", character.talkParameter, "", "The name of the Animator bool parameter set to True while talking");
 
-			if (AdvGame.GetReferences () && AdvGame.GetReferences ().speechManager)
+			if (AdvGame.GetReferences () && AdvGame.GetReferences ().speechManager && AdvGame.GetReferences ().speechManager.lipSyncMode != LipSyncMode.Off)
 			{
 				if (AdvGame.GetReferences ().speechManager.lipSyncOutput == LipSyncOutput.PortraitAndGameObject)
 				{
-					character.phonemeParameter = CustomGUILayout.TextField ("Phoneme integer:", character.phonemeParameter, "", "The name of the Animator integer parameter set to the lip-syncing phoneme integer");
+					character.phonemeParameter = CustomGUILayout.TextField ("Phoneme integer:", character.phonemeParameter, "", "The name of the Animator integer parameter set to the active lip-syncing phoneme index");
+					character.phonemeNormalisedParameter = CustomGUILayout.TextField ("Normalised phoneme float:", character.phonemeNormalisedParameter, "", "The name of the Animator float parameter set to the active lip-syncing phoneme index, relative to the number of phonemes");
 				}
 				else if (AdvGame.GetReferences ().speechManager.lipSyncOutput == LipSyncOutput.GameObjectTexture)
 				{
@@ -181,7 +182,7 @@ namespace AC
 			
 			if (action.methodMecanim == AnimMethodCharMecanim.ChangeParameterValue)
 			{
-				action.parameterNameID = Action.ChooseParameterGUI ("Parameter to affect:", parameters, action.parameterNameID, ParameterType.String);
+				action.parameterNameID = Action.ChooseParameterGUI ("Parameter to affect:", parameters, action.parameterNameID, new ParameterType[2] { ParameterType.String, ParameterType.PopUp });
 				if (action.parameterNameID < 0)
 				{
 					action.parameterName = EditorGUILayout.TextField ("Parameter to affect:", action.parameterName);
@@ -268,7 +269,7 @@ namespace AC
 
 			else if (action.methodMecanim == AnimMethodCharMecanim.PlayCustom)
 			{
-				action.clip2DParameterID = Action.ChooseParameterGUI ("Clip:", parameters, action.clip2DParameterID, ParameterType.String);
+				action.clip2DParameterID = Action.ChooseParameterGUI ("Clip:", parameters, action.clip2DParameterID, new ParameterType[2] { ParameterType.String, ParameterType.PopUp });
 				if (action.clip2DParameterID < 0)
 				{
 					action.clip2D = EditorGUILayout.TextField ("Clip:", action.clip2D);
@@ -478,7 +479,7 @@ namespace AC
 			
 			if (action.methodMecanim == AnimMethodMecanim.ChangeParameterValue)
 			{
-				action.parameterNameID = Action.ChooseParameterGUI ("Parameter to affect:", parameters, action.parameterNameID, ParameterType.String);
+				action.parameterNameID = Action.ChooseParameterGUI ("Parameter to affect:", parameters, action.parameterNameID, new ParameterType[2] { ParameterType.String, ParameterType.PopUp });
 				if (action.parameterNameID < 0)
 				{
 					action.parameterName = EditorGUILayout.TextField ("Parameter to affect:", action.parameterName);
@@ -523,7 +524,7 @@ namespace AC
 			}
 			else if (action.methodMecanim == AnimMethodMecanim.PlayCustom)
 			{
-				action.clip2DParameterID = Action.ChooseParameterGUI ("Clip:", parameters, action.clip2DParameterID, ParameterType.String);
+				action.clip2DParameterID = Action.ChooseParameterGUI ("Clip:", parameters, action.clip2DParameterID, new ParameterType[2] { ParameterType.String, ParameterType.PopUp });
 				if (action.clip2DParameterID < 0)
 				{
 					action.clip2D = EditorGUILayout.TextField ("Clip:", action.clip2D);
@@ -941,9 +942,16 @@ namespace AC
 				animator.SetBool (character.talkParameter, character.isTalking);
 			}
 			
-			if (!string.IsNullOrEmpty (character.phonemeParameter) && character.LipSyncGameObject ())
+			if (character.LipSyncGameObject ())
 			{
-				animator.SetInteger (character.phonemeParameter, character.GetLipSyncFrame ());
+				if (!string.IsNullOrEmpty (character.phonemeParameter))
+				{
+					animator.SetInteger (character.phonemeParameter, character.GetLipSyncFrame ());
+				}
+				if (!string.IsNullOrEmpty (character.phonemeNormalisedParameter))
+				{
+					animator.SetFloat (character.phonemeNormalisedParameter, character.GetLipSyncNormalised ());
+				}
 			}
 
 			if (!string.IsNullOrEmpty (character.expressionParameter) && character.useExpressions)

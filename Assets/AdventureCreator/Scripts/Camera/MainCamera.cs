@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"MainCamera.cs"
  * 
@@ -219,7 +219,8 @@ namespace AC
 
 			UpdateCameraFade ();
 			
-			if (attachedCamera && (!(attachedCamera is GameCamera25D)))
+			bool attachedIs25D = (attachedCamera is GameCamera25D);
+			if (attachedCamera && !attachedIs25D)
 			{
 				switch (mainCameraMode)
 				{
@@ -241,7 +242,7 @@ namespace AC
 				}
 			}
 			
-			else if (attachedCamera && (attachedCamera is GameCamera25D))
+			else if (attachedCamera && attachedIs25D)
 			{
 				Transform.position = attachedCamera.CameraTransform.position;
 				Transform.rotation = attachedCamera.CameraTransform.rotation;
@@ -589,13 +590,9 @@ namespace AC
 				currentFrameCameraData = new GameCameraData (attachedCamera);
 				ApplyCameraData (currentFrameCameraData);
 
-				if (Application.isPlaying && changedOrientation && !SceneSettings.IsUnity2D () && KickStarter.stateHandler.IsInGameplay () && KickStarter.settingsManager.movementMethod == MovementMethod.Direct && KickStarter.settingsManager.directMovementType == DirectMovementType.RelativeToCamera && /*KickStarter.settingsManager.inputMethod != InputMethod.TouchScreen &&*/ KickStarter.playerInput)
+				if (changedOrientation)
 				{
-					if (KickStarter.player && 
-						(KickStarter.player.GetPath () == null || !KickStarter.player.IsLockedToPath ()))
-					{
-						KickStarter.playerInput.cameraLockSnap = true;
-					}
+					KickStarter.playerInput.BeginCameraLockSnap ();
 				}
 			}
 		}
@@ -635,9 +632,7 @@ namespace AC
 		}
 
 
-		/**
-		 * Places a full-screen texture of the current game window over the screen, allowing for a scene change to have no visible transition.
-		 */
+		/** Places a full-screen texture of the current game window over the screen, allowing for a scene change to have no visible transition. */
 		public void TakeOverlayScreenshot ()
 		{
 			Texture2D screenTex = new Texture2D (ACScreen.width, ACScreen.height);
@@ -1262,6 +1257,12 @@ namespace AC
 			SetGameCamera (_camera1);
 			StartSplitScreen (_splitAmountMain, _splitAmountOther);
 		}
+
+
+		public void SwapSplitScreenMainCamera ()
+		{
+			SetSplitScreen (splitCamera, attachedCamera, splitOrientation, !isTopLeftSplit, splitAmountMain, splitAmountOther);
+		}
 		
 
 		/**
@@ -1277,6 +1278,8 @@ namespace AC
 			splitCamera.SetSplitScreen ();
 			SetCameraRect ();
 			SetMidBorder ();
+
+			KickStarter.eventManager.Call_OnCameraSplitScreenStart (splitCamera, splitOrientation, splitAmountMain, splitAmountOther, isTopLeftSplit);
 		}
 
 
@@ -1320,11 +1323,11 @@ namespace AC
 		}
 
 
-		/**
-		 * Ends any active split-screen effect.
-		 */
+		/** Ends any active split-screen effect. */
 		public void RemoveSplitScreen ()
 		{
+			_Camera _splitCamera = isSplitScreen ? splitCamera : null;
+
 			if (isSplitScreen && splitOrientation == CameraSplitOrientation.Overlay)
 			{
 				Camera.depth = overlayDepthBackup;
@@ -1343,6 +1346,11 @@ namespace AC
 				}
 
 				splitCamera = null;
+			}
+
+			if (_splitCamera) 
+			{
+				KickStarter.eventManager.Call_OnCameraSplitScreenStop (_splitCamera);
 			}
 		}
 
@@ -1739,9 +1747,7 @@ namespace AC
 		}
 
 
-		/**
-		 * Displays information about the MainCamera section of the 'AC Status' box.
-		 */
+		/** Displays information about the MainCamera section of the 'AC Status' box. */
 		public void DrawStatus ()
 		{
 			if (IsEnabled ())

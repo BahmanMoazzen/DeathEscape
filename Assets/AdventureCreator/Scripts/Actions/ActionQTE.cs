@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"ActionQTE.cs"
  * 
@@ -126,7 +126,7 @@ namespace AC
 			}
 			else
 			{
-				if (KickStarter.playerQTE.GetState () == QTEState.None)
+				if (KickStarter.playerQTE.GetState () == QTEState.Running)
 				{
 					return defaultPauseTime;
 				}
@@ -175,13 +175,13 @@ namespace AC
 
 			if (qteType == QTEType.ThumbstickRotation)
 			{
-				inputNameParameterID = Action.ChooseParameterGUI ("Horizontal input name:", parameters, inputNameParameterID, ParameterType.String);
+				inputNameParameterID = Action.ChooseParameterGUI ("Horizontal input name:", parameters, inputNameParameterID, new ParameterType[2] { ParameterType.String, ParameterType.PopUp });
 				if (inputNameParameterID < 0)
 				{
 					inputName = EditorGUILayout.TextField ("Horizontal input name:", inputName);
 				}
 
-				verticalInputNameParameterID = Action.ChooseParameterGUI ("Vertical input name:", parameters, verticalInputNameParameterID, ParameterType.String);
+				verticalInputNameParameterID = Action.ChooseParameterGUI ("Vertical input name:", parameters, verticalInputNameParameterID, new ParameterType[2] { ParameterType.String, ParameterType.PopUp });
 				if (verticalInputNameParameterID < 0)
 				{
 					verticalInputName = EditorGUILayout.TextField ("Vertical input name:", verticalInputName);
@@ -199,7 +199,7 @@ namespace AC
 			else
 			{
 				_label = (qteType == QTEType.SingleAxis) ? "axis" : "button";
-				inputNameParameterID = Action.ChooseParameterGUI ("Input " + _label + " name:", parameters, inputNameParameterID, ParameterType.String);
+				inputNameParameterID = Action.ChooseParameterGUI ("Input " + _label + " name:", parameters, inputNameParameterID, new ParameterType[2] { ParameterType.String, ParameterType.PopUp });
 				if (inputNameParameterID < 0)
 				{
 					inputName = EditorGUILayout.TextField ("Input " + _label + " name:", inputName);
@@ -278,7 +278,7 @@ namespace AC
 				holdDuration = EditorGUILayout.Slider ("Required duration (s):", holdDuration, 0f, 10f);
 			}
 
-			menuNameParameterID = Action.ChooseParameterGUI ("Menu to display (optional):", parameters, menuNameParameterID, ParameterType.String);
+			menuNameParameterID = Action.ChooseParameterGUI ("Menu to display (optional):", parameters, menuNameParameterID, new ParameterType[2] { ParameterType.String, ParameterType.PopUp });
 			if (menuNameParameterID < 0)
 			{
 				menuName = EditorGUILayout.TextField ("Menu to display (optional):", menuName);

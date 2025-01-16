@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"KickStarter.cs"
  * 
@@ -11,7 +11,6 @@
  * 
  */
 
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace AC
@@ -1152,7 +1151,7 @@ namespace AC
 			}
 			else
 			{
-				ACDebug.LogWarning ("No MainCamera found - please click 'Organise room objects' in the Scene Manager to create one.");
+				ACDebug.LogWarning ("No MainCamera found - please organise the scene at the top of the Scene Manager to create one.");
 			}
 
 			playerInput.OnInitGameEngine ();
@@ -1188,7 +1187,18 @@ namespace AC
 				{
 					if (localPlayer.ID == -1)
 					{
-						localPlayer.ID = -2 - SceneChanger.CurrentSceneIndex; // Always unique to the scene
+						switch (KickStarter.settingsManager.referenceScenesInSave)
+						{
+							case ChooseSceneBy.Name:
+								localPlayer.ID = -2 - Mathf.Abs (SceneChanger.CurrentSceneName.GetHashCode ()); // Always unique to the same, but not needing building index
+								break;
+
+							case ChooseSceneBy.Number:
+							default:
+								localPlayer.ID = -2 - SceneChanger.CurrentSceneIndex; // Always unique to the scene
+								break;
+						}
+
 						player = localPlayer;
 						return;
 					}
@@ -1315,9 +1325,35 @@ namespace AC
 		 * <summary>Restarts the game, resetting the game to its original state.  Save game files and options data will not be affected</summary>
 		 * <param name = "resetMenus">If True, Menus will be rebuilt based on their original settings in the Menu Manager</param>
 		 * <param name = "newSceneIndex">The build index number of the scene to switch to</param>
+		 * <param name = "killActionLists">If True, then all ActionLists currently running will be killed</param>
 		 */
-		public static void RestartGame (bool rebuildMenus, int newSceneIndex)
+		public static void RestartGame (bool rebuildMenus, int newSceneIndex, bool killActionLists = false)
 		{
+			OnRestart (rebuildMenus, killActionLists);
+			KickStarter.sceneChanger.ChangeScene (newSceneIndex, false, true);
+		}
+
+
+		/**
+		 * <summary>Restarts the game, resetting the game to its original state.  Save game files and options data will not be affected</summary>
+		 * <param name = "resetMenus">If True, Menus will be rebuilt based on their original settings in the Menu Manager</param>
+		 * <param name = "newSceneName">The name of the scene to switch to</param>
+		 * <param name = "killActionLists">If True, then all ActionLists currently running will be killed</param>
+		 */
+		public static void RestartGame (bool rebuildMenus, string newSceneName, bool killActionLists = false)
+		{
+			OnRestart (rebuildMenus, killActionLists);
+			KickStarter.sceneChanger.ChangeScene (newSceneName, false, true);
+		}
+
+
+		private static void OnRestart (bool rebuildMenus, bool killActionLists)
+		{
+			if (killActionLists)
+			{
+				KickStarter.actionListManager.KillAllLists ();
+			}
+
 			KickStarter.runtimeInventory.SetNull ();
 			KickStarter.runtimeInventory.RemoveRecipes ();
 
@@ -1326,7 +1362,7 @@ namespace AC
 				KickStarter.mainCamera.ForceOverlayForFrames (6);
 			}
 
-			if (KickStarter.player)
+			if (KickStarter.player && !KickStarter.player.IsLocalPlayer ())
 			{
 				DestroyImmediate (KickStarter.player.gameObject);
 			}
@@ -1339,8 +1375,6 @@ namespace AC
 			KickStarter.eventManager.Call_OnRestartGame ();
 
 			KickStarter.stateHandler.CanGlobalOnStart ();
-
-			KickStarter.sceneChanger.ChangeScene (newSceneIndex, false, true);
 		}
 
 	}

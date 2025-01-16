@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"ActionSceneCheck.cs"
  * 
@@ -59,26 +59,110 @@ namespace AC
 		
 		public override bool CheckCondition ()
 		{
-			int actualSceneNumber = 0;
-			
 			if (KickStarter.settingsManager == null || KickStarter.settingsManager.playerSwitching == PlayerSwitching.DoNotAllow)
 			{
 				runtimePlayerID = -1;
 			}
+
+			// Check if first scene
+			if (sceneToCheck == SceneToCheck.Previous && chooseSceneBy == ChooseSceneBy.Name && string.IsNullOrEmpty (sceneName))
+			{
+				if (runtimePlayerID >= 0)
+				{
+					ChooseSceneByPlayerSwitching csbps = (ChooseSceneByPlayerSwitching) chooseSceneByPlayerSwitching;
+					if (csbps != ChooseSceneByPlayerSwitching.CurrentMain)
+					{
+						PlayerData playerData = KickStarter.saveSystem.GetPlayerData (runtimePlayerID);
+						if (playerData != null)
+						{
+							switch (intCondition)
+							{
+								case IntCondition.EqualTo:
+									return playerData.previousSceneName == string.Empty;
+
+								case IntCondition.NotEqualTo:
+									return playerData.previousSceneName != string.Empty;
+							}
+						}
+					}
+				}
+				else
+				{
+					switch (intCondition)
+					{
+						case IntCondition.EqualTo:
+							return KickStarter.sceneChanger.PreviousSceneName == string.Empty;
+
+						case IntCondition.NotEqualTo:
+							return KickStarter.sceneChanger.PreviousSceneName != string.Empty;
+					}
+				}
+			}
+
+			switch (KickStarter.settingsManager.referenceScenesInSave)
+			{
+				case ChooseSceneBy.Name:
+					return CheckCondition_Name ();
+
+				case ChooseSceneBy.Number:
+				default:
+					return CheckCondition_Number ();
+			}
+		}
+
+
+		private bool CheckCondition_Name ()
+		{
+			string actualSceneName = string.Empty;
 
 			if (runtimePlayerID >= 0)
 			{
 				PlayerData playerData = KickStarter.saveSystem.GetPlayerData (runtimePlayerID);
 				if (playerData != null)
 				{
-					if (sceneToCheck == SceneToCheck.Previous)
+					actualSceneName = (sceneToCheck == SceneToCheck.Previous) ? playerData.previousSceneName : playerData.currentSceneName;
+
+					ChooseSceneByPlayerSwitching csbps = (ChooseSceneByPlayerSwitching) chooseSceneByPlayerSwitching;
+					if (csbps == ChooseSceneByPlayerSwitching.CurrentMain)
 					{
-						actualSceneNumber = playerData.previousScene;
+						return (actualSceneName == SceneChanger.CurrentSceneName);
 					}
-					else
-					{
-						actualSceneNumber = playerData.currentScene;
-					}
+					chooseSceneBy = (ChooseSceneBy) chooseSceneByPlayerSwitching;
+				}
+				else
+				{
+					LogWarning ("Could not find scene data for Player ID = " + playerID);
+				}
+			}
+			else
+			{
+				actualSceneName = (sceneToCheck == SceneToCheck.Previous) ? KickStarter.sceneChanger.PreviousSceneName : SceneChanger.CurrentSceneName;
+			}
+
+			if (sceneToCheck == SceneToCheck.Previous)
+			{
+				if (string.IsNullOrEmpty (actualSceneName))
+				{
+					LogWarning ("The " + sceneToCheck + " scene's name is currently empty - is this the game's first scene?");
+					return false;
+				}
+			}
+
+			int actualSceneNumber = KickStarter.sceneChanger.NameToIndex (actualSceneName);
+			return DoSceneCheck (actualSceneName, actualSceneNumber);
+		}
+
+
+		private bool CheckCondition_Number ()
+		{
+			int actualSceneNumber = 0;
+
+			if (runtimePlayerID >= 0)
+			{
+				PlayerData playerData = KickStarter.saveSystem.GetPlayerData (runtimePlayerID);
+				if (playerData != null)
+				{
+					actualSceneNumber = (sceneToCheck == SceneToCheck.Previous) ? playerData.previousScene : playerData.currentScene;
 
 					ChooseSceneByPlayerSwitching csbps = (ChooseSceneByPlayerSwitching) chooseSceneByPlayerSwitching;
 					if (csbps == ChooseSceneByPlayerSwitching.CurrentMain)
@@ -94,53 +178,47 @@ namespace AC
 			}
 			else
 			{
-				if (sceneToCheck == SceneToCheck.Previous)
-				{
-					actualSceneNumber = KickStarter.sceneChanger.PreviousSceneIndex;
-				}
-				else
-				{
-					actualSceneNumber = SceneChanger.CurrentSceneIndex;
-				}
+				actualSceneNumber = (sceneToCheck == SceneToCheck.Previous) ? KickStarter.sceneChanger.PreviousSceneIndex : SceneChanger.CurrentSceneIndex;
 			}
 
-			if (actualSceneNumber == -1 && sceneToCheck == SceneToCheck.Previous)
+			if (sceneToCheck == SceneToCheck.Previous)
 			{
-				LogWarning ("The " + sceneToCheck + " scene's Build Index is currently " + actualSceneNumber + " - is this the game's first scene?");
-				return false;
+				if (actualSceneNumber == -1)
+				{
+					LogWarning ("The " + sceneToCheck + " scene's Build Index is currently " + actualSceneNumber + " - is this the game's first scene?");
+					return false;
+				}
 			}
 
 			string actualSceneName = KickStarter.sceneChanger.IndexToName (actualSceneNumber);
+			return DoSceneCheck (actualSceneName, actualSceneNumber);
+		}
 
-			if (intCondition == IntCondition.EqualTo)
+
+		private bool DoSceneCheck (string actualSceneName, int actualSceneNumber)
+		{
+			switch (chooseSceneBy)
 			{
-				if (chooseSceneBy == ChooseSceneBy.Name && actualSceneName == AdvGame.ConvertTokens (sceneName))
-				{
-					return true;
-				}
+				case ChooseSceneBy.Name:
+					if ((intCondition == IntCondition.EqualTo) == (actualSceneName == AdvGame.ConvertTokens (sceneName)))
+					{
+						return true;
+					}
+					break;
 
-				if (chooseSceneBy == ChooseSceneBy.Number && actualSceneNumber == sceneNumber)
-				{
-					return true;
-				}
+				case ChooseSceneBy.Number:
+				default:
+					if ((intCondition == IntCondition.EqualTo) == (actualSceneNumber == sceneNumber))
+					{
+						return true;
+					}
+					break;
 			}
-			else if (intCondition == IntCondition.NotEqualTo)
-			{
-				if (chooseSceneBy == ChooseSceneBy.Name && actualSceneName != AdvGame.ConvertTokens (sceneName))
-				{
-					return true;
-				}
 
-				if (chooseSceneBy == ChooseSceneBy.Number && actualSceneNumber != sceneNumber)
-				{
-					return true;
-				}
-			}
-			
 			return false;
 		}
 
-		
+
 		#if UNITY_EDITOR
 
 		public override void ShowGUI (List<ActionParameter> parameters)
@@ -180,7 +258,7 @@ namespace AC
 						EditorGUILayout.LabelField ("Scene name is:", GUILayout.Width (100f));
 						intCondition = (IntCondition) EditorGUILayout.EnumPopup (intCondition);
 
-						sceneNameParameterID = ChooseParameterGUI (string.Empty, parameters, sceneNameParameterID, ParameterType.String);
+						sceneNameParameterID = ChooseParameterGUI (string.Empty, parameters, sceneNameParameterID, new ParameterType[2] { ParameterType.String, ParameterType.PopUp });
 						if (sceneNameParameterID < 0)
 						{
 							sceneName = EditorGUILayout.TextField (sceneName);
@@ -215,7 +293,7 @@ namespace AC
 						EditorGUILayout.LabelField ("Scene name is:", GUILayout.Width (100f));
 						intCondition = (IntCondition) EditorGUILayout.EnumPopup (intCondition);
 
-						sceneNameParameterID = ChooseParameterGUI (string.Empty, parameters, sceneNameParameterID, ParameterType.String);
+						sceneNameParameterID = ChooseParameterGUI (string.Empty, parameters, sceneNameParameterID, new ParameterType[2] { ParameterType.String, ParameterType.PopUp });
 						if (sceneNameParameterID < 0)
 						{
 							sceneName = EditorGUILayout.TextField (sceneName);

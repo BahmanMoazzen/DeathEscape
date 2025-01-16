@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"ActionVolume.cs"
  * 
@@ -90,13 +90,13 @@ namespace AC
 				soundObject = IDToField <Sound> (soundObject, constantID, false);
 			}
 
-			newRelativeVolumeParameterID = Action.ChooseParameterGUI ("New relative volume:", parameters, parameterID, ParameterType.Float);
+			newRelativeVolumeParameterID = Action.ChooseParameterGUI ("New relative volume:", parameters, newRelativeVolumeParameterID, ParameterType.Float);
 			if (newRelativeVolumeParameterID < 0)
 			{
 				newRelativeVolume = EditorGUILayout.Slider ("New relative volume:", newRelativeVolume, 0f, 1f);
 			}
 
-			changeTimeParameterID = Action.ChooseParameterGUI ("Change time (s):", parameters, parameterID, ParameterType.Float);
+			changeTimeParameterID = Action.ChooseParameterGUI ("Change time (s):", parameters, changeTimeParameterID, ParameterType.Float);
 			if (changeTimeParameterID < 0)
 			{
 				changeTime = EditorGUILayout.Slider ("Change time (s):", changeTime, 0f, 10f);
@@ -133,7 +133,7 @@ namespace AC
 		{
 			if (parameterID < 0)
 			{
-				if (soundObject != null && soundObject.gameObject == gameObject) return true;
+				if (soundObject && soundObject.gameObject == gameObject) return true;
 				return (constantID == id && id != 0);
 			}
 			return base.ReferencesObjectOrID (gameObject, id);

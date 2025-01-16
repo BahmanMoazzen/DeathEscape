@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2022
  *	
  *	"ActionPauseActionList.cs"
  * 
@@ -225,7 +225,7 @@ namespace AC
 		{
 			if (parameterID < 0 && listSource == ActionRunActionList.ListSource.InScene)
 			{
-				if (actionList != null && actionList.gameObject == gameObject) return true;
+				if (actionList && actionList.gameObject == gameObject) return true;
 				if (constantID == id && id != 0) return true;
 			}
 			return base.ReferencesObjectOrID (gameObject, id);
