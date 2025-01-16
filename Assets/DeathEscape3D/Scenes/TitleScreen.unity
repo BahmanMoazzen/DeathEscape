@@ -3038,7 +3038,19 @@ MonoBehaviour:
   parameters: []
   tagID: 0
   syncParamValues: 1
-  backupData: []
+  backupData:
+  - className: 
+    jsonData: 
+    endingReferencesBuffer: 
+    endingOverrideIndex: 
+  - className: 
+    jsonData: 
+    endingReferencesBuffer: 
+    endingOverrideIndex: 
+  - className: 
+    jsonData: 
+    endingReferencesBuffer: 
+    endingOverrideIndex: 
 --- !u!114 &5123238153826916842
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3336,7 +3348,19 @@ MonoBehaviour:
   parameters: []
   tagID: 0
   syncParamValues: 1
-  backupData: []
+  backupData:
+  - className: 
+    jsonData: 
+    endingReferencesBuffer: 
+    endingOverrideIndex: 
+  - className: 
+    jsonData: 
+    endingReferencesBuffer: 
+    endingOverrideIndex: 
+  - className: 
+    jsonData: 
+    endingReferencesBuffer: 
+    endingOverrideIndex: 
 --- !u!114 &6683213368236479300
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3571,7 +3595,19 @@ MonoBehaviour:
   parameters: []
   tagID: 0
   syncParamValues: 1
-  backupData: []
+  backupData:
+  - className: 
+    jsonData: 
+    endingReferencesBuffer: 
+    endingOverrideIndex: 
+  - className: 
+    jsonData: 
+    endingReferencesBuffer: 
+    endingOverrideIndex: 
+  - className: 
+    jsonData: 
+    endingReferencesBuffer: 
+    endingOverrideIndex: 
 --- !u!1 &9088365439187321711
 GameObject:
   m_ObjectHideFlags: 0

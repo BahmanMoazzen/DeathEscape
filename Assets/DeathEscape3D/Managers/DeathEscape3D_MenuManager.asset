@@ -1893,10 +1893,10 @@ MonoBehaviour:
   maxAutoWidthFactor: 0.5
   relativeRect:
     serializedVersion: 2
-    x: 33.28
-    y: 181.76
-    width: 332.80002
-    height: 344.16
+    x: 13.728
+    y: 65.856
+    width: 137.28
+    height: 114.72
   relativePosition: {x: 2, y: 0}
   numSlots: 4
   uiSlots: []
@@ -1948,9 +1948,9 @@ MonoBehaviour:
   _isLocked: 0
   id: 23
   title: DocumentList
-  manualSize: {x: 16, y: 49.14444}
+  manualSize: {x: 15.999999, y: 51.34}
   positionType: 1
-  manualPosition: {x: 2355.2, y: 720}
+  manualPosition: {x: 971.52, y: 240}
   positionSmoothing: 0
   alignment: 5
   toggleKey: 
@@ -2023,13 +2023,13 @@ MonoBehaviour:
   speechProximityLimit: 0
   speechProximityDistance: 10
   deleteUIWhenTurnOff: 0
-  biggestElementSize: {x: 376.32, y: 674.39996}
+  biggestElementSize: {x: 155.232, y: 232.70401}
   rect:
     serializedVersion: 2
-    x: 2150.4
-    y: 366.16003
-    width: 409.6
-    height: 707.67993
+    x: 887.04004
+    y: 116.784
+    width: 168.95999
+    height: 246.432
   showInFilter: 1
 --- !u!114 &-5583208088436554377
 MonoBehaviour:
@@ -3204,7 +3204,7 @@ MonoBehaviour:
   title: CutSceneMenu
   manualSize: {x: 100, y: 100}
   positionType: 0
-  manualPosition: {x: 1280, y: 720}
+  manualPosition: {x: 528, y: 240}
   positionSmoothing: 0
   alignment: 4
   toggleKey: 
@@ -3280,8 +3280,8 @@ MonoBehaviour:
     serializedVersion: 2
     x: 0
     y: 0
-    width: 2560
-    height: 1440
+    width: 1056
+    height: 480
   showInFilter: 1
 --- !u!114 &-3019168002440656647
 MonoBehaviour:
@@ -4571,10 +4571,10 @@ MonoBehaviour:
   maxAutoWidthFactor: 0.5
   relativeRect:
     serializedVersion: 2
-    x: 33.28
-    y: 33.28
-    width: 343.04
-    height: 115.2
+    x: 13.728
+    y: 13.728
+    width: 141.504
+    height: 38.4
   relativePosition: {x: 0, y: 0}
   numSlots: 1
   uiText: {fileID: 0}
@@ -5544,10 +5544,10 @@ MonoBehaviour:
   maxAutoWidthFactor: 0.5
   relativeRect:
     serializedVersion: 2
-    x: 33.28
-    y: 559.19995
-    width: 332.80002
-    height: 115.2
+    x: 13.728
+    y: 194.304
+    width: 137.28
+    height: 38.4
   relativePosition: {x: 0, y: 0}
   numSlots: 1
   uiButton: {fileID: 0}
@@ -6281,8 +6281,8 @@ MonoBehaviour:
     serializedVersion: 2
     x: 0
     y: 0
-    width: 2560
-    height: 72
+    width: 1056
+    height: 24
   relativePosition: {x: 0, y: 0}
   numSlots: 1
   uiImage: {fileID: 0}
@@ -8007,9 +8007,9 @@ MonoBehaviour:
   relativeRect:
     serializedVersion: 2
     x: 0
-    y: 1368
-    width: 2560
-    height: 72
+    y: 456.00003
+    width: 1056
+    height: 24
   relativePosition: {x: 0, y: 95}
   numSlots: 1
   uiImage: {fileID: 0}
