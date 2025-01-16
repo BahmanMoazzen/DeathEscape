@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   cursorRendering: 0
   uiCursorPrefab: {fileID: 0}
-  cursorDisplay: 2
+  cursorDisplay: 0
   allowMainCursor: 1
   lockSystemCursor: 0
   keepCursorWithinScreen: 1

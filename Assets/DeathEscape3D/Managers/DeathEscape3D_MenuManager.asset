@@ -658,7 +658,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ID: 1
   title: Presents
-  slotSize: {x: 15.530303, y: 4.375}
+  slotSize: {x: 14.215909, y: 6.04375}
   sizeType: 0
   positionType: 2
   slotSpacing: 0
@@ -685,8 +685,8 @@ MonoBehaviour:
     serializedVersion: 2
     x: 813.12006
     y: 311.52002
-    width: 164
-    height: 21
+    width: 150.12001
+    height: 29.01
   relativePosition: {x: 77, y: 64.9}
   numSlots: 1
   uiText: {fileID: 0}
@@ -2395,10 +2395,10 @@ MonoBehaviour:
   maxAutoWidthFactor: 0.5
   relativeRect:
     serializedVersion: 2
-    x: 40.448
-    y: 40.448
-    width: 153.6
-    height: 158.4
+    x: 16.684801
+    y: 16.684801
+    width: 63.36
+    height: 52.800003
   relativePosition: {x: 10, y: 7}
   numSlots: 1
   uiButton: {fileID: 0}
@@ -4824,10 +4824,10 @@ MonoBehaviour:
   maxAutoWidthFactor: 0.5
   relativeRect:
     serializedVersion: 2
-    x: 30.284801
-    y: 41.523838
-    width: 381.44
-    height: 156.95999
+    x: 12.49248
+    y: 13.84128
+    width: 157.34401
+    height: 52.32
   relativePosition: {x: 7, y: 17.8}
   numSlots: 1
   uiButton: {fileID: 0}
@@ -6029,7 +6029,7 @@ MonoBehaviour:
   _isLocked: 0
   id: 22
   title: DocumentMenu
-  manualSize: {x: 9.16, y: 16.617777}
+  manualSize: {x: 9.16, y: 17.952}
   positionType: 2
   manualPosition: {x: 93, y: 13}
   positionSmoothing: 0
@@ -6101,13 +6101,13 @@ MonoBehaviour:
   speechProximityLimit: 0
   speechProximityDistance: 10
   deleteUIWhenTurnOff: 0
-  biggestElementSize: {x: 194.048, y: 198.84799}
+  biggestElementSize: {x: 80.0448, y: 69.4848}
   rect:
     serializedVersion: 2
-    x: 2263.552
-    y: 67.552
-    width: 234.496
-    height: 239.29599
+    x: 933.7152
+    y: 19.315197
+    width: 96.7296
+    height: 86.1696
   showInFilter: 1
 --- !u!114 &776453922820933256
 MonoBehaviour:
@@ -7839,10 +7839,10 @@ MonoBehaviour:
   biggestElementSize: {x: 118.28001, y: 26.28}
   rect:
     serializedVersion: 2
-    x: 2127.3599
-    y: 282.24
-    width: 432.64
-    height: 233.28
+    x: 877.536
+    y: 94.08
+    width: 178.464
+    height: 77.76
   showInFilter: 1
 --- !u!114 &4746884079016676648
 MonoBehaviour:
@@ -8581,7 +8581,7 @@ MonoBehaviour:
   alignment: 4
   toggleKey: 
   ignoreMouseClicks: 0
-  pauseWhenEnabled: 1
+  pauseWhenEnabled: 0
   showWhenPaused: 0
   canClickInCutscene: 0
   enabledOnStart: 0
@@ -8790,7 +8790,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ID: 0
   title: HelenLabel
-  slotSize: {x: 22.253788, y: 5.4166665}
+  slotSize: {x: 21.152462, y: 7.483333}
   sizeType: 0
   positionType: 2
   slotSpacing: 0
@@ -8817,8 +8817,8 @@ MonoBehaviour:
     serializedVersion: 2
     x: 777.216
     y: 277.92
-    width: 235.00002
-    height: 26
+    width: 223.37001
+    height: 35.920002
   relativePosition: {x: 73.6, y: 57.9}
   numSlots: 1
   uiText: {fileID: 0}
@@ -8948,8 +8948,8 @@ MonoBehaviour:
     serializedVersion: 2
     x: 16.684801
     y: 16.684801
-    width: 153.6
-    height: 158.4
+    width: 63.36
+    height: 52.800003
   relativePosition: {x: 0, y: 0}
   numSlots: 1
   uiButton: {fileID: 0}
