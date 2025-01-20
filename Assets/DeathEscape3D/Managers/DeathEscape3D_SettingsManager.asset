@@ -54,12 +54,12 @@ MonoBehaviour:
   autoCycleWhenInteract: 0
   showHoverInteractionInHotspotLabel: 0
   allowDefaultinteractions: 0
-  alwaysCloseInteractionMenus: 1
+  alwaysCloseInteractionMenus: 0
   whenReselectHotspot: 0
   lockCursorOnStart: 1
   hideLockedCursor: 0
   disableFreeAimWhenDragging: 1
-  disableFreeAimWhenDraggingPickUp: 0
+  disableFreeAimWhenDraggingPickUp: 1
   runConversationsWithKeys: 0
   clickUpInteractions: 0
   defaultMouseClicks: 1
@@ -115,7 +115,7 @@ MonoBehaviour:
   singleTapStraight: 0
   singleTapStraightPathfind: 0
   clickHoldSeparationStraight: 0.3
-  useFPCamDuringConversations: 1
+  useFPCamDuringConversations: 0
   onlyInteractWhenCursorUnlocked: 0
   freeAimSmoothSpeed: 150
   firstPersonMovementSmoothing: 1
