@@ -42,10 +42,10 @@ MonoBehaviour:
   movementMethod: 2
   inputMethod: 0
   simulatedCursorMoveSpeed: 4
-  interactionMethod: 2
-  selectInteractions: 0
+  interactionMethod: 1
+  selectInteractions: 2
   autoHideInteractionIcons: 1
-  cancelInteractions: 2
+  cancelInteractions: 1
   seeInteractions: 0
   closeInteractionMenuIfTapHotspot: 1
   stopPlayerOnClickHotspot: 1
@@ -117,12 +117,12 @@ MonoBehaviour:
   clickHoldSeparationStraight: 0.3
   useFPCamDuringConversations: 0
   onlyInteractWhenCursorUnlocked: 0
-  freeAimSmoothSpeed: 150
+  freeAimSmoothSpeed: 20
   firstPersonMovementSmoothing: 1
   assumeInputsDefined: 0
   activeInputs: []
   freeAimTouchSpeed: 0.01
-  dragWalkThreshold: 300
+  dragWalkThreshold: 20
   dragRunThreshold: 20
   drawDragLine: 0
   dragLineWidth: 3
@@ -134,13 +134,13 @@ MonoBehaviour:
   touchUpWhenPaused: 0
   touchUpInteractScene: 0
   forceAspectRatio: 0
-  aspectRatioEnforcement: 0
-  wantedAspectRatio: 2.2
+  aspectRatioEnforcement: 1
+  wantedAspectRatio: 1.777
   maxAspectRatio: 2.39
-  renderBorderCamera: 1
+  renderBorderCamera: 0
   landscapeModeOnly: 1
   cameraPerspective: 2
-  cacheCameraMain: 0
+  cacheCameraMain: 1
   linearColorTextures: 0
   movingTurning: 3
   hotspotDetection: 0
@@ -383,7 +383,7 @@ MonoBehaviour:
   defaultSfxVolume: 0.8
   defaultMusicVolume: 1
   defaultSpeechVolume: 0.8
-  showDebugLogs: 0
+  showDebugLogs: 1
   printActionCommentsInConsole: 0
   actionCommentLogging: 0
   showActiveActionLists: 1

@@ -60,9 +60,9 @@ MonoBehaviour:
     description: 'From: Test Tube: RedPot'
     textType: 0
     translationText:
+    - The test tube is overwhelmed.
     - "\uFEE1\uFEB0\uFBFE\uFEAE\uFE91 \uFEEA\uFEB8\uFBFF\uFEE4\uFEE7 .\uFEE9\uFEAE\uFB58
       \uFEB6\uFBFE\uFE8E\uFEE3\uFEAF\uFE81 \uFEEA\uFEDF\uFEEE\uFEDF"
-    - The test tube is overwhelmed.
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -82,8 +82,8 @@ MonoBehaviour:
     description: 'From: Small Glass Jar: SmallBrains 1'
     textType: 0
     translationText:
-    - "... \uFEEA\uFEDB \uFEEA\uFEB8\uFBFF\uFEE4\uFEE7 \uFE8E\uFE9F"
     - "Is not fitting in\u2026"
+    - "... \uFEEA\uFEDB \uFEEA\uFEB8\uFBFF\uFEE4\uFEE7 \uFE8E\uFE9F"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -103,8 +103,8 @@ MonoBehaviour:
     description: 'From: Test Tube: EmptyPot'
     textType: 0
     translationText:
-    - "\uFEE1\uFEAD\uFE8D\uFEAA\uFEE7 \uFBFD\uFEDF\uFE8E\uFEA7 \uFED1\uFEAE\uFEC7"
     - No empty pot.
+    - "\uFEE1\uFEAD\uFE8D\uFEAA\uFEE7 \uFBFD\uFEDF\uFE8E\uFEA7 \uFED1\uFEAE\uFEC7"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -124,9 +124,9 @@ MonoBehaviour:
     description: 'From: Drip Tap: Look at'
     textType: 0
     translationText:
+    - A dripping tap.
     - "\uFEEA\uFEE8\uFEDB \uFBFD\uFEE3 \uFEEA\uFEDC\uFB7C \uFEE9\uFEAD\uFE8D\uFEA9
       \uFEEA\uFEDB \uFEEA\uFE91\uFE81 \uFEAE\uFBFF\uFEB7 \uFEEA\uFBFE"
-    - A dripping tap.
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -146,8 +146,8 @@ MonoBehaviour:
     description: 'From: Standing Zombie Conversation_Option3'
     textType: 0
     translationText:
-    - "\uFEA9\uFE8E\uFE91\uFE81 \uFE8E\uFEA0\uFEDB\uFE8E\uFEE7"
     - Noland land!
+    - "\uFEA9\uFE8E\uFE91\uFE81 \uFE8E\uFEA0\uFEDB\uFE8E\uFEE7"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -167,10 +167,10 @@ MonoBehaviour:
     description: 'From: Standing Zombie Conversation_Option3'
     textType: 0
     translationText:
+    - I can't get it! Where did you come here?
     - "\u061F\uFE8E\uFEA0\uFEE8\uFBFE\uFE8D \u0649\uFEAA\uFEE3\uFEED\uFE8D \uFE8E\uFEA0\uFEDB
       \uFEAF\uFE8D \uFEE2\uFEE8\uFBFF\uFE92\uFE91 \uFEEE\uFB95\uFE91 \u061F\uFBFD\uFB7C
       \uFBFD\uFEE8\uFECC\uFBFE"
-    - I can't get it! Where did you come here?
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -195,14 +195,14 @@ MonoBehaviour:
     description: 'From: Standing Zombie Conversation_Option3'
     textType: 0
     translationText:
-    - "\uFEA9\uFEAD\uFEED\uFE81 \uFE8E\uFEA0\uFEE8\uFBFE\uFE8D \uFEEA\uFE91 \uFEEE\uFEE8\uFEE3
-      \uFEE2\uFEDF\uFE8E\uFEE4\uFECB\uFE8D\n.\uFEAA\uFBFF\uFEB8\uFEDB \uFE8E\uFEA0\uFEE8\uFBFE\uFE8D
-      \uFEEA\uFE91 \uFEEE\uFEE8\uFEE3 \uFEE1\uFEA9\uFEAE\uFEDB \uFEEA\uFB7C \uFEAE\uFEEB\n\uFEE9\uFE81"
     - 'Oh!
 
       My doings brought me here.
 
       Dame it!'
+    - "\uFEA9\uFEAD\uFEED\uFE81 \uFE8E\uFEA0\uFEE8\uFBFE\uFE8D \uFEEA\uFE91 \uFEEE\uFEE8\uFEE3
+      \uFEE2\uFEDF\uFE8E\uFEE4\uFECB\uFE8D\n.\uFEAA\uFBFF\uFEB8\uFEDB \uFE8E\uFEA0\uFEE8\uFBFE\uFE8D
+      \uFEEA\uFE91 \uFEEE\uFEE8\uFEE3 \uFEE1\uFEA9\uFEAE\uFEDB \uFEEA\uFB7C \uFEAE\uFEEB\n\uFEE9\uFE81"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -222,9 +222,9 @@ MonoBehaviour:
     description: 'From: OrangePelakHS: Use'
     textType: 0
     translationText:
+    - Unmovable. It scrowed to the door.
     - ".\uFEAD\uFEA9 \uFEEA\uFE91 \uFEE9\uFEAA\uFEB7 \uFB7B\uFBFF\uFB58 .\uFEE9\uFEAD\uFEEE\uFEA8\uFBFF\uFEE4\uFEE7
       \uFEE5\uFEEE\uFEDC\uFE97"
-    - Unmovable. It scrowed to the door.
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -244,8 +244,8 @@ MonoBehaviour:
     description: 'From: Standing Zombie Conversation_Option2'
     textType: 0
     translationText:
-    - "\uFEEE\uFE97 \uFEEA\uFE91 \uFE96\uFEE8\uFECC\uFEDF"
     - Damn you!
+    - "\uFEEE\uFE97 \uFEEA\uFE91 \uFE96\uFEE8\uFECC\uFEDF"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -265,9 +265,9 @@ MonoBehaviour:
     description: 'From: autopsy_table: Pick'
     textType: 0
     translationText:
+    - Very heavy to lift up.
     - ".\uFEE1\uFEAD\uFE8D\uFEA9 \uFEB5\uFEAE\uFE91 \uFEE2\uFEE7\uFEEE\uFE98\uFBFF\uFEE4\uFEE7
       \uFEEA\uFEE8\uFBFF\uFB95\uFEE8\uFEB3 \uFBFD\uFEE0\uFBFF\uFEA7"
-    - Very heavy to lift up.
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -287,9 +287,9 @@ MonoBehaviour:
     description: 'From: TestTubePuzzle: Pick'
     textType: 0
     translationText:
+    - So many jars. What are they doing with them?
     - "\u061F\uFEE9\uFEAD\uFEEE\uFEA7 \uFBFD\uFEE3 \uFEA9\uFEAD\uFEA9 \uFEEA\uFB7C
       \uFEEA\uFE91 \uFEEA\uFEB8\uFBFF\uFEB7 \uFEEA\uFEE4\uFEEB \uFEE6\uFBFE\uFE8D"
-    - So many jars. What are they doing with them?
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -311,10 +311,10 @@ MonoBehaviour:
     description: 'From: SafeBrainHS: Use'
     textType: 0
     translationText:
-    - "... \uFED5\uFEED\uFE8D\n\uFEAA\uFEB7 \uFE9D\uFEB0\uFEDF \uFEE2\uFE98\uFEB3\uFEA9"
     - 'Ewe...
 
       So moldy.'
+    - "... \uFED5\uFEED\uFE8D\n\uFEAA\uFEB7 \uFE9D\uFEB0\uFEDF \uFEE2\uFE98\uFEB3\uFEA9"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -338,12 +338,12 @@ MonoBehaviour:
     description: 'From: OrangePelakHS: Look at'
     textType: 0
     translationText:
-    - ":\uFEEA\uFE98\uFEB7\uFEEE\uFEE7\nOrange\n954188"
     - 'Reads:
 
       Orange
 
       954187'
+    - ":\uFEEA\uFE98\uFEB7\uFEEE\uFEE7\nOrange\n954188"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -363,10 +363,10 @@ MonoBehaviour:
     description: 'From: Safe Key Hole: Look at'
     textType: 0
     translationText:
+    - A blocked key hole.
     - "\uFEE9\uFEAE\uFBFF\uFEE4\uFEE7 \uFEB5\uFEEE\uFE97 \u0649\uFEB0\uFBFF\uFB7C
       \uFEED \uFEB2\uFE98\uFEB4\uFE91 \uFEEA\uFEDB \uFEAA\uFBFF\uFEE0\uFEDB \uFEA5\uFE8D\uFEAD\uFEEE\uFEB3
       \uFEEA\uFBFE"
-    - A blocked key hole.
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -386,10 +386,10 @@ MonoBehaviour:
     description: 'From: Safe Key Hole: Look at'
     textType: 0
     translationText:
+    - An oppend key hole which can be oppend by a key.
     - "\uFEE2\uFEE8\uFEDB \uFEB5\uFEAF\uFE8E\uFE91 \uFEEA\uFEDB \uFEA9\uFE8D\uFEEE\uFEA7
       \uFBFD\uFEE3 \uFEAA\uFBFF\uFEE0\uFEDB \uFEEA\uFBFE \uFEED \uFEE9\uFEAF\uFE8E\uFE91
       \uFEEA\uFEDB \uFEAA\uFBFF\uFEE0\uFEDB \uFEA5\uFE8D\uFEAD\uFEEE\uFEB3 \uFEEA\uFBFE"
-    - An oppend key hole which can be oppend by a key.
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -409,9 +409,9 @@ MonoBehaviour:
     description: 'From: FilledTubes: Look at'
     textType: 0
     translationText:
+    - Closely-colored test tubes
     - "\uFBFD\uFEE4\uFEEB \uFEEA\uFE91 \uFEDA\uFBFE\uFEA9\uFEB0\uFEE7 \u0649\uFE8E\uFEEB
       \uFB93\uFEE7\uFEAD \uFEEA\uFB7C"
-    - Closely-colored test tubes
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -431,9 +431,9 @@ MonoBehaviour:
     description: 'From: FilledTubes: Look at'
     textType: 0
     translationText:
+    - Two sacks with the same color are here too.
     - "\uFE96\uFEB3\uFE8E\uFEA0\uFEE8\uFBFE\uFE8D \uFEE2\uFEEB \uFBFD\uFB95\uFEE7\uFEAD
       \uFEE5\uFEEE\uFEE4\uFEEB \uFEEA\uFE98\uFEB4\uFE91 \uFE8E\uFE97 \uFEED\uFEA9"
-    - Two sacks with the same color are here too.
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -453,9 +453,9 @@ MonoBehaviour:
     description: 'From: Drip Tap: EmptyPot'
     textType: 0
     translationText:
+    - Too little water to fill anything.
     - "\uFEA9\uFEAE\uFEDB \uFEB5\uFEAE\uFB58 \uFEEA\uFEB8\uFBFF\uFEE4\uFEE7 \uFEEA\uFEDB
       \uFEA9\uFE8E\uFBFF\uFEE3 \uFE8F\uFE81 \uFEE2\uFEDB \uFEAD\uFEAA\uFED8\uFEE7\uFE8D"
-    - Too little water to fill anything.
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -475,9 +475,9 @@ MonoBehaviour:
     description: 'From: Drip Tap: EmptyPot'
     textType: 0
     translationText:
+    - Openning it is a better idea.
     - "\uFEAA\uFBFE\uFE8E\uFEB7 \uFEEA\uFEB7\uFE8E\uFE91 \uFEAE\uFE98\uFEEC\uFE91
       \uFEE2\uFEE8\uFEDB \uFEB5\uFEAF\uFE8E\uFE91"
-    - Openning it is a better idea.
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -497,9 +497,9 @@ MonoBehaviour:
     description: 'From: autopsy_table: Look at'
     textType: 0
     translationText:
+    - Four small circles , one filled in.
     - "\uFEE9\uFEAE\uFB58 \uFEEE\uFE97 \uFEB6\uFBFF\uFEDC\uFBFE \uFEEA\uFEDB \uFEE9\uFEAE\uFBFE\uFE8D\uFEA9
       \uFE8E\uFE97 \uFEAD\uFE8E\uFEEC\uFB7C"
-    - Four small circles , one filled in.
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -519,9 +519,9 @@ MonoBehaviour:
     description: 'From: SafeBrainHS: Look at'
     textType: 0
     translationText:
+    - A complete human brain is inside it.
     - "\uFE96\uFEB3\uFE8E\uFEA0\uFEE8\uFBFE\uFE8D \uFEE2\uFEDF\uFE8E\uFEB3 \uFEE5\uFE8E\uFEB4\uFEE7\uFE8D
       \uFEB0\uFED0\uFEE3 \uFEEA\uFBFE"
-    - A complete human brain is inside it.
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -541,9 +541,9 @@ MonoBehaviour:
     description: 'From: Ceramic Sink: Unhandled inventory'
     textType: 0
     translationText:
+    - It is a clean sink. It may get dirty.
     - "\uFEEA\uFEB7 \uFBFD\uFEE3 \uFED2\uFBFF\uFE9C\uFEDB ... \uFEE9\uFEB0\uFBFF\uFEE4\uFE97
       \uFBFD\uFBFE\uFEEE\uFEB7\uFEED\uFEAD"
-    - It is a clean sink. It may get dirty.
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -563,9 +563,9 @@ MonoBehaviour:
     description: 'From: Ceramic Sink: Unhandled inventory'
     textType: 0
     translationText:
+    - I should not waste that by soaking it.
     - "... \uFEEA\uFED4\uFBFF\uFEA3 ... \uFEEA\uFEB8\uFBFF\uFEE3 \uFE8F\uFE8D\uFEAE\uFEA7
       ... \uFEEA\uFEB8\uFBFF\uFEE3 \uFEB2\uFBFF\uFEA7"
-    - I should not waste that by soaking it.
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -585,8 +585,8 @@ MonoBehaviour:
     description: 'From: Standing Zombie Conversation_Option'
     textType: 0
     translationText:
-    - "... \uFEB1\uFEAE\uFB59\uFEE7 \uFEE2\uFEDF\uFE8E\uFEA3 \uFEAF\uFE8D"
     - Don't ask my doings.
+    - "... \uFEB1\uFEAE\uFB59\uFEE7 \uFEE2\uFEDF\uFE8E\uFEA3 \uFEAF\uFE8D"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -606,8 +606,8 @@ MonoBehaviour:
     description: 'From: CorpsDrawerSignHS: Look at'
     textType: 0
     translationText:
-    - "! \uFBFD\uFE92\uFBFF\uFEA0\uFECB \uFE96\uFEE3\uFEFC\uFECB \uFEEA\uFB7C"
     - What a strange name.
+    - "! \uFBFD\uFE92\uFBFF\uFEA0\uFECB \uFE96\uFEE3\uFEFC\uFECB \uFEEA\uFB7C"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -627,8 +627,8 @@ MonoBehaviour:
     description: 'From: ceramic_sink: EmptyPot'
     textType: 0
     translationText:
-    - "... \uFEE9\uFEA9\uFEAE\uFEB3 \uFEB6\uFE91\uFE81 \uFEAD\uFEAA\uFED8\uFB7C"
     - What a cold water.
+    - "... \uFEE9\uFEA9\uFEAE\uFEB3 \uFEB6\uFE91\uFE81 \uFEAD\uFEAA\uFED8\uFB7C"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -648,9 +648,9 @@ MonoBehaviour:
     description: 'From: ceramic_sink: EmptyPot'
     textType: 0
     translationText:
+    - Nothing from tap to feel in.
     - "\uFEE2\uFEE8\uFEDB \uFEAE\uFB58 \uFEEA\uFEDB \uFEA9\uFE8E\uFBFF\uFEE4\uFEE7
       \uFEAE\uFBFF\uFEB7 \uFEAF\uFE8D \u0649\uFEB0\uFBFF\uFB7C"
-    - Nothing from tap to feel in.
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -670,8 +670,8 @@ MonoBehaviour:
     description: 'From: CombinationLockUnlockCutScene'
     textType: 0
     translationText:
-    - "\u061F\uFEAA\uFEB7 \uFEAE\uFEA0\uFED4\uFEE8\uFEE3 \uFE8D\uFEAE\uFB7C"
     - Why does it exploded?
+    - "\u061F\uFEAA\uFEB7 \uFEAE\uFEA0\uFED4\uFEE8\uFEE3 \uFE8D\uFEAE\uFB7C"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -691,9 +691,9 @@ MonoBehaviour:
     description: 'From: Drip Tap: Use'
     textType: 0
     translationText:
+    - The tap is so tight to open.
     - "\uFE8F\uFE81 \uFEAE\uFBFF\uFEB7 \uFEEA\uFEB8\uFBFF\uFEE4\uFEE7 \uFEAF\uFE8E\uFE91
       \uFEEA\uFE98\uFED4\uFEB3 \uFBFD\uFEE0\uFBFF\uFEA7"
-    - The tap is so tight to open.
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -713,9 +713,9 @@ MonoBehaviour:
     description: 'From: Trolley: Look at'
     textType: 0
     translationText:
+    - Some tube and pot are here.
     - "\uFE96\uFEB3\uFE8E\uFEA0\uFEE8\uFBFE\uFE8D \uFED1\uFEAE\uFEC7 \uFEED \uFEEA\uFEDF\uFEEE\uFEDF
       \uFEA9\uFE8D\uFEAA\uFECC\uFE97 \uFEEA\uFBFE"
-    - Some tube and pot are here.
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -735,9 +735,9 @@ MonoBehaviour:
     description: 'From: SafePuzzleHS: Pick'
     textType: 0
     translationText:
+    - So heavy to lift.
     - ".\uFEEA\uFEB8\uFBFF\uFEE4\uFEE7 \uFEAA\uFEE8\uFEE0\uFE91 ...\uFEEA\uFEE8\uFBFF\uFB95\uFEE8\uFEB3
       \uFEE6\uFBFE\uFE8D"
-    - So heavy to lift.
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -757,8 +757,8 @@ MonoBehaviour:
     description: 'From: Safe Key Hole: Safe Key'
     textType: 0
     translationText:
-    - "\uFE96\uFEB4\uFE98\uFEB4\uFE91 \uFEAA\uFBFF\uFEE0\uFEDB \uFEA5\uFE8D\uFEAD\uFEEE\uFEB3"
     - The key hole is blocked with something hard.
+    - "\uFE96\uFEB4\uFE98\uFEB4\uFE91 \uFEAA\uFBFF\uFEE0\uFEDB \uFEA5\uFE8D\uFEAD\uFEEE\uFEB3"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -778,9 +778,9 @@ MonoBehaviour:
     description: 'From: ceramic_sink: Use'
     textType: 0
     translationText:
+    - Tap is malfunctioning.
     - "\uFEEA\uFEB8\uFBFF\uFEE4\uFEE7 \uFEEA\uFE98\uFEB4\uFE91 \uFEAE\uFBFF\uFEB7
       \uFEE2\uFEE8\uFEDB \uFBFD\uFEE3 \uFEAD\uFE8E\uFEDB \uFEAE\uFEEB"
-    - Tap is malfunctioning.
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -800,9 +800,9 @@ MonoBehaviour:
     description: 'From: ceramic_sink: Use'
     textType: 0
     translationText:
+    - Tap is not operating.
     - "\uFEEA\uFEB8\uFBFF\uFEE4\uFEE7 \uFEAF\uFE8E\uFE91 \uFEE2\uFEE7\uFEEE\uFEA7\uFEAE\uFB7C
       \uFBFD\uFEE3 \uFEED\uFEAD \uFEAE\uFBFF\uFEB7 \uFBFD\uFB7C \uFEAE\uFEEB"
-    - Tap is not operating.
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -822,9 +822,9 @@ MonoBehaviour:
     description: 'From: Jars: Look at'
     textType: 0
     translationText:
+    - Some jars are here.
     - "\uFE96\uFEB3\uFE8E\uFEA0\uFEE8\uFBFE\uFE8D \uFEEA\uFEB8\uFBFF\uFEB7 \uFE8E\uFE97
       \uFEAA\uFEE8\uFB7C"
-    - Some jars are here.
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -844,9 +844,9 @@ MonoBehaviour:
     description: 'From: Jars: Look at'
     textType: 0
     translationText:
+    - Some are big.
     - "... \uFEE6\uFB94\uFEAD\uFEB0\uFE91 \uFEE5\uFEEE\uFEB7\uFEA9\uFE8D\uFEAA\uFECC\uFE97
       \uFEEA\uFBFE"
-    - Some are big.
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -866,9 +866,9 @@ MonoBehaviour:
     description: 'From: Jars: Look at'
     textType: 0
     translationText:
+    - Some are small.
     - " \uFEDA\uFBFF\uFB7C\uFEEE\uFEDB \uFEE5\uFEEE\uFEB7\uFEA9\uFE8D\uFEAA\uFECC\uFE97
       \uFEEA\uFBFE"
-    - Some are small.
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -890,10 +890,10 @@ MonoBehaviour:
     description: 'From: Jars: Look at'
     textType: 0
     translationText:
-    - "... \uFEE9\uFEB0\uFED0\uFEE3 \uFEB6\uFBFF\uFEDC\uFBFE \uFEEE\uFE97\n... \uFED5\uFEED\uFE8D"
     - 'There is a brain inside.
 
       Horrible ...'
+    - "... \uFEE9\uFEB0\uFED0\uFEE3 \uFEB6\uFBFF\uFEDC\uFBFE \uFEEE\uFE97\n... \uFED5\uFEED\uFE8D"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -913,8 +913,8 @@ MonoBehaviour:
     description: 'From: Ceramic Sink: FullPot'
     textType: 0
     translationText:
-    - "\uFEE9\uFEAA\uFEB7 \uFEAE\uFB58 \uFEFC\uFEE3\uFE8E\uFEDB"
     - Tottaly filled!
+    - "\uFEE9\uFEAA\uFEB7 \uFEAE\uFB58 \uFEFC\uFEE3\uFE8E\uFEDB"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -938,11 +938,11 @@ MonoBehaviour:
     description: 'From: Saw: Pick'
     textType: 0
     translationText:
-    - "... \uFEB0\uFBFF\uFEE3 \uFEEA\uFE91 \uFEE9\uFEAA\uFBFF\uFE92\uFEB4\uFB7C \uFEAD\uFE8E\uFB95\uFEE7\uFE8D\n.\uFEEA\uFEB8\uFBFF\uFEE4\uFEE7
-      \uFEAA\uFEE8\uFEE0\uFE91"
     - 'Look like glued to the table
 
       I can''t bring it up.'
+    - "... \uFEB0\uFBFF\uFEE3 \uFEEA\uFE91 \uFEE9\uFEAA\uFBFF\uFE92\uFEB4\uFB7C \uFEAD\uFE8E\uFB95\uFEE7\uFE8D\n.\uFEEA\uFEB8\uFBFF\uFEE4\uFEE7
+      \uFEAA\uFEE8\uFEE0\uFE91"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -964,10 +964,10 @@ MonoBehaviour:
     description: 'From: OrganePelak: Look at'
     textType: 0
     translationText:
-    - ":\uFEEA\uFE98\uFEB7\uFEEE\uFEE7\nOrgane"
     - 'Reads:
 
       Organe'
+    - ":\uFEEA\uFE98\uFEB7\uFEEE\uFEE7\nOrgane"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -987,9 +987,9 @@ MonoBehaviour:
     description: 'From: Jars: Use'
     textType: 0
     translationText:
+    - What should I do with the jars?
     - "\u061F\uFEE2\uFEE8\uFEDB \uFEAD\uFE8E\uFEDC\uFBFF\uFB7C \uFE8E\uFEEB \uFEEA\uFEB8\uFBFF\uFEB7
       \uFEE6\uFBFE\uFE8D \uFEEA\uFE91 \uFEFB\uFE8E\uFEA3"
-    - What should I do with the jars?
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -1009,9 +1009,9 @@ MonoBehaviour:
     description: 'From: Safe Key Hole: Use'
     textType: 0
     translationText:
+    - I need a key instead of my finger
     - ".\uFEA9\uFE8D\uFEEE\uFEA7 \uFBFD\uFEE3 \uFEAA\uFBFF\uFEE0\uFEDB ... \uFEEA\uFEB8\uFBFF\uFEE4\uFEE7
       \uFEEA\uFEDB \uFE96\uFEB8\uFB95\uFEE7\uFE8D \uFE8E\uFE91"
-    - I need a key instead of my finger
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -1031,9 +1031,9 @@ MonoBehaviour:
     description: 'From: NoteBook: Look at'
     textType: 0
     translationText:
+    - 'It reads like a poem:'
     - ":\uFEEA\uFEE7\uFEEE\uFEE3 \uFBFD\uFEE3 \uFEAE\uFECC\uFEB7 \uFEDE\uFE9C\uFEE3
       \uFEEA\uFEDB \uFEEA\uFE98\uFEB7\uFEEE\uFEE7 \u0649\uFEB0\uFBFF\uFB7C \uFEEA\uFBFE"
-    - 'It reads like a poem:'
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -1054,12 +1054,12 @@ MonoBehaviour:
     description: 'From: NoteBook: Look at'
     textType: 0
     translationText:
+    - "Since they took you from me\nrainbow is the begginer\nof the rain \nfrom my
+      eyes."
     - "\uFEAA\uFEE8\uFE98\uFED3\uFEAE\uFB94 \uFEE6\uFEE3 \uFEAF\uFE8D \uFE8D\uFEAD
       \uFEEE\uFE97 \uFBFD\uFE98\uFED7\uFEED \uFEAF\uFE8D\n \uFEE5\uFE8E\uFEE4\uFEDB
       \uFEE6\uFBFF\uFB95\uFEE7\uFEAD\n\uFE96\uFEB3\uFE8D \uFEE9\uFEAA\uFEB7 \u0649\uFEAF\uFE8E\uFECF\uFE81\n\uFEE6\uFEE3
       \uFEE5\uFE8E\uFEE4\uFEB8\uFB7C \uFEE5\uFE8D\uFEAD\uFE8E\uFE91 \uFEAE\uFE91"
-    - "Since they took you from me\nrainbow is the begginer\nof the rain \nfrom my
-      eyes."
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -1079,9 +1079,9 @@ MonoBehaviour:
     description: 'From: SafeCombinationCheck'
     textType: 0
     translationText:
+    - The key hole is opened now.
     - ".\uFEAA\uFEB7 \uFEAF\uFE8E\uFE91 \uFEAA\uFBFF\uFEE0\uFEDB \uFEA5\uFE8D\uFEAD\uFEEE\uFEB3
       \uFE90\uFEDF\uFE8E\uFE9F \uFEEA\uFB7C"
-    - The key hole is opened now.
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -1101,8 +1101,8 @@ MonoBehaviour:
     description: 'From: IronBoxFake: Use'
     textType: 0
     translationText:
-    - "!\uFEE9\uFEAD\uFEEE\uFEA7 \uFBFD\uFEE4\uFEE7 \uFEE5\uFEEE\uFEDC\uFE97"
     - Unmovable.
+    - "!\uFEE9\uFEAD\uFEEE\uFEA7 \uFBFD\uFEE4\uFEE7 \uFEE5\uFEEE\uFEDC\uFE97"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -1122,8 +1122,8 @@ MonoBehaviour:
     description: 'From: startupCinemantic'
     textType: 0
     translationText:
-    - "\u061F\uFE96\uFEB3\uFE8E\uFEA0\uFEDB \uFE8E\uFEA0\uFEE8\uFBFE\uFE8D"
     - Where is here?
+    - "\u061F\uFE96\uFEB3\uFE8E\uFEA0\uFEDB \uFE8E\uFEA0\uFEE8\uFBFE\uFE8D"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -1143,8 +1143,8 @@ MonoBehaviour:
     description: 'From: startupCinemantic'
     textType: 0
     translationText:
-    - "\u061F\uFEEA\uFBFF\uFB7C \uFEDE\uFBFE\uFE8E\uFEB3\uFEED \uFEE6\uFBFE\uFE8D"
     - What are these items?
+    - "\u061F\uFEEA\uFBFF\uFB7C \uFEDE\uFBFE\uFE8E\uFEB3\uFEED \uFEE6\uFBFE\uFE8D"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -1164,10 +1164,10 @@ MonoBehaviour:
     description: 'From: startupCinemantic'
     textType: 0
     translationText:
+    - There is a door there. Let's get out and ask somebody.
     - ".\uFEE2\uFEB3\uFEAE\uFB59\uFE91 \uFBFD\uFEDC\uFBFE \uFEAF\uFE8D \uFEE5\uFEED\uFEAE\uFBFF\uFE91
       \uFEE1\uFEAE\uFE91 .\uFE96\uFEB3\uFE8E\uFEA0\uFEE7\uFEED\uFE8D \uFEAD\uFEA9
       \uFEEA\uFBFE"
-    - There is a door there. Let's get out and ask somebody.
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -1187,8 +1187,8 @@ MonoBehaviour:
     description: 'From: startupCinemantic'
     textType: 0
     translationText:
-    - "\uFEE9\uFEA9\uFEAE\uFEB3 \uFEE6\uFBFF\uFEE3\uFEAF \uFED2\uFEDB \uFEAD\uFEAA\uFED8\uFB7C"
     - How cold is the ground!!
+    - "\uFEE9\uFEA9\uFEAE\uFEB3 \uFEE6\uFBFF\uFEE3\uFEAF \uFED2\uFEDB \uFEAD\uFEAA\uFED8\uFB7C"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -1208,8 +1208,8 @@ MonoBehaviour:
     description: 'From: startupCinemantic'
     textType: 0
     translationText:
-    - "\u061F\uFEEA\uFEE0\uFED4\uFED7 \uFE8D\uFEAE\uFB7C \uFEAD\uFEA9"
     - Why did this door locked?
+    - "\u061F\uFEEA\uFEE0\uFED4\uFED7 \uFE8D\uFEAE\uFB7C \uFEAD\uFEA9"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -1229,9 +1229,9 @@ MonoBehaviour:
     description: 'From: startupCinemantic'
     textType: 0
     translationText:
+    - How should I get out of here?
     - "\u061F\uFEE5\uFEED\uFEAE\uFBFF\uFE91 \uFEE1\uFEAE\uFE91 \uFEAD\uFEEE\uFEC4\uFB7C
       \uFEFB\uFE8E\uFEA3"
-    - How should I get out of here?
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -1251,10 +1251,10 @@ MonoBehaviour:
     description: 'From: Zarfe Tarazoo: CompleteBrain'
     textType: 0
     translationText:
+    - No sign of scale movement. Looks like the brain has no wheight.
     - ".\uFEE9\uFEAD\uFE8D\uFEAA\uFEE7 \uFBFD\uFEE7\uFEAF\uFEED \uFB7B\uFBFF\uFEEB
       \uFEB0\uFED0\uFEE3 \uFEAD\uFE8E\uFB95\uFEE7\uFE8D \uFEE9\uFEAD\uFEEE\uFEA7
       \uFBFD\uFEE4\uFEE7 \uFEE5\uFEEE\uFEDC\uFE97 \uFEED\uFEAF\uFE8D\uFEAE\uFE97"
-    - No sign of scale movement. Looks like the brain has no wheight.
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -1274,9 +1274,9 @@ MonoBehaviour:
     description: 'From: Standing Zombie Conversation_Option4'
     textType: 0
     translationText:
+    - Only pures can exit.
     - "\uFEE6\uFEB8\uFE91 \uFE9D\uFEAD\uFE8E\uFEA7 \uFEAA\uFEE8\uFEE7\uFEEE\uFE97
       \uFBFD\uFEE3 \u06A9\uFE8E\uFB58 \u0649\uFE8E\uFEEB \uFEE1\uFEA9\uFE81 \uFEC2\uFED8\uFED3"
-    - Only pures can exit.
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -1296,8 +1296,8 @@ MonoBehaviour:
     description: 'From: Standing Zombie Conversation_Option4'
     textType: 0
     translationText:
-    - "...\uFBFD\uFEB8\uFE91 \u06A9\uFE8E\uFB58 \uFEAA\uFBFE\uFE8E\uFE91"
     - "You should be purified \u2026"
+    - "...\uFBFD\uFEB8\uFE91 \u06A9\uFE8E\uFB58 \uFEAA\uFBFE\uFE8E\uFE91"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -1319,11 +1319,11 @@ MonoBehaviour:
     description: 'From: Standing Zombie Conversation_Option4'
     textType: 0
     translationText:
-    - "!\uFEE1\uFEA9\uFEAE\uFEDC\uFEE7 \u0649\uFEAD\uFE8E\uFEDB \uFEEA\uFEDB \uFEE6\uFEE3\n
-      !\uFEE2\uFEB8\uFE91 \u06A9\uFE8E\uFB58 \uFBFD\uFB7C \uFEAF\uFE8D"
     - 'Purify from what?
 
       I didn''t do wrongs.'
+    - "!\uFEE1\uFEA9\uFEAE\uFEDC\uFEE7 \u0649\uFEAD\uFE8E\uFEDB \uFEEA\uFEDB \uFEE6\uFEE3\n
+      !\uFEE2\uFEB8\uFE91 \u06A9\uFE8E\uFB58 \uFBFD\uFB7C \uFEAF\uFE8D"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -1343,8 +1343,8 @@ MonoBehaviour:
     description: 'From: Standing Zombie Conversation_Option4'
     textType: 0
     translationText:
-    - "...\uFEE6\uFEDB \uFEAE\uFEDC\uFED3 \uFE96\uFEDF\uFE8E\uFEE4\uFECB\uFE8D \uFEEA\uFE91"
     - "Thing of your doings \u2026"
+    - "...\uFEE6\uFEDB \uFEAE\uFEDC\uFED3 \uFE96\uFEDF\uFE8E\uFEE4\uFECB\uFE8D \uFEEA\uFE91"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -1364,10 +1364,10 @@ MonoBehaviour:
     description: 'From: Standing Zombie Conversation_Option4'
     textType: 0
     translationText:
+    - Please forgive me God.
     - "\uFEE9\uFEAD\uFEAC\uFB95\uFE91 \uFEE2\uFEE7\uFE8E\uFEEB\uFE8E\uFEE8\uFB94
       \uFEED \uFE95\uFE8D\uFEAE\uFBFF\uFEBC\uFED8\uFE97 \uFEAE\uFEB3 \uFEAF\uFE8D
       \uFE8D\uFEAA\uFEA7"
-    - Please forgive me God.
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -1387,8 +1387,8 @@ MonoBehaviour:
     description: 'From: Saw: Use'
     textType: 0
     translationText:
-    - "\uFEFC\uFEBB\uFE8D \uFEE9\uFEAD\uFEEE\uFEA7 \uFBFD\uFEE4\uFEE7 \uFEE5\uFEEE\uFEDC\uFE97"
     - Unmovable by the far.
+    - "\uFEFC\uFEBB\uFE8D \uFEE9\uFEAD\uFEEE\uFEA7 \uFBFD\uFEE4\uFEE7 \uFEE5\uFEEE\uFEDC\uFE97"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -1408,9 +1408,9 @@ MonoBehaviour:
     description: 'From: Larg Glass Jar: Pick'
     textType: 0
     translationText:
+    - The lid is so tight to open.
     - "\uFEB5\uFEAD\uFEA9 \uFEEA\uFEB8\uFBFF\uFEE4\uFEE7 \uFEAF\uFE8E\uFE91 \uFEEA\uFE98\uFED4\uFEB3
       \uFBFD\uFEE0\uFBFF\uFEA7"
-    - The lid is so tight to open.
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -1430,9 +1430,9 @@ MonoBehaviour:
     description: 'From: Test Tube: FullPot'
     textType: 0
     translationText:
+    - Should not pour the water into the test tube.
     - ".\uFEEA\uFEB8\uFBFF\uFEB7 \u0649\uFEEE\uFE97 \uFEE1\uFEB0\uFBFE\uFEAE\uFE91
       \uFEEA\uFEDB \uFE8F\uFE81 \uFEE6\uFBFE\uFE8D \uFED2\uFBFF\uFEA3"
-    - Should not pour the water into the test tube.
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -1452,9 +1452,9 @@ MonoBehaviour:
     description: 'From: autopsy_table 1: Look at'
     textType: 0
     translationText:
+    - Six small circles , four filled.
     - ".\uFEE9\uFEAE\uFB58 \uFEEE\uFE97 \uFEB5\uFE8E\uFE97 \uFEAD\uFE8E\uFEEC\uFB7C
       \uFEEA\uFEDB \uFEE9\uFEAE\uFBFE\uFE8D\uFEA9 \uFE8E\uFE97 \uFEB6\uFEB7"
-    - Six small circles , four filled.
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -1474,9 +1474,9 @@ MonoBehaviour:
     description: 'From: Photo Frame Kian: Look at'
     textType: 0
     translationText:
+    - A boy's photo. Who is he?
     - "\u061F\uFEEA\uFEB7\uFE8E\uFE91 \uFEEA\uFEE7\uFEEE\uFE98\uFBFF\uFEE3 \uFBFD\uFEDB
       ... \uFE96\uFEB4\uFB7D\uFE91 \uFEAE\uFEB4\uFB58 \uFEEA\uFBFE \uFEAE\uFBFE\uFEEE\uFEBC\uFE97"
-    - A boy's photo. Who is he?
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -1496,10 +1496,10 @@ MonoBehaviour:
     description: 'From: Photo Frame Kian: Look at'
     textType: 0
     translationText:
+    - This poem is for the boy probably
     - "\u061F\uFEE9\uFEAA\uFBFF\uFEE3 \uFBFD\uFEE8\uFECC\uFEE3 \uFEEA\uFB7C .\uFEEA\uFE98\uFED4\uFB94
       \uFEE9\uFEAE\uFEB4\uFB58 \u0649\uFE8D\uFEAE\uFE91 \uFEED\uFEAD \uFEAE\uFECC\uFEB7
       \uFEE6\uFBFE\uFE8D \uFEFB\uFE8E\uFEE4\uFE98\uFEA3\uFE8D"
-    - This poem is for the boy probably
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -1519,8 +1519,8 @@ MonoBehaviour:
     description: 'From: Standing Zombie Conversation_Option5'
     textType: 0
     translationText:
-    - ".\uFEEA\uFEE8\uFEDB \uFE96\uFEDC\uFEE4\uFEDB \uFE8D\uFEAA\uFEA7"
     - God helps you.
+    - ".\uFEEA\uFEE8\uFEDB \uFE96\uFEDC\uFEE4\uFEDB \uFE8D\uFEAA\uFEA7"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -1540,9 +1540,9 @@ MonoBehaviour:
     description: 'From: Standing Zombie Conversation_Option5'
     textType: 0
     translationText:
+    - Countinue your path.
     - "\uFEE9\uFEAA\uFE91 \uFEEA\uFEE3\uFE8D\uFEA9\uFE8D \uFE95\uFEAE\uFBFF\uFEB4\uFEE3
       \uFEEA\uFE91"
-    - Countinue your path.
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -1562,8 +1562,8 @@ MonoBehaviour:
     description: 'From: Standing Zombie Conversation_Option5'
     textType: 0
     translationText:
-    - ".\uFE96\uFEB4\uFE98\uFEB4\uFE91 \uFEAD\uFEA9 ... \uFEEA\uFEA7\uFE81 \u0649\uFEAD\uFEEE\uFEC4\uFB7C"
     - How is it possible? The door is closed permanently.
+    - ".\uFE96\uFEB4\uFE98\uFEB4\uFE91 \uFEAD\uFEA9 ... \uFEEA\uFEA7\uFE81 \u0649\uFEAD\uFEEE\uFEC4\uFB7C"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -1583,10 +1583,10 @@ MonoBehaviour:
     description: 'From: Standing Zombie Conversation_Option5'
     textType: 0
     translationText:
+    - There would be no closure if you ask God.
     - ".\uFE96\uFEB4\uFBFF\uFEE7 \uFEA9\uFEED\uFEAA\uFEB4\uFEE3 \u0649\uFEAE\uFBFF\uFEB4\uFEE3
       \uFB7B\uFBFF\uFEEB \uFBFD\uFEEB\uFE8D\uFEEE\uFEA8\uFE91 \uFE8D\uFEAA\uFEA7
       \uFEAF\uFE8D \uFEEA\uFB94\uFE8D"
-    - There would be no closure if you ask God.
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -1606,9 +1606,9 @@ MonoBehaviour:
     description: 'From: Larg Glass Jar: Look at'
     textType: 0
     translationText:
+    - "A human brain is inside it. Discusting\u2026"
     - ".\uFEEA\uFEB7\uFEAA\uFEE8\uFB7C \uFEAD\uFEAA\uFED8\uFB7C .\uFEEA\uFEB7\uFEEE\uFE97
       \uFEB0\uFED0\uFEE3 \uFEEA\uFBFE"
-    - "A human brain is inside it. Discusting\u2026"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -1628,8 +1628,8 @@ MonoBehaviour:
     description: 'From: CorpsDrawerSignHS: CompleteBrain'
     textType: 1
     translationText:
-    - "\uFEE5\uFE8E\uFEB4\uFEE7\uFE8D \uFEDE\uFEE3\uFE8E\uFEDB \uFEB0\uFED0\uFEE3\r"
     - Complete Human Brain
+    - "\uFEE5\uFE8E\uFEB4\uFEE7\uFE8D \uFEDE\uFEE3\uFE8E\uFEDB \uFEB0\uFED0\uFEE3\r"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -1649,8 +1649,8 @@ MonoBehaviour:
     description: 'From: CorpsDrawer: Use'
     textType: 0
     translationText:
-    - "\uFEE2\uFEE8\uFEDB \uFEAF\uFE8E\uFE91 \uFEED\uFEAD \uFEB5\uFEAD\uFEA9 \uFEE2\uFEB3\uFEAE\uFE98\uFBFF\uFEE3"
     - So scarry to be opened!
+    - "\uFEE2\uFEE8\uFEDB \uFEAF\uFE8E\uFE91 \uFEED\uFEAD \uFEB5\uFEAD\uFEA9 \uFEE2\uFEB3\uFEAE\uFE98\uFBFF\uFEE3"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -1670,9 +1670,9 @@ MonoBehaviour:
     description: 'From: ElectricSwitch: Look at'
     textType: 0
     translationText:
+    - An electric switch with a handle.
     - ".\uFEE9\uFEAE\uFBFF\uFB95\uFE98\uFEB3\uFEA9 \uFEEA\uFBFE \uFE8E\uFE91 \uFEEA\uFED7\uFEAE\uFE91
       \uFEEA\uFE92\uFECC\uFE9F \uFEEA\uFBFE"
-    - An electric switch with a handle.
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -1692,9 +1692,9 @@ MonoBehaviour:
     description: 'From: ElectricSwitch: Use'
     textType: 0
     translationText:
+    - There is no escape from death !!
     - "!! \uFE96\uFEB4\uFBFF\uFEE7 \u0649\uFEB0\uFBFE\uFEAE\uFB94 \uFB92\uFEAE\uFEE3
       \uFEAF\uFE8D"
-    - There is no escape from death !!
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -1714,10 +1714,10 @@ MonoBehaviour:
     description: 'From: CorpsDrawerSignHS: Sciesors'
     textType: 0
     translationText:
+    - "How discusting\u2026 Why should I do that?"
     - "\u061F!\uFEE2\uFEE8\uFEDC\uFE91 \uFEED\uFEAD \uFEAD\uFE8E\uFEDB \uFEE6\uFBFE\uFE8D
       \uFEAA\uFBFE\uFE8E\uFE91 \uFE8D\uFEAE\uFB7C . \uFEE1\uFEAD\uFE8E\uFBFF\uFEE3
       \uFEFB\uFE8E\uFE91 \uFEE1\uFEAD\uFE8D\uFEA9"
-    - "How discusting\u2026 Why should I do that?"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -1737,8 +1737,8 @@ MonoBehaviour:
     description: 'From: CorpsDrawerSignHS: Sciesors'
     textType: 0
     translationText:
-    - ".\uFEE9\uFEAE\uFBFF\uFEE4\uFEE7 \uFEED\uFEAE\uFED3 \uFEB0\uFBFF\uFEE3 \uFEEE\uFE97"
     - The table is too hard. The scalp can't cut it.
+    - ".\uFEE9\uFEAE\uFBFF\uFEE4\uFEE7 \uFEED\uFEAE\uFED3 \uFEB0\uFBFF\uFEE3 \uFEEE\uFE97"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -1758,8 +1758,8 @@ MonoBehaviour:
     description: 'From: SafePuzzleHS: Look at'
     textType: 0
     translationText:
-    - "... \uFED5\uFEED\uFEAA\uFEE8\uFEBB \uFEED\uFE8E\uFB94 \uFEEA\uFBFE"
     - A safe is there.
+    - "... \uFED5\uFEED\uFEAA\uFEE8\uFEBB \uFEED\uFE8E\uFB94 \uFEEA\uFBFE"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -1786,10 +1786,6 @@ MonoBehaviour:
     description: 'From: SafePuzzleHS: Look at'
     textType: 0
     translationText:
-    - "\uFEE9\uFEAD\uFE8D\uFEA9\uFEB6\uFEA8\uFE91 \uFE8E\uFE97 \uFEEA\uFEB3:\n\uFEE9\uFEAD\uFE8D\uFEA9
-      \uFEE9\uFEAE\uFBFF\uFB95\uFE98\uFEB3\uFEA9 \uFEEA\uFBFE\n\uFEE9\uFEAD\uFE8D\uFEA9
-      \uFBFD\uFB58\uFEEE\uFE97 \uFEEA\uFBFE\n\uFEE9\uFEAD\uFE8D\uFEA9 \uFEAA\uFBFF\uFEE0\uFEDB
-      \uFEA5\uFE8D\uFEAD\uFEEE\uFEB3 \uFEEA\uFBFE"
     - 'There are three parts:
 
       A handle ...
@@ -1798,6 +1794,10 @@ MonoBehaviour:
 
       A key
       hole.'
+    - "\uFEE9\uFEAD\uFE8D\uFEA9\uFEB6\uFEA8\uFE91 \uFE8E\uFE97 \uFEEA\uFEB3:\n\uFEE9\uFEAD\uFE8D\uFEA9
+      \uFEE9\uFEAE\uFBFF\uFB95\uFE98\uFEB3\uFEA9 \uFEEA\uFBFE\n\uFEE9\uFEAD\uFE8D\uFEA9
+      \uFBFD\uFB58\uFEEE\uFE97 \uFEEA\uFBFE\n\uFEE9\uFEAD\uFE8D\uFEA9 \uFEAA\uFBFF\uFEE0\uFEDB
+      \uFEA5\uFE8D\uFEAD\uFEEE\uFEB3 \uFEEA\uFBFE"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -1818,11 +1818,11 @@ MonoBehaviour:
     description: 'From: Saw: Look at'
     textType: 0
     translationText:
+    - "There are several strange signs on the saw\u2026 \nI can't understand the
+      meaning."
     - ":\uFE96\uFEB4\uFEEB \uFEE9\uFEAD\uFE8D \u0649\uFEED\uFEAD \uFE96\uFEE3\uFEFC\uFECB
       \uFE8E\uFE97 \uFEAA\uFEE8\uFB7C\n.\uFEE2\uFEE4\uFEEC\uFED3 \uFBFD\uFEE4\uFEE7
       \uFEED\uFEAD \uFEB6\uFBFF\uFEE8\uFECC\uFEE3"
-    - "There are several strange signs on the saw\u2026 \nI can't understand the
-      meaning."
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -1842,9 +1842,9 @@ MonoBehaviour:
     description: 'From: CorpsDrawerSignHS: Scalp'
     textType: 0
     translationText:
+    - It is slipping when I want to cut it.
     - "\uFEB6\uFEE3\uFEAE\uFE92\uFE91 \uFEE2\uFEE7\uFEEE\uFE97 \uFBFD\uFEE4\uFEE7
       \uFEE9\uFEAD\uFEEE\uFEA8\uFBFF\uFEE3 \uFEAE\uFEB3"
-    - It is slipping when I want to cut it.
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -1864,9 +1864,9 @@ MonoBehaviour:
     description: 'From: CorpsDrawerSignHS: Scalp'
     textType: 0
     translationText:
+    - Nothing to cut on the table.
     - "!\uFEE1\uFEAE\uFE92\uFE91 \uFEEA\uFEDB \uFE96\uFEB4\uFBFF\uFEE7 \uFEB0\uFBFF\uFEE3
       \uFEED\uFEAD \u0649\uFEB0\uFBFF\uFB7C"
-    - Nothing to cut on the table.
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -1886,11 +1886,11 @@ MonoBehaviour:
     description: 'From: CorpsDrawerSignHS: Scalp'
     textType: 0
     translationText:
+    - "I near through out\u2026 What should I do with this brain parts?"
     - "\u061F\uFEE2\uFEE8\uFEDB \uFEAD\uFE8E\uFEDC\uFB7C \uFEB0\uFED0\uFEE3 \u0649\uFE8E\uFEEB
       \uFEEA\uFEDC\uFE97 \uFEE6\uFBFE\uFE8D \uFE8E\uFE91 \uFEFB\uFE8E\uFEA3 .\uFEFB\uFE8E\uFE91
       \uFEA9\uFE8E\uFBFF\uFEE3 \uFEE9\uFEAD\uFE8D\uFEA9 \uFEE1\uFEEE\uFEE0\uFED7
       \uFEED \uFEDD\uFEA9"
-    - "I near through out\u2026 What should I do with this brain parts?"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -1910,8 +1910,8 @@ MonoBehaviour:
     description: 'From: Test Tube: Use'
     textType: 0
     translationText:
-    - "\uFEE9\uFEAD\uFEEE\uFEA7 \uFBFD\uFEE4\uFEE7 \uFEE5\uFEEE\uFEDC\uFE97"
     - Unmovable.
+    - "\uFEE9\uFEAD\uFEEE\uFEA7 \uFBFD\uFEE4\uFEE7 \uFEE5\uFEEE\uFEDC\uFE97"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -1933,11 +1933,11 @@ MonoBehaviour:
     description: 'From: LiquidOnly: Look at'
     textType: 0
     translationText:
-    - ":\uFEEA\uFE98\uFEB7\uFEEE\uFEE7\n\uFEAA\uFBFF\uFBFE\uFE8E\uFEE4\uFEE7 \uFEE9\uFEA9\uFE8E\uFED4\uFE98\uFEB3\uFE8D
-      \uFE95\uFE8E\uFECC\uFBFE\uFE8E\uFEE3 \uFEAF\uFE8D \uFEC2\uFED8\uFED3"
     - 'Reads:
 
       Just use liquids.'
+    - ":\uFEEA\uFE98\uFEB7\uFEEE\uFEE7\n\uFEAA\uFBFF\uFBFE\uFE8E\uFEE4\uFEE7 \uFEE9\uFEA9\uFE8E\uFED4\uFE98\uFEB3\uFE8D
+      \uFE95\uFE8E\uFECC\uFBFE\uFE8E\uFEE3 \uFEAF\uFE8D \uFEC2\uFED8\uFED3"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -1959,11 +1959,11 @@ MonoBehaviour:
     description: 'From: Scesors: Pick'
     textType: 0
     translationText:
-    - "... \uFEE9\uFEB0\uFBFF\uFE97 \uFEAD\uFEAA\uFED8\uFB7C\n\u061F!\uFEE5\uFEAE\uFE92\uFBFF\uFEE3
-      \uFEB5\uFE8E\uFEEB\uFE8E\uFE91 \uFBFD\uFB7C \uFBFD\uFEE8\uFECC\uFBFE"
     - 'So sharp ...
 
       What are they cutting with?'
+    - "... \uFEE9\uFEB0\uFBFF\uFE97 \uFEAD\uFEAA\uFED8\uFB7C\n\u061F!\uFEE5\uFEAE\uFE92\uFBFF\uFEE3
+      \uFEB5\uFE8E\uFEEB\uFE8E\uFE91 \uFBFD\uFB7C \uFBFD\uFEE8\uFECC\uFBFE"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -1983,8 +1983,8 @@ MonoBehaviour:
     description: 'From: autopsy_table: Use'
     textType: 0
     translationText:
-    - "\uFEA9\uFE8E\uFBFF\uFEE4\uFEE7 \uFEE2\uFE91\uFE8D\uFEEE\uFEA7 \uFEE5\uFEFB\uFE8D"
     - I am not sleepy right now
+    - "\uFEA9\uFE8E\uFBFF\uFEE4\uFEE7 \uFEE2\uFE91\uFE8D\uFEEE\uFEA7 \uFEE5\uFEFB\uFE8D"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -2004,8 +2004,8 @@ MonoBehaviour:
     description: 'From: CombinationLock_Bolt4'
     textType: 1
     translationText:
-    - "\uFEE2\uFEA0\uFEE8\uFB58 \uFEE9\uFEAE\uFEEC\uFEE3"
     - Bolt Five
+    - "\uFEE2\uFEA0\uFEE8\uFB58 \uFEE9\uFEAE\uFEEC\uFEE3"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -2025,8 +2025,8 @@ MonoBehaviour:
     description: 'From: LiquidOnly'
     textType: 1
     translationText:
-    - "\uFEE6\uFE98\uFEE3"
     - Text
+    - "\uFEE6\uFE98\uFEE3"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -2046,8 +2046,8 @@ MonoBehaviour:
     description: 'From: PlayerFPS'
     textType: 10
     translationText:
-    - "\uFEE6\uFEE3"
     - Me
+    - "\uFEE6\uFEE3"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -2067,8 +2067,8 @@ MonoBehaviour:
     description: 'From: CombinationLock_Bolt1'
     textType: 1
     translationText:
-    - "\uFEE1\uFEED\uFEA9 \uFEE9\uFEAE\uFEEC\uFEE3"
     - Bolt Two
+    - "\uFEE1\uFEED\uFEA9 \uFEE9\uFEAE\uFEEC\uFEE3"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -2088,8 +2088,8 @@ MonoBehaviour:
     description: 'From: CombinationLock_Bolt3'
     textType: 1
     translationText:
-    - "\uFEE1\uFEAD\uFE8E\uFEEC\uFB7C \uFEE9\uFEAE\uFEEC\uFEE3"
     - Bolt Four
+    - "\uFEE1\uFEAD\uFE8E\uFEEC\uFB7C \uFEE9\uFEAE\uFEEC\uFEE3"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -2109,8 +2109,8 @@ MonoBehaviour:
     description: 'From: CombinationLock_Bolt2'
     textType: 1
     translationText:
-    - "\uFEE1\uFEEE\uFEB3 \uFEE9\uFEAE\uFEEC\uFEE3"
     - Bolt Three
+    - "\uFEE1\uFEEE\uFEB3 \uFEE9\uFEAE\uFEEC\uFEE3"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -2130,8 +2130,8 @@ MonoBehaviour:
     description: 'From: desk_chair'
     textType: 1
     translationText:
-    - "\uFBFD\uFEDF\uFEAA\uFEE8\uFEBB"
     - Desk Chair
+    - "\uFBFD\uFEDF\uFEAA\uFEE8\uFEBB"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -2151,8 +2151,8 @@ MonoBehaviour:
     description: 'From: ceramic_sink'
     textType: 1
     translationText:
-    - "\uFBFD\uFEDC\uFBFF\uFEE3\uFE8D\uFEAE\uFEB3 \uFBFD\uFBFE\uFEEE\uFEB7\uFEED\uFEAD"
     - Ceramic Sink
+    - "\uFBFD\uFEDC\uFBFF\uFEE3\uFE8D\uFEAE\uFEB3 \uFBFD\uFBFE\uFEEE\uFEB7\uFEED\uFEAD"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -2172,8 +2172,8 @@ MonoBehaviour:
     description: 'From: ScaleLevelHS'
     textType: 1
     translationText:
-    - "\uFEED\uFEAF\uFE8D\uFEAE\uFE97 \uFEEA\uFEA4\uFED4\uFEBB"
     - Scale Plate
+    - "\uFEED\uFEAF\uFE8D\uFEAE\uFE97 \uFEEA\uFEA4\uFED4\uFEBB"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -2193,8 +2193,8 @@ MonoBehaviour:
     description: 'From: autopsy_table'
     textType: 1
     translationText:
-    - "\uFEDD\uFEED\uFE8D \uFEAA\uFEB4\uFE9F \uFEA2\uFBFE\uFEAE\uFEB8\uFE97 \uFEB0\uFBFF\uFEE3"
     - Autopsy Table One
+    - "\uFEDD\uFEED\uFE8D \uFEAA\uFEB4\uFE9F \uFEA2\uFBFE\uFEAE\uFEB8\uFE97 \uFEB0\uFBFF\uFEE3"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -2214,8 +2214,8 @@ MonoBehaviour:
     description: 'From: Trolley'
     textType: 1
     translationText:
-    - "\uFBFD\uFEDF\uFEED\uFEAE\uFE97"
     - Trolley
+    - "\uFBFD\uFEDF\uFEED\uFEAE\uFE97"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -2235,8 +2235,8 @@ MonoBehaviour:
     description: 'From: WaterButton'
     textType: 1
     translationText:
-    - "\uFE90\uFBFF\uFEA0\uFECB \uFEEA\uFEE4\uFEDB\uFEA9"
     - Strange Button
+    - "\uFE90\uFBFF\uFEA0\uFECB \uFEEA\uFEE4\uFEDB\uFEA9"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -2256,8 +2256,8 @@ MonoBehaviour:
     description: 'From: organ_scale'
     textType: 1
     translationText:
-    - "\uFEE1\uFE8D\uFEAA\uFEE7\uFE8D \u0649\uFEED\uFEAF\uFE8D\uFEAE\uFE97"
     - Organ Scale
+    - "\uFEE1\uFE8D\uFEAA\uFEE7\uFE8D \u0649\uFEED\uFEAF\uFE8D\uFEAE\uFE97"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -2277,8 +2277,8 @@ MonoBehaviour:
     description: 'From: autopsy_table 1'
     textType: 1
     translationText:
-    - "\uFEE1\uFEED\uFEA9 \uFEAA\uFEB4\uFE9F \uFEA2\uFBFE\uFEAE\uFEB8\uFE97 \uFEB0\uFBFF\uFEE3"
     - Autopsy Table Two
+    - "\uFEE1\uFEED\uFEA9 \uFEAA\uFEB4\uFE9F \uFEA2\uFBFE\uFEAE\uFEB8\uFE97 \uFEB0\uFBFF\uFEE3"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -2298,8 +2298,8 @@ MonoBehaviour:
     description: 'From: CombinationLock_Bolt5'
     textType: 1
     translationText:
-    - "\uFEE2\uFEB8\uFEB7 \uFEE9\uFEAE\uFEEC\uFEE3"
     - Bolt Six
+    - "\uFEE2\uFEB8\uFEB7 \uFEE9\uFEAE\uFEEC\uFEE3"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -2319,8 +2319,8 @@ MonoBehaviour:
     description: 'From: Blue Sack'
     textType: 1
     translationText:
-    - "\uFBFD\uFE91\uFE81 \uFEEA\uFEB4\uFBFF\uFEDB"
     - Blue Sack
+    - "\uFBFD\uFE91\uFE81 \uFEEA\uFEB4\uFBFF\uFEDB"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -2340,8 +2340,8 @@ MonoBehaviour:
     description: 'From: Knife'
     textType: 1
     translationText:
-    - "\uFBFD\uFEA3\uFE8D\uFEAE\uFE9F \uFECE\uFBFF\uFE97"
     - Scalp
+    - "\uFBFD\uFEA3\uFE8D\uFEAE\uFE9F \uFECE\uFBFF\uFE97"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -2361,8 +2361,8 @@ MonoBehaviour:
     description: 'From: Orange Sack'
     textType: 1
     translationText:
-    - "\uFBFD\uFEA0\uFEE7\uFEAD\uFE8E\uFEE7 \uFEEA\uFEB4\uFBFF\uFEDB"
     - Orange Sack
+    - "\uFBFD\uFEA0\uFEE7\uFEAD\uFE8E\uFEE7 \uFEEA\uFEB4\uFBFF\uFEDB"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -2382,8 +2382,8 @@ MonoBehaviour:
     description: 'From: CorpsDrawer11'
     textType: 1
     translationText:
-    - "\uFEE2\uFEEB\uFEA9 \uFEEA\uFEE7\uFE8E\uFEA7\uFEA9\uFEAE\uFEB3 \u0649\uFEEE\uFEB8\uFEDB"
     - Corps Drawer Ten
+    - "\uFEE2\uFEEB\uFEA9 \uFEEA\uFEE7\uFE8E\uFEA7\uFEA9\uFEAE\uFEB3 \u0649\uFEEE\uFEB8\uFEDB"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -2403,8 +2403,8 @@ MonoBehaviour:
     description: 'From: Safe Rotator'
     textType: 1
     translationText:
-    - "\uFED5\uFEED\uFEAA\uFEE8\uFEBB\uFEED\uFE8E\uFB94 \uFEEA\uFE98\uFEB3\uFEA9"
     - Safe Handle
+    - "\uFED5\uFEED\uFEAA\uFEE8\uFEBB\uFEED\uFE8E\uFB94 \uFEEA\uFE98\uFEB3\uFEA9"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -2424,9 +2424,9 @@ MonoBehaviour:
     description: 'From: Small Glass Jar3'
     textType: 1
     translationText:
+    - Small Glass Jar Four
     - "\uFEE1\uFEAD\uFE8E\uFEEC\uFB7C \uFEDA\uFB7C\uFEEE\uFEDB \u0649\uFE8D \uFEEA\uFEB8\uFBFF\uFEB7
       \uFED1\uFEAE\uFEC7"
-    - Small Glass Jar Four
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -2446,8 +2446,8 @@ MonoBehaviour:
     description: 'From: CorpsDrawer6'
     textType: 1
     translationText:
-    - "\uFEE2\uFEB8\uFEB7 \uFEEA\uFEE7\uFE8E\uFEA7\uFEA9\uFEAE\uFEB3 \u0649\uFEEE\uFEB8\uFEDB"
     - Corps Drawer Six
+    - "\uFEE2\uFEB8\uFEB7 \uFEEA\uFEE7\uFE8E\uFEA7\uFEA9\uFEAE\uFEB3 \u0649\uFEEE\uFEB8\uFEDB"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -2467,8 +2467,8 @@ MonoBehaviour:
     description: 'From: ElectricSwitch'
     textType: 1
     translationText:
-    - "\uFED5\uFEAE\uFE91 \uFB7B\uFBFF\uFBFE\uFEEE\uFEB3"
     - Electric Switch
+    - "\uFED5\uFEAE\uFE91 \uFB7B\uFBFF\uFBFE\uFEEE\uFEB3"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -2488,8 +2488,8 @@ MonoBehaviour:
     description: 'From: Photo Frame Kian'
     textType: 1
     translationText:
-    - "\uFEB2\uFEDC\uFECB \uFE8F\uFE8E\uFED7"
     - Photo Frame
+    - "\uFEB2\uFEDC\uFECB \uFE8F\uFE8E\uFED7"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -2509,8 +2509,8 @@ MonoBehaviour:
     description: 'From: Red Sack'
     textType: 1
     translationText:
-    - "\uFEB0\uFEE3\uFEAE\uFED7 \uFEEA\uFEB4\uFBFF\uFEDB"
     - Red Sack
+    - "\uFEB0\uFEE3\uFEAE\uFED7 \uFEEA\uFEB4\uFBFF\uFEDB"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -2530,9 +2530,9 @@ MonoBehaviour:
     description: 'From: Small Glass Jar0'
     textType: 1
     translationText:
+    - Small Glass Jar One
     - "\uFEDD\uFEED\uFE8D  \uFEDA\uFB7C\uFEEE\uFEDB \u0649\uFE8D \uFEEA\uFEB8\uFBFF\uFEB7
       \uFED1\uFEAE\uFEC7"
-    - Small Glass Jar One
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -2552,8 +2552,8 @@ MonoBehaviour:
     description: 'From: Drip Tap'
     textType: 1
     translationText:
-    - "\uFE8F\uFEEE\uFBFF\uFECC\uFEE3 \uFE8F\uFE81 \uFEAE\uFBFF\uFEB7"
     - Faulty Tap
+    - "\uFE8F\uFEEE\uFBFF\uFECC\uFEE3 \uFE8F\uFE81 \uFEAE\uFBFF\uFEB7"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -2573,8 +2573,8 @@ MonoBehaviour:
     description: 'From: WallCabinetDoor'
     textType: 1
     translationText:
-    - "\uFE96\uFEE8\uFBFF\uFE91\uFE8E\uFEDB"
     - Wall Cabinet
+    - "\uFE96\uFEE8\uFBFF\uFE91\uFE8E\uFEDB"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -2594,8 +2594,8 @@ MonoBehaviour:
     description: 'From: SafeBrainHS'
     textType: 1
     translationText:
-    - "\uFEE5\uFE8E\uFEB4\uFEE7\uFE8D \uFEDE\uFEE3\uFE8E\uFEDB \uFEB0\uFED0\uFEE3"
     - Full Human Brain
+    - "\uFEE5\uFE8E\uFEB4\uFEE7\uFE8D \uFEDE\uFEE3\uFE8E\uFEDB \uFEB0\uFED0\uFEE3"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -2615,9 +2615,9 @@ MonoBehaviour:
     description: 'From: Small Glass Jar2'
     textType: 1
     translationText:
+    - Small Glass Jar Three
     - "\uFEE1\uFEEE\uFEB3  \uFEDA\uFB7C\uFEEE\uFEDB \u0649\uFE8D \uFEEA\uFEB8\uFBFF\uFEB7
       \uFED1\uFEAE\uFEC7"
-    - Small Glass Jar Three
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -2637,8 +2637,8 @@ MonoBehaviour:
     description: 'From: SafePuzzleHS'
     textType: 1
     translationText:
-    - "\uFED5\uFEED\uFEAA\uFEE8\uFEBB\uFEED\uFE8E\uFB94"
     - Safe
+    - "\uFED5\uFEED\uFEAA\uFEE8\uFEBB\uFEED\uFE8E\uFB94"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -2658,8 +2658,8 @@ MonoBehaviour:
     description: 'From: CorpsDrawerSignHS'
     textType: 1
     translationText:
-    - "\uFE90\uFBFF\uFEA0\uFECB \uFE96\uFEE3\uFEFC\uFECB"
     - Strange Sign
+    - "\uFE90\uFBFF\uFEA0\uFECB \uFE96\uFEE3\uFEFC\uFECB"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -2679,8 +2679,8 @@ MonoBehaviour:
     description: 'From: Yellow Sack'
     textType: 1
     translationText:
-    - "\uFEA9\uFEAD\uFEAF \uFEEA\uFEB4\uFBFF\uFEDB"
     - Yellow Sack
+    - "\uFEA9\uFEAD\uFEAF \uFEEA\uFEB4\uFBFF\uFEDB"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -2700,8 +2700,8 @@ MonoBehaviour:
     description: 'From: CorpsDrawer1'
     textType: 1
     translationText:
-    - "\uFEE1\uFEED\uFEA9 \uFEEA\uFEE7\uFE8E\uFEA7\uFEA9\uFEAE\uFEB3 \u0649\uFEEE\uFEB8\uFEDB"
     - Corps Drawer Two
+    - "\uFEE1\uFEED\uFEA9 \uFEEA\uFEE7\uFE8E\uFEA7\uFEA9\uFEAE\uFEB3 \u0649\uFEEE\uFEB8\uFEDB"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -2721,9 +2721,9 @@ MonoBehaviour:
     description: 'From: Small Glass Jar5'
     textType: 1
     translationText:
+    - Small Glass Jar Six
     - "\uFEE2\uFEB8\uFEB7  \uFEDA\uFB7C\uFEEE\uFEDB \u0649\uFE8D \uFEEA\uFEB8\uFBFF\uFEB7
       \uFED1\uFEAE\uFEC7"
-    - Small Glass Jar Six
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -2743,8 +2743,8 @@ MonoBehaviour:
     description: 'From: ColorPot'
     textType: 1
     translationText:
-    - "\uFBFD\uFEDF\uFE8E\uFEA7 \uFED1\uFEAE\uFEC7"
     - Empty Pot
+    - "\uFBFD\uFEDF\uFE8E\uFEA7 \uFED1\uFEAE\uFEC7"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -2764,9 +2764,9 @@ MonoBehaviour:
     description: 'From: CorpsDrawer3'
     textType: 1
     translationText:
+    - Corps Drawer Four
     - "\uFEE1\uFEAD\uFE8E\uFEEC\uFB7C \uFEEA\uFEE7\uFE8E\uFEA7\uFEA9\uFEAE\uFEB3
       \u0649\uFEEE\uFEB8\uFEDB"
-    - Corps Drawer Four
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -2786,9 +2786,9 @@ MonoBehaviour:
     description: 'From: Small Glass Jar4'
     textType: 1
     translationText:
+    - Small Glass Jar Five
     - "\uFEE2\uFEA0\uFEE8\uFB58 \uFEDA\uFB7C\uFEEE\uFEDB \u0649\uFE8D \uFEEA\uFEB8\uFBFF\uFEB7
       \uFED1\uFEAE\uFEC7"
-    - Small Glass Jar Five
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -2808,8 +2808,8 @@ MonoBehaviour:
     description: 'From: Standing Zombie Conversation'
     textType: 2
     translationText:
-    - "\uFEE1\uFEFC\uFEB3"
     - Hello!
+    - "\uFEE1\uFEFC\uFEB3"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -2829,8 +2829,8 @@ MonoBehaviour:
     description: 'From: Standing Zombie Conversation'
     textType: 2
     translationText:
-    - "\u061F\uFEE9\uFEAD\uFEEE\uFEC4\uFB7C \uFE96\uFEDF\uFE8E\uFEA3"
     - How do you do?
+    - "\u061F\uFEE9\uFEAD\uFEEE\uFEC4\uFB7C \uFE96\uFEDF\uFE8E\uFEA3"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -2850,8 +2850,8 @@ MonoBehaviour:
     description: 'From: Standing Zombie Conversation'
     textType: 2
     translationText:
-    - "\u061F\uFE96\uFEB3\uFE8E\uFEA0\uFEDB \uFE8E\uFEA0\uFEE8\uFBFE\uFE8D"
     - Where is here?
+    - "\u061F\uFE96\uFEB3\uFE8E\uFEA0\uFEDB \uFE8E\uFEA0\uFEE8\uFBFE\uFE8D"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -2871,9 +2871,9 @@ MonoBehaviour:
     description: 'From: Standing Zombie Conversation'
     textType: 2
     translationText:
+    - How can I escape from here?
     - "\u061F\uFEE1\uFEAE\uFE91 \uFE8E\uFEA0\uFEE8\uFBFE\uFE8D \uFEAF\uFE8D \uFEE2\uFEE7\uFEEE\uFE97
       \uFBFD\uFEE3 \uFEAD\uFEEE\uFEC4\uFB7C"
-    - How can I escape from here?
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -2893,9 +2893,9 @@ MonoBehaviour:
     description: 'From: Standing Zombie Conversation'
     textType: 2
     translationText:
+    - Can you help me purify?
     - "\u061F\uFEE2\uFEB8\uFE91 \u06A9\uFE8E\uFB58 \uFBFD\uFEE8\uFEDB \uFEE2\uFEDC\uFEE4\uFEDB
       \uFBFD\uFEE7\uFEEE\uFE97 \uFBFD\uFEE3"
-    - Can you help me purify?
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -2915,9 +2915,9 @@ MonoBehaviour:
     description: 'From: Safe Key Hole'
     textType: 1
     translationText:
+    - Safe Key Hole
     - "\uFED5\uFEED\uFEAA\uFEE8\uFEBB\uFEED\uFE8E\uFB94 \uFEAA\uFBFF\uFEE0\uFEDB
       \uFEA5\uFE8D\uFEAD\uFEEE\uFEB3"
-    - Safe Key Hole
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -2937,8 +2937,8 @@ MonoBehaviour:
     description: 'From: CorpsDrawer10'
     textType: 1
     translationText:
-    - "\uFEE2\uFEEC\uFEE7 \uFEEA\uFEE7\uFE8E\uFEA7\uFEA9\uFEAE\uFEB3 \u0649\uFEEE\uFEB8\uFEDB"
     - Corps Drawer Nine
+    - "\uFEE2\uFEEC\uFEE7 \uFEEA\uFEE7\uFE8E\uFEA7\uFEA9\uFEAE\uFEB3 \u0649\uFEEE\uFEB8\uFEDB"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -2958,8 +2958,8 @@ MonoBehaviour:
     description: 'From: Jar Puzzle'
     textType: 1
     translationText:
-    - "\uFE8E\uFEEB \uFEEA\uFEB8\uFBFF\uFEB7 \uFEEA\uFEB4\uFED4\uFED7"
     - Jar Shelves
+    - "\uFE8E\uFEEB \uFEEA\uFEB8\uFBFF\uFEB7 \uFEEA\uFEB4\uFED4\uFED7"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -2979,8 +2979,8 @@ MonoBehaviour:
     description: 'From: CorpsDrawer8'
     textType: 1
     translationText:
-    - "\uFEE2\uFE98\uFED4\uFEEB \uFEEA\uFEE7\uFE8E\uFEA7\uFEA9\uFEAE\uFEB3 \u0649\uFEEE\uFEB8\uFEDB"
     - Corps Drawer Seven
+    - "\uFEE2\uFE98\uFED4\uFEEB \uFEEA\uFEE7\uFE8E\uFEA7\uFEA9\uFEAE\uFEB3 \u0649\uFEEE\uFEB8\uFEDB"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -3000,9 +3000,9 @@ MonoBehaviour:
     description: 'From: Small Glass Jar1'
     textType: 1
     translationText:
+    - Small Glass Jar Two
     - "\uFEE1\uFEED\uFEA9  \uFEDA\uFB7C\uFEEE\uFEDB \u0649\uFE8D \uFEEA\uFEB8\uFBFF\uFEB7
       \uFED1\uFEAE\uFEC7"
-    - Small Glass Jar Two
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -3022,8 +3022,8 @@ MonoBehaviour:
     description: 'From: 4-Blue Test Tube'
     textType: 1
     translationText:
-    - "\uFEE2\uFEA0\uFEE8\uFB58 \uFEB6\uFBFE\uFE8E\uFEE3\uFEAF\uFE81 \uFEEA\uFEDF\uFEEE\uFEDF"
     - Test Tube Five
+    - "\uFEE2\uFEA0\uFEE8\uFB58 \uFEB6\uFBFE\uFE8E\uFEE3\uFEAF\uFE81 \uFEEA\uFEDF\uFEEE\uFEDF"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -3043,8 +3043,8 @@ MonoBehaviour:
     description: 'From: 0-Ret Test Tube'
     textType: 1
     translationText:
-    - "\uFEDD\uFEED\uFE8D \uFEB6\uFBFE\uFE8E\uFEE3\uFEAF\uFE81 \uFEEA\uFEDF\uFEEE\uFEDF"
     - Test Tube One
+    - "\uFEDD\uFEED\uFE8D \uFEB6\uFBFE\uFE8E\uFEE3\uFEAF\uFE81 \uFEEA\uFEDF\uFEEE\uFEDF"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -3064,8 +3064,8 @@ MonoBehaviour:
     description: 'From: CorpsDrawer2'
     textType: 1
     translationText:
-    - "\uFEE1\uFEEE\uFEB3 \uFEEA\uFEE7\uFE8E\uFEA7\uFEA9\uFEAE\uFEB3 \u0649\uFEEE\uFEB8\uFEDB"
     - Corps Drawer Three
+    - "\uFEE1\uFEEE\uFEB3 \uFEEA\uFEE7\uFE8E\uFEA7\uFEA9\uFEAE\uFEB3 \u0649\uFEEE\uFEB8\uFEDB"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -3085,8 +3085,8 @@ MonoBehaviour:
     description: 'From: SafeKey'
     textType: 1
     translationText:
-    - "\uFED5\uFEED\uFEAA\uFEE8\uFEBB \uFEED\uFE8E\uFB94 \uFEAA\uFBFF\uFEE0\uFEDB"
     - Safe Key
+    - "\uFED5\uFEED\uFEAA\uFEE8\uFEBB \uFEED\uFE8E\uFB94 \uFEAA\uFBFF\uFEE0\uFEDB"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -3106,8 +3106,8 @@ MonoBehaviour:
     description: 'From: CorpsDrawer4'
     textType: 1
     translationText:
-    - "\uFEE2\uFEA0\uFEE8\uFB58 \uFEEA\uFEE7\uFE8E\uFEA7\uFEA9\uFEAE\uFEB3 \u0649\uFEEE\uFEB8\uFEDB"
     - Corps Drawer Five
+    - "\uFEE2\uFEA0\uFEE8\uFB58 \uFEEA\uFEE7\uFE8E\uFEA7\uFEA9\uFEAE\uFEB3 \u0649\uFEEE\uFEB8\uFEDB"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -3127,8 +3127,8 @@ MonoBehaviour:
     description: 'From: 1-Orange Test Tube'
     textType: 1
     translationText:
-    - "\uFEE1\uFEED\uFEA9 \uFEB6\uFBFE\uFE8E\uFEE3\uFEAF\uFE81 \uFEEA\uFEDF\uFEEE\uFEDF"
     - Test Tube Two
+    - "\uFEE1\uFEED\uFEA9 \uFEB6\uFBFE\uFE8E\uFEE3\uFEAF\uFE81 \uFEEA\uFEDF\uFEEE\uFEDF"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -3148,8 +3148,8 @@ MonoBehaviour:
     description: 'From: NoteBook'
     textType: 1
     translationText:
-    - "\uFEEA\uFB7C\uFEAE\uFE98\uFED3\uFEA9"
     - Notebook
+    - "\uFEEA\uFB7C\uFEAE\uFE98\uFED3\uFEA9"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -3169,8 +3169,8 @@ MonoBehaviour:
     description: 'From: Larg Glass Jar'
     textType: 1
     translationText:
-    - "\uFB92\uFEAD\uFEB0\uFE91 \u0649\uFE8D \uFEEA\uFEB8\uFBFF\uFEB7 \uFED1\uFEAE\uFEC7"
     - Larg Glass Jar
+    - "\uFB92\uFEAD\uFEB0\uFE91 \u0649\uFE8D \uFEEA\uFEB8\uFBFF\uFEB7 \uFED1\uFEAE\uFEC7"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -3190,8 +3190,8 @@ MonoBehaviour:
     description: 'From: Saw'
     textType: 1
     translationText:
-    - "\uFEE5\uFE8D\uFEEE\uFEA8\uFE98\uFEB3\uFE8D \uFEE9\uFEAD\uFE8D"
     - Bone Saw
+    - "\uFEE5\uFE8D\uFEEE\uFEA8\uFE98\uFEB3\uFE8D \uFEE9\uFEAD\uFE8D"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -3211,8 +3211,8 @@ MonoBehaviour:
     description: 'From: FilledTubes'
     textType: 1
     translationText:
-    - ".\uFEE9\uFEAA\uFEB7 \uFEAE\uFB58 \uFEB6\uFBFE\uFE8E\uFEE3\uFEAF\uFE81 \uFEEA\uFEDF\uFEEE\uFEDF"
     - Filled Test Tube
+    - ".\uFEE9\uFEAA\uFEB7 \uFEAE\uFB58 \uFEB6\uFBFE\uFE8E\uFEE3\uFEAF\uFE81 \uFEEA\uFEDF\uFEEE\uFEDF"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -3232,8 +3232,8 @@ MonoBehaviour:
     description: 'From: 2-Yellow Test Tube'
     textType: 1
     translationText:
-    - "\uFEE1\uFEEE\uFEB3 \uFEB6\uFBFE\uFE8E\uFEE3\uFEAF\uFE81 \uFEEA\uFEDF\uFEEE\uFEDF"
     - Test Tube Three
+    - "\uFEE1\uFEEE\uFEB3 \uFEB6\uFBFE\uFE8E\uFEE3\uFEAF\uFE81 \uFEEA\uFEDF\uFEEE\uFEDF"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -3253,8 +3253,8 @@ MonoBehaviour:
     description: 'From: Safe Button'
     textType: 1
     translationText:
-    - "\uFED5\uFEED\uFEAA\uFEE8\uFEBB \uFEED\uFE8E\uFB94 \uFBFD\uFB58\uFEEE\uFE97"
     - Safe Dial
+    - "\uFED5\uFEED\uFEAA\uFEE8\uFEBB \uFEED\uFE8E\uFB94 \uFBFD\uFB58\uFEEE\uFE97"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -3274,8 +3274,8 @@ MonoBehaviour:
     description: 'From: 3-Green Test Tube'
     textType: 1
     translationText:
-    - "\uFEE1\uFEAD\uFE8E\uFEEC\uFB7C \uFEB6\uFBFE\uFE8E\uFEE3\uFEAF\uFE81 \uFEEA\uFEDF\uFEEE\uFEDF"
     - Test Tube Four
+    - "\uFEE1\uFEAD\uFE8E\uFEEC\uFB7C \uFEB6\uFBFE\uFE8E\uFEE3\uFEAF\uFE81 \uFEEA\uFEDF\uFEEE\uFEDF"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -3295,8 +3295,8 @@ MonoBehaviour:
     description: 'From: ScaleFaceHS'
     textType: 1
     translationText:
-    - "\uFEED\uFEAF\uFE8D\uFEAE\uFE97 \uFEAE\uFB95\uFEE7\uFE8E\uFEB8\uFEE7"
     - Scale Indicator
+    - "\uFEED\uFEAF\uFE8D\uFEAE\uFE97 \uFEAE\uFB95\uFEE7\uFE8E\uFEB8\uFEE7"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -3316,8 +3316,8 @@ MonoBehaviour:
     description: 'From: Scesors'
     textType: 1
     translationText:
-    - "\uFBFD\uFB7D\uFBFF\uFED7"
     - Scissors
+    - "\uFBFD\uFB7D\uFBFF\uFED7"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -3337,8 +3337,8 @@ MonoBehaviour:
     description: 'From: NullTestTube'
     textType: 1
     translationText:
-    - "\uFE8D\uFEB0\uFEA0\uFEE3 \uFEB6\uFBFE\uFE8E\uFEE3\uFEAF\uFE81 \uFEEA\uFEDF\uFEEE\uFEDF"
     - Seperated Test Tube
+    - "\uFE8D\uFEB0\uFEA0\uFEE3 \uFEB6\uFBFE\uFE8E\uFEE3\uFEAF\uFE81 \uFEEA\uFEDF\uFEEE\uFEDF"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -3358,8 +3358,8 @@ MonoBehaviour:
     description: 'From: LockCombinationHS'
     textType: 1
     translationText:
-    - "\uFEAD\uFE8D\uFEA9\uFEB0\uFEE3\uFEAD \uFEDE\uFED4\uFED7"
     - Combination Lock
+    - "\uFEAD\uFE8D\uFEA9\uFEB0\uFEE3\uFEAD \uFEDE\uFED4\uFED7"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -3379,8 +3379,8 @@ MonoBehaviour:
     description: 'From: CorpsDrawer'
     textType: 1
     translationText:
-    - "\uFEDD\uFEED\uFE8D \uFEEA\uFEE7\uFE8E\uFEA7\uFEA9\uFEAE\uFEB3 \u0649\uFEEE\uFEB8\uFEDB"
     - Corps Drawer One
+    - "\uFEDD\uFEED\uFE8D \uFEEA\uFEE7\uFE8E\uFEA7\uFEA9\uFEAE\uFEB3 \u0649\uFEEE\uFEB8\uFEDB"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -3400,8 +3400,8 @@ MonoBehaviour:
     description: 'From: CorpsDrawer9'
     textType: 1
     translationText:
-    - "\uFEE2\uFE98\uFEB8\uFEEB \uFEEA\uFEE7\uFE8E\uFEA7\uFEA9\uFEAE\uFEB3 \u0649\uFEEE\uFEB8\uFEDB"
     - Corps Drawer Eight
+    - "\uFEE2\uFE98\uFEB8\uFEEB \uFEEA\uFEE7\uFE8E\uFEA7\uFEA9\uFEAE\uFEB3 \u0649\uFEEE\uFEB8\uFEDB"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -3421,8 +3421,8 @@ MonoBehaviour:
     description: 'From: OrganePelak'
     textType: 1
     translationText:
-    - "\uFE96\uFEE3\uFEFC\uFECB Orange "
     - Organ Sign
+    - "\uFE96\uFEE3\uFEFC\uFECB Orange "
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -3442,8 +3442,8 @@ MonoBehaviour:
     description: 'From: Green Sack'
     textType: 1
     translationText:
-    - "\uFEB0\uFE92\uFEB3 \uFEEA\uFEB4\uFBFF\uFEDB"
     - Green Sack
+    - "\uFEB0\uFE92\uFEB3 \uFEEA\uFEB4\uFBFF\uFEDB"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -3463,8 +3463,8 @@ MonoBehaviour:
     description: 'From: CombinationLock_Bolt0'
     textType: 1
     translationText:
-    - "\uFEDD\uFEED\uFE8D \uFEE9\uFEAE\uFEEC\uFEE3"
     - Bolt One
+    - "\uFEDD\uFEED\uFE8D \uFEE9\uFEAE\uFEEC\uFEE3"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -3484,8 +3484,8 @@ MonoBehaviour:
     description: 'From: OrangePelakHS'
     textType: 1
     translationText:
-    - "\uFE96\uFEE3\uFEFC\uFECB Orange "
     - Orange Sign
+    - "\uFE96\uFEE3\uFEFC\uFECB Orange "
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -3505,8 +3505,8 @@ MonoBehaviour:
     description: 
     textType: 5
     translationText:
-    - "\uFEE9\uFEAE\uFBFF\uFEA7\uFEAB"
     - Save
+    - "\uFEE9\uFEAE\uFBFF\uFEA7\uFEAB"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -3526,8 +3526,8 @@ MonoBehaviour:
     description: 
     textType: 5
     translationText:
-    - "\uFEE5\uFEA9\uFEAE\uFEDB \uFEA9\uFEAD\uFE8D\uFEED"
     - Import
+    - "\uFEE5\uFEA9\uFEAE\uFEDB \uFEA9\uFEAD\uFE8D\uFEED"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -3547,8 +3547,8 @@ MonoBehaviour:
     description: 
     textType: 5
     translationText:
-    - "\uFEAD\uFE8E\uFEDB\uFEA9\uFEEE\uFEA7 \uFEE9\uFEAE\uFBFF\uFEA7\uFEAB"
     - Autosave
+    - "\uFEAD\uFE8E\uFEDB\uFEA9\uFEEE\uFEA7 \uFEE9\uFEAE\uFBFF\uFEA7\uFEAB"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -3568,8 +3568,8 @@ MonoBehaviour:
     description: 
     textType: 3
     translationText:
-    - "\uFBFD\uFEE0\uFBFF\uFEE7 \uFB93\uFEE7\uFEAD \uFEEA\uFEB4\uFBFF\uFEDB"
     - Indigo Color Sack
+    - "\uFBFD\uFEE0\uFBFF\uFEE7 \uFB93\uFEE7\uFEAD \uFEEA\uFEB4\uFBFF\uFEDB"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -3589,8 +3589,8 @@ MonoBehaviour:
     description: 
     textType: 6
     translationText:
-    - "\uFEB0\uFBFE\uFEAE\uFE91"
     - Pour
+    - "\uFEB0\uFBFE\uFEAE\uFE91"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -3610,8 +3610,8 @@ MonoBehaviour:
     description: 
     textType: 6
     translationText:
-    - "\uFEE5\uFEED\uFEAD\uFEA9"
     - Into
+    - "\uFEE5\uFEED\uFEAD\uFEA9"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -3631,8 +3631,8 @@ MonoBehaviour:
     description: 
     textType: 3
     translationText:
-    - "\uFBFD\uFE91\uFE81 \uFB93\uFEE7\uFEAD \uFEEA\uFEB4\uFBFF\uFEDB"
     - Blue Color Sack
+    - "\uFBFD\uFE91\uFE81 \uFB93\uFEE7\uFEAD \uFEEA\uFEB4\uFBFF\uFEDB"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -3652,8 +3652,8 @@ MonoBehaviour:
     description: 
     textType: 3
     translationText:
-    - "\uFEB0\uFE92\uFEB3 \uFB93\uFEE7\uFEAD \uFEEA\uFEB4\uFBFF\uFEDB"
     - Green Color Sack
+    - "\uFEB0\uFE92\uFEB3 \uFB93\uFEE7\uFEAD \uFEEA\uFEB4\uFBFF\uFEDB"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -3673,8 +3673,8 @@ MonoBehaviour:
     description: 
     textType: 3
     translationText:
-    - "\uFEA9\uFEAD\uFEAF \uFB93\uFEE7\uFEAD \uFEEA\uFEB4\uFBFF\uFEDB"
     - Yellow Color Sack
+    - "\uFEA9\uFEAD\uFEAF \uFB93\uFEE7\uFEAD \uFEEA\uFEB4\uFBFF\uFEDB"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -3694,8 +3694,8 @@ MonoBehaviour:
     description: 
     textType: 3
     translationText:
-    - "\uFEB6\uFED4\uFEE8\uFE91 \uFB93\uFEE7\uFEAD \uFEEA\uFEB4\uFBFF\uFEDB"
     - Violet Color Sack
+    - "\uFEB6\uFED4\uFEE8\uFE91 \uFB93\uFEE7\uFEAD \uFEEA\uFEB4\uFBFF\uFEDB"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -3715,8 +3715,8 @@ MonoBehaviour:
     description: 
     textType: 3
     translationText:
-    - "\uFBFD\uFEA0\uFEE7\uFEAD\uFE8E\uFEE7 \uFB93\uFEE7\uFEAD \uFEEA\uFEB4\uFBFF\uFEDB"
     - Orange Color Sack
+    - "\uFBFD\uFEA0\uFEE7\uFEAD\uFE8E\uFEE7 \uFB93\uFEE7\uFEAD \uFEEA\uFEB4\uFBFF\uFEDB"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -3736,8 +3736,8 @@ MonoBehaviour:
     description: 
     textType: 3
     translationText:
-    - "\uFEB0\uFEE3\uFEAE\uFED7 \uFB93\uFEE7\uFEAD \uFEEA\uFEB4\uFBFF\uFEDB"
     - Red Color Sack
+    - "\uFEB0\uFEE3\uFEAE\uFED7 \uFB93\uFEE7\uFEAD \uFEEA\uFEB4\uFBFF\uFEDB"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -3757,8 +3757,8 @@ MonoBehaviour:
     description: 
     textType: 3
     translationText:
-    - "\uFEE5\uFE8E\uFEB4\uFEE7\uFE8D \uFEDE\uFEE3\uFE8E\uFEDB \uFEB0\uFED0\uFEE3"
     - Whole Brain
+    - "\uFEE5\uFE8E\uFEB4\uFEE7\uFE8D \uFEDE\uFEE3\uFE8E\uFEDB \uFEB0\uFED0\uFEE3"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -3778,8 +3778,8 @@ MonoBehaviour:
     description: 
     textType: 6
     translationText:
-    - "\uFEAD\uFE8D\uFEB0\uFE91"
     - Put
+    - "\uFEAD\uFE8D\uFEB0\uFE91"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -3799,8 +3799,8 @@ MonoBehaviour:
     description: 
     textType: 6
     translationText:
-    - "\u0649\uFEED\uFEAD"
     - On
+    - "\u0649\uFEED\uFEAD"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -3820,8 +3820,8 @@ MonoBehaviour:
     description: 
     textType: 3
     translationText:
-    - "\uFEE5\uFE8E\uFEB4\uFEE7\uFE8D \uFEB0\uFED0\uFEE3 \uFEEA\uFEDC\uFE97"
     - Samll Piece of Brain
+    - "\uFEE5\uFE8E\uFEB4\uFEE7\uFE8D \uFEB0\uFED0\uFEE3 \uFEEA\uFEDC\uFE97"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -3841,8 +3841,8 @@ MonoBehaviour:
     description: 
     textType: 6
     translationText:
-    - "\uFEE6\uFEDB \uFE95\uFEAE\uFB58"
     - Through
+    - "\uFEE6\uFEDB \uFE95\uFEAE\uFB58"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -3862,8 +3862,8 @@ MonoBehaviour:
     description: 
     textType: 6
     translationText:
-    - "\uFEAD\uFEA9"
     - In
+    - "\uFEAD\uFEA9"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -3883,8 +3883,8 @@ MonoBehaviour:
     description: 
     textType: 3
     translationText:
-    - "\uFBFD\uFB7D\uFBFF\uFED7"
     - Scissors
+    - "\uFBFD\uFB7D\uFBFF\uFED7"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -3904,8 +3904,8 @@ MonoBehaviour:
     description: 
     textType: 6
     translationText:
-    - "\uFE8E\uFE91"
     - With
+    - "\uFE8E\uFE91"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -3925,8 +3925,8 @@ MonoBehaviour:
     description: 
     textType: 6
     translationText:
-    - "\uFEAE\uFE92\uFE91"
     - Cut
+    - "\uFEAE\uFE92\uFE91"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -3946,8 +3946,8 @@ MonoBehaviour:
     description: 
     textType: 3
     translationText:
-    - "\uFEAE\uFB58 \uFED1\uFEAE\uFEC7"
     - Full Pot
+    - "\uFEAE\uFB58 \uFED1\uFEAE\uFEC7"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -3967,8 +3967,8 @@ MonoBehaviour:
     description: 
     textType: 3
     translationText:
-    - "\uFEB0\uFEE3\uFEAE\uFED7 \uFB93\uFEE7\uFEAD \uFED1\uFEAE\uFEC7"
     - Red Pot
+    - "\uFEB0\uFEE3\uFEAE\uFED7 \uFB93\uFEE7\uFEAD \uFED1\uFEAE\uFEC7"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -3988,8 +3988,8 @@ MonoBehaviour:
     description: 
     textType: 3
     translationText:
-    - "\uFEB0\uFE92\uFEB3 \uFB93\uFEE7\uFEAD \uFED1\uFEAE\uFEC7"
     - Green Pot
+    - "\uFEB0\uFE92\uFEB3 \uFB93\uFEE7\uFEAD \uFED1\uFEAE\uFEC7"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -4009,8 +4009,8 @@ MonoBehaviour:
     description: 
     textType: 3
     translationText:
-    - "\uFBFD\uFEA0\uFEE7\uFEAD\uFE8E\uFEE7 \uFB93\uFEE7\uFEAD \uFED1\uFEAE\uFEC7"
     - Orange Pot
+    - "\uFBFD\uFEA0\uFEE7\uFEAD\uFE8E\uFEE7 \uFB93\uFEE7\uFEAD \uFED1\uFEAE\uFEC7"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -4030,8 +4030,8 @@ MonoBehaviour:
     description: 
     textType: 3
     translationText:
-    - "\uFEA9\uFEAD\uFEAF \uFB93\uFEE7\uFEAD \uFED1\uFEAE\uFEC7"
     - Yellow Pot
+    - "\uFEA9\uFEAD\uFEAF \uFB93\uFEE7\uFEAD \uFED1\uFEAE\uFEC7"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -4051,8 +4051,8 @@ MonoBehaviour:
     description: 
     textType: 3
     translationText:
-    - "\uFBFD\uFE91\uFE81 \uFB93\uFEE7\uFEAD \uFED1\uFEAE\uFEC7"
     - Blue Pot
+    - "\uFBFD\uFE91\uFE81 \uFB93\uFEE7\uFEAD \uFED1\uFEAE\uFEC7"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -4072,8 +4072,8 @@ MonoBehaviour:
     description: 
     textType: 3
     translationText:
-    - "\uFBFD\uFEE0\uFBFF\uFEE7 \uFB93\uFEE7\uFEAD \uFED1\uFEAE\uFEC7"
     - Indigo Pot
+    - "\uFBFD\uFEE0\uFBFF\uFEE7 \uFB93\uFEE7\uFEAD \uFED1\uFEAE\uFEC7"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -4093,8 +4093,8 @@ MonoBehaviour:
     description: 
     textType: 3
     translationText:
-    - "\uFEB6\uFED4\uFEE8\uFE91 \uFB93\uFEE7\uFEAD \uFED1\uFEB0\uFEC7"
     - Violet Pot
+    - "\uFEB6\uFED4\uFEE8\uFE91 \uFB93\uFEE7\uFEAD \uFED1\uFEB0\uFEC7"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -4114,8 +4114,8 @@ MonoBehaviour:
     description: 
     textType: 11
     translationText:
-    - "\u0649\uFEA9\uFEAA\uFECB \uFBFD\uFEE8\uFE98\uFEE3 \u06A9\uFEFC\uFB58"
     - Orange Text
+    - "\u0649\uFEA9\uFEAA\uFECB \uFBFD\uFEE8\uFE98\uFEE3 \u06A9\uFEFC\uFB58"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -4141,10 +4141,10 @@ MonoBehaviour:
     translationText:
     - 'Orange
 
-      954188'
+      954187'
     - 'Orange
 
-      954187'
+      954188'
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -4164,8 +4164,8 @@ MonoBehaviour:
     description: 
     textType: 11
     translationText:
-    - "\uFEE9\uFEAD\uFE8D \u0649\uFEED\uFEAD \uFEEA\uFE98\uFEB7\uFEEE\uFEE7"
     - Saw Scripts
+    - "\uFEE9\uFEAD\uFE8D \u0649\uFEED\uFEAD \uFEEA\uFE98\uFEB7\uFEEE\uFEE7"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -4186,12 +4186,12 @@ MonoBehaviour:
     description: 
     textType: 11
     translationText:
+    - "***\n   **\n     ***"
     - ".\uFEE9\uFEAA\uFEB7 \u0649\uFEAA\uFEE8\uFE91 \uFEEA\uFE98\uFEB3\uFEA9 \u0649\uFEAD\uFEEE\uFE9F
       \uFEEA\uFBFE \uFEAD\uFE8E\uFB95\uFEE7\uFE8D \uFBFD\uFEDF\uFEED \uFEE9\uFEAA\uFBFF\uFEE4\uFEE7
       \uFBFD\uFEBB\uFE8E\uFEA7 \uFBFD\uFEE8\uFECC\uFEE3 .\uFE96\uFEB4\uFEEB \uFEAE\uFE91
       \uFEE5\uFE8D\uFEEE\uFEA8\uFE98\uFEB3\uFE8D \uFEE9\uFEAD\uFE8D \u0649\uFEED\uFEAD
       \uFE96\uFEE3\uFEFC\uFECB \u0649\uFEAE\uFEB3 \uFEEA\uFBFE"
-    - "***\n   **\n     ***"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -4211,10 +4211,10 @@ MonoBehaviour:
     description: 
     textType: 11
     translationText:
+    - It is a very strange sign on the test table
     - ".\uFE96\uFEB4\uFEEB \uFEAD\uFE8E\uFEDB \uFEB0\uFBFF\uFEE3 \u0649\uFEED\uFEAD
       \uFE90\uFBFF\uFEA0\uFECB \uFBFD\uFEE0\uFBFF\uFEA7 \uFE96\uFEE3\uFEFC\uFECB
       \uFEEA\uFBFE"
-    - It is a very strange sign on the test table
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -4234,8 +4234,8 @@ MonoBehaviour:
     description: 
     textType: 11
     translationText:
-    - "\uFEAE\uFECC\uFEB7"
     - The Poem
+    - "\uFEAE\uFECC\uFEB7"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -4256,12 +4256,12 @@ MonoBehaviour:
     description: 
     textType: 11
     translationText:
+    - "Since they took you from me\nrainbow is the begginer\nof the rain \nfrom my
+      eyes."
     - "\uFEAA\uFEE8\uFE98\uFED3\uFEAE\uFB94 \uFEE6\uFEE3 \uFEAF\uFE8D \uFE8D\uFEAD
       \uFEEE\uFE97 \uFBFD\uFE98\uFED7\uFEED \uFEAF\uFE8D\n \uFEE5\uFE8E\uFEE4\uFEDB
       \uFEE6\uFBFF\uFB95\uFEE7\uFEAD\n\uFE96\uFEB3\uFE8D \uFEE9\uFEAA\uFEB7 \u0649\uFEAF\uFE8E\uFECF\uFE81\n\uFEE6\uFEE3
       \uFEE5\uFE8E\uFEE4\uFEB8\uFB7C \uFEE5\uFE8D\uFEAD\uFE8E\uFE91 \uFEAE\uFE91"
-    - "Since they took you from me\nrainbow is the begginer\nof the rain \nfrom my
-      eyes."
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -4281,8 +4281,8 @@ MonoBehaviour:
     description: 
     textType: 11
     translationText:
-    - "\uFEB2\uFEDC\uFECB"
     - Photo
+    - "\uFEB2\uFEDC\uFECB"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -4302,10 +4302,10 @@ MonoBehaviour:
     description: 
     textType: 11
     translationText:
+    - A photo of a boy standing near a rainbow
     - ".\uFEE9\uFEA9\uFE8E\uFE98\uFEB4\uFBFE\uFE8D \uFEE5\uFE8E\uFEE4\uFEDB \uFEE6\uFBFF\uFB95\uFEE7\uFEAD
       \uFEDA\uFBFE \uFEAD\uFE8E\uFEE8\uFEDB \uFEEA\uFEDB \uFE96\uFEB4\uFB7D\uFE91
       \uFEAE\uFEB4\uFB58 \uFEEA\uFBFE \uFEAE\uFBFE\uFEEE\uFEBC\uFE97"
-    - A photo of a boy standing near a rainbow
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -4325,8 +4325,8 @@ MonoBehaviour:
     description: 
     textType: 11
     translationText:
-    - "\uFEE6\uFE98\uFEE3 Orange "
     - Organe Text
+    - "\uFEE6\uFE98\uFEE3 Orange "
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -4348,8 +4348,8 @@ MonoBehaviour:
     description: 
     textType: 11
     translationText:
-    - "\uFBFD\uFEE8\uFE98\uFEE3 \u06A9\uFEFC\uFB58"
     - Text Label
+    - "\uFBFD\uFEE8\uFE98\uFEE3 \u06A9\uFEFC\uFB58"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -4369,8 +4369,8 @@ MonoBehaviour:
     description: 
     textType: 11
     translationText:
-    - "\uFB92\uFEAD\uFEB0\uFE91 \uFEE9\uFEAE\uFBFE\uFE8D\uFEA9"
     - Big Circles
+    - "\uFB92\uFEAD\uFEB0\uFE91 \uFEE9\uFEAE\uFBFE\uFE8D\uFEA9"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -4390,9 +4390,9 @@ MonoBehaviour:
     description: 
     textType: 11
     translationText:
+    - Four big circles, one is filled.
     - ".\uFEE9\uFEAE\uFB58 \uFEEE\uFE97 \uFEB6\uFBFF\uFEDC\uFBFE \uFEEA\uFEDB \uFB92\uFEAD\uFEB0\uFE91
       \uFEE9\uFEAE\uFBFE\uFE8D\uFEA9 \uFE8E\uFE97 \uFEAD\uFE8E\uFEEC\uFB7C"
-    - Four big circles, one is filled.
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -4412,8 +4412,8 @@ MonoBehaviour:
     description: 
     textType: 11
     translationText:
-    - "\uFEC2\uFEB3\uFEEE\uFE98\uFEE3 \uFEE9\uFEAE\uFBFE\uFE8D\uFEA9"
     - Medium Circles
+    - "\uFEC2\uFEB3\uFEEE\uFE98\uFEE3 \uFEE9\uFEAE\uFBFE\uFE8D\uFEA9"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -4433,8 +4433,8 @@ MonoBehaviour:
     description: 
     textType: 11
     translationText:
-    - "\uFE95\uFE8E\uFECC\uFBFE\uFE8E\uFEE3 \uFEAF\uFE8D \uFEE9\uFEA9\uFE8E\uFED4\uFE98\uFEB3\uFE8D"
     - Use Liquids
+    - "\uFE95\uFE8E\uFECC\uFBFE\uFE8E\uFEE3 \uFEAF\uFE8D \uFEE9\uFEA9\uFE8E\uFED4\uFE98\uFEB3\uFE8D"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -4456,11 +4456,11 @@ MonoBehaviour:
     description: 
     textType: 11
     translationText:
-    - ".\uFEAA\uFBFF\uFEE8\uFEDB \uFEE9\uFEA9\uFE8E\uFED4\uFE98\uFEB3\uFE8D \uFE95\uFE8E\uFECC\uFBFE\uFE8E\uFEE3
-      \uFEAF\uFE8D \uFEC2\uFED8\uFED3 \uFEEA\uFE98\uFEB7\uFEEE\uFEE7"
     - 'Reads:
 
       Use Liquids Only!'
+    - ".\uFEAA\uFBFF\uFEE8\uFEDB \uFEE9\uFEA9\uFE8E\uFED4\uFE98\uFEB3\uFE8D \uFE95\uFE8E\uFECC\uFBFE\uFE8E\uFEE3
+      \uFEAF\uFE8D \uFEC2\uFED8\uFED3 \uFEEA\uFE98\uFEB7\uFEEE\uFEE7"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -4480,8 +4480,8 @@ MonoBehaviour:
     description: 
     textType: 11
     translationText:
-    - "\uFEB6\uFBFE\uFE8E\uFEE3\uFEAF\uFE81 \u0649\uFE8E\uFEEB \uFEEA\uFEDF\uFEEE\uFEDF"
     - Test Tubes
+    - "\uFEB6\uFBFE\uFE8E\uFEE3\uFEAF\uFE81 \u0649\uFE8E\uFEEB \uFEEA\uFEDF\uFEEE\uFEDF"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -4501,11 +4501,11 @@ MonoBehaviour:
     description: 
     textType: 11
     translationText:
+    - Two closely-colored test tube.
     - ".\uFEE9\uFEAA\uFEB7 \uFEAE\uFB58 \uFBFD\uFEE4\uFEEB \uFEEA\uFE91 \uFEDA\uFBFE\uFEA9\uFEB0\uFEE7
       \u0649\uFE8E\uFEEB \uFB93\uFEE7\uFEAD \uFE8E\uFE91 \uFEB5\uFEEE\uFE97 \uFEEA\uFEDB
       \uFEB6\uFBFE\uFE8E\uFEE3\uFEAF\uFE81 \uFEEA\uFEDF\uFEEE\uFEDF \uFE8E\uFE97
       \uFEED\uFEA9"
-    - Two closely-colored test tube.
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -4525,9 +4525,9 @@ MonoBehaviour:
     description: 
     textType: 13
     translationText:
+    - Find a way out!
     - "\uFBFD\uFE9F\uFEED\uFEAE\uFEA7 \uFEE9\uFE8D\uFEAD \uFEE5\uFEA9\uFEAE\uFEDB
       \uFE8D\uFEAA\uFBFF\uFB58"
-    - Find a way out!
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -4548,14 +4548,14 @@ MonoBehaviour:
     description: 
     textType: 13
     translationText:
+    - I should get out of here and talk to someone knows where is here and why am
+      I left in this cold place.
     - "\u061F\uFEE2\uFE98\uFEB4\uFEEB \uFE8E\uFEA0\uFEE8\uFBFE\uFE8D \uFE8D\uFEAE\uFB7C
       \uFEE6\uFEE3 \uFEED \uFE96\uFEB3\uFE8E\uFEA0\uFEDB \uFE8E\uFEA0\uFEE8\uFBFE\uFE8D
       \uFEE2\uFEB3\uFEAE\uFB59\uFE91 \uFEB5\uFEAF\uFE8D \uFEED \uFEE2\uFEE8\uFEDB
       \uFE8D\uFEAA\uFBFF\uFB58 \uFEED\uFEAD \uFEAE\uFED4\uFEE7 \uFEEA\uFBFE \uFEED
       \uFEE5\uFEED\uFEAE\uFBFF\uFE91 \uFEE1\uFEAE\uFE91 \uFE8E\uFEA0\uFEE8\uFBFE\uFE8D
       \uFEAF\uFE8D \uFEAA\uFBFE\uFE8E\uFE91"
-    - I should get out of here and talk to someone knows where is here and why am
-      I left in this cold place.
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -4575,8 +4575,8 @@ MonoBehaviour:
     description: 
     textType: 13
     translationText:
-    - "\uFEDD\uFE8E\uFECC\uFED3"
     - Started
+    - "\uFEDD\uFE8E\uFECC\uFED3"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -4596,11 +4596,11 @@ MonoBehaviour:
     description: 
     textType: 13
     translationText:
+    - There is a lock door that I should find a way to open it up.
     - ".\uFEE2\uFEE8\uFEDB \uFE8D\uFEAA\uFBFF\uFB58 \uFEB6\uFEE7\uFEA9\uFEAE\uFEDB
       \uFEAF\uFE8E\uFE91 \u0649\uFE8D\uFEAE\uFE91 \uFEE9\uFE8D\uFEAD \uFEEA\uFBFE
       \uFEAA\uFBFE\uFE8E\uFE91 .\uFEEA\uFEE0\uFED4\uFED7 \uFEEA\uFEDB \uFE96\uFEB4\uFEEB
       \uFEAD\uFEA9 \uFEEA\uFBFE"
-    - There is a lock door that I should find a way to open it up.
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -4620,8 +4620,8 @@ MonoBehaviour:
     description: 
     textType: 13
     translationText:
-    - "\uFEAA\uFEB7 \uFEE1\uFE8E\uFEA0\uFEE7\uFE8D"
     - Completed
+    - "\uFEAA\uFEB7 \uFEE1\uFE8E\uFEA0\uFEE7\uFE8D"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -4641,9 +4641,9 @@ MonoBehaviour:
     description: 
     textType: 13
     translationText:
+    - The door is now open. Let's get out of here and talk to someone.
     - "\uFEE5\uFEED\uFEAE\uFBFF\uFE91 \uFEE1\uFEAE\uFE91 \uFEAA\uFBFE\uFE8E\uFE91
       .\uFEE9\uFEAA\uFEB7 \uFEAF\uFE8E\uFE91 \uFEAD\uFEA9"
-    - The door is now open. Let's get out of here and talk to someone.
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -4663,9 +4663,9 @@ MonoBehaviour:
     description: 
     textType: 13
     translationText:
+    - Find a combination lock numbers.
     - "\uFEE2\uFEE8\uFEDB \uFE8D\uFEAA\uFBFF\uFB58 \uFEAA\uFBFE\uFE8E\uFE91 \uFEED\uFEAD
       \uFEDE\uFED4\uFED7 \uFEB0\uFEE3\uFEAD"
-    - Find a combination lock numbers.
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -4685,10 +4685,10 @@ MonoBehaviour:
     description: 
     textType: 13
     translationText:
+    - I should find a 6 digit combination to unlock the drawer.
     - "\uFEE2\uFEE8\uFEDB \uFE8D\uFEAA\uFBFF\uFB58 \uFEAA\uFBFE\uFE8E\uFE91 \uFEDE\uFED4\uFED7
       \uFEE6\uFBFE\uFE8D \u0649\uFE8D\uFEAE\uFE91 \uFBFD\uFEE4\uFED7\uFEAD \uFEB6\uFEB7
       \uFEB0\uFEE3\uFEAD \uFEEA\uFBFE"
-    - I should find a 6 digit combination to unlock the drawer.
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -4708,10 +4708,10 @@ MonoBehaviour:
     description: 
     textType: 13
     translationText:
+    - The combination was 958417. so easy!
     - ".\uFEA9\uFEEE\uFE91 \uFE96\uFEA3\uFE8D\uFEAD \uFBFD\uFEE0\uFBFF\uFEA7 !\uFEE1\uFEA9\uFEAE\uFEDB
       \uFE8D\uFEAA\uFBFF\uFB58 \uFE8D\uFEAA\uFBFF\uFB58  \uFEED\uFEAD \uFEDE\uFED4\uFED7
       \uFEB0\uFEE3\uFEAD"
-    - The combination was 958417. so easy!
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -4731,8 +4731,8 @@ MonoBehaviour:
     description: 
     textType: 13
     translationText:
-    - "\uFED5\uFEED\uFEAA\uFEE8\uFEBB\uFEED\uFE8E\uFB94 \uFEDE\uFED4\uFED7"
     - Safe Lock
+    - "\uFED5\uFEED\uFEAA\uFEE8\uFEBB\uFEED\uFE8E\uFB94 \uFEDE\uFED4\uFED7"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -4753,13 +4753,13 @@ MonoBehaviour:
     description: 
     textType: 13
     translationText:
+    - Find a way to open the safe door. It may contains some clue to how to open
+      the door.
     - "\uFEEA\uFEB7\uFE8E\uFE91 \uFEB5\uFEEE\uFE97 \uFED5\uFE8E\uFE97\uFE8D \uFEAF\uFE8D
       \uFE9D\uFEED\uFEAE\uFEA7 \u0649\uFE8D\uFEAE\uFE91 \uFBFD\uFEEB\uFE8D\uFEAD
       \uFEEA\uFEE8\uFEDC\uFEE4\uFEE3 .\uFEE6\uFEDB \uFE8D\uFEAA\uFBFF\uFB58 \uFED5\uFEED\uFEAA\uFEE8\uFEBB\uFEED\uFE8E\uFB94
       \uFEAD\uFEA9 \uFEE5\uFEA9\uFEAE\uFEDB \uFEAF\uFE8E\uFE91 \u0649\uFE8D\uFEAE\uFE91
       \uFBFD\uFEEB\uFE8D\uFEAD"
-    - Find a way to open the safe door. It may contains some clue to how to open
-      the door.
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -4780,12 +4780,12 @@ MonoBehaviour:
     description: 
     textType: 13
     translationText:
+    - A handle and a rotator combination beside a key necessary to open the safe's
+      door.
     - ".\uFEE9\uFEAF\uFE8E\uFBFF\uFEE7 \uFED5\uFEED\uFEAA\uFEE8\uFEBB\uFEED\uFE8E\uFB94
       \uFEE5\uFEA9\uFEAE\uFEDB \uFEAF\uFE8E\uFE91 \u0649\uFE8D\uFEAE\uFE91 \uFEAA\uFBFF\uFEE0\uFEDB
       \uFEEA\uFBFE \uFEED \uFBFD\uFB58\uFEEE\uFE97 \uFEED \uFEE9\uFEAE\uFBFF\uFB95\uFE98\uFEB3\uFEA9
       \uFEAF\uFE8D \uFBFD\uFE92\uFBFF\uFEDB\uFEAE\uFE97"
-    - A handle and a rotator combination beside a key necessary to open the safe's
-      door.
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -4805,11 +4805,11 @@ MonoBehaviour:
     description: 
     textType: 13
     translationText:
+    - The door is opened to a discussting feature. A human mind!
     - ".\uFEE5\uFE8E\uFEB4\uFEE7\uFE8D \uFEB0\uFED0\uFEE3 \uFEEA\uFBFE !\uFEAA\uFEB7
       \uFEAF\uFE8E\uFE91 \uFEE5\uFEAF \uFEE2\uFEEB \uFEEA\uFE91 \uFEDD\uFE8E\uFEA3
       \uFEEA\uFEE8\uFEA4\uFEBB \uFEEA\uFBFE \uFEEA\uFE91 \uFED5\uFEED\uFEAA\uFEE8\uFEBB\uFEED\uFE8E\uFB94
       \uFEAD\uFEA9"
-    - The door is opened to a discussting feature. A human mind!
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -4830,11 +4830,11 @@ MonoBehaviour:
     description: 
     textType: 13
     translationText:
+    - These jar and shelves are so suspicious! I should find a way to figure it out.
     - ".\uFEE2\uFEE8\uFEDC\uFE91 \uFBFD\uFEB3\uFEAD\uFEAE\uFE91 \uFEEA\uFBFE \uFEAA\uFBFE\uFE8E\uFE91
       .\uFEAA\uFEE8\uFE98\uFEB4\uFEEB \u06A9\uFEEE\uFEDC\uFEB8\uFEE3 \uFE8E\uFEEB
       \uFEEA\uFEB4\uFED4\uFED7 \uFEED \u0649\uFE8D \uFEEA\uFEB8\uFBFF\uFEB7 \uFED1\uFEED\uFEAE\uFEC7
       \uFEE6\uFBFE\uFE8D"
-    - These jar and shelves are so suspicious! I should find a way to figure it out.
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -4854,10 +4854,10 @@ MonoBehaviour:
     description: 
     textType: 13
     translationText:
+    - How should I handle these jars?
     - "\u061F\uFEE2\uFEE8\uFEDB \uFEAD\uFE8E\uFEDB \u0649\uFE8D \uFEEA\uFEB8\uFBFF\uFEB7
       \uFED1\uFEED\uFEAE\uFEC7 \uFEE6\uFBFE\uFE8D \uFE8E\uFE91 \uFEAA\uFBFE\uFE8E\uFE91
       \uFEAD\uFEEE\uFEC4\uFB7C"
-    - How should I handle these jars?
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -4877,12 +4877,12 @@ MonoBehaviour:
     description: 
     textType: 13
     translationText:
+    - I am discussed! Four pieces of mind inserted in the small jars by me!
     - ".\uFEE6\uFEE3 \uFEC2\uFEB3\uFEEE\uFE97 \uFEE2\uFEE7\uFEED\uFE8D !\u0649\uFE8D
       \uFEEA\uFEB8\uFBFF\uFEB7 \uFED1\uFEED\uFEAE\uFEC7 \u0649\uFEEE\uFE97 \uFEAA\uFEB7
       \uFEEA\uFE98\uFEA8\uFBFE\uFEAD \uFEB0\uFED0\uFEE3 \uFEEA\uFEDC\uFE97 \uFE8E\uFE97
       \uFEAD\uFE8E\uFEEC\uFB7C !\uFEA9\uFEAD\uFEEE\uFEA7 \uFEE2\uFEEB \uFEEA\uFE91
       \uFEE2\uFEDF\uFE8E\uFEA3"
-    - I am discussed! Four pieces of mind inserted in the small jars by me!
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -4903,12 +4903,12 @@ MonoBehaviour:
     description: 
     textType: 13
     translationText:
+    - I dont't know if these tubes are related to the door or not. I should get to
+      know it.
     - ".\uFEE1\uFEAD\uFE8E\uFBFF\uFE91 \uFEAD\uFEA9 \uFEAE\uFEB3 \uFEAA\uFBFE\uFE8E\uFE91
       .\uFEEA\uFEE7 \uFE8E\uFBFE \uFEE9\uFEAD\uFE8D\uFEA9 \uFEAD\uFEA9 \uFEEA\uFE91
       \uFBFD\uFEC4\uFE91\uFEAD \uFEB6\uFBFE\uFE8E\uFEE3\uFEAF\uFE81 \u0649\uFE8E\uFEEB
       \uFEEA\uFEDF\uFEEE\uFEDF \uFEE6\uFBFE\uFE8D \uFEE2\uFEE7\uFEED\uFEAA\uFBFF\uFEE4\uFEE7"
-    - I dont't know if these tubes are related to the door or not. I should get to
-      know it.
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -4928,10 +4928,10 @@ MonoBehaviour:
     description: 
     textType: 13
     translationText:
+    - Some test tubes are here. I don't know the usage.
     - ".\uFEE2\uFEE7\uFEED\uFEA9 \uFBFD\uFEE4\uFEE7 \uFEED\uFEAD \uFEB5\uFEA9\uFEAE\uFEDB\uFEAD\uFE8E\uFEDB
       .\uFE96\uFEB3\uFE8E\uFEA0\uFEE8\uFBFE\uFE8D \uFEB6\uFBFE\uFE8E\uFEE3\uFEAF\uFE81
       \uFEEA\uFEDF\uFEEE\uFEDF \uFEA9\uFE8D\uFEAA\uFECC\uFE97 \uFEEA\uFBFE"
-    - Some test tubes are here. I don't know the usage.
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -4951,9 +4951,9 @@ MonoBehaviour:
     description: 
     textType: 13
     translationText:
+    - The rainbow power is awesome!
     - "\uFEA9\uFEEE\uFE91 \uFEE9\uFEA9\uFE8E\uFECC\uFEDF\uFE8D \uFED5\uFEEE\uFED3
       \uFEE5\uFE8E\uFEE4\uFEDB \uFEE6\uFBFF\uFB95\uFEE7\uFEAD \uFE95\uFEAD\uFEAA\uFED7"
-    - The rainbow power is awesome!
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -4973,8 +4973,8 @@ MonoBehaviour:
     description: 
     textType: 13
     translationText:
-    - "\uFEE6\uFEDB \uFE96\uFE92\uFEA4\uFEBB \uFEAE\uFED4\uFEE7 \uFEDA\uFBFE \uFE8E\uFE91"
     - Talk To Somebody
+    - "\uFEE6\uFEDB \uFE96\uFE92\uFEA4\uFEBB \uFEAE\uFED4\uFEE7 \uFEDA\uFBFE \uFE8E\uFE91"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -4994,11 +4994,11 @@ MonoBehaviour:
     description: 
     textType: 13
     translationText:
+    - I should find some one to ask about my situation.
     - "\uFEE2\uFEE8\uFEDB \uFE96\uFE92\uFEA4\uFEBB \uFEE1\uFEA9\uFEEE\uFEA7 \uFE96\uFBFF\uFECC\uFEBF\uFEED
       \uFEB9\uFEEE\uFEBC\uFEA7 \uFEAD\uFEA9 \uFEB5\uFE8E\uFEEB\uFE8E\uFE91 \uFEED
       \uFEE2\uFEE8\uFEDB \uFE8D\uFEAA\uFBFF\uFB58 \uFEED\uFEAD \uFEAE\uFED4\uFEE7
       \uFEDA\uFBFE \uFEAA\uFBFE\uFE8E\uFE91"
-    - I should find some one to ask about my situation.
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -5018,10 +5018,10 @@ MonoBehaviour:
     description: 
     textType: 13
     translationText:
+    - I don't know where is here? I should ask someone.
     - ".\uFEE2\uFEB3\uFEAE\uFB59\uFE91 \uFEAE\uFED4\uFEE7 \uFEDA\uFBFE \uFEAF\uFE8D
       \uFEAA\uFBFE\uFE8E\uFE91 \u061F\uFE96\uFEB3\uFE8E\uFEA0\uFEDB \uFE8E\uFEA0\uFEE8\uFBFE\uFE8D
       \uFEE2\uFEE7\uFEED\uFEAA\uFBFF\uFEE4\uFEE7"
-    - I don't know where is here? I should ask someone.
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -5041,10 +5041,10 @@ MonoBehaviour:
     description: 
     textType: 13
     translationText:
+    - I still don't know where is here and why I am here.
     - ".\uFEE1\uFE8E\uFEA0\uFEE8\uFBFE\uFE8D \uFEE6\uFEE3 \uFE8D\uFEAE\uFB7C \uFEED
       \uFE96\uFEB3\uFE8E\uFEA0\uFEDB \uFE8E\uFEA0\uFEE8\uFBFE\uFE8D \uFEE2\uFEE7\uFEED\uFEAA\uFBFF\uFEE4\uFEE7
       \uFEAF\uFEEE\uFEE8\uFEEB \uFEE6\uFEE3"
-    - I still don't know where is here and why I am here.
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -5064,8 +5064,8 @@ MonoBehaviour:
     description: 
     textType: 6
     translationText:
-    - "\uFEE6\uFEDB \uFEE9\uFEA9\uFE8E\uFED4\uFE98\uFEB3\uFE8D"
     - Use
+    - "\uFEE6\uFEDB \uFEE9\uFEA9\uFE8E\uFED4\uFE98\uFEB3\uFE8D"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -5085,8 +5085,8 @@ MonoBehaviour:
     description: 
     textType: 6
     translationText:
-    - "\u0649\uFEED\uFEAD"
     - On
+    - "\u0649\uFEED\uFEAD"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -5106,8 +5106,8 @@ MonoBehaviour:
     description: 
     textType: 6
     translationText:
-    - "\uFEE9\uFEAA\uFE91"
     - Give
+    - "\uFEE9\uFEAA\uFE91"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -5127,8 +5127,8 @@ MonoBehaviour:
     description: 
     textType: 6
     translationText:
-    - "\uFEEA\uFE91"
     - To
+    - "\uFEEA\uFE91"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -5148,8 +5148,8 @@ MonoBehaviour:
     description: 
     textType: 6
     translationText:
-    - "\uFEEA\uFE91 \uFEED\uFEAE\uFE91"
     - Walk to
+    - "\uFEEA\uFE91 \uFEED\uFEAE\uFE91"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -5169,8 +5169,8 @@ MonoBehaviour:
     description: 
     textType: 4
     translationText:
-    - "\uFEE6\uFEDB \uFE96\uFE92\uFEA4\uFEBB"
     - Talk to
+    - "\uFEE6\uFEDB \uFE96\uFE92\uFEA4\uFEBB"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -5190,8 +5190,8 @@ MonoBehaviour:
     description: 
     textType: 4
     translationText:
-    - "\uFEE6\uFEDB \uFEE9\uFE8E\uFB95\uFEE7"
     - Look at
+    - "\uFEE6\uFEDB \uFEE9\uFE8E\uFB95\uFEE7"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -5211,8 +5211,8 @@ MonoBehaviour:
     description: 
     textType: 4
     translationText:
-    - "\uFEAD\uFE8D\uFEA9\uFEAE\uFE91"
     - Pick
+    - "\uFEAD\uFE8D\uFEA9\uFEAE\uFE91"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -5253,8 +5253,8 @@ MonoBehaviour:
     description: 
     textType: 5
     translationText:
-    - "\uFE96\uFEB8\uFB94\uFEAF\uFE8E\uFE91"
     - Resume
+    - "\uFE96\uFEB8\uFB94\uFEAF\uFE8E\uFE91"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -5274,8 +5274,8 @@ MonoBehaviour:
     description: 
     textType: 5
     translationText:
-    - "\uFE95\uFE8E\uFEE4\uFBFF\uFEC8\uFEE8\uFE97"
     - Options
+    - "\uFE95\uFE8E\uFEE4\uFBFF\uFEC8\uFEE8\uFE97"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -5295,8 +5295,8 @@ MonoBehaviour:
     description: 
     textType: 5
     translationText:
-    - "\uFBFD\uFE91\uFE8E\uFBFE\uFEAF\uFE8E\uFE91"
     - Load
+    - "\uFBFD\uFE91\uFE8E\uFBFE\uFEAF\uFE8E\uFE91"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -5316,8 +5316,8 @@ MonoBehaviour:
     description: 
     textType: 5
     translationText:
-    - "\u0649\uFEAF\uFE8E\uFE91 \uFEB5\uFEAF\uFEEE\uFEE3\uFE81"
     - Tutorials
+    - "\u0649\uFEAF\uFE8E\uFE91 \uFEB5\uFEAF\uFEEE\uFEE3\uFE81"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -5337,8 +5337,8 @@ MonoBehaviour:
     description: 
     textType: 5
     translationText:
-    - "\uFE9D\uFEED\uFEAE\uFEA7"
     - Quit
+    - "\uFE9D\uFEED\uFEAE\uFEA7"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -5358,8 +5358,8 @@ MonoBehaviour:
     description: 
     textType: 5
     translationText:
-    - "\uFE96\uFE92\uFEA4\uFEBB \u0649\uFE8D\uFEAA\uFEBB"
     - Speech volume
+    - "\uFE96\uFE92\uFEA4\uFEBB \u0649\uFE8D\uFEAA\uFEBB"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -5379,8 +5379,8 @@ MonoBehaviour:
     description: 
     textType: 5
     translationText:
-    - "\uFBFD\uFED8\uFBFF\uFEB3\uFEEE\uFEE3 \u0649\uFE8D\uFEAA\uFEBB"
     - Music volume
+    - "\uFBFD\uFED8\uFBFF\uFEB3\uFEEE\uFEE3 \u0649\uFE8D\uFEAA\uFEBB"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -5400,8 +5400,8 @@ MonoBehaviour:
     description: 
     textType: 5
     translationText:
-    - "\uFEB2\uFEDC\uFED3\uFE8D \u0649\uFE8D\uFEAA\uFEBB"
     - SFX volume
+    - "\uFEB2\uFEDC\uFED3\uFE8D \u0649\uFE8D\uFEAA\uFEBB"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -5421,8 +5421,8 @@ MonoBehaviour:
     description: 
     textType: 5
     translationText:
-    - "\uFEE5\uFE8E\uFE91\uFEAF"
     - Language
+    - "\uFEE5\uFE8E\uFE91\uFEAF"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -5442,8 +5442,8 @@ MonoBehaviour:
     description: 
     textType: 5
     translationText:
-    - "\uFEB2\uFBFE\uFEEE\uFEE7\uFEAE\uFBFE\uFEAF"
     - Subtitles
+    - "\uFEB2\uFBFE\uFEEE\uFEE7\uFEAE\uFBFE\uFEAF"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -5463,8 +5463,8 @@ MonoBehaviour:
     description: 
     textType: 5
     translationText:
-    - "\uFEB5\uFEEE\uFEE3\uFE8E\uFEA7"
     - Off
+    - "\uFEB5\uFEEE\uFEE3\uFE8E\uFEA7"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -5484,8 +5484,8 @@ MonoBehaviour:
     description: 
     textType: 5
     translationText:
-    - "\uFE96\uFEB8\uFB94\uFEAF\uFE8E\uFE91"
     - Back
+    - "\uFE96\uFEB8\uFB94\uFEAF\uFE8E\uFE91"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -5505,8 +5505,8 @@ MonoBehaviour:
     description: 
     textType: 5
     translationText:
-    - "\u0649\uFEAF\uFE8E\uFE91 \uFEE9\uFEAE\uFBFF\uFEA7\uFEAB"
     - Save game
+    - "\u0649\uFEAF\uFE8E\uFE91 \uFEE9\uFEAE\uFBFF\uFEA7\uFEAB"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -5526,8 +5526,8 @@ MonoBehaviour:
     description: 
     textType: 5
     translationText:
-    - "\uFEAA\uFBFE\uFEAA\uFE9F \uFEE9\uFEAE\uFBFF\uFEA7\u0630"
     - New save
+    - "\uFEAA\uFBFE\uFEAA\uFE9F \uFEE9\uFEAE\uFBFF\uFEA7\u0630"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -5547,8 +5547,8 @@ MonoBehaviour:
     description: 
     textType: 5
     translationText:
-    - "\u0649\uFEAF\uFE8E\uFE91 \uFBFD\uFE91\uFE8E\uFBFE\uFEAF\uFE8E\uFE91"
     - Load game
+    - "\u0649\uFEAF\uFE8E\uFE91 \uFBFD\uFE91\uFE8E\uFBFE\uFEAF\uFE8E\uFE91"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -5568,8 +5568,8 @@ MonoBehaviour:
     description: 
     textType: 5
     translationText:
-    - "\uFE95\uFE8E\uFECB\uFEFC\uFEC3\uFE8D \uFEE5\uFEED\uFEAA\uFE91\r"
     - No Data!
+    - "\uFE95\uFE8E\uFECB\uFEFC\uFEC3\uFE8D \uFEE5\uFEED\uFEAA\uFE91\r"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -5589,8 +5589,8 @@ MonoBehaviour:
     description: 
     textType: 5
     translationText:
-    - "\uFED2\uFED7\uFEEE\uFE97"
     - Menu
+    - "\uFED2\uFED7\uFEEE\uFE97"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -5610,8 +5610,8 @@ MonoBehaviour:
     description: 
     textType: 5
     translationText:
-    - "\uFEE6\uFE98\uFEB4\uFE91"
     - Close
+    - "\uFEE6\uFE98\uFEB4\uFE91"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -5631,8 +5631,8 @@ MonoBehaviour:
     description: 
     textType: 5
     translationText:
-    - "\uFED1\uFE8D\uFEAA\uFEEB\uFE8D"
     - Objectives
+    - "\uFED1\uFE8D\uFEAA\uFEEB\uFE8D"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -5652,8 +5652,8 @@ MonoBehaviour:
     description: 
     textType: 5
     translationText:
-    - "\uFE96\uFEB8\uFB94\uFEAF\uFE8E\uFE91"
     - Return
+    - "\uFE96\uFEB8\uFB94\uFEAF\uFE8E\uFE91"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -5675,12 +5675,12 @@ MonoBehaviour:
     description: 
     textType: 5
     translationText:
-    - "\uFEE5\uFE8E\uFBFF\uFEDB \uFEA9\uFE8E\uFBFE \uFEEA\uFE91\n\uFEA9\uFEEE\uFE91
-      \uFEE5\uFE8E\uFEE4\uFEDB \uFEE6\uFBFF\uFB95\uFEE7\uFEAD \uFED6\uFEB7\uFE8E\uFECB
-      \uFEEA\uFEDB "
     - 'In Memory of Kian
 
       Who loved rainbows'
+    - "\uFEE5\uFE8E\uFBFF\uFEDB \uFEA9\uFE8E\uFBFE \uFEEA\uFE91\n\uFEA9\uFEEE\uFE91
+      \uFEE5\uFE8E\uFEE4\uFEDB \uFEE6\uFBFF\uFB95\uFEE7\uFEAD \uFED6\uFEB7\uFE8E\uFECB
+      \uFEEA\uFEDB "
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -5700,9 +5700,9 @@ MonoBehaviour:
     description: 
     textType: 5
     translationText:
+    - And left us soon
     - "\uFEAA\uFEB7 \uFEEA\uFE98\uFED3\uFEAE\uFB94 \uFE8E\uFEE3 \uFEAF\uFE8D \uFEA9\uFEED\uFEAF
       \uFEED"
-    - And left us soon
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -5723,12 +5723,12 @@ MonoBehaviour:
     description: 
     textType: 5
     translationText:
+    - "Since they took you from me\nrainbow is the begginer\nof the rain \nfrom my
+      eyes."
     - "\uFEAA\uFEE8\uFE98\uFED3\uFEAE\uFB94 \uFEE6\uFEE3 \uFEAF\uFE8D \uFE8D\uFEAD
       \uFEEE\uFE97 \uFBFD\uFE98\uFED7\uFEED \uFEAF\uFE8D\n \uFEE5\uFE8E\uFEE4\uFEDB
       \uFEE6\uFBFF\uFB95\uFEE7\uFEAD\n\uFE96\uFEB3\uFE8D \uFEE9\uFEAA\uFEB7 \u0649\uFEAF\uFE8E\uFECF\uFE81\n\uFEE6\uFEE3
       \uFEE5\uFE8E\uFEE4\uFEB8\uFB7C \uFEE5\uFE8D\uFEAD\uFE8E\uFE91 \uFEAE\uFE91"
-    - "Since they took you from me\nrainbow is the begginer\nof the rain \nfrom my
-      eyes."
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -5750,12 +5750,12 @@ MonoBehaviour:
     description: 
     textType: 5
     translationText:
-    - "\uFEE6\uFEE0\uFEEB \u0649\uFEAF\uFE8E\uFEB3 \u0649\uFEAF\uFE8E\uFE91 \uFEEA\uFEE7\uFE8E\uFEA7\uFEAD\uFE8E\uFEDB\n\uFEAA\uFEE8\uFEDB
-      \uFBFD\uFEE3 \uFEE2\uFBFE\uFEAA\uFED8\uFE97 \uFEAD\uFE8E\uFEA8\uFE98\uFED3\uFE8D
-      \uFE8E\uFE91"
     - 'Helen Game Factory
 
       Proudly Presents'
+    - "\uFEE6\uFEE0\uFEEB \u0649\uFEAF\uFE8E\uFEB3 \u0649\uFEAF\uFE8E\uFE91 \uFEEA\uFEE7\uFE8E\uFEA7\uFEAD\uFE8E\uFEDB\n\uFEAA\uFEE8\uFEDB
+      \uFBFD\uFEE3 \uFEE2\uFBFE\uFEAA\uFED8\uFE97 \uFEAD\uFE8E\uFEA8\uFE98\uFED3\uFE8D
+      \uFE8E\uFE91"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -5775,8 +5775,8 @@ MonoBehaviour:
     description: 
     textType: 5
     translationText:
-    - "\uFB92\uFEAE\uFEE3 \uFEAF\uFE8D \uFEAD\uFE8D\uFEAE\uFED3"
     - Death Escape
+    - "\uFB92\uFEAE\uFEE3 \uFEAF\uFE8D \uFEAD\uFE8D\uFEAE\uFED3"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -5798,8 +5798,8 @@ MonoBehaviour:
     description: 
     textType: 5
     translationText:
-    - "!\uFEAA\uFBFE\uFEA9\uFEAE\uFEDB \u0649\uFEAF\uFE8E\uFE91 \uFEEA\uFEDB \uFEE5\uFEEE\uFEE8\uFEE4\uFEE3"
     - Thanks for playing!
+    - "!\uFEAA\uFBFE\uFEA9\uFEAE\uFEDB \u0649\uFEAF\uFE8E\uFE91 \uFEEA\uFEDB \uFEE5\uFEEE\uFEE8\uFEE4\uFEE3"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -5819,9 +5819,9 @@ MonoBehaviour:
     description: 
     textType: 5
     translationText:
+    - Proudly Presents
     - "\uFEAA\uFEE8\uFEDB \uFBFD\uFEE3 \uFEE2\uFBFE\uFEAA\uFED8\uFE97 \uFEAD\uFE8E\uFEA8\uFE98\uFED3\uFE8D
       \uFE8E\uFE91"
-    - Proudly Presents
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -5841,8 +5841,8 @@ MonoBehaviour:
     description: 
     textType: 5
     translationText:
-    - "\uFEE6\uFEE0\uFEEB \u0649\uFEAF\uFE8E\uFEB3 \u0649\uFEAF\uFE8E\uFE91 \uFEEA\uFEE7\uFE8E\uFEA7\uFEAD\uFE8E\uFEDB"
     - Helen Game Factory
+    - "\uFEE6\uFEE0\uFEEB \u0649\uFEAF\uFE8E\uFEB3 \u0649\uFEAF\uFE8E\uFE91 \uFEEA\uFEE7\uFE8E\uFEA7\uFEAD\uFE8E\uFEDB"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -5862,8 +5862,8 @@ MonoBehaviour:
     description: 
     textType: 5
     translationText:
-    - "\u0649\uFEAF\uFE8E\uFE91 \uFEAF\uFE8E\uFECF\uFE81"
     - Start Game
+    - "\u0649\uFEAF\uFE8E\uFE91 \uFEAF\uFE8E\uFECF\uFE81"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -5883,8 +5883,8 @@ MonoBehaviour:
     description: 
     textType: 5
     translationText:
-    - "\u0649\uFEAF\uFE8E\uFE91 \uFEEA\uFE91 \uFEAF\uFE8E\uFBFF\uFE98\uFEE3\uFE8D\r"
     - Rate Us
+    - "\u0649\uFEAF\uFE8E\uFE91 \uFEEA\uFE91 \uFEAF\uFE8E\uFBFF\uFE98\uFEE3\uFE8D\r"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -5904,8 +5904,8 @@ MonoBehaviour:
     description: 
     textType: 5
     translationText:
-    - "\uFE95\uFEFB\uFEEE\uFEBC\uFEA4\uFEE3 \uFEAE\uFBFE\uFE8E\uFEB3\r"
     - Other Products
+    - "\uFE95\uFEFB\uFEEE\uFEBC\uFEA4\uFEE3 \uFEAE\uFBFE\uFE8E\uFEB3\r"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -5925,8 +5925,8 @@ MonoBehaviour:
     description: 
     textType: 5
     translationText:
-    - "\u061F \u0649\uFEAF\uFE8E\uFE91 \uFEAF\uFE8D \uFBFD\uFEDF\uFE8E\uFEE3 \uFE96\uFBFE\uFE8E\uFEE4\uFEA3\r"
     - Support Us Improve Our Job?
+    - "\u061F \u0649\uFEAF\uFE8E\uFE91 \uFEAF\uFE8D \uFBFD\uFEDF\uFE8E\uFEE3 \uFE96\uFBFE\uFE8E\uFEE4\uFEA3\r"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -5946,8 +5946,8 @@ MonoBehaviour:
     description: 
     textType: 5
     translationText:
-    - "\uFBFD\uFEDF\uFE8E\uFEE3 \uFE96\uFBFE\uFE8E\uFEE4\uFEA3"
     - Pay to Support
+    - "\uFBFD\uFEDF\uFE8E\uFEE3 \uFE96\uFBFE\uFE8E\uFEE4\uFEA3"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -5967,8 +5967,8 @@ MonoBehaviour:
     description: 
     textType: 5
     translationText:
-    - "\uFEAE\uFE98\uFEB8\uFBFF\uFE91 \uFE96\uFEA7\uFE8D\uFEA9\uFEAE\uFB58\r"
     - Pay More
+    - "\uFEAE\uFE98\uFEB8\uFBFF\uFE91 \uFE96\uFEA7\uFE8D\uFEA9\uFEAE\uFB58\r"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -5988,8 +5988,8 @@ MonoBehaviour:
     description: 
     textType: 5
     translationText:
-    - "\uFBFD\uFEE0\uFE92\uFED7"
     - Previous
+    - "\uFBFD\uFEE0\uFE92\uFED7"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -6009,8 +6009,8 @@ MonoBehaviour:
     description: 
     textType: 5
     translationText:
-    - "\u0649\uFEAA\uFECC\uFE91"
     - Next
+    - "\u0649\uFEAA\uFECC\uFE91"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -6030,8 +6030,8 @@ MonoBehaviour:
     description: 
     textType: 5
     translationText:
-    - "\uFEB5\uFEAF\uFEEE\uFEE3\uFE81"
     - Tutorial
+    - "\uFEB5\uFEAF\uFEEE\uFEE3\uFE81"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -6051,9 +6051,9 @@ MonoBehaviour:
     description: 
     textType: 5
     translationText:
+    - Use to move
     - "\uFEAA\uFBFF\uFEE8\uFEDB \uFEE9\uFEA9\uFE8E\uFED4\uFE98\uFEB3\uFE8D \uFE96\uFEDB\uFEAE\uFEA3
       \u0649\uFE8D\uFEAE\uFE91"
-    - Use to move
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -6073,8 +6073,8 @@ MonoBehaviour:
     description: 
     textType: 5
     translationText:
-    - "\uFEE9\uFEAA\uFEB7 \uFE8D\uFEAA\uFBFF\uFB58 \uFEDE\uFBFE\uFE8E\uFEB3\uFEED"
     - Items Found
+    - "\uFEE9\uFEAA\uFEB7 \uFE8D\uFEAA\uFBFF\uFB58 \uFEDE\uFBFE\uFE8E\uFEB3\uFEED"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -6094,8 +6094,8 @@ MonoBehaviour:
     description: 
     textType: 5
     translationText:
-    - "\uFEDE\uFBFE\uFE8E\uFEB3\uFEED \uFE8E\uFE91 \uFEE5\uFEA9\uFEAE\uFEDB \uFEAD\uFE8E\uFEDB"
     - Operates Item
+    - "\uFEDE\uFBFE\uFE8E\uFEB3\uFEED \uFE8E\uFE91 \uFEE5\uFEA9\uFEAE\uFEDB \uFEAD\uFE8E\uFEDB"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -6115,8 +6115,8 @@ MonoBehaviour:
     description: 
     textType: 5
     translationText:
-    - "\uFEDE\uFBFE\uFE8E\uFEB3\uFEED \uFEEA\uFE91 \uFEE5\uFEA9\uFEAE\uFEDB \uFEE9\uFE8E\uFB95\uFEE7"
     - Looks the item
+    - "\uFEDE\uFBFE\uFE8E\uFEB3\uFEED \uFEEA\uFE91 \uFEE5\uFEA9\uFEAE\uFEDB \uFEE9\uFE8E\uFB95\uFEE7"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -6136,8 +6136,8 @@ MonoBehaviour:
     description: 
     textType: 5
     translationText:
-    - "\uFEDE\uFBFE\uFE8E\uFEB3\uFEED \uFEE6\uFE98\uFEB7\uFE8D\uFEA9\uFEAE\uFE91"
     - Pick-ups items
+    - "\uFEDE\uFBFE\uFE8E\uFEB3\uFEED \uFEE6\uFE98\uFEB7\uFE8D\uFEA9\uFEAE\uFE91"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -6157,9 +6157,9 @@ MonoBehaviour:
     description: 
     textType: 5
     translationText:
+    - Drag to look around
     - "\uFEAA\uFBFF\uFEE8\uFEDB \uFEB2\uFEE4\uFEDF \uFED1\uFE8D\uFEAE\uFEC3\uFE8D
       \uFEEA\uFE91 \uFEE9\uFE8E\uFB95\uFEE7 \u0649\uFE8D\uFEAE\uFE91"
-    - Drag to look around
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -6179,11 +6179,11 @@ MonoBehaviour:
     description: 
     textType: 5
     translationText:
+    - Drag items on objects to operate
     - "\uFEAA\uFBFE\uFEAA\uFE91 \uFEAD\uFE8D\uFEAE\uFED7 \uFE80\uFE8E\uFBFF\uFEB7\uFE8D
       \u0649\uFEED\uFEAD \uFEAE\uFE91 \uFEED \uFEAA\uFBFF\uFEB8\uFEDC\uFE91 \uFE8D\uFEAD
       \uFEE5\uFE81 \uFEDE\uFBFE\uFE8E\uFEB3\uFEED \uFEAF\uFE8D \uFEE9\uFEA9\uFE8E\uFED4\uFE98\uFEB3\uFE8D
       \u0649\uFE8D\uFEAE\uFE91"
-    - Drag items on objects to operate
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -6203,8 +6203,8 @@ MonoBehaviour:
     description: 
     textType: 5
     translationText:
-    - "\uFEE9\uFEAE\uFEC3\uFE8E\uFEA7"
     - Memos
+    - "\uFEE9\uFEAE\uFEC3\uFE8E\uFEA7"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -6224,8 +6224,8 @@ MonoBehaviour:
     description: 
     textType: 5
     translationText:
-    - "\uFED1\uFE8D\uFEAA\uFEEB\uFE8D"
     - Goals
+    - "\uFED1\uFE8D\uFEAA\uFEEB\uFE8D"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -6245,8 +6245,8 @@ MonoBehaviour:
     description: 
     textType: 5
     translationText:
-    - "\u061F\u0649\uFE8D\uFEEE\uFEA7 \uFBFD\uFEE3 \uFEDA\uFEE4\uFEDB\r"
     - Need Help?
+    - "\u061F\u0649\uFE8D\uFEEE\uFEA7 \uFBFD\uFEE3 \uFEDA\uFEE4\uFEDB\r"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -6266,10 +6266,10 @@ MonoBehaviour:
     description: 
     textType: 5
     translationText:
+    - Give us a five start rate if you liked the game?
     - "\uFEE9\uFEAA\uFE91 \uFEE9\uFEAD\uFE8E\uFE98\uFEB3 \uFE9E\uFEE8\uFB58 \uFEAE\uFEC8\uFEE7
       \uFEEA\uFBFE \uFBFD\uFE98\uFEB7\uFE8D\uFEA9 \uFE96\uFEB3\uFEED\uFEA9 \uFEED\uFEAD
       \u0649\uFEAF\uFE8E\uFE91 \uFEEA\uFB94\uFE8D\r"
-    - Give us a five start rate if you liked the game?
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -6289,8 +6289,8 @@ MonoBehaviour:
     description: 
     textType: 5
     translationText:
-    - "\uFEEA\uFEE0\uFE91"
     - Yes
+    - "\uFEEA\uFEE0\uFE91"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -6310,8 +6310,8 @@ MonoBehaviour:
     description: 
     textType: 5
     translationText:
-    - "\uFEAE\uFBFF\uFEA7"
     - No
+    - "\uFEAE\uFBFF\uFEA7"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -6331,8 +6331,8 @@ MonoBehaviour:
     description: 
     textType: 5
     translationText:
-    - "!\uFEA9\uFEEE\uFE92\uFEE7 \uFED6\uFED3\uFEEE\uFEE3 \uFE95\uFE8E\uFBFF\uFEE0\uFEE4\uFECB\r"
     - Payment Failed!
+    - "!\uFEA9\uFEEE\uFE92\uFEE7 \uFED6\uFED3\uFEEE\uFEE3 \uFE95\uFE8E\uFBFF\uFEE0\uFEE4\uFECB\r"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -6352,9 +6352,9 @@ MonoBehaviour:
     description: 
     textType: 5
     translationText:
+    - Payment Done. Thank You!
     - "!\uFEE2\uFBFF\uFEE7\uFEEE\uFEE8\uFEE4\uFEE3 \uFE8E\uFEE4\uFEB7 \uFBFD\uFEDF\uFE8E\uFEE3
       \uFE96\uFBFE\uFE8E\uFEE4\uFEA3 \uFEAF\uFE8D\r"
-    - Payment Done. Thank You!
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -6374,8 +6374,8 @@ MonoBehaviour:
     description: 'From: Inventory_Unhandled_Combine'
     textType: 0
     translationText:
-    - "!\uFEE9\uFEAD\uFE8D\uFEAA\uFEE7 \uFEE2\uFEEB \uFEEA\uFE91 \uFBFD\uFEC4\uFE91\uFEAD\r"
     - Are  not interrelated.
+    - "!\uFEE9\uFEAD\uFE8D\uFEAA\uFEE7 \uFEE2\uFEEB \uFEEA\uFE91 \uFBFD\uFEC4\uFE91\uFEAD\r"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -6395,8 +6395,8 @@ MonoBehaviour:
     description: 'From: Inventory_Unhandled_Hotspot'
     textType: 0
     translationText:
-    - "!! \uFEEA\uFEDB \uFEEA\uFEB7 \uFBFD\uFEE4\uFEE7"
     - Undoable!
+    - "!! \uFEEA\uFEDB \uFEEA\uFEB7 \uFBFD\uFEE4\uFEE7"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -6416,9 +6416,9 @@ MonoBehaviour:
     description: 'From: BlueSack_Examine'
     textType: 0
     translationText:
+    - Contains some kind of powders.
     - ".\uFEEA\uFEB7\uFEEE\uFE97 \uFB93\uFEE7\uFEAD \uFEAD\uFEA9\uFEEE\uFB58 \uFEAD\uFEEE\uFE9F
       \uFEEA\uFBFE"
-    - Contains some kind of powders.
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -6438,11 +6438,11 @@ MonoBehaviour:
     description: 'From: BlueSack_Examine'
     textType: 0
     translationText:
-    - "\uFEE9\uFEAD\uFE8D\uFEA9 \uFEDD\uFEFC\uFEA4\uFEE7\uFE8D \uFE96\uFBFF\uFEE0\uFE91\uFE8E\uFED7
-      \uFEEA\uFE98\uFEB7\uFEEE\uFEE7 \uFEB6\uFBFE\uFEAD"
     - 'Reads:
 
       Dissolvable'
+    - "\uFEE9\uFEAD\uFE8D\uFEA9 \uFEDD\uFEFC\uFEA4\uFEE7\uFE8D \uFE96\uFBFF\uFEE0\uFE91\uFE8E\uFED7
+      \uFEEA\uFE98\uFEB7\uFEEE\uFEE7 \uFEB6\uFBFE\uFEAD"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -6462,8 +6462,8 @@ MonoBehaviour:
     description: 
     textType: 9
     translationText:
-    - "\uFED6\uFED3\uFEEE\uFEE3 \uFE96\uFEA7\uFE8D\uFEA9\uFEAE\uFB58\r"
     - Payment Success
+    - "\uFED6\uFED3\uFEEE\uFEE3 \uFE96\uFEA7\uFE8D\uFEA9\uFEAE\uFB58\r"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -6483,8 +6483,8 @@ MonoBehaviour:
     description: 
     textType: 5
     translationText:
-    - "\uFBFD\uFEDF\uFE8E\uFEE3 \uFE96\uFBFE\uFE8E\uFEE4\uFEA3\r"
     - Support Us
+    - "\uFBFD\uFEDF\uFE8E\uFEE3 \uFE96\uFBFE\uFE8E\uFEE4\uFEA3\r"
     customAudioClip: {fileID: 0}
     customLipsyncFile: {fileID: 0}
     customTranslationAudioClips: []
@@ -6507,13 +6507,13 @@ MonoBehaviour:
     lipsyncAssetBundle: 
     fallbackLanguageIndex: 0
     isDisabled: 1
-  - name: Farsi
+  - name: English
     isRightToLeft: 0
     audioAssetBundle: 
     lipsyncAssetBundle: 
     fallbackLanguageIndex: 0
     isDisabled: 0
-  - name: English
+  - name: Farsi
     isRightToLeft: 0
     audioAssetBundle: 
     lipsyncAssetBundle: 

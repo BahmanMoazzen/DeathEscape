@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b2cd11e06e7fc41a595e0cccca50dae3, type: 3}
   m_Name: DeathEscape3D_CursorManager
   m_EditorClassIdentifier: 
-  cursorRendering: 0
+  cursorRendering: 1
   uiCursorPrefab: {fileID: 0}
   cursorDisplay: 0
   allowMainCursor: 1
@@ -27,7 +27,7 @@ MonoBehaviour:
     label: Walk to
     lineID: 592
   addHotspotPrefix: 0
-  allowInteractionCursor: 0
+  allowInteractionCursor: 1
   allowInteractionCursorForInventory: 0
   cycleCursors: 0
   onlyAnimateOverHotspots: 0
