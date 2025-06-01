@@ -636,9 +636,9 @@ MonoBehaviour:
   maxAutoWidthFactor: 0.5
   relativeRect:
     serializedVersion: 2
-    x: 11.616
-    y: 80.832
-    width: 316.80002
+    x: 10.56
+    y: 78.72
+    width: 288
     height: 57.600002
   relativePosition: {x: 0, y: 35}
   numSlots: 1
@@ -797,77 +797,6 @@ MonoBehaviour:
   uiImageType: 0
   linkedJournalElementName: 
   uiComponentHideStyle: 0
---- !u!114 &-7578443276892736756
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 64747f67d47cb4e04a88bea43b7c1cfd, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  ID: 6
-  title: SupportUs
-  slotSize: {x: 30, y: 12}
-  sizeType: 1
-  positionType: 0
-  slotSpacing: 0
-  lineID: 621
-  alternativeInputButton: 
-  font: {fileID: 12800000, guid: 84211003358ed8d448a1d84288481aa5, type: 3}
-  fontScaleFactor: 2.5
-  fontColor: {r: 0.7877358, g: 0.8408019, b: 1, a: 1}
-  fontHighlightColor: {r: 0.9528302, g: 0.8720103, b: 0, a: 1}
-  isVisible: 1
-  isClickable: 1
-  orientation: 1
-  gridWidth: 3
-  backgroundTexture: {fileID: 2800000, guid: 32e15e936d26ba04c8fb24df081c8e86, type: 3}
-  singleSlotBackgrounds: 0
-  highlightTexture: {fileID: 0}
-  hoverSound: {fileID: 0}
-  clickSound: {fileID: 0}
-  changeCursor: 0
-  cursorID: 0
-  linkedUiID: 0
-  maxAutoWidthFactor: 0.5
-  relativeRect:
-    serializedVersion: 2
-    x: 11.616
-    y: 357.696
-    width: 316.80002
-    height: 57.600002
-  relativePosition: {x: 68.9, y: 55}
-  numSlots: 1
-  uiButton: {fileID: 0}
-  uiPointerState: 0
-  _label: Support Us
-  hotspotLabel: 
-  hotspotLabelID: -1
-  anchor: 4
-  textEffects: 1
-  outlineSize: 2
-  effectColour: {r: 0, g: 0, b: 0, a: 1}
-  buttonClickType: 1
-  actionList: {fileID: 11400000, guid: a1c9d0f13fa44a14c9158ad8c44e957c, type: 2}
-  parameterID: -1
-  parameterValue: 0
-  doFade: 0
-  switchMenuTitle: TitleScreenPay
-  inventoryBoxTitle: 
-  shiftInventory: 0
-  shiftAmount: 1
-  onlyShowWhenEffective: 0
-  loopJournal: 0
-  inputAxis: 
-  simulateInput: 0
-  simulateValue: 1
-  clickTexture: {fileID: 0}
-  allowContinuousClick: 0
-  uiSelectableHideStyle: 0
 --- !u!114 &-7431172153447578618
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -2539,9 +2468,9 @@ MonoBehaviour:
   maxAutoWidthFactor: 1
   relativeRect:
     serializedVersion: 2
-    x: 11.616
-    y: 11.616
-    width: 316.80002
+    x: 10.56
+    y: 10.56
+    width: 288
     height: 57.600002
   relativePosition: {x: 40, y: 15}
   numSlots: 1
@@ -3816,9 +3745,9 @@ MonoBehaviour:
   _isLocked: 0
   id: 18
   title: TitleScreenSecond
-  manualSize: {x: 32.2, y: 88.94}
+  manualSize: {x: 32.2, y: 44.800003}
   positionType: 0
-  manualPosition: {x: 528, y: 240}
+  manualPosition: {x: 480, y: 240}
   positionSmoothing: 0
   alignment: 4
   toggleKey: 
@@ -3838,9 +3767,6 @@ MonoBehaviour:
   - {fileID: -4282958009224650304}
   - {fileID: -7992012712813569817}
   - {fileID: -1133477729634168690}
-  - {fileID: -342464549889674866}
-  - {fileID: -1644161424427271127}
-  - {fileID: -7578443276892736756}
   transitionProgress: 0
   appearType: 0
   speechMenuType: 0
@@ -3858,7 +3784,6 @@ MonoBehaviour:
   - {fileID: -1133477729634168690}
   - {fileID: -342464549889674866}
   - {fileID: -1644161424427271127}
-  - {fileID: -7578443276892736756}
   spacing: 1.1
   sizeType: 0
   autoSizeEveryFrame: 0
@@ -3898,13 +3823,13 @@ MonoBehaviour:
   speechProximityLimit: 0
   speechProximityDistance: 10
   deleteUIWhenTurnOff: 0
-  biggestElementSize: {x: 328.41602, y: 415.29602}
+  biggestElementSize: {x: 298.56, y: 204.48001}
   rect:
     serializedVersion: 2
-    x: 357.984
-    y: 26.543991
-    width: 340.032
-    height: 426.91202
+    x: 325.44
+    y: 132.48
+    width: 309.12
+    height: 215.04001
 --- !u!114 &-2322440120729400312
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -4468,7 +4393,7 @@ MonoBehaviour:
   fontScaleFactor: 2.5
   fontColor: {r: 0.7877358, g: 0.8408019, b: 1, a: 1}
   fontHighlightColor: {r: 0.9528302, g: 0.8720103, b: 0, a: 1}
-  isVisible: 1
+  isVisible: 0
   isClickable: 1
   orientation: 1
   gridWidth: 3
@@ -4483,9 +4408,9 @@ MonoBehaviour:
   maxAutoWidthFactor: 0.5
   relativeRect:
     serializedVersion: 2
-    x: 11.616
-    y: 288.48
-    width: 316.80002
+    x: 10.56
+    y: 283.2
+    width: 288
     height: 57.600002
   relativePosition: {x: 68.9, y: 55}
   numSlots: 1
@@ -5024,9 +4949,9 @@ MonoBehaviour:
   maxAutoWidthFactor: 0.5
   relativeRect:
     serializedVersion: 2
-    x: 11.616
-    y: 150.048
-    width: 316.80002
+    x: 10.56
+    y: 146.88
+    width: 288
     height: 57.600002
   relativePosition: {x: 0, y: 35}
   numSlots: 1
@@ -5599,7 +5524,7 @@ MonoBehaviour:
   fontScaleFactor: 2.5
   fontColor: {r: 0.7877358, g: 0.8408019, b: 1, a: 1}
   fontHighlightColor: {r: 0.9528302, g: 0.8720103, b: 0, a: 1}
-  isVisible: 1
+  isVisible: 0
   isClickable: 1
   orientation: 1
   gridWidth: 3
@@ -5614,9 +5539,9 @@ MonoBehaviour:
   maxAutoWidthFactor: 0.5
   relativeRect:
     serializedVersion: 2
-    x: 11.616
-    y: 219.264
-    width: 316.80002
+    x: 10.56
+    y: 215.04001
+    width: 288
     height: 57.600002
   relativePosition: {x: 28.9, y: 55}
   numSlots: 1

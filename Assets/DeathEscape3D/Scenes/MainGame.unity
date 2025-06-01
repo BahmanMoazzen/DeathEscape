@@ -18134,7 +18134,7 @@ MonoBehaviour:
     x: 14
     y: 8124
     width: 300
-    height: 152
+    height: 155
   overrideColor: {r: 1, g: 1, b: 1, a: 1}
   showOutputSockets: 1
   parentActionListInEditor: {fileID: 5295187032730738725}
@@ -41656,8 +41656,8 @@ MonoBehaviour:
   linkedAsset: {fileID: 0}
   endings:
   - resultAction: 2
-    skipAction: 1
-    skipActionActual: {fileID: 1424006585}
+    skipAction: 37
+    skipActionActual: {fileID: 1445053428}
     linkedCutscene: {fileID: 0}
     linkedAsset: {fileID: 0}
   isEnabled: 1
@@ -42737,7 +42737,7 @@ MonoBehaviour:
   linkedCutscene: {fileID: 0}
   linkedAsset: {fileID: 0}
   endings:
-  - resultAction: 0
+  - resultAction: 1
     skipAction: -1
     skipActionActual: {fileID: 0}
     linkedCutscene: {fileID: 0}
@@ -50001,10 +50001,10 @@ RectTransform:
   - {fileID: 899619286}
   m_Father: {fileID: 1737731192}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.09953032, y: 0.6953334}
-  m_AnchorMax: {x: 0.36081067, y: 0.781}
-  m_AnchoredPosition: {x: 0.43041992, y: 0.5}
-  m_SizeDelta: {x: -3.1292114, y: -1}
+  m_AnchorMin: {x: 0.10161365, y: 0.6974168}
+  m_AnchorMax: {x: 0.359769, y: 0.781}
+  m_AnchoredPosition: {x: -0.06958008, y: 0}
+  m_SizeDelta: {x: -0.12921143, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &745637981
 MonoBehaviour:
@@ -51526,7 +51526,7 @@ MonoBehaviour:
     x: 11
     y: 1329
     width: 300
-    height: 231
+    height: 191
   overrideColor: {r: 1, g: 1, b: 1, a: 1}
   showOutputSockets: 1
   parentActionListInEditor: {fileID: 8902051396404650570}
@@ -54340,7 +54340,7 @@ MonoBehaviour:
   linkedCutscene: {fileID: 0}
   linkedAsset: {fileID: 0}
   endings:
-  - resultAction: 0
+  - resultAction: 1
     skipAction: -1
     skipActionActual: {fileID: 0}
     linkedCutscene: {fileID: 0}
@@ -79013,7 +79013,7 @@ MonoBehaviour:
     x: 14
     y: 1004
     width: 300
-    height: 172
+    height: 175
   overrideColor: {r: 1, g: 1, b: 1, a: 1}
   showOutputSockets: 1
   parentActionListInEditor: {fileID: 6009706514732152253}
@@ -91107,7 +91107,7 @@ MonoBehaviour:
     x: 7
     y: 1137
     width: 300
-    height: 152
+    height: 155
   overrideColor: {r: 1, g: 1, b: 1, a: 1}
   showOutputSockets: 1
   parentActionListInEditor: {fileID: 8902051396404650570}
@@ -94086,7 +94086,7 @@ MonoBehaviour:
     x: 370.05225
     y: 2185
     width: 300
-    height: 231
+    height: 191
   overrideColor: {r: 1, g: 1, b: 1, a: 1}
   showOutputSockets: 1
   parentActionListInEditor: {fileID: 6009706514732152253}
@@ -108384,7 +108384,7 @@ MonoBehaviour:
   endings:
   - resultAction: 2
     skipAction: 11
-    skipActionActual: {fileID: 1881438704}
+    skipActionActual: {fileID: 1249824659}
     linkedCutscene: {fileID: 0}
     linkedAsset: {fileID: 0}
   isEnabled: 1
@@ -110461,7 +110461,7 @@ MonoBehaviour:
   linkedCutscene: {fileID: 0}
   linkedAsset: {fileID: 0}
   endings:
-  - resultAction: 0
+  - resultAction: 1
     skipAction: -1
     skipActionActual: {fileID: 0}
     linkedCutscene: {fileID: 0}
@@ -111217,8 +111217,8 @@ MonoBehaviour:
   isBreakPoint: 0
   nodeRect:
     serializedVersion: 2
-    x: 327
-    y: 48
+    x: 344
+    y: 64
     width: 300
     height: 132
   overrideColor: {r: 1, g: 1, b: 1, a: 1}
@@ -115315,7 +115315,7 @@ GameObject:
   - component: {fileID: 1518086657}
   - component: {fileID: 1518086656}
   - component: {fileID: 1518086658}
-  m_Layer: 2
+  m_Layer: 11
   m_Name: StartupCam2 (2)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -116978,7 +116978,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1542122862
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -123276,7 +123276,7 @@ GameObject:
   - component: {fileID: 1617590598}
   - component: {fileID: 1617590597}
   - component: {fileID: 1617590599}
-  m_Layer: 2
+  m_Layer: 11
   m_Name: StartupCam2 (3)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -133484,7 +133484,7 @@ GameObject:
   - component: {fileID: 1783059451}
   - component: {fileID: 1783059450}
   - component: {fileID: 1783059453}
-  m_Layer: 2
+  m_Layer: 11
   m_Name: TestTubeCutsceneCam2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -134119,7 +134119,7 @@ GameObject:
   - component: {fileID: 1794217790}
   - component: {fileID: 1794217789}
   - component: {fileID: 1794217791}
-  m_Layer: 2
+  m_Layer: 11
   m_Name: StartupCam2 (1)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -143921,66 +143921,6 @@ MonoBehaviour:
   compareVariablesConstantID: 0
   placeholderType: 1
   placeholderPopUpLabelDataID: 0
---- !u!114 &1881438704
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fee606cf6f21b4a7f98958d38261139e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  id: 0
-  isDisplayed: 1
-  showComment: 0
-  comment: 
-  willWait: 0
-  endAction: 0
-  skipAction: -1
-  skipActionActual: {fileID: 0}
-  linkedCutscene: {fileID: 0}
-  linkedAsset: {fileID: 0}
-  endings:
-  - resultAction: 1
-    skipAction: -1
-    skipActionActual: {fileID: 0}
-    linkedCutscene: {fileID: 0}
-    linkedAsset: {fileID: 0}
-  isEnabled: 1
-  isAssetFile: 0
-  isBreakPoint: 0
-  nodeRect:
-    serializedVersion: 2
-    x: 370.05225
-    y: 2185
-    width: 300
-    height: 231
-  overrideColor: {r: 1, g: 1, b: 1, a: 1}
-  showOutputSockets: 1
-  parentActionListInEditor: {fileID: 0}
-  groupID: 0
-  unityEvent:
-    m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 1126594958}
-        m_TargetAssemblyTypeName: UnityEngine.GameObject, UnityEngine
-        m_MethodName: SetActive
-        m_Mode: 6
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 1
-        m_CallState: 2
-  skipEvent:
-    m_PersistentCalls:
-      m_Calls: []
-  ignoreWhenSkipping: 0
 --- !u!4 &1881669431 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 460678, guid: 79646652f63865f4185986c750a93b72, type: 3}
@@ -147671,7 +147611,7 @@ MonoBehaviour:
     x: 14
     y: 3878
     width: 300
-    height: 247
+    height: 246.05
   overrideColor: {r: 1, g: 1, b: 1, a: 1}
   showOutputSockets: 1
   parentActionListInEditor: {fileID: 5295187032730738725}
@@ -150947,7 +150887,7 @@ GameObject:
   - component: {fileID: 2009299194}
   - component: {fileID: 2009299193}
   - component: {fileID: 2009299192}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: StartupDoor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -151125,7 +151065,7 @@ GameObject:
   - component: {fileID: 2010307833}
   - component: {fileID: 2010307832}
   - component: {fileID: 2010307834}
-  m_Layer: 2
+  m_Layer: 11
   m_Name: StartupCam2 (4)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -158042,7 +157982,7 @@ MonoBehaviour:
   linkedCutscene: {fileID: 0}
   linkedAsset: {fileID: 0}
   endings:
-  - resultAction: 0
+  - resultAction: 1
     skipAction: -1
     skipActionActual: {fileID: 0}
     linkedCutscene: {fileID: 0}
@@ -214839,7 +214779,7 @@ GameObject:
   - component: {fileID: 754881172571869003}
   - component: {fileID: 754881172566554763}
   - component: {fileID: 754881172573409612}
-  m_Layer: 2
+  m_Layer: 11
   m_Name: Final Door
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -218119,7 +218059,7 @@ GameObject:
   - component: {fileID: 1803803340145211529}
   - component: {fileID: 1803803340156948297}
   - component: {fileID: 1803803340156948298}
-  m_Layer: 2
+  m_Layer: 11
   m_Name: ZombieFaceCam
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -218838,7 +218778,7 @@ GameObject:
   - component: {fileID: 1957063501532557226}
   - component: {fileID: 1957063501520935018}
   - component: {fileID: 1957063501532557227}
-  m_Layer: 2
+  m_Layer: 11
   m_Name: LiquidOnlyCam
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -220474,7 +220414,7 @@ GameObject:
   - component: {fileID: 2146134795023963755}
   - component: {fileID: 2146134795018641835}
   - component: {fileID: 2146134795025732684}
-  m_Layer: 2
+  m_Layer: 11
   m_Name: Big Jars Sign Cam
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -221328,7 +221268,7 @@ GameObject:
   - component: {fileID: 2283037545698965593}
   - component: {fileID: 2283037545710702489}
   - component: {fileID: 2283037545710702490}
-  m_Layer: 2
+  m_Layer: 11
   m_Name: CorpsDrawerCam
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -221889,7 +221829,7 @@ GameObject:
   - component: {fileID: 2334891916240375668}
   - component: {fileID: 2334891916245809332}
   - component: {fileID: 2334891916245809333}
-  m_Layer: 2
+  m_Layer: 11
   m_Name: KianCam
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -224534,7 +224474,7 @@ GameObject:
   - component: {fileID: 2958068077767369715}
   - component: {fileID: 2958068077755651123}
   - component: {fileID: 2958068077767369716}
-  m_Layer: 2
+  m_Layer: 11
   m_Name: LockCam
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -245772,7 +245712,7 @@ GameObject:
   - component: {fileID: 3610076282340297056}
   - component: {fileID: 3610076282328956576}
   - component: {fileID: 3610076282340297057}
-  m_Layer: 2
+  m_Layer: 11
   m_Name: FilledCam
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -245941,7 +245881,7 @@ GameObject:
   - component: {fileID: 3619029808595759155}
   - component: {fileID: 3619029808586229747}
   - component: {fileID: 3619029808597364276}
-  m_Layer: 2
+  m_Layer: 11
   m_Name: SecondDoorCam
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -246842,7 +246782,7 @@ GameObject:
   - component: {fileID: 3868716945304291587}
   - component: {fileID: 3868716945311727299}
   - component: {fileID: 3868716945311727300}
-  m_Layer: 2
+  m_Layer: 11
   m_Name: SecondDoorEndSceneCam
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -246960,7 +246900,7 @@ GameObject:
   - component: {fileID: 3874332841311984016}
   - component: {fileID: 3874332841323310672}
   - component: {fileID: 3874332841323310673}
-  m_Layer: 2
+  m_Layer: 11
   m_Name: ZombieDoorCam
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -247261,7 +247201,7 @@ GameObject:
   - component: {fileID: 3905855796978870789}
   - component: {fileID: 3905855796971314629}
   - component: {fileID: 3905855796978870790}
-  m_Layer: 2
+  m_Layer: 11
   m_Name: SafeBrainCam
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -247471,7 +247411,7 @@ GameObject:
   - component: {fileID: 3918897253846972019}
   - component: {fileID: 3918897253841764787}
   - component: {fileID: 3918897253847525492}
-  m_Layer: 2
+  m_Layer: 11
   m_Name: OrganeCam
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -249044,7 +248984,7 @@ GameObject:
   - component: {fileID: 4295363449699630500}
   - component: {fileID: 4295363449694292580}
   - component: {fileID: 4295363449700351877}
-  m_Layer: 2
+  m_Layer: 11
   m_Name: NotebookCam
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -249973,7 +249913,7 @@ GameObject:
   - component: {fileID: 4534916473508651761}
   - component: {fileID: 4534916473503585585}
   - component: {fileID: 4534916473509149938}
-  m_Layer: 2
+  m_Layer: 11
   m_Name: BrainInJarCam
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -251989,7 +251929,7 @@ GameObject:
   - component: {fileID: 4952921732104310751}
   - component: {fileID: 4952921732111448095}
   - component: {fileID: 4952921732111448096}
-  m_Layer: 2
+  m_Layer: 11
   m_Name: Small Jars Sign Cam
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -254006,7 +253946,7 @@ GameObject:
   - component: {fileID: 5295904440856847006}
   - component: {fileID: 5295904440847226206}
   - component: {fileID: 5295904440857345183}
-  m_Layer: 2
+  m_Layer: 11
   m_Name: TestTubeCutsceneCam1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -255500,7 +255440,7 @@ GameObject:
   - component: {fileID: 5517945577828113433}
   - component: {fileID: 5517945577835506649}
   - component: {fileID: 5517945577835506650}
-  m_Layer: 2
+  m_Layer: 11
   m_Name: SafeCam
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -256526,7 +256466,7 @@ GameObject:
   - component: {fileID: 5939378326175595483}
   - component: {fileID: 5939378326185102363}
   - component: {fileID: 5939378326185102364}
-  m_Layer: 2
+  m_Layer: 11
   m_Name: OrangePelakCam
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -258570,6 +258510,10 @@ PrefabInstance:
       propertyPath: m_Radius
       value: 0.2
       objectReference: {fileID: 0}
+    - target: {fileID: 3236434304564007469, guid: 8a629ef365eafbe458fbcc6153daec4e, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
     - target: {fileID: 6400253439099899167, guid: 8a629ef365eafbe458fbcc6153daec4e, type: 3}
       propertyPath: lineID
       value: 475
@@ -259172,7 +259116,7 @@ GameObject:
   - component: {fileID: 6587480341692329246}
   - component: {fileID: 6587480341697780446}
   - component: {fileID: 6587480341697780447}
-  m_Layer: 2
+  m_Layer: 11
   m_Name: DefaultCamera
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -259397,7 +259341,7 @@ GameObject:
   - component: {fileID: 6630111736819122747}
   - component: {fileID: 6630111736830883323}
   - component: {fileID: 6630111736830883324}
-  m_Layer: 2
+  m_Layer: 11
   m_Name: FilledCam2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -259687,7 +259631,7 @@ GameObject:
   - component: {fileID: 6727530949235974667}
   - component: {fileID: 6727530949226747339}
   - component: {fileID: 6727530949236957228}
-  m_Layer: 2
+  m_Layer: 11
   m_Name: JarsCam
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -259974,7 +259918,7 @@ GameObject:
   - component: {fileID: 6966382977389786556}
   - component: {fileID: 6966382977380385404}
   - component: {fileID: 6966382977391389629}
-  m_Layer: 2
+  m_Layer: 11
   m_Name: BrainCutCam
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -262360,7 +262304,7 @@ GameObject:
   - component: {fileID: 7505185668526314349}
   - component: {fileID: 7505185668519060653}
   - component: {fileID: 7505185668526314350}
-  m_Layer: 2
+  m_Layer: 11
   m_Name: TestTubeCam
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -262658,7 +262602,7 @@ GameObject:
   - component: {fileID: 7526589034899265414}
   - component: {fileID: 7526589034894073926}
   - component: {fileID: 7526589034900867463}
-  m_Layer: 2
+  m_Layer: 11
   m_Name: BoneSawCam
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -263201,7 +263145,7 @@ GameObject:
   - component: {fileID: 7888427210483399678}
   - component: {fileID: 7888427210490814494}
   - component: {fileID: 7888427210490814495}
-  m_Layer: 2
+  m_Layer: 11
   m_Name: StartupCeilingCam
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -264059,7 +264003,7 @@ GameObject:
   - component: {fileID: 8219664521070881864}
   - component: {fileID: 8219664521082231688}
   - component: {fileID: 8219664521082231689}
-  m_Layer: 2
+  m_Layer: 11
   m_Name: FinalButtonCam
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -264732,7 +264676,7 @@ GameObject:
   - component: {fileID: 8312916164097265056}
   - component: {fileID: 8312916164091618880}
   - component: {fileID: 8312916164103360897}
-  m_Layer: 2
+  m_Layer: 11
   m_Name: MainCamera
   m_TagString: MainCamera
   m_Icon: {fileID: 0}
@@ -265517,7 +265461,7 @@ GameObject:
   - component: {fileID: 8512516179940609456}
   - component: {fileID: 8512516179948173936}
   - component: {fileID: 8512516179948173937}
-  m_Layer: 2
+  m_Layer: 11
   m_Name: CombinationLockUnlockCam
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -265979,7 +265923,7 @@ GameObject:
   - component: {fileID: 8550317791935493295}
   - component: {fileID: 8550317791947195247}
   - component: {fileID: 8550317791947195248}
-  m_Layer: 2
+  m_Layer: 11
   m_Name: FirstButtonCam
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -268381,7 +268325,7 @@ GameObject:
   - component: {fileID: 9146526603692871743}
   - component: {fileID: 9146526603687585791}
   - component: {fileID: 9146526603694476864}
-  m_Layer: 2
+  m_Layer: 11
   m_Name: StartupCam2
   m_TagString: Untagged
   m_Icon: {fileID: 0}

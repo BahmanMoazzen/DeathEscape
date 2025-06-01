@@ -53,7 +53,7 @@ MonoBehaviour:
     useSceneDefaultPlayerStart: 0
     startingPlayerStartID: 0
   players: []
-  movementMethod: 2
+  movementMethod: 4
   inputMethod: 2
   simulatedCursorMoveSpeed: 4
   interactionMethod: 2
