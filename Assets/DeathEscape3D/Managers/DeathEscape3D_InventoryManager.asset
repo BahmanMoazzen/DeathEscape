@@ -63,11 +63,11 @@ MonoBehaviour:
     combineActionList: []
     combineID: 
     unhandledActionList: {fileID: 11400000, guid: 92fb13e13491b534f90a4b707475e59c, type: 2}
+    unhandledGiveActionList: {fileID: 0}
     unhandledCombineActionList: {fileID: 0}
     carryOnStartID: -1
     useSeparateSlots: 0
     selectSingle: 0
-    showInFilter: 1
   - label: IndigoSack
     id: 1
     altLabel: Indigo Color Sack
@@ -118,11 +118,11 @@ MonoBehaviour:
     combineActionList: []
     combineID: 
     unhandledActionList: {fileID: 0}
+    unhandledGiveActionList: {fileID: 0}
     unhandledCombineActionList: {fileID: 0}
     carryOnStartID: -1
     useSeparateSlots: 0
     selectSingle: 0
-    showInFilter: 1
   - label: BlueSack
     id: 2
     altLabel: Blue Color Sack
@@ -173,11 +173,11 @@ MonoBehaviour:
     combineActionList: []
     combineID: 
     unhandledActionList: {fileID: 0}
+    unhandledGiveActionList: {fileID: 0}
     unhandledCombineActionList: {fileID: 0}
     carryOnStartID: -1
     useSeparateSlots: 0
     selectSingle: 0
-    showInFilter: 1
   - label: GreenSack
     id: 3
     altLabel: Green Color Sack
@@ -228,11 +228,11 @@ MonoBehaviour:
     combineActionList: []
     combineID: 
     unhandledActionList: {fileID: 0}
+    unhandledGiveActionList: {fileID: 0}
     unhandledCombineActionList: {fileID: 0}
     carryOnStartID: -1
     useSeparateSlots: 0
     selectSingle: 0
-    showInFilter: 1
   - label: YellowSack
     id: 4
     altLabel: Yellow Color Sack
@@ -283,11 +283,11 @@ MonoBehaviour:
     combineActionList: []
     combineID: 
     unhandledActionList: {fileID: 0}
+    unhandledGiveActionList: {fileID: 0}
     unhandledCombineActionList: {fileID: 0}
     carryOnStartID: -1
     useSeparateSlots: 0
     selectSingle: 0
-    showInFilter: 1
   - label: VioletSack
     id: 5
     altLabel: Violet Color Sack
@@ -338,11 +338,11 @@ MonoBehaviour:
     combineActionList: []
     combineID: 
     unhandledActionList: {fileID: 0}
+    unhandledGiveActionList: {fileID: 0}
     unhandledCombineActionList: {fileID: 0}
     carryOnStartID: -1
     useSeparateSlots: 0
     selectSingle: 0
-    showInFilter: 1
   - label: OrangeSack
     id: 6
     altLabel: Orange Color Sack
@@ -393,11 +393,11 @@ MonoBehaviour:
     combineActionList: []
     combineID: 
     unhandledActionList: {fileID: 0}
+    unhandledGiveActionList: {fileID: 0}
     unhandledCombineActionList: {fileID: 0}
     carryOnStartID: -1
     useSeparateSlots: 0
     selectSingle: 0
-    showInFilter: 1
   - label: RedSack
     id: 7
     altLabel: Red Color Sack
@@ -448,11 +448,11 @@ MonoBehaviour:
     combineActionList: []
     combineID: 
     unhandledActionList: {fileID: 0}
+    unhandledGiveActionList: {fileID: 0}
     unhandledCombineActionList: {fileID: 0}
     carryOnStartID: -1
     useSeparateSlots: 0
     selectSingle: 0
-    showInFilter: 1
   - label: CompleteBrain
     id: 8
     altLabel: Whole Brain
@@ -503,11 +503,11 @@ MonoBehaviour:
     combineActionList: []
     combineID: 
     unhandledActionList: {fileID: 0}
+    unhandledGiveActionList: {fileID: 0}
     unhandledCombineActionList: {fileID: 0}
     carryOnStartID: -1
     useSeparateSlots: 0
     selectSingle: 0
-    showInFilter: 1
   - label: SmallBrains
     id: 9
     altLabel: Samll Piece of Brain
@@ -558,11 +558,11 @@ MonoBehaviour:
     combineActionList: []
     combineID: 
     unhandledActionList: {fileID: 0}
+    unhandledGiveActionList: {fileID: 0}
     unhandledCombineActionList: {fileID: 0}
     carryOnStartID: -1
     useSeparateSlots: 0
     selectSingle: 0
-    showInFilter: 1
   - label: Sciesors
     id: 11
     altLabel: 
@@ -613,11 +613,11 @@ MonoBehaviour:
     combineActionList: []
     combineID: 
     unhandledActionList: {fileID: 0}
+    unhandledGiveActionList: {fileID: 0}
     unhandledCombineActionList: {fileID: 0}
     carryOnStartID: -1
     useSeparateSlots: 0
     selectSingle: 0
-    showInFilter: 1
   - label: Scalp
     id: 12
     altLabel: 
@@ -668,11 +668,11 @@ MonoBehaviour:
     combineActionList: []
     combineID: 
     unhandledActionList: {fileID: 0}
+    unhandledGiveActionList: {fileID: 0}
     unhandledCombineActionList: {fileID: 0}
     carryOnStartID: -1
     useSeparateSlots: 0
     selectSingle: 0
-    showInFilter: 1
   - label: FullPot
     id: 13
     altLabel: Full Pot
@@ -751,11 +751,11 @@ MonoBehaviour:
     combineActionList: []
     combineID: 
     unhandledActionList: {fileID: 0}
+    unhandledGiveActionList: {fileID: 0}
     unhandledCombineActionList: {fileID: 0}
     carryOnStartID: -1
     useSeparateSlots: 0
     selectSingle: 0
-    showInFilter: 1
   - label: EmptyPot
     id: 14
     altLabel: Empty Pot
@@ -806,11 +806,11 @@ MonoBehaviour:
     combineActionList: []
     combineID: 
     unhandledActionList: {fileID: 0}
+    unhandledGiveActionList: {fileID: 0}
     unhandledCombineActionList: {fileID: 0}
     carryOnStartID: -1
     useSeparateSlots: 0
     selectSingle: 0
-    showInFilter: 1
   - label: RedPot
     id: 15
     altLabel: Red Pot
@@ -861,11 +861,11 @@ MonoBehaviour:
     combineActionList: []
     combineID: 
     unhandledActionList: {fileID: 0}
+    unhandledGiveActionList: {fileID: 0}
     unhandledCombineActionList: {fileID: 0}
     carryOnStartID: -1
     useSeparateSlots: 0
     selectSingle: 0
-    showInFilter: 1
   - label: GreenPot
     id: 16
     altLabel: Green Pot
@@ -916,11 +916,11 @@ MonoBehaviour:
     combineActionList: []
     combineID: 
     unhandledActionList: {fileID: 0}
+    unhandledGiveActionList: {fileID: 0}
     unhandledCombineActionList: {fileID: 0}
     carryOnStartID: -1
     useSeparateSlots: 0
     selectSingle: 0
-    showInFilter: 1
   - label: Orange Pot
     id: 17
     altLabel: Orange Pot
@@ -971,11 +971,11 @@ MonoBehaviour:
     combineActionList: []
     combineID: 
     unhandledActionList: {fileID: 0}
+    unhandledGiveActionList: {fileID: 0}
     unhandledCombineActionList: {fileID: 0}
     carryOnStartID: -1
     useSeparateSlots: 0
     selectSingle: 0
-    showInFilter: 1
   - label: Yellow Pot
     id: 18
     altLabel: Yellow Pot
@@ -1026,11 +1026,11 @@ MonoBehaviour:
     combineActionList: []
     combineID: 
     unhandledActionList: {fileID: 0}
+    unhandledGiveActionList: {fileID: 0}
     unhandledCombineActionList: {fileID: 0}
     carryOnStartID: -1
     useSeparateSlots: 0
     selectSingle: 0
-    showInFilter: 1
   - label: Blue Pot
     id: 19
     altLabel: Blue Pot
@@ -1081,11 +1081,11 @@ MonoBehaviour:
     combineActionList: []
     combineID: 
     unhandledActionList: {fileID: 0}
+    unhandledGiveActionList: {fileID: 0}
     unhandledCombineActionList: {fileID: 0}
     carryOnStartID: -1
     useSeparateSlots: 0
     selectSingle: 0
-    showInFilter: 1
   - label: Indigo Pot
     id: 20
     altLabel: Indigo Pot
@@ -1136,11 +1136,11 @@ MonoBehaviour:
     combineActionList: []
     combineID: 
     unhandledActionList: {fileID: 0}
+    unhandledGiveActionList: {fileID: 0}
     unhandledCombineActionList: {fileID: 0}
     carryOnStartID: -1
     useSeparateSlots: 0
     selectSingle: 0
-    showInFilter: 1
   - label: Violet Pot
     id: 21
     altLabel: Violet Pot
@@ -1191,14 +1191,17 @@ MonoBehaviour:
     combineActionList: []
     combineID: 
     unhandledActionList: {fileID: 0}
+    unhandledGiveActionList: {fileID: 0}
     unhandledCombineActionList: {fileID: 0}
     carryOnStartID: -1
     useSeparateSlots: 0
     selectSingle: 0
-    showInFilter: 1
   bins:
   - label: CollectedDocs
     id: 0
+    notForItems: 0
+    forObjectives: 0
+    forDocuments: 0
   invVars: []
   unhandledCombine: {fileID: 11400000, guid: 89af7e2495061f3478eeb108e908b337, type: 2}
   unhandledHotspot: {fileID: 11400000, guid: 6bfa1be1c91ce1a4eab1aaacbbcdff23, type: 2}
@@ -1219,7 +1222,9 @@ MonoBehaviour:
         Orange
 
         954187'
-    binID: 0
+      texture: {fileID: 0}
+    binID: -1
+    vars: []
   - ID: 1
     title: Saw Scripts
     titleLineID: 574
@@ -1230,7 +1235,9 @@ MonoBehaviour:
     - lineID: 575
       text: Some strange signs with no meaning but, in some categorized way on a
         bone saw.
+      texture: {fileID: 0}
     binID: 0
+    vars: []
   - ID: 2
     title: Strange Sign
     titleLineID: 506
@@ -1240,7 +1247,9 @@ MonoBehaviour:
     pages:
     - lineID: 578
       text: it is a very strange sign on the test table.
+      texture: {fileID: 0}
     binID: 0
+    vars: []
   - ID: 3
     title: The Poem
     titleLineID: 579
@@ -1251,7 +1260,9 @@ MonoBehaviour:
     - lineID: 580
       text: "Az Vaghti to ra az man gereftand\nrangin kaman\naghazi shoe ast \nbar
         baran chashman man"
+      texture: {fileID: 0}
     binID: 0
+    vars: []
   - ID: 4
     title: The Photo
     titleLineID: 581
@@ -1261,7 +1272,9 @@ MonoBehaviour:
     pages:
     - lineID: 582
       text: A photo of a boy standing near a rainbow
+      texture: {fileID: 0}
     binID: 0
+    vars: []
   - ID: 5
     title: Organe Text
     titleLineID: 583
@@ -1273,7 +1286,9 @@ MonoBehaviour:
       text: 'Reads:
 
         Organe'
-    binID: 0
+      texture: {fileID: 0}
+    binID: -1
+    vars: []
   - ID: 6
     title: Big Circles
     titleLineID: 585
@@ -1283,7 +1298,9 @@ MonoBehaviour:
     pages:
     - lineID: 586
       text: chahar ta dayere bozorg ke yekish too pore
+      texture: {fileID: 0}
     binID: 0
+    vars: []
   - ID: 7
     title: Small Circles
     titleLineID: 587
@@ -1293,7 +1310,9 @@ MonoBehaviour:
     pages:
     - lineID: 452
       text: shish ta dayere ke chahar tash too pore
-    binID: 0
+      texture: {fileID: 0}
+    binID: -1
+    vars: []
   - ID: 8
     title: Liquid Text
     titleLineID: 605
@@ -1305,7 +1324,9 @@ MonoBehaviour:
       text: 'Reads:
 
         Use Liquids Only!'
-    binID: 0
+      texture: {fileID: 0}
+    binID: -1
+    vars: []
   - ID: 9
     title: Test Tubes
     titleLineID: 635
@@ -1315,7 +1336,9 @@ MonoBehaviour:
     pages:
     - lineID: 636
       text: Two closely-colored test tube.
+      texture: {fileID: 0}
     binID: 0
+    vars: []
   objectives:
   - ID: 0
     title: Find a way out!
@@ -1332,14 +1355,33 @@ MonoBehaviour:
       description: There is a lock door that I should find a way to open it up.
       descriptionLineID: 653
       stateType: 1
+      actionListOnEnter: {fileID: 0}
+      autoStartSubObjectives: 0
+      texture: {fileID: 0}
+      autoStateIDOnAllSubObsCompletePlusOne: 0
+      autoStateIDOnAnySubObsCompletePlusOne: 0
+      autoStateIDOnAllSubObsFailPlusOne: 0
+      autoStateIDOnAnySubObsFailPlusOne: 0
+      linkedCategoryIDPlusOne: 0
     - ID: 1
       label: Completed
       labelLineID: 659
       description: The door is now open. Let's get out of here and talk to someone.
       descriptionLineID: 660
       stateType: 2
+      actionListOnEnter: {fileID: 0}
+      autoStartSubObjectives: 0
+      texture: {fileID: 0}
+      autoStateIDOnAllSubObsCompletePlusOne: 0
+      autoStateIDOnAnySubObsCompletePlusOne: 0
+      autoStateIDOnAllSubObsFailPlusOne: 0
+      autoStateIDOnAnySubObsFailPlusOne: 0
+      linkedCategoryIDPlusOne: 0
     lockStateWhenComplete: 1
     lockStateWhenFail: 1
+    onlySuccessiveActiveStates: 0
+    binID: 0
+    vars: []
   - ID: 1
     title: Combination Lock
     titleLineID: 539
@@ -1354,14 +1396,33 @@ MonoBehaviour:
       description: I should find a 6 digit combination to unlock the drawer.
       descriptionLineID: 662
       stateType: 1
+      actionListOnEnter: {fileID: 0}
+      autoStartSubObjectives: 0
+      texture: {fileID: 0}
+      autoStateIDOnAllSubObsCompletePlusOne: 0
+      autoStateIDOnAnySubObsCompletePlusOne: 0
+      autoStateIDOnAllSubObsFailPlusOne: 0
+      autoStateIDOnAnySubObsFailPlusOne: 0
+      linkedCategoryIDPlusOne: 0
     - ID: 1
       label: Completed
       labelLineID: 659
       description: The combination was 958417. so easy!
       descriptionLineID: 663
       stateType: 2
+      actionListOnEnter: {fileID: 0}
+      autoStartSubObjectives: 0
+      texture: {fileID: 0}
+      autoStateIDOnAllSubObsCompletePlusOne: 0
+      autoStateIDOnAnySubObsCompletePlusOne: 0
+      autoStateIDOnAllSubObsFailPlusOne: 0
+      autoStateIDOnAnySubObsFailPlusOne: 0
+      linkedCategoryIDPlusOne: 0
     lockStateWhenComplete: 1
     lockStateWhenFail: 1
+    onlySuccessiveActiveStates: 0
+    binID: 0
+    vars: []
   - ID: 2
     title: Safe Lock
     titleLineID: 664
@@ -1378,14 +1439,33 @@ MonoBehaviour:
         the safe's door.
       descriptionLineID: 666
       stateType: 1
+      actionListOnEnter: {fileID: 0}
+      autoStartSubObjectives: 0
+      texture: {fileID: 0}
+      autoStateIDOnAllSubObsCompletePlusOne: 0
+      autoStateIDOnAnySubObsCompletePlusOne: 0
+      autoStateIDOnAllSubObsFailPlusOne: 0
+      autoStateIDOnAnySubObsFailPlusOne: 0
+      linkedCategoryIDPlusOne: 0
     - ID: 1
       label: Completed
       labelLineID: 659
       description: The door is opened to a discussting feature. A human mind!
       descriptionLineID: 667
       stateType: 2
+      actionListOnEnter: {fileID: 0}
+      autoStartSubObjectives: 0
+      texture: {fileID: 0}
+      autoStateIDOnAllSubObsCompletePlusOne: 0
+      autoStateIDOnAnySubObsCompletePlusOne: 0
+      autoStateIDOnAllSubObsFailPlusOne: 0
+      autoStateIDOnAnySubObsFailPlusOne: 0
+      linkedCategoryIDPlusOne: 0
     lockStateWhenComplete: 1
     lockStateWhenFail: 1
+    onlySuccessiveActiveStates: 0
+    binID: 0
+    vars: []
   - ID: 3
     title: Jar Shelves
     titleLineID: 520
@@ -1401,6 +1481,14 @@ MonoBehaviour:
       description: How should I handle these jars?
       descriptionLineID: 669
       stateType: 1
+      actionListOnEnter: {fileID: 0}
+      autoStartSubObjectives: 0
+      texture: {fileID: 0}
+      autoStateIDOnAllSubObsCompletePlusOne: 0
+      autoStateIDOnAnySubObsCompletePlusOne: 0
+      autoStateIDOnAllSubObsFailPlusOne: 0
+      autoStateIDOnAnySubObsFailPlusOne: 0
+      linkedCategoryIDPlusOne: 0
     - ID: 1
       label: Completed
       labelLineID: 659
@@ -1408,8 +1496,19 @@ MonoBehaviour:
         by me!
       descriptionLineID: 670
       stateType: 2
+      actionListOnEnter: {fileID: 0}
+      autoStartSubObjectives: 0
+      texture: {fileID: 0}
+      autoStateIDOnAllSubObsCompletePlusOne: 0
+      autoStateIDOnAnySubObsCompletePlusOne: 0
+      autoStateIDOnAllSubObsFailPlusOne: 0
+      autoStateIDOnAnySubObsFailPlusOne: 0
+      linkedCategoryIDPlusOne: 0
     lockStateWhenComplete: 1
     lockStateWhenFail: 1
+    onlySuccessiveActiveStates: 0
+    binID: 0
+    vars: []
   - ID: 4
     title: Test Tubes
     titleLineID: 635
@@ -1425,14 +1524,33 @@ MonoBehaviour:
       description: Some test tubes are here. I don't know the usage.
       descriptionLineID: 672
       stateType: 1
+      actionListOnEnter: {fileID: 0}
+      autoStartSubObjectives: 0
+      texture: {fileID: 0}
+      autoStateIDOnAllSubObsCompletePlusOne: 0
+      autoStateIDOnAnySubObsCompletePlusOne: 0
+      autoStateIDOnAllSubObsFailPlusOne: 0
+      autoStateIDOnAnySubObsFailPlusOne: 0
+      linkedCategoryIDPlusOne: 0
     - ID: 1
       label: Completed
       labelLineID: 659
       description: The rainbow power is awesome!
       descriptionLineID: 673
       stateType: 2
+      actionListOnEnter: {fileID: 0}
+      autoStartSubObjectives: 0
+      texture: {fileID: 0}
+      autoStateIDOnAllSubObsCompletePlusOne: 0
+      autoStateIDOnAnySubObsCompletePlusOne: 0
+      autoStateIDOnAllSubObsFailPlusOne: 0
+      autoStateIDOnAnySubObsFailPlusOne: 0
+      linkedCategoryIDPlusOne: 0
     lockStateWhenComplete: 1
     lockStateWhenFail: 1
+    onlySuccessiveActiveStates: 0
+    binID: 0
+    vars: []
   - ID: 5
     title: Talk To Somebody
     titleLineID: 674
@@ -1447,11 +1565,39 @@ MonoBehaviour:
       description: I don't know where is here? I should ask someone.
       descriptionLineID: 676
       stateType: 1
+      actionListOnEnter: {fileID: 0}
+      autoStartSubObjectives: 0
+      texture: {fileID: 0}
+      autoStateIDOnAllSubObsCompletePlusOne: 0
+      autoStateIDOnAnySubObsCompletePlusOne: 0
+      autoStateIDOnAllSubObsFailPlusOne: 0
+      autoStateIDOnAnySubObsFailPlusOne: 0
+      linkedCategoryIDPlusOne: 0
     - ID: 1
       label: Completed
       labelLineID: 659
       description: I still don't know where is here and why I am here.
       descriptionLineID: 677
       stateType: 2
+      actionListOnEnter: {fileID: 0}
+      autoStartSubObjectives: 0
+      texture: {fileID: 0}
+      autoStateIDOnAllSubObsCompletePlusOne: 0
+      autoStateIDOnAnySubObsCompletePlusOne: 0
+      autoStateIDOnAllSubObsFailPlusOne: 0
+      autoStateIDOnAnySubObsFailPlusOne: 0
+      linkedCategoryIDPlusOne: 0
     lockStateWhenComplete: 1
     lockStateWhenFail: 1
+    onlySuccessiveActiveStates: 0
+    binID: 0
+    vars: []
+  objectiveStateActiveLabel:
+    label: Active
+    lineID: 622
+  objectiveStateCompleteLabel:
+    label: Complete
+    lineID: 623
+  objectiveStateFailLabel:
+    label: Fail
+    lineID: 687

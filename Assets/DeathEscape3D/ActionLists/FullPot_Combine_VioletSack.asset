@@ -40,6 +40,7 @@ MonoBehaviour:
   overrideColor: {r: 1, g: 1, b: 1, a: 1}
   showOutputSockets: 1
   parentActionListInEditor: {fileID: 0}
+  groupID: 0
   invAction: 1
   parameterID: -1
   invID: 13
@@ -52,6 +53,9 @@ MonoBehaviour:
   playerID: 0
   addToFront: 0
   removeLast: 0
+  itemRemoveMethod: 0
+  categoryID: 0
+  categoryIDParameterID: -1
 --- !u!114 &-4071023922085882244
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -92,6 +96,7 @@ MonoBehaviour:
   overrideColor: {r: 1, g: 1, b: 1, a: 1}
   showOutputSockets: 1
   parentActionListInEditor: {fileID: 0}
+  groupID: 0
   invAction: 1
   parameterID: -1
   invID: 5
@@ -104,6 +109,9 @@ MonoBehaviour:
   playerID: 0
   addToFront: 0
   removeLast: 0
+  itemRemoveMethod: 0
+  categoryID: 0
+  categoryIDParameterID: -1
 --- !u!114 &-1572595012346529087
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -144,6 +152,7 @@ MonoBehaviour:
   overrideColor: {r: 1, g: 1, b: 1, a: 1}
   showOutputSockets: 1
   parentActionListInEditor: {fileID: 0}
+  groupID: 0
   invAction: 0
   parameterID: -1
   invID: 21
@@ -156,6 +165,9 @@ MonoBehaviour:
   playerID: 0
   addToFront: 1
   removeLast: 0
+  itemRemoveMethod: 0
+  categoryID: 0
+  categoryIDParameterID: -1
 --- !u!114 &-1474579362197821091
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -196,6 +208,7 @@ MonoBehaviour:
   overrideColor: {r: 1, g: 1, b: 1, a: 1}
   showOutputSockets: 1
   parentActionListInEditor: {fileID: 0}
+  groupID: 0
   trackID: 22
   trackIDParameterID: -1
   fadeTime: 0
@@ -233,4 +246,5 @@ MonoBehaviour:
   revertToDefaultParametersAfterRunning: 0
   parameters: []
   tagID: 0
+  groups: []
   backupData: []

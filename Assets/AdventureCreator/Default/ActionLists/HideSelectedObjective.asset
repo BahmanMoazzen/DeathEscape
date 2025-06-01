@@ -26,6 +26,7 @@ MonoBehaviour:
   revertToDefaultParametersAfterRunning: 0
   parameters: []
   tagID: 0
+  groups: []
   backupData: []
 --- !u!114 &11428390
 MonoBehaviour:
@@ -45,11 +46,16 @@ MonoBehaviour:
   comment: 
   willWait: 0
   endAction: 1
-  skipAction: 3
+  skipAction: -99
   skipActionActual: {fileID: 11428390}
   linkedCutscene: {fileID: 0}
   linkedAsset: {fileID: 0}
-  endings: []
+  endings:
+  - resultAction: 1
+    skipAction: 3
+    skipActionActual: {fileID: 11428390}
+    linkedCutscene: {fileID: 0}
+    linkedAsset: {fileID: 0}
   isEnabled: 1
   isAssetFile: 1
   isBreakPoint: 0
@@ -62,6 +68,7 @@ MonoBehaviour:
   overrideColor: {r: 1, g: 1, b: 1, a: 1}
   showOutputSockets: 1
   parentActionListInEditor: {fileID: 0}
+  groupID: 0
   changeType: 2
   removeJournalPageMethod: 0
   menuToChange: Objectives
@@ -70,6 +77,7 @@ MonoBehaviour:
   elementToChangeParameterID: -1
   journalText: 
   onlyAddNewJournal: 0
+  pageTexture: {fileID: 0}
   doFade: 0
   lineID: -1
   journalPageIndex: -1
@@ -93,11 +101,16 @@ MonoBehaviour:
   comment: 
   willWait: 0
   endAction: 2
-  skipAction: 3
+  skipAction: -99
   skipActionActual: {fileID: 11428390}
   linkedCutscene: {fileID: 0}
   linkedAsset: {fileID: 0}
-  endings: []
+  endings:
+  - resultAction: 2
+    skipAction: 3
+    skipActionActual: {fileID: 11428390}
+    linkedCutscene: {fileID: 0}
+    linkedAsset: {fileID: 0}
   isEnabled: 1
   isAssetFile: 1
   isBreakPoint: 0
@@ -110,6 +123,7 @@ MonoBehaviour:
   overrideColor: {r: 1, g: 1, b: 1, a: 1}
   showOutputSockets: 1
   parentActionListInEditor: {fileID: 0}
+  groupID: 0
   changeType: 2
   removeJournalPageMethod: 0
   menuToChange: Objectives
@@ -118,6 +132,7 @@ MonoBehaviour:
   elementToChangeParameterID: -1
   journalText: 
   onlyAddNewJournal: 0
+  pageTexture: {fileID: 0}
   doFade: 0
   lineID: -1
   journalPageIndex: -1
@@ -141,11 +156,16 @@ MonoBehaviour:
   comment: 
   willWait: 0
   endAction: 2
-  skipAction: 2
+  skipAction: -99
   skipActionActual: {fileID: 11457398}
   linkedCutscene: {fileID: 0}
   linkedAsset: {fileID: 0}
-  endings: []
+  endings:
+  - resultAction: 2
+    skipAction: 2
+    skipActionActual: {fileID: 11457398}
+    linkedCutscene: {fileID: 0}
+    linkedAsset: {fileID: 0}
   isEnabled: 1
   isAssetFile: 1
   isBreakPoint: 0
@@ -158,6 +178,7 @@ MonoBehaviour:
   overrideColor: {r: 1, g: 1, b: 1, a: 1}
   showOutputSockets: 1
   parentActionListInEditor: {fileID: 0}
+  groupID: 0
   changeType: 2
   removeJournalPageMethod: 0
   menuToChange: Objectives
@@ -166,6 +187,7 @@ MonoBehaviour:
   elementToChangeParameterID: -1
   journalText: 
   onlyAddNewJournal: 0
+  pageTexture: {fileID: 0}
   doFade: 0
   lineID: -1
   journalPageIndex: -1
@@ -189,11 +211,16 @@ MonoBehaviour:
   comment: 
   willWait: 0
   endAction: 2
-  skipAction: 1
+  skipAction: -99
   skipActionActual: {fileID: 11482464}
   linkedCutscene: {fileID: 0}
   linkedAsset: {fileID: 0}
-  endings: []
+  endings:
+  - resultAction: 2
+    skipAction: 1
+    skipActionActual: {fileID: 11482464}
+    linkedCutscene: {fileID: 0}
+    linkedAsset: {fileID: 0}
   isEnabled: 1
   isAssetFile: 1
   isBreakPoint: 0
@@ -206,6 +233,7 @@ MonoBehaviour:
   overrideColor: {r: 1, g: 1, b: 1, a: 1}
   showOutputSockets: 1
   parentActionListInEditor: {fileID: 0}
+  groupID: 0
   changeType: 2
   removeJournalPageMethod: 0
   menuToChange: Objectives
@@ -214,6 +242,7 @@ MonoBehaviour:
   elementToChangeParameterID: -1
   journalText: 
   onlyAddNewJournal: 0
+  pageTexture: {fileID: 0}
   doFade: 0
   lineID: -1
   journalPageIndex: -1

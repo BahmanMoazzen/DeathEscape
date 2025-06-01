@@ -40,6 +40,7 @@ MonoBehaviour:
   overrideColor: {r: 1, g: 1, b: 1, a: 1}
   showOutputSockets: 1
   parentActionListInEditor: {fileID: 0}
+  groupID: 0
   changeMovementMethod: 1
   newMovementMethod: 4
   cursorLock: 2
@@ -93,6 +94,7 @@ MonoBehaviour:
   overrideColor: {r: 1, g: 1, b: 1, a: 1}
   showOutputSockets: 1
   parentActionListInEditor: {fileID: 0}
+  groupID: 0
   changeType: 1
   removeJournalPageMethod: 0
   menuToChange: TitleScreenFirst
@@ -101,10 +103,12 @@ MonoBehaviour:
   elementToChangeParameterID: -1
   journalText: 
   onlyAddNewJournal: 0
+  pageTexture: {fileID: 0}
   doFade: 1
   lineID: -1
   journalPageIndex: -1
   journalPageIndexParameterID: -1
+  preprocessTextTokens: 0
 --- !u!114 &-2224736026873387156
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -145,6 +149,7 @@ MonoBehaviour:
   overrideColor: {r: 1, g: 1, b: 1, a: 1}
   showOutputSockets: 1
   parentActionListInEditor: {fileID: 0}
+  groupID: 0
   trackID: 1
   trackIDParameterID: -1
   fadeTime: 0
@@ -189,6 +194,7 @@ MonoBehaviour:
   revertToDefaultParametersAfterRunning: 0
   parameters: []
   tagID: 0
+  groups: []
   backupData: []
 --- !u!114 &3600566804858858639
 MonoBehaviour:
@@ -230,6 +236,7 @@ MonoBehaviour:
   overrideColor: {r: 1, g: 1, b: 1, a: 1}
   showOutputSockets: 1
   parentActionListInEditor: {fileID: 0}
+  groupID: 0
   changeType: 4
   removeJournalPageMethod: 0
   menuToChange: DocumentMenu
@@ -238,10 +245,12 @@ MonoBehaviour:
   elementToChangeParameterID: -1
   journalText: 
   onlyAddNewJournal: 0
+  pageTexture: {fileID: 0}
   doFade: 0
   lineID: -1
   journalPageIndex: -1
   journalPageIndexParameterID: -1
+  preprocessTextTokens: 0
 --- !u!114 &5548244842483927639
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -282,6 +291,7 @@ MonoBehaviour:
   overrideColor: {r: 1, g: 1, b: 1, a: 1}
   showOutputSockets: 1
   parentActionListInEditor: {fileID: 0}
+  groupID: 0
   listSource: 0
   actionList: {fileID: 0}
   constantID: 9210
@@ -339,6 +349,7 @@ MonoBehaviour:
   overrideColor: {r: 1, g: 1, b: 1, a: 1}
   showOutputSockets: 1
   parentActionListInEditor: {fileID: 0}
+  groupID: 0
   changeType: 4
   removeJournalPageMethod: 0
   menuToChange: InGame
@@ -347,10 +358,12 @@ MonoBehaviour:
   elementToChangeParameterID: -1
   journalText: 
   onlyAddNewJournal: 0
+  pageTexture: {fileID: 0}
   doFade: 0
   lineID: -1
   journalPageIndex: -1
   journalPageIndexParameterID: -1
+  preprocessTextTokens: 0
 --- !u!114 &6246679588241077198
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -391,6 +404,7 @@ MonoBehaviour:
   overrideColor: {r: 1, g: 1, b: 1, a: 1}
   showOutputSockets: 1
   parentActionListInEditor: {fileID: 0}
+  groupID: 0
   changeType: 4
   removeJournalPageMethod: 0
   menuToChange: Inventory
@@ -399,10 +413,12 @@ MonoBehaviour:
   elementToChangeParameterID: -1
   journalText: 
   onlyAddNewJournal: 0
+  pageTexture: {fileID: 0}
   doFade: 0
   lineID: -1
   journalPageIndex: -1
   journalPageIndexParameterID: -1
+  preprocessTextTokens: 0
 --- !u!114 &6723974309019183994
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -443,6 +459,7 @@ MonoBehaviour:
   overrideColor: {r: 1, g: 1, b: 1, a: 1}
   showOutputSockets: 1
   parentActionListInEditor: {fileID: 0}
+  groupID: 0
   changeType: 0
   removeJournalPageMethod: 0
   menuToChange: TitleScreenFirst
@@ -451,10 +468,12 @@ MonoBehaviour:
   elementToChangeParameterID: -1
   journalText: 
   onlyAddNewJournal: 0
+  pageTexture: {fileID: 0}
   doFade: 1
   lineID: -1
   journalPageIndex: -1
   journalPageIndexParameterID: -1
+  preprocessTextTokens: 0
 --- !u!114 &7080471184482453532
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -495,6 +514,7 @@ MonoBehaviour:
   overrideColor: {r: 1, g: 1, b: 1, a: 1}
   showOutputSockets: 1
   parentActionListInEditor: {fileID: 0}
+  groupID: 0
   parameterID: -1
   timeToPause: 3
 --- !u!114 &7767513928852405689
@@ -537,6 +557,7 @@ MonoBehaviour:
   overrideColor: {r: 1, g: 1, b: 1, a: 1}
   showOutputSockets: 1
   parentActionListInEditor: {fileID: 0}
+  groupID: 0
   changeType: 0
   removeJournalPageMethod: 0
   menuToChange: TitleScreenSecond
@@ -545,10 +566,12 @@ MonoBehaviour:
   elementToChangeParameterID: -1
   journalText: 
   onlyAddNewJournal: 0
+  pageTexture: {fileID: 0}
   doFade: 1
   lineID: -1
   journalPageIndex: -1
   journalPageIndexParameterID: -1
+  preprocessTextTokens: 0
 --- !u!114 &8358957555965261662
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -594,4 +617,5 @@ MonoBehaviour:
   overrideColor: {r: 1, g: 1, b: 1, a: 1}
   showOutputSockets: 1
   parentActionListInEditor: {fileID: 0}
+  groupID: 0
   numSockets: 2

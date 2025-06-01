@@ -40,6 +40,7 @@ MonoBehaviour:
   overrideColor: {r: 1, g: 1, b: 1, a: 1}
   showOutputSockets: 1
   parentActionListInEditor: {fileID: 0}
+  groupID: 0
   parameterID: -1
   constantID: 441208
   obToAffect: {fileID: 0}
@@ -70,6 +71,7 @@ MonoBehaviour:
   revertToDefaultParametersAfterRunning: 0
   parameters: []
   tagID: 0
+  groups: []
   backupData: []
 --- !u!114 &2292231023756646647
 MonoBehaviour:
@@ -111,6 +113,7 @@ MonoBehaviour:
   overrideColor: {r: 1, g: 1, b: 1, a: 1}
   showOutputSockets: 1
   parentActionListInEditor: {fileID: 0}
+  groupID: 0
   parameterID: -1
   timeToPause: 1.5
 --- !u!114 &7472954152445960837
@@ -153,6 +156,7 @@ MonoBehaviour:
   overrideColor: {r: 1, g: 1, b: 1, a: 1}
   showOutputSockets: 1
   parentActionListInEditor: {fileID: 0}
+  groupID: 0
   changeType: 1
   removeJournalPageMethod: 0
   menuToChange: PayFailed
@@ -161,7 +165,9 @@ MonoBehaviour:
   elementToChangeParameterID: -1
   journalText: 
   onlyAddNewJournal: 0
+  pageTexture: {fileID: 0}
   doFade: 1
   lineID: -1
   journalPageIndex: -1
   journalPageIndexParameterID: -1
+  preprocessTextTokens: 0

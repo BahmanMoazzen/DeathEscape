@@ -23,6 +23,7 @@ MonoBehaviour:
   revertToDefaultParametersAfterRunning: 0
   parameters: []
   tagID: 0
+  groups: []
   backupData: []
 --- !u!114 &7996985679706189118
 MonoBehaviour:
@@ -64,6 +65,7 @@ MonoBehaviour:
   overrideColor: {r: 1, g: 1, b: 1, a: 1}
   showOutputSockets: 1
   parentActionListInEditor: {fileID: 0}
+  groupID: 0
   listSource: 0
   actionList: {fileID: 0}
   constantID: 96252
