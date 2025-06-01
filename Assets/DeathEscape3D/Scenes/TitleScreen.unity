@@ -13,7 +13,7 @@ OcclusionCullingSettings:
 --- !u!104 &2
 RenderSettings:
   m_ObjectHideFlags: 0
-  serializedVersion: 9
+  serializedVersion: 10
   m_Fog: 0
   m_FogColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
   m_FogMode: 3
@@ -42,8 +42,8 @@ RenderSettings:
 --- !u!157 &3
 LightmapSettings:
   m_ObjectHideFlags: 0
-  serializedVersion: 12
-  m_GIWorkflowMode: 1
+  serializedVersion: 13
+  m_BakeOnSceneLoad: 0
   m_GISettings:
     serializedVersion: 2
     m_BounceScale: 1
@@ -66,9 +66,6 @@ LightmapSettings:
     m_LightmapParameters: {fileID: 0}
     m_LightmapsBakeMode: 1
     m_TextureCompression: 1
-    m_FinalGather: 0
-    m_FinalGatherFiltering: 1
-    m_FinalGatherRayCount: 256
     m_ReflectionCompression: 2
     m_MixedBakeMode: 2
     m_BakeBackend: 1
@@ -162,6 +159,7 @@ MonoBehaviour:
   overrideColor: {r: 1, g: 1, b: 1, a: 1}
   showOutputSockets: 1
   parentActionListInEditor: {fileID: 3622697417495144042}
+  groupID: 0
   unityEvent:
     m_PersistentCalls:
       m_Calls:
@@ -381,6 +379,7 @@ MonoBehaviour:
   overrideColor: {r: 1, g: 1, b: 1, a: 1}
   showOutputSockets: 1
   parentActionListInEditor: {fileID: 1659750895054917220}
+  groupID: 0
   unityEvent:
     m_PersistentCalls:
       m_Calls:
@@ -469,7 +468,7 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2375240, guid: f8ca8b584672e2c44b786aedd156b7eb, type: 3}
-      propertyPath: m_Materials.Array.data[0]
+      propertyPath: 'm_Materials.Array.data[0]'
       value: 
       objectReference: {fileID: 2100000, guid: 9d0b89dd5f51ec6428c88bb296cfa117, type: 2}
     m_RemovedComponents:
@@ -712,10 +711,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   fadeTexture: {fileID: 2800000, guid: 2de7d16b4ac4b402182d4f2ca40e0b2d, type: 3}
   renderFading: 1
+  renderBorders: 1
   forwardDirection: 0
 --- !u!95 &164310360
 Animator:
-  serializedVersion: 5
+  serializedVersion: 7
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -729,6 +729,7 @@ Animator:
   m_ApplyRootMotion: 0
   m_LinearVelocityBlending: 0
   m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
   m_WarningMessage: 
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
@@ -895,16 +896,18 @@ MonoBehaviour:
   overrideColor: {r: 1, g: 1, b: 1, a: 1}
   showOutputSockets: 1
   parentActionListInEditor: {fileID: 1246735281729270256}
+  groupID: 0
   setVarMethod: 0
   setVarMethodString: 0
   setVarMethodIntBool: 0
   setVarMethodVector: 0
   parameterID: -1
   variableID: 15
-  variableNumber: 15
   setParameterID: -1
   slotNumber: 0
   slotNumberParameterID: -1
+  slotAccountsForOffset: 0
+  doLoop: 0
   intValue: 0
   floatValue: 0
   boolValue: 1
@@ -912,6 +915,8 @@ MonoBehaviour:
   formula: 
   vector3Value: {x: 0, y: 0, z: 0}
   gameObjectValue: {fileID: 0}
+  unityObjectValue: {fileID: 0}
+  preProcessTokens: 1
   lineID: -1
   location: 0
   menuName: 
@@ -999,6 +1004,7 @@ MonoBehaviour:
   parameters: []
   tagID: 0
   syncParamValues: 1
+  groups: []
   backupData: []
 --- !u!4 &343606359
 Transform:
@@ -1133,6 +1139,7 @@ MonoBehaviour:
   overrideColor: {r: 1, g: 1, b: 1, a: 1}
   showOutputSockets: 1
   parentActionListInEditor: {fileID: 6683213368236479299}
+  groupID: 0
   changeType: 1
   removeJournalPageMethod: 0
   menuToChange: TitleScreenPay
@@ -1141,10 +1148,12 @@ MonoBehaviour:
   elementToChangeParameterID: -1
   journalText: 
   onlyAddNewJournal: 0
+  pageTexture: {fileID: 0}
   doFade: 1
   lineID: -1
   journalPageIndex: -1
   journalPageIndexParameterID: -1
+  preprocessTextTokens: 0
 --- !u!114 &490015583
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1185,6 +1194,7 @@ MonoBehaviour:
   overrideColor: {r: 1, g: 1, b: 1, a: 1}
   showOutputSockets: 1
   parentActionListInEditor: {fileID: 6669478226794241141}
+  groupID: 0
   unityEvent:
     m_PersistentCalls:
       m_Calls:
@@ -1244,6 +1254,7 @@ MonoBehaviour:
   overrideColor: {r: 1, g: 1, b: 1, a: 1}
   showOutputSockets: 1
   parentActionListInEditor: {fileID: 6683213368236479299}
+  groupID: 0
   changeType: 1
   removeJournalPageMethod: 0
   menuToChange: TitleScreenPay
@@ -1252,10 +1263,12 @@ MonoBehaviour:
   elementToChangeParameterID: -1
   journalText: 
   onlyAddNewJournal: 0
+  pageTexture: {fileID: 0}
   doFade: 1
   lineID: -1
   journalPageIndex: -1
   journalPageIndexParameterID: -1
+  preprocessTextTokens: 0
 --- !u!1 &700772145
 GameObject:
   m_ObjectHideFlags: 0
@@ -1398,6 +1411,7 @@ MonoBehaviour:
   overrideColor: {r: 1, g: 1, b: 1, a: 1}
   showOutputSockets: 1
   parentActionListInEditor: {fileID: 6683213368236479299}
+  groupID: 0
   unityEvent:
     m_PersistentCalls:
       m_Calls:
@@ -1470,6 +1484,7 @@ MonoBehaviour:
   overrideColor: {r: 1, g: 1, b: 1, a: 1}
   showOutputSockets: 1
   parentActionListInEditor: {fileID: 343606358}
+  groupID: 0
   changeType: 3
   removeJournalPageMethod: 0
   menuToChange: TitleScreenSecond
@@ -1478,10 +1493,67 @@ MonoBehaviour:
   elementToChangeParameterID: -1
   journalText: 
   onlyAddNewJournal: 0
+  pageTexture: {fileID: 0}
   doFade: 0
   lineID: -1
   journalPageIndex: -1
   journalPageIndexParameterID: -1
+  preprocessTextTokens: 0
+--- !u!114 &773169580
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 74813bf97090c47b39d9f3d0ec84a80b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  id: 0
+  isDisplayed: 1
+  showComment: 0
+  comment: 
+  willWait: 0
+  endAction: 0
+  skipAction: -1
+  skipActionActual: {fileID: 0}
+  linkedCutscene: {fileID: 0}
+  linkedAsset: {fileID: 0}
+  endings:
+  - resultAction: 0
+    skipAction: -1
+    skipActionActual: {fileID: 0}
+    linkedCutscene: {fileID: 0}
+    linkedAsset: {fileID: 0}
+  isEnabled: 1
+  isAssetFile: 0
+  isBreakPoint: 0
+  nodeRect:
+    serializedVersion: 2
+    x: 14
+    y: 14
+    width: 300
+    height: 132
+  overrideColor: {r: 1, g: 1, b: 1, a: 1}
+  showOutputSockets: 1
+  parentActionListInEditor: {fileID: 7786200810242181905}
+  groupID: 0
+  changeType: 2
+  removeJournalPageMethod: 0
+  menuToChange: TitleScreenSecond
+  menuToChangeParameterID: -1
+  elementToChange: SupportUs
+  elementToChangeParameterID: -1
+  journalText: 
+  onlyAddNewJournal: 0
+  pageTexture: {fileID: 0}
+  doFade: 0
+  lineID: -1
+  journalPageIndex: -1
+  journalPageIndexParameterID: -1
+  preprocessTextTokens: 0
 --- !u!1001 &808381705
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1595,6 +1667,7 @@ MonoBehaviour:
   overrideColor: {r: 1, g: 1, b: 1, a: 1}
   showOutputSockets: 1
   parentActionListInEditor: {fileID: 5123238153826916841}
+  groupID: 0
   unityEvent:
     m_PersistentCalls:
       m_Calls:
@@ -1756,7 +1829,7 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2375240, guid: f8ca8b584672e2c44b786aedd156b7eb, type: 3}
-      propertyPath: m_Materials.Array.data[0]
+      propertyPath: 'm_Materials.Array.data[0]'
       value: 
       objectReference: {fileID: 2100000, guid: 9d0b89dd5f51ec6428c88bb296cfa117, type: 2}
     m_RemovedComponents:
@@ -1810,6 +1883,7 @@ MonoBehaviour:
   overrideColor: {r: 1, g: 1, b: 1, a: 1}
   showOutputSockets: 1
   parentActionListInEditor: {fileID: 9088365439177651855}
+  groupID: 0
   unityEvent:
     m_PersistentCalls:
       m_Calls:
@@ -1869,6 +1943,7 @@ MonoBehaviour:
   overrideColor: {r: 1, g: 1, b: 1, a: 1}
   showOutputSockets: 1
   parentActionListInEditor: {fileID: 2889548392873458699}
+  groupID: 0
   unityEvent:
     m_PersistentCalls:
       m_Calls:
@@ -1888,20 +1963,6 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   ignoreWhenSkipping: 0
---- !u!114 &984932385
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c4624365f48c649fdaec08e7a0041404, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  turningStyle: 1
-  isSpriteBased: 0
 --- !u!114 &1038129368
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1942,6 +2003,7 @@ MonoBehaviour:
   overrideColor: {r: 1, g: 1, b: 1, a: 1}
   showOutputSockets: 1
   parentActionListInEditor: {fileID: 6683213368236479299}
+  groupID: 0
   changeType: 0
   removeJournalPageMethod: 0
   menuToChange: TitleScreenSecond
@@ -1950,10 +2012,12 @@ MonoBehaviour:
   elementToChangeParameterID: -1
   journalText: 
   onlyAddNewJournal: 0
+  pageTexture: {fileID: 0}
   doFade: 1
   lineID: -1
   journalPageIndex: -1
   journalPageIndexParameterID: -1
+  preprocessTextTokens: 0
 --- !u!1001 &1099610752
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2154,6 +2218,7 @@ MonoBehaviour:
   overrideColor: {r: 1, g: 1, b: 1, a: 1}
   showOutputSockets: 1
   parentActionListInEditor: {fileID: 5123238153826916841}
+  groupID: 0
   changeType: 1
   removeJournalPageMethod: 0
   menuToChange: TitleScreenPay
@@ -2162,10 +2227,12 @@ MonoBehaviour:
   elementToChangeParameterID: -1
   journalText: 
   onlyAddNewJournal: 0
+  pageTexture: {fileID: 0}
   doFade: 1
   lineID: -1
   journalPageIndex: -1
   journalPageIndexParameterID: -1
+  preprocessTextTokens: 0
 --- !u!1001 &1335847803
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2341,6 +2408,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: BAHMANPublicRelation
       objectReference: {fileID: 0}
+    - target: {fileID: 7151882458078286805, guid: da7653545e3aa3745a0a08aad9f3bdc3, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -2420,6 +2491,7 @@ MonoBehaviour:
   overrideColor: {r: 1, g: 1, b: 1, a: 1}
   showOutputSockets: 1
   parentActionListInEditor: {fileID: 8331617448790079281}
+  groupID: 0
   parameterID: -1
   constantID: 0
   _anim: {fileID: 0}
@@ -2451,7 +2523,6 @@ MonoBehaviour:
   playMode: 0
   animationEngine: 0
   customClassName: 
-  animEngine: {fileID: 984932385}
 --- !u!114 &1471044566
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2492,6 +2563,7 @@ MonoBehaviour:
   overrideColor: {r: 1, g: 1, b: 1, a: 1}
   showOutputSockets: 1
   parentActionListInEditor: {fileID: 2512282742386872405}
+  groupID: 0
   changeType: 0
   removeJournalPageMethod: 0
   menuToChange: PayFailed
@@ -2500,10 +2572,12 @@ MonoBehaviour:
   elementToChangeParameterID: -1
   journalText: 
   onlyAddNewJournal: 0
+  pageTexture: {fileID: 0}
   doFade: 1
   lineID: -1
   journalPageIndex: -1
   journalPageIndexParameterID: -1
+  preprocessTextTokens: 0
 --- !u!114 &1473344002
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2544,6 +2618,7 @@ MonoBehaviour:
   overrideColor: {r: 1, g: 1, b: 1, a: 1}
   showOutputSockets: 1
   parentActionListInEditor: {fileID: 9088365439177651855}
+  groupID: 0
   changeType: 0
   removeJournalPageMethod: 0
   menuToChange: PaySuccess
@@ -2552,10 +2627,12 @@ MonoBehaviour:
   elementToChangeParameterID: -1
   journalText: 
   onlyAddNewJournal: 0
+  pageTexture: {fileID: 0}
   doFade: 1
   lineID: -1
   journalPageIndex: -1
   journalPageIndexParameterID: -1
+  preprocessTextTokens: 0
 --- !u!1001 &1562199012
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2703,7 +2780,7 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2375240, guid: f8ca8b584672e2c44b786aedd156b7eb, type: 3}
-      propertyPath: m_Materials.Array.data[0]
+      propertyPath: 'm_Materials.Array.data[0]'
       value: 
       objectReference: {fileID: 2100000, guid: 9d0b89dd5f51ec6428c88bb296cfa117, type: 2}
     m_RemovedComponents:
@@ -2881,7 +2958,7 @@ GameObject:
   m_IsActive: 1
 --- !u!95 &1781785662
 Animator:
-  serializedVersion: 5
+  serializedVersion: 7
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -2895,6 +2972,7 @@ Animator:
   m_ApplyRootMotion: 0
   m_LinearVelocityBlending: 0
   m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
   m_WarningMessage: 
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
@@ -2959,16 +3037,18 @@ MonoBehaviour:
   overrideColor: {r: 1, g: 1, b: 1, a: 1}
   showOutputSockets: 1
   parentActionListInEditor: {fileID: 9088365439177651855}
+  groupID: 0
   setVarMethod: 0
   setVarMethodString: 0
   setVarMethodIntBool: 0
   setVarMethodVector: 0
   parameterID: -1
   variableID: 15
-  variableNumber: 15
   setParameterID: -1
   slotNumber: 0
   slotNumberParameterID: -1
+  slotAccountsForOffset: 0
+  doLoop: 0
   intValue: 0
   floatValue: 0
   boolValue: 1
@@ -2976,6 +3056,8 @@ MonoBehaviour:
   formula: 
   vector3Value: {x: 0, y: 0, z: 0}
   gameObjectValue: {fileID: 0}
+  unityObjectValue: {fileID: 0}
+  preProcessTokens: 1
   lineID: -1
   location: 0
   menuName: 
@@ -3060,6 +3142,7 @@ MonoBehaviour:
   overrideColor: {r: 1, g: 1, b: 1, a: 1}
   showOutputSockets: 1
   parentActionListInEditor: {fileID: 5123238153826916841}
+  groupID: 0
   changeType: 0
   removeJournalPageMethod: 0
   menuToChange: TitleScreenSecond
@@ -3068,10 +3151,12 @@ MonoBehaviour:
   elementToChangeParameterID: -1
   journalText: 
   onlyAddNewJournal: 0
+  pageTexture: {fileID: 0}
   doFade: 1
   lineID: -1
   journalPageIndex: -1
   journalPageIndexParameterID: -1
+  preprocessTextTokens: 0
 --- !u!1001 &1951546630
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3141,7 +3226,7 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2375240, guid: f8ca8b584672e2c44b786aedd156b7eb, type: 3}
-      propertyPath: m_Materials.Array.data[0]
+      propertyPath: 'm_Materials.Array.data[0]'
       value: 
       objectReference: {fileID: 2100000, guid: 9d0b89dd5f51ec6428c88bb296cfa117, type: 2}
     m_RemovedComponents:
@@ -3286,58 +3371,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 403928, guid: 947e113398f058643a47464fff50cae1, type: 3}
   m_PrefabInstance: {fileID: 2066601126}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &2075171831
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 74813bf97090c47b39d9f3d0ec84a80b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  id: 0
-  isDisplayed: 1
-  showComment: 0
-  comment: 
-  willWait: 0
-  endAction: 0
-  skipAction: -1
-  skipActionActual: {fileID: 0}
-  linkedCutscene: {fileID: 0}
-  linkedAsset: {fileID: 0}
-  endings:
-  - resultAction: 0
-    skipAction: -1
-    skipActionActual: {fileID: 0}
-    linkedCutscene: {fileID: 0}
-    linkedAsset: {fileID: 0}
-  isEnabled: 1
-  isAssetFile: 0
-  isBreakPoint: 0
-  nodeRect:
-    serializedVersion: 2
-    x: 14
-    y: 14
-    width: 300
-    height: 132
-  overrideColor: {r: 1, g: 1, b: 1, a: 1}
-  showOutputSockets: 1
-  parentActionListInEditor: {fileID: 0}
-  changeType: 2
-  removeJournalPageMethod: 0
-  menuToChange: TitleScreenSecond
-  menuToChangeParameterID: -1
-  elementToChange: SupportUs
-  elementToChangeParameterID: -1
-  journalText: 
-  onlyAddNewJournal: 0
-  doFade: 0
-  lineID: -1
-  journalPageIndex: -1
-  journalPageIndexParameterID: -1
 --- !u!114 &1246735281729270256
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3364,6 +3397,7 @@ MonoBehaviour:
   parameters: []
   tagID: 0
   syncParamValues: 1
+  groups: []
   backupData: []
 --- !u!4 &1246735281734850608
 Transform:
@@ -3423,6 +3457,7 @@ MonoBehaviour:
   parameters: []
   tagID: 0
   syncParamValues: 1
+  groups: []
   backupData: []
 --- !u!4 &1659750895061657508
 Transform:
@@ -3639,6 +3674,7 @@ MonoBehaviour:
   parameters: []
   tagID: 0
   syncParamValues: 1
+  groups: []
   backupData: []
 --- !u!4 &2512282742398106005
 Transform:
@@ -3731,6 +3767,7 @@ MonoBehaviour:
   parameters: []
   tagID: 0
   syncParamValues: 1
+  groups: []
   backupData: []
 --- !u!114 &2889548392873458700
 MonoBehaviour:
@@ -3806,6 +3843,7 @@ MonoBehaviour:
   parameters: []
   tagID: 0
   syncParamValues: 1
+  groups: []
   backupData: []
 --- !u!114 &3622697417495144043
 MonoBehaviour:
@@ -4010,8 +4048,7 @@ MonoBehaviour:
   clickDelay: 0.3
   doubleClickDelay: 1
   dragOverrideInput: 
-  cursorMoveSpeed: 4
-  cameraLockSnap: 0
+  directMenuThreshold: 0.05
   forceGameplayCursor: 0
   activeConversation: {fileID: 0}
   activeArrows: {fileID: 0}
@@ -4040,6 +4077,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f6c2f4a0c87e54e32875050ba8a978fa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  pointClickLayerMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
 --- !u!114 &3902638188525799834
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4052,6 +4092,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a9aed79b329f74b479397892dc49c27f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  hotspotsPreventCameraDragging: 0
 --- !u!114 &3902638188525799836
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4100,6 +4141,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 72e0ebd5c8e41024a8b3a413cd1c25c0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  callStartupProcess: 0
+  forceAsMain: 0
 --- !u!1 &5123238153820875785
 GameObject:
   m_ObjectHideFlags: 0
@@ -4161,6 +4204,7 @@ MonoBehaviour:
   parameters: []
   tagID: 0
   syncParamValues: 1
+  groups: []
   backupData: []
 --- !u!114 &5123238153826916842
 MonoBehaviour:
@@ -4237,6 +4281,7 @@ AudioSource:
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 8300000, guid: 3a05b958f16e6814f8e1d0018df543a4, type: 3}
+  m_Resource: {fileID: 8300000, guid: 3a05b958f16e6814f8e1d0018df543a4, type: 3}
   m_PlayOnAwake: 1
   m_Volume: 1
   m_Pitch: 1
@@ -4348,6 +4393,7 @@ MonoBehaviour:
   parameters: []
   tagID: 0
   syncParamValues: 1
+  groups: []
   backupData: []
 --- !u!1 &6669478226804976021
 GameObject:
@@ -4458,6 +4504,7 @@ MonoBehaviour:
   parameters: []
   tagID: 0
   syncParamValues: 1
+  groups: []
   backupData: []
 --- !u!114 &6683213368236479300
 MonoBehaviour:
@@ -4487,7 +4534,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   actions:
-  - {fileID: 2075171831}
+  - {fileID: 773169580}
   isSkippable: 1
   triggerTime: 0
   autosaveAfter: 0
@@ -4500,6 +4547,7 @@ MonoBehaviour:
   parameters: []
   tagID: 0
   syncParamValues: 1
+  groups: []
   backupData: []
 --- !u!4 &7786200810252395217
 Transform:
@@ -4592,6 +4640,7 @@ MonoBehaviour:
   parameters: []
   tagID: 0
   syncParamValues: 1
+  groups: []
   backupData: []
 --- !u!114 &8331617448790079282
 MonoBehaviour:
@@ -4693,6 +4742,7 @@ MonoBehaviour:
   parameters: []
   tagID: 0
   syncParamValues: 1
+  groups: []
   backupData: []
 --- !u!1 &9088365439187321711
 GameObject:

@@ -17,6 +17,7 @@ MonoBehaviour:
   saveTimeDisplay: 1
   customSaveFormat: MMMM dd, yyyy
   takeSaveScreenshots: 0
+  screenshotRenderTexture: {fileID: 0}
   saveScreenshots: 0
   screenshotResolutionFactor: 1
   useProfiles: 0
@@ -24,6 +25,7 @@ MonoBehaviour:
   orderSavesByUpdateTime: 0
   reloadSceneWhenLoading: 1
   saveWithThreading: 0
+  saveCompression: 0
   saveAssetReferencesWithAddressables: 0
   saveLabels:
     defaultSaveLabel: Save
@@ -32,14 +34,28 @@ MonoBehaviour:
     importLabelID: 432
     defaultAutosaveLabel: Autosave
     autosaveLabelID: 440
+  referenceScenesInSave: 0
+  useInvariantCulture: 1
   sceneAttributes: []
   actionListOnStart: {fileID: 11400000, guid: 49b07663dd0ccc24abd0b93e4f36b7df, type: 2}
   blackOutWhenSkipping: 0
+  events: []
+  savePlayerReferencesWithAddressables: 0
   playerSwitching: 1
-  player: {fileID: 6400253439099899167, guid: 8a629ef365eafbe458fbcc6153daec4e, type: 3}
+  legacyPlayer: {fileID: 6400253439099899167, guid: 8a629ef365eafbe458fbcc6153daec4e, type: 3}
+  playerPrefab:
+    playerOb: {fileID: 6400253439099899167, guid: 8a629ef365eafbe458fbcc6153daec4e, type: 3}
+    ID: 0
+    isDefault: 0
+    startingSceneIndex: 0
+    chooseSceneBy: 0
+    startingSceneName: 
+    useSceneDefaultPlayerStart: 0
+    startingPlayerStartID: 0
   players: []
   movementMethod: 2
   inputMethod: 2
+  simulatedCursorMoveSpeed: 4
   interactionMethod: 2
   selectInteractions: 0
   autoHideInteractionIcons: 1
@@ -57,10 +73,15 @@ MonoBehaviour:
   lockCursorOnStart: 0
   hideLockedCursor: 0
   disableFreeAimWhenDragging: 1
+  disableFreeAimWhenDraggingPickUp: 0
   runConversationsWithKeys: 0
   clickUpInteractions: 0
+  clickUpHotspots: 0
   defaultMouseClicks: 0
   allowGameplayDuringConversations: 0
+  walkToHotspotMarkers: 1
+  dragThreshold: 0
+  maxInventorySlots: 0
   shareInventory: 0
   inventoryDragDrop: 1
   dragDropThreshold: 0
@@ -69,6 +90,7 @@ MonoBehaviour:
   inventoryDropLookNoDrag: 0
   inventoryInteractions: 1
   inventoryDisableLeft: 1
+  leftClickDeselect: 1
   allowDefaultInventoryInteractions: 0
   inventoryDisableUnhandled: 1
   inventoryDisableDefined: 1
@@ -87,7 +109,9 @@ MonoBehaviour:
   giveInvWithUnhandled: 0
   giveInvWithIconID: 0
   autoDisableUnhandledHotspots: 0
+  autoToggleGiveMode: 1
   clickPrefab: {fileID: 0}
+  showClickPrefabWithStraightToCursorHeld: 0
   clickMarkerPosition: 0
   walkableClickRange: 0.5
   navMeshSearchDirection: 1
@@ -95,10 +119,12 @@ MonoBehaviour:
   doubleClickMovement: 0
   magnitudeAffectsDirect: 0
   directTurnsInstantly: 0
+  directTurnMode: 0
   stopTurningWhenReleaseInput: 0
   disableMovementWhenInterationMenusAreOpen: 0
   directMovementType: 0
   limitDirectMovement: 0
+  cameraLockSnapAngleThreshold: 5
   directMovementPerspective: 0
   destinationAccuracy: 0.8
   experimentalAccuracy: 0
@@ -106,7 +132,7 @@ MonoBehaviour:
   pathfindUpdateFrequency: 0
   verticalReductionFactor: 0.7
   rotationsAffectedByVerticalReduction: 1
-  jumpSpeed: 3
+  alwaysPathfindInSpriteDirection: 0
   singleTapStraight: 0
   singleTapStraightPathfind: 0
   clickHoldSeparationStraight: 0.3
@@ -116,6 +142,7 @@ MonoBehaviour:
   firstPersonMovementSmoothing: 1
   assumeInputsDefined: 0
   activeInputs: []
+  surfaces: []
   freeAimTouchSpeed: 0.01
   dragWalkThreshold: 3
   dragRunThreshold: 20
@@ -123,10 +150,11 @@ MonoBehaviour:
   dragLineWidth: 3
   dragLineColor: {r: 1, g: 1, b: 1, a: 1}
   offsetTouchCursor: 0
-  doubleTapHotspots: 0
+  touchScreenHotspotInput: 1
   firstPersonTouchScreen: 3
   directTouchScreen: 0
   touchUpWhenPaused: 0
+  touchUpInteractScene: 0
   forceAspectRatio: 0
   aspectRatioEnforcement: 0
   wantedAspectRatio: 2.2
@@ -141,10 +169,26 @@ MonoBehaviour:
   hotspotDetection: 0
   closeInteractionMenusIfPlayerLeavesVicinity: 0
   placeDistantHotspotsOnSeparateLayer: 1
+  cursorMustBeOverNearestHotspot: 0
   hotspotsInVicinity: 0
+  highlightAllHotspotsInVicinity: 1
   hotspotIconDisplay: 0
   hotspotIcon: 0
   hotspotIconTexture: {fileID: 0}
+  hotspotIconGraphic:
+    texture: {fileID: 0}
+    isAnimated: 0
+    numFrames: 1
+    numRows: 1
+    numCols: 1
+    size: 0.04
+    animSpeed: 4
+    endAnimOnLastFrame: 0
+    skipFirstFrameWhenLooping: 0
+    clickOffset: {x: 0, y: 0}
+    frameSpeeds: []
+    alwaysAnimate: 0
+  highlightMaterialPropertyOverride: 
   hotspotIconSize: 0.04
   playerFacesHotspots: 0
   onlyFaceHotspotOnSelect: 0
@@ -154,6 +198,7 @@ MonoBehaviour:
   hideIconUnderInteractionMenu: 0
   hotspotDrawing: 0
   hideUnhandledHotspots: 0
+  selectLowestOverlappingHotspot: 0
   navMeshRaycastLength: 100
   hotspotRaycastLength: 5
   moveableRaycastLength: 5
@@ -165,181 +210,225 @@ MonoBehaviour:
   useLoadingScreen: 1
   manualSceneActivation: 0
   loadingSceneIs: 0
+  loadScenesFromAddressable: 0
   loadingSceneName: 
   loadingScene: 3
   useAsyncLoading: 1
   loadingDelay: 0.1
   blackOutWhenInitialising: 0
   spawnPersistentEnginePrefab: 0
+  autoCallUnloadUnusedAssets: 1
   playMusicWhilePaused: 0
   playAmbienceWhilePaused: 0
   musicStorages:
   - ID: 0
+    label: 
     audioClip: {fileID: 8300000, guid: 68a18b130c0012a45bed0956aa898b12, type: 3}
     relativeVolume: 1
     overrideMixerGroup: {fileID: 0}
   - ID: 1
+    label: 
     audioClip: {fileID: 8300000, guid: d577f74b5538a7c4788e638875eae147, type: 3}
     relativeVolume: 1
     overrideMixerGroup: {fileID: 0}
   - ID: 2
+    label: 
     audioClip: {fileID: 8300000, guid: 70c47bbb6fc8b9a4a8561a28cf58dbf2, type: 3}
     relativeVolume: 1
     overrideMixerGroup: {fileID: 0}
   - ID: 3
+    label: 
     audioClip: {fileID: 8300000, guid: b878ade31f1dabd43b126314f235d207, type: 3}
     relativeVolume: 1
     overrideMixerGroup: {fileID: 0}
   - ID: 4
+    label: 
     audioClip: {fileID: 8300000, guid: 85326ba6614392c42899c3944b50eef1, type: 3}
     relativeVolume: 1
     overrideMixerGroup: {fileID: 0}
   - ID: 5
+    label: 
     audioClip: {fileID: 8300000, guid: 09a0a1424ee98f74eb96aa4aead56717, type: 3}
     relativeVolume: 1
     overrideMixerGroup: {fileID: 0}
   - ID: 6
+    label: 
     audioClip: {fileID: 8300000, guid: f0dd733ba4ceb324c8e22939135a58e2, type: 3}
     relativeVolume: 1
     overrideMixerGroup: {fileID: 0}
   - ID: 7
+    label: 
     audioClip: {fileID: 8300000, guid: c3e3420d23b3cab46927793d2265747f, type: 3}
     relativeVolume: 1
     overrideMixerGroup: {fileID: 0}
   - ID: 8
+    label: 
     audioClip: {fileID: 8300000, guid: d42d16fc7a8dd5c40b0f3d04212c4c8c, type: 3}
     relativeVolume: 1
     overrideMixerGroup: {fileID: 0}
   - ID: 9
+    label: 
     audioClip: {fileID: 8300000, guid: d8c5bcee8a3872147bbbc2b5026e13e1, type: 3}
     relativeVolume: 1
     overrideMixerGroup: {fileID: 0}
   - ID: 10
+    label: 
     audioClip: {fileID: 8300000, guid: b18f747683102c14aa9a147fdc436530, type: 3}
     relativeVolume: 1
     overrideMixerGroup: {fileID: 0}
   - ID: 11
+    label: 
     audioClip: {fileID: 8300000, guid: eb457c54be9affd4e80902dc1e16d55a, type: 3}
     relativeVolume: 1
     overrideMixerGroup: {fileID: 0}
   - ID: 12
+    label: 
     audioClip: {fileID: 8300000, guid: 0c9fd6771d8122d4799ad33a83f1bd82, type: 3}
     relativeVolume: 1
     overrideMixerGroup: {fileID: 0}
   ambienceStorages:
   - ID: 0
+    label: 
     audioClip: {fileID: 8300000, guid: c1f01dcaee737ed4495a8ff84d78c4ff, type: 3}
     relativeVolume: 1
     overrideMixerGroup: {fileID: 0}
   - ID: 1
+    label: 
     audioClip: {fileID: 8300000, guid: 1a76bf0e0d2e88d4ea683ba7e28d14f5, type: 3}
     relativeVolume: 1
     overrideMixerGroup: {fileID: 0}
   - ID: 2
+    label: 
     audioClip: {fileID: 8300000, guid: 64d642a67fbfe934cb1324392ac2e423, type: 3}
     relativeVolume: 0.504
     overrideMixerGroup: {fileID: 0}
   - ID: 3
+    label: 
     audioClip: {fileID: 8300000, guid: 7ccf2918b2737d34d8c25435b34b95ec, type: 3}
     relativeVolume: 1
     overrideMixerGroup: {fileID: 0}
   - ID: 4
+    label: 
     audioClip: {fileID: 8300000, guid: bc6dc0099192aa543b9d5c3d7ab004a6, type: 3}
     relativeVolume: 1
     overrideMixerGroup: {fileID: 0}
   - ID: 5
+    label: 
     audioClip: {fileID: 8300000, guid: 4f846da83403fd343af616f170b6c1df, type: 3}
     relativeVolume: 1
     overrideMixerGroup: {fileID: 0}
   - ID: 6
+    label: 
     audioClip: {fileID: 8300000, guid: 4d728306a8fa9174596466eaad729043, type: 3}
     relativeVolume: 1
     overrideMixerGroup: {fileID: 0}
   - ID: 7
+    label: 
     audioClip: {fileID: 8300000, guid: e823c612a5ecd4f49aba4883b31be53b, type: 3}
     relativeVolume: 1
     overrideMixerGroup: {fileID: 0}
   - ID: 8
+    label: 
     audioClip: {fileID: 8300000, guid: 48996967b6b99574182f198c7bcf3b1a, type: 3}
     relativeVolume: 1
     overrideMixerGroup: {fileID: 0}
   - ID: 9
+    label: 
     audioClip: {fileID: 8300000, guid: 1a76bf0e0d2e88d4ea683ba7e28d14f5, type: 3}
     relativeVolume: 0.5
     overrideMixerGroup: {fileID: 0}
   - ID: 10
+    label: 
     audioClip: {fileID: 8300000, guid: 166978b364f388641a790a791dacd77a, type: 3}
     relativeVolume: 1
     overrideMixerGroup: {fileID: 0}
   - ID: 11
+    label: 
     audioClip: {fileID: 8300000, guid: 6fa9a250bffc6454a840a823ac5ae71d, type: 3}
     relativeVolume: 1
     overrideMixerGroup: {fileID: 0}
   - ID: 12
+    label: 
     audioClip: {fileID: 8300000, guid: ff96752f2f5131c4f9c9317559ee806b, type: 3}
     relativeVolume: 1
     overrideMixerGroup: {fileID: 0}
   - ID: 13
+    label: 
     audioClip: {fileID: 8300000, guid: fa84f1c63e1690c46937a48d6ce513f0, type: 3}
     relativeVolume: 1
     overrideMixerGroup: {fileID: 0}
   - ID: 14
+    label: 
     audioClip: {fileID: 8300000, guid: 0f1a035259f9f0042a59b350ac593236, type: 3}
     relativeVolume: 1
     overrideMixerGroup: {fileID: 0}
   - ID: 15
+    label: 
     audioClip: {fileID: 8300000, guid: 7bce133cf2d9aa149969439272b6d20f, type: 3}
     relativeVolume: 1
     overrideMixerGroup: {fileID: 0}
   - ID: 16
+    label: 
     audioClip: {fileID: 8300000, guid: bb0a7a23320674e4287636ea2fd97d50, type: 3}
     relativeVolume: 1
     overrideMixerGroup: {fileID: 0}
   - ID: 17
+    label: 
     audioClip: {fileID: 8300000, guid: 068b29664825afd44a2378517c0d8bd2, type: 3}
     relativeVolume: 1
     overrideMixerGroup: {fileID: 0}
   - ID: 19
+    label: 
     audioClip: {fileID: 8300000, guid: ba5629feda6484f49a05a0ed55effc66, type: 3}
     relativeVolume: 1
     overrideMixerGroup: {fileID: 0}
   - ID: 20
+    label: 
     audioClip: {fileID: 8300000, guid: 5e479e222ec1b4f46ba846e10b802908, type: 3}
     relativeVolume: 1
     overrideMixerGroup: {fileID: 0}
   - ID: 18
+    label: 
     audioClip: {fileID: 8300000, guid: 795015f2c0b2622448c367a2ad0f0add, type: 3}
     relativeVolume: 1
     overrideMixerGroup: {fileID: 0}
   - ID: 21
+    label: 
     audioClip: {fileID: 8300000, guid: 7b4d52f1f81e51d40bc7f31c0c03cc35, type: 3}
     relativeVolume: 1
     overrideMixerGroup: {fileID: 0}
   - ID: 22
+    label: 
     audioClip: {fileID: 8300000, guid: 771abb20a13f71b458c676acf941a2d4, type: 3}
     relativeVolume: 1
     overrideMixerGroup: {fileID: 0}
   - ID: 23
+    label: 
     audioClip: {fileID: 8300000, guid: 92309f6f9fc3e3246a3da9c5b034c5fe, type: 3}
     relativeVolume: 1
     overrideMixerGroup: {fileID: 0}
   - ID: 24
+    label: 
     audioClip: {fileID: 8300000, guid: 7a97d94a2d711bf4ea5b3bfae6efe5ee, type: 3}
     relativeVolume: 1
     overrideMixerGroup: {fileID: 0}
   - ID: 25
+    label: 
     audioClip: {fileID: 8300000, guid: db2dd00de4e536948a4878afbe8fb71d, type: 3}
     relativeVolume: 1
     overrideMixerGroup: {fileID: 0}
   - ID: 26
+    label: 
     audioClip: {fileID: 8300000, guid: b007d1504f4502b4abfe478c1049b619, type: 3}
     relativeVolume: 1
     overrideMixerGroup: {fileID: 0}
   - ID: 27
+    label: 
     audioClip: {fileID: 8300000, guid: f406e0d8db7332b4c87b09fad5b34804, type: 3}
     relativeVolume: 0.5
     overrideMixerGroup: {fileID: 0}
   - ID: 28
+    label: 
     audioClip: {fileID: 8300000, guid: 6cdc7dcfcb5f13d4495ac00b727cab6b, type: 3}
     relativeVolume: 1
     overrideMixerGroup: {fileID: 0}
@@ -350,6 +439,8 @@ MonoBehaviour:
   crossfadeMusicWhenLoading: 0
   restartMusicTrackWhenLoading: 0
   autoEndOtherMusicWhenPlayed: 1
+  musicPrefabOverride: {fileID: 0}
+  ambiencePrefabOverride: {fileID: 0}
   volumeControl: 0
   musicMixerGroup: {fileID: 0}
   sfxMixerGroup: {fileID: 0}
@@ -367,3 +458,6 @@ MonoBehaviour:
   printActionCommentsInConsole: 0
   actionCommentLogging: 0
   showActiveActionLists: 0
+  references:
+    version: 2
+    RefIds: []
