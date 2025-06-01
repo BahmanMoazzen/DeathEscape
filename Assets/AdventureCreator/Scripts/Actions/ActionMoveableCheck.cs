@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2024
  *	
  *	"ActionMoveableCheck.cs"
  * 
@@ -54,25 +54,13 @@ namespace AC
 		
 		public override void ShowGUI (List<ActionParameter> parameters)
 		{
-			parameterID = Action.ChooseParameterGUI ("Object to check:", parameters, parameterID, ParameterType.GameObject);
-			if (parameterID >= 0)
-			{
-				constantID = 0;
-				dragObject = null;
-			}
-			else
-			{
-				dragObject = (DragBase) EditorGUILayout.ObjectField ("Object to check:", dragObject, typeof (DragBase), true);
-
-				constantID = FieldToID <DragBase> (dragObject, constantID);
-				dragObject = IDToField <DragBase> (dragObject, constantID, false);
-			}
+			ComponentField ("Object to check:", ref dragObject, ref constantID, parameters, ref parameterID);
 		}
 
 
 		public override void AssignConstantIDs (bool saveScriptsToo, bool fromAssetFile)
 		{
-			AssignConstantID <DragBase> (dragObject, constantID, parameterID);
+			constantID = AssignConstantID<DragBase> (dragObject, constantID, parameterID);
 		}
 
 
@@ -90,7 +78,7 @@ namespace AC
 		{
 			if (parameterID < 0)
 			{
-				if (dragObject != null && dragObject.gameObject == _gameObject) return true;
+				if (dragObject && dragObject.gameObject == _gameObject) return true;
 				if (constantID == id) return true;
 			}
 			return base.ReferencesObjectOrID (_gameObject, id);
@@ -108,6 +96,7 @@ namespace AC
 		{
 			ActionMoveableCheck newAction = CreateNew<ActionMoveableCheck> ();
 			newAction.dragObject = dragObject;
+			newAction.TryAssignConstantID (newAction.dragObject, ref newAction.constantID);
 			return newAction;
 		}
 		

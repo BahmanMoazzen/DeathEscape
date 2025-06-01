@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2024
  *	
  *	"Highlight.cs"
  * 
@@ -11,10 +11,9 @@
  * 
  */
 
-using UnityEngine;
 using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.Events;
-using UnityEngine.Rendering;
 
 namespace AC
 {
@@ -42,6 +41,8 @@ namespace AC
 		public float flashHoldTime = 0f;
 		/** An animation curve that describes the effect's intensity over time */
 		public AnimationCurve highlightCurve = new AnimationCurve (new Keyframe (0, 1, 1, 1), new Keyframe (1, 2, 1, 1));
+		/** If set, this material property will be affected instead of the default */
+		public string highlightMaterialPropertyOverride;
 
 		/** If True, then custom events can be called when highlighting the object */
 		public bool callEvents;
@@ -80,15 +81,29 @@ namespace AC
 		protected void OnDisable ()
 		{
 			if (KickStarter.stateHandler) KickStarter.stateHandler.Unregister (this);
+			UnregisterUpdateEvent ();
 		}
 
 
 		protected void Awake ()
 		{
-			#if UNITY_2019_3_OR_NEWER
-			if (GraphicsSettings.currentRenderPipeline && GraphicsSettings.currentRenderPipeline.GetType ().ToString ().Contains ("HighDefinition"))
+			Renderer thisRenderer = GetComponent<Renderer> ();
+			if (thisRenderer && thisRenderer.material && thisRenderer.material.HasProperty ("_BaseColor") && !thisRenderer.material.HasProperty ("_Color"))
 			{
 				colorProperty = "_BaseColor";
+			}
+
+			#if UNITY_2019_3_OR_NEWER
+			if (UnityEngine.Rendering.GraphicsSettings.currentRenderPipeline)
+			{
+				string pipelineType = UnityEngine.Rendering.GraphicsSettings.currentRenderPipeline.GetType ().ToString ();
+				if (pipelineType.Contains ("HighDefinition") || pipelineType.Contains ("UniversalRenderPipelineAsset"))
+				{
+					if (thisRenderer == null || thisRenderer.material.HasProperty ("_BaseColor"))
+					{
+						colorProperty = "_BaseColor";
+					}
+				}
 			}
 			#endif
 
@@ -99,9 +114,9 @@ namespace AC
 				{
 					foreach (Material material in childRenderer.materials)
 					{
-						if (material.HasProperty (colorProperty))
+						if (material.HasProperty (ColorProperty))
 						{
-							originalColors.Add (material.color);
+							originalColors.Add (material.GetColor (ColorProperty));
 						}
 					}
 				}
@@ -113,12 +128,17 @@ namespace AC
 				{
 					foreach (Material material in _renderer.materials)
 					{
-						if (material.HasProperty (colorProperty))
+						if (material.HasProperty (ColorProperty))
 						{
 							originalColors.Add (material.color);
 						}
 					}
 				}
+			}
+
+			if (originalColors.Count == 0 && brightenMaterials)
+			{
+				ACDebug.LogWarning ("Highlight component " + this + " has no associated Materials that use the property '" + ColorProperty + "'", this);
 			}
 		}
 
@@ -166,6 +186,7 @@ namespace AC
 			}
 
 			highlightState = HighlightState.Normal;
+			RegisterUpdateEvent ();
 			direction = 1;
 
 			if (callEvents && onHighlightOn != null)
@@ -179,6 +200,7 @@ namespace AC
 		public void HighlightOnInstant ()
 		{
 			highlightState = HighlightState.On;
+			RegisterUpdateEvent ();
 			currentTimer = fadeTime;
 
 			UpdateMaterials ();
@@ -200,6 +222,7 @@ namespace AC
 			}
 
 			highlightState = HighlightState.Normal;
+			RegisterUpdateEvent ();
 			
 			if (direction == 1 && currentTimer > 0f)
 			{
@@ -240,8 +263,14 @@ namespace AC
 			if (highlightState != HighlightState.Flash && (highlightState == HighlightState.None || direction == -1))
 			{
 				highlightState = HighlightState.Flash;
+				RegisterUpdateEvent ();
 				direction = 1;
 				currentTimer = 0f;
+
+				if (callEvents && onHighlightOn != null)
+				{
+					onHighlightOn.Invoke ();
+				}
 			}
 		}
 
@@ -256,12 +285,18 @@ namespace AC
 		}
 
 
+		/** Cancels the current flash effect */
 		public void CancelFlash ()
 		{
 			if (direction >= 0 && highlightState == HighlightState.Flash)
 			{
-				direction = 0;
-				currentTimer = -1f;
+				direction = -1;
+				currentTimer = 0f;
+
+				if (callEvents && onHighlightOff != null)
+				{
+					onHighlightOff.Invoke ();
+				}
 			}
 		}
 
@@ -305,14 +340,90 @@ namespace AC
 		public void Pulse ()
 		{
 			highlightState = HighlightState.Pulse;
+			RegisterUpdateEvent ();
 			//highlight = minHighlight;
 			direction = 1;
 			currentTimer = 0f;
 		}
 
+		#endregion
 
-		/** Re-calculates the intensity value. This is public so that it can be called every frame by the StateHandler component. */
-		public void _Update ()
+
+		#region ProtectedFunctions
+
+		protected void UpdateMaterials ()
+		{
+			if (!brightenMaterials)
+			{
+				return;
+			}
+
+			int i = 0;
+			float alpha;
+
+			if (affectChildren)
+			{
+				foreach (Renderer childRenderer in childRenderers)
+				{
+					if (childRenderer == null) continue;
+					
+					foreach (Material material in childRenderer.materials)
+					{
+						if (material == null) continue;
+
+						if (originalColors.Count <= i)
+						{
+							break;
+						}
+
+						if (material.HasProperty (ColorProperty))
+						{
+							alpha = material.GetColor (ColorProperty).a;
+							Color newColor = originalColors[i] * highlight;
+							newColor.a = alpha;
+							material.SetColor (ColorProperty, newColor);
+							i++;
+						}
+					}
+				}
+			}
+			else if (_renderer)
+			{
+				foreach (Material material in _renderer.materials)
+				{
+					if (material == null) continue;
+					
+					if (material.HasProperty (ColorProperty))
+					{
+						alpha = material.GetColor (ColorProperty).a;
+						Color newColor = originalColors[i] * highlight;
+						newColor.a = alpha;
+						material.SetColor (ColorProperty, newColor);
+						i++;
+					}
+				}
+			}
+		}
+
+
+		private void RegisterUpdateEvent ()
+		{
+			EventManager.OnUpdateHighlights -= OnUpdateHighlights;
+			EventManager.OnUpdateHighlights += OnUpdateHighlights;
+		}
+
+
+		private void UnregisterUpdateEvent ()
+		{
+			EventManager.OnUpdateHighlights -= OnUpdateHighlights;
+		}
+
+		#endregion
+
+
+		#region CustomEvents
+
+		private void OnUpdateHighlights ()
 		{
 			if (highlightState != HighlightState.None)
 			{
@@ -368,7 +479,7 @@ namespace AC
 
 					if (timeProportion <= 0f)
 					{
-						highlight = 1f;
+						highlight = MinHighlight;
 
 						if (highlightState == HighlightState.Pulse)
 						{
@@ -387,8 +498,7 @@ namespace AC
 					currentTimer += Time.deltaTime;
 					if (currentTimer >= flashHoldTime)
 					{
-						direction = -1;
-						currentTimer = 0f;
+						CancelFlash ();
 					}
 				}
 
@@ -401,63 +511,9 @@ namespace AC
 					highlight = MinHighlight;
 					UpdateMaterials ();
 				}
+
+				UnregisterUpdateEvent ();
 			}
-		}
-
-		#endregion
-
-
-		#region ProtectedFunctions
-
-		protected void UpdateMaterials ()
-		{
-			if (!brightenMaterials)
-			{
-				return;
-			}
-
-			int i = 0;
-			float alpha;
-
-			if (affectChildren)
-			{
-				foreach (Renderer childRenderer in childRenderers)
-				{
-					foreach (Material material in childRenderer.materials)
-					{
-						if (originalColors.Count <= i)
-						{
-							break;
-						}
-
-						if (material.HasProperty (colorProperty))
-						{
-							alpha = material.color.a;
-							Color newColor = originalColors[i] * highlight;
-							newColor.a = alpha;
-							material.SetColor (colorProperty, newColor);
-							i++;
-						}
-					}
-				}
-			}
-			else if (_renderer)
-			{
-				foreach (Material material in _renderer.materials)
-				{
-					if (material.HasProperty (colorProperty))
-					{
-						alpha = material.color.a;
-						Color newColor = originalColors[i] * highlight;
-						newColor.a = alpha;
-						material.SetColor (colorProperty, newColor);
-						i++;
-					}
-				}
-			}
-			return;
-
-
 		}
 
 		#endregion
@@ -483,6 +539,23 @@ namespace AC
 					keyframes[0].value = value;
 					highlightCurve.keys = keyframes;
 				}
+			}
+		}
+
+
+		private string ColorProperty
+		{
+			get
+			{
+				if (!string.IsNullOrEmpty (highlightMaterialPropertyOverride))
+				{
+					return highlightMaterialPropertyOverride;
+				}
+				if (KickStarter.settingsManager && !string.IsNullOrEmpty (KickStarter.settingsManager.highlightMaterialPropertyOverride))
+				{ 
+					return KickStarter.settingsManager.highlightMaterialPropertyOverride;
+				}
+				return colorProperty;
 			}
 		}
 

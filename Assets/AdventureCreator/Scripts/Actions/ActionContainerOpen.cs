@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2024
  *	
  *	"ActionContainerOpen.cs"
  * 
@@ -74,11 +74,11 @@ namespace AC
 				runtimeContainer = AssignFile <Container> (parameters, parameterID, constantID, container);
 			}
 
-			if (!useActive && setElement && !string.IsNullOrEmpty (menuName) && !string.IsNullOrEmpty (containerElementName))
+			if (!useActive && setElement)
 			{
 				string runtimeMenuName = AssignString (parameters, menuParameterID, menuName);
 				string runtimeContainerElementName = AssignString (parameters, elementParameterID, containerElementName);
-
+				
 				runtimeMenuName = AdvGame.ConvertTokens (runtimeMenuName, Options.GetLanguage (), localVariables, parameters);
 				runtimeContainerElementName = AdvGame.ConvertTokens (runtimeContainerElementName, Options.GetLanguage (), localVariables, parameters);
 				
@@ -100,10 +100,12 @@ namespace AC
 					if (runtimeInventoryBox != null)
 					{
 						runtimeInventoryBox.OverrideContainer = runtimeContainer;
-						return 0f;
 					}
-
-					LogWarning ("Could not find an InventoryBox element '" + containerElementName + "' in Menu '" + menuName + "'");
+					else
+					{
+						LogWarning ("Could not find InventoryBox to assign Container");
+					}
+					return 0f;
 				}
 				else
 				{
@@ -122,34 +124,13 @@ namespace AC
 			useActive = EditorGUILayout.Toggle ("Affect active container?", useActive);
 			if (!useActive)
 			{
-				parameterID = Action.ChooseParameterGUI ("Container:", parameters, parameterID, ParameterType.GameObject);
-				if (parameterID >= 0)
-				{
-					constantID = 0;
-					container = null;
-				}
-				else
-				{
-					container = (Container) EditorGUILayout.ObjectField ("Container:", container, typeof (Container), true);
-					
-					constantID = FieldToID <Container> (container, constantID);
-					container = IDToField <Container> (container, constantID, false);
-				}
+				ComponentField ("Container:", ref container, ref constantID, parameters, ref parameterID);
 
 				setElement = EditorGUILayout.Toggle ("Open in set element?", setElement);
 				if (setElement)
 				{
-					menuParameterID = Action.ChooseParameterGUI ("Menu name:", parameters, menuParameterID, ParameterType.String);
-					if (menuParameterID < 0)
-					{
-						menuName = EditorGUILayout.TextField ("Menu name:", menuName);
-					}
-
-					elementParameterID = Action.ChooseParameterGUI ("InventoryBox name:", parameters, elementParameterID, ParameterType.String);
-					if (elementParameterID < 0)
-					{
-						containerElementName = EditorGUILayout.TextField ("InventoryBox name:", containerElementName);
-					}
+					TextField ("Menu name:", ref menuName, parameters, ref menuParameterID);
+					TextField ("InventoryBox name:", ref containerElementName, parameters, ref elementParameterID);
 				}
 			}
 		}
@@ -161,7 +142,7 @@ namespace AC
 			{
 				AddSaveScript <RememberContainer> (container);
 			}
-			AssignConstantID <Container> (container, constantID, parameterID);
+			constantID = AssignConstantID<Container> (container, constantID, parameterID);
 		}
 
 		
@@ -179,7 +160,7 @@ namespace AC
 		{
 			if (!useActive && parameterID < 0)
 			{
-				if (container != null && container.gameObject == _gameObject) return true;
+				if (container && container.gameObject == _gameObject) return true;
 				if (constantID == id) return true;
 			}
 			return base.ReferencesObjectOrID (_gameObject, id);
@@ -197,6 +178,10 @@ namespace AC
 		{
 			ActionContainerOpen newAction = CreateNew<ActionContainerOpen> ();
 			newAction.container = containerToOpen;
+			if (newAction.container)
+			{
+				newAction.TryAssignConstantID (newAction.container, ref newAction.constantID);
+			}
 			return newAction;
 		}
 		

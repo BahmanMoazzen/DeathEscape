@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2024
  *	
  *	"ActionSendMessage.cs"
  * 
@@ -138,47 +138,22 @@ namespace AC
 			isPlayer = EditorGUILayout.Toggle ("Send to Player?", isPlayer);
 			if (isPlayer)
 			{
-				if (KickStarter.settingsManager != null && KickStarter.settingsManager.playerSwitching == PlayerSwitching.Allow)
-				{
-					playerParameterID = ChooseParameterGUI ("Player ID:", parameters, playerParameterID, ParameterType.Integer);
-					if (playerParameterID < 0)
-						playerID = ChoosePlayerGUI (playerID, true);
-				}
+				PlayerField (ref playerID, parameters, ref playerParameterID);
 			}
 			else
 			{
-				parameterID = Action.ChooseParameterGUI ("Object to affect:", parameters, parameterID, ParameterType.GameObject);
-				if (parameterID >= 0)
-				{
-					constantID = 0;
-					linkedObject = null;
-				}
-				else
-				{
-					linkedObject = (GameObject) EditorGUILayout.ObjectField ("Object to affect:", linkedObject, typeof(GameObject), true);
-					
-					constantID = FieldToID (linkedObject, constantID);
-					linkedObject = IDToField  (linkedObject, constantID, false);
-				}
+				GameObjectField ("Object to affect:", ref linkedObject, ref constantID, parameters, ref parameterID);
 			}
 
 			messageToSend = (MessageToSend) EditorGUILayout.EnumPopup ("Message to send:", messageToSend);
 			if (messageToSend == MessageToSend.Custom)
 			{
-				customMessageParameterID = Action.ChooseParameterGUI ("Method name:", parameters, customMessageParameterID, ParameterType.String);
-				if (customMessageParameterID < 0)
-				{
-					customMessage = EditorGUILayout.TextField ("Method name:", customMessage);
-				}
+				TextField ("Method name:", ref customMessage, parameters, ref customMessageParameterID);
 				
 				sendValue = EditorGUILayout.Toggle ("Pass integer to method?", sendValue);
 				if (sendValue)
 				{
-					customValueParameterID = Action.ChooseParameterGUI ("Integer to send:", parameters, customValueParameterID, ParameterType.Integer);
-					if (customValueParameterID < 0)
-					{
-						customValue = EditorGUILayout.IntField ("Integer to send:", customValue);
-					}
+					IntField ("Integer to send:", ref customValue, parameters, ref customValueParameterID);
 				}
 			}
 			
@@ -191,7 +166,7 @@ namespace AC
 		{
 			if (!isPlayer)
 			{
-				AssignConstantID (linkedObject, constantID, parameterID);
+				constantID = AssignConstantID (linkedObject, constantID, parameterID);
 			}
 		}
 		
@@ -233,10 +208,10 @@ namespace AC
 		{
 			if (!isPlayer && parameterID < 0)
 			{
-				if (linkedObject != null && linkedObject == gameObject) return true;
+				if (linkedObject && linkedObject == gameObject) return true;
 				if (constantID == id && id != 0) return true;
 			}
-			if (isPlayer && gameObject.GetComponent <Player>() != null) return true;
+			if (isPlayer && gameObject && gameObject.GetComponent <Player>()) return true;
 			return base.ReferencesObjectOrID (gameObject, id);
 		}
 
@@ -264,6 +239,7 @@ namespace AC
 		{
 			ActionSendMessage newAction = CreateNew<ActionSendMessage> ();
 			newAction.linkedObject = receivingObject;
+			newAction.TryAssignConstantID (newAction.linkedObject, ref newAction.constantID);
 			newAction.messageToSend = MessageToSend.Custom;
 			newAction.customMessage = messageName;
 			newAction.sendValue = false;
@@ -286,6 +262,7 @@ namespace AC
 		{
 			ActionSendMessage newAction = CreateNew<ActionSendMessage> ();
 			newAction.linkedObject = receivingObject;
+			newAction.TryAssignConstantID (newAction.linkedObject, ref newAction.constantID);
 			newAction.messageToSend = MessageToSend.Custom;
 			newAction.customMessage = messageName;
 			newAction.sendValue = true;

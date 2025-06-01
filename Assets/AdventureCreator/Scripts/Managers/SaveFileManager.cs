@@ -22,25 +22,31 @@ namespace AC
 
 		private int selectedProfileID = 0;
 		private int selectedSaveIndex = -1;
-		private List<SaveFile> foundSaveFiles = new List<SaveFile> ();
+		private List<SaveFile> foundSaveFiles = null;
 		private SaveData cachedSaveData;
 		private List<SingleLevelData> cachedLevelData;
 
 		private bool runCache = false;
-		private const int windowHeight = 660;
 
 
 		public static void Init ()
 		{
-			SaveFileManager window = GetWindowWithRect<SaveFileManager> (new Rect (0, 0, 450, windowHeight), true, "Save-game Manager", true);
+			SaveFileManager window = (SaveFileManager) GetWindow (typeof (SaveFileManager));
 			window.titleContent.text = "Save-game Manager";
-			window.position = new Rect (300, 200, 450, windowHeight);
+			window.position = new Rect (300, 200, 450, 660);
+			window.minSize = new Vector2 (300, 180);
+		}
+
+
+		private void OnGatherSaveFiles (List<SaveFile> saveFiles)
+		{
+			foundSaveFiles = saveFiles;
 		}
 
 
 		private void OnGUI ()
 		{
-			settingsManager = AdvGame.GetReferences ().settingsManager;
+			settingsManager = KickStarter.settingsManager;
 
 			if (settingsManager == null)
 			{
@@ -48,7 +54,7 @@ namespace AC
 				return;
 			}
 
-			_scrollPos = EditorGUILayout.BeginScrollView (_scrollPos, GUILayout.Height (windowHeight));
+			_scrollPos = EditorGUILayout.BeginScrollView (_scrollPos);
 			SaveFileGUI ();
 			EditorGUILayout.EndScrollView ();
 		}
@@ -73,19 +79,16 @@ namespace AC
 				return;
 			}
 
-			EditorGUILayout.BeginVertical (CustomStyles.thinBox);
+			EditorGUILayout.LabelField ("Save-game file manager", CustomStyles.managerHeader);
+			EditorGUILayout.Space ();
+
 			showHandlers = CustomGUILayout.ToggleHeader (showHandlers, "File and format handlers");
 			if (showHandlers)
 			{
-				if (saveFileHandler != null)
-				{
-					EditorGUILayout.LabelField ("Save file location:", saveFileHandler.GetType ().Name);
-				}
+				CustomGUILayout.BeginVertical ();
+				EditorGUILayout.LabelField ("Save file location:", saveFileHandler.GetType ().Name);
 
-				if (optionsFileHandler != null)
-				{
-					EditorGUILayout.LabelField ("Options location:", optionsFileHandler.GetType ().Name);
-				}
+				EditorGUILayout.LabelField ("Options location:", optionsFileHandler.GetType ().Name);
 
 				if (fileFormatHandler != null)
 				{
@@ -98,18 +101,18 @@ namespace AC
 				}
 
 				EditorGUILayout.HelpBox ("Save format and location handlers can be modified through script - see the Manual's 'Custom save formats and handling' chapter.", MessageType.Info);
+				CustomGUILayout.EndVertical ();
 			}
-			CustomGUILayout.EndVertical ();
 
+			bool foundSome = false;
 			if (settingsManager.useProfiles)
 			{
 				EditorGUILayout.Space ();
 
-				EditorGUILayout.BeginVertical (CustomStyles.thinBox);
 				showProfiles = CustomGUILayout.ToggleHeader (showProfiles, "Profiles");
 				if (showProfiles)
 				{
-					bool foundSome = false;
+					CustomGUILayout.BeginVertical ();
 
 					for (int profileID = 0; profileID < Options.maxProfiles; profileID++)
 					{
@@ -130,7 +133,8 @@ namespace AC
 								{
 									selectedProfileID = profileID;
 									selectedSaveIndex = -1;
-									foundSaveFiles.Clear ();
+									if (foundSaveFiles != null) foundSaveFiles.Clear ();
+									saveFileHandler.GatherSaveFiles (selectedProfileID, OnGatherSaveFiles);
 								}
 							}
 						}
@@ -141,15 +145,18 @@ namespace AC
 						selectedProfileID = -1;
 						EditorGUILayout.HelpBox ("No save profiles found.", MessageType.Warning);
 					}
+
+					CustomGUILayout.EndVertical ();
 				}
-				CustomGUILayout.EndVertical ();
 			}
 			else
 			{
 				selectedProfileID = 0;
+				if (GUI.changed || foundSaveFiles == null) saveFileHandler.GatherSaveFiles (selectedProfileID, OnGatherSaveFiles);
+				foundSome = true;
 			}
 
-			if (selectedProfileID < 0 || !optionsFileHandler.DoesProfileExist (selectedProfileID))
+			if (foundSome && (selectedProfileID < 0 || !optionsFileHandler.DoesProfileExist (selectedProfileID)))
 			{
 				EditorGUILayout.HelpBox ("No save profiles found! Run the game to create a new save profile", MessageType.Warning);
 				return;
@@ -157,10 +164,11 @@ namespace AC
 
 			EditorGUILayout.Space ();
 
-			EditorGUILayout.BeginVertical (CustomStyles.thinBox);
 			showProfile = CustomGUILayout.ToggleHeader (showProfile, "Profile " + selectedProfileID + ": Properties");
 			if (showProfile)
 			{
+				CustomGUILayout.BeginVertical ();
+
 				OptionsData prefsData = GetPrefsData (selectedProfileID);
 				if (prefsData != null)
 				{
@@ -212,17 +220,18 @@ namespace AC
 					}
 					EditorGUILayout.EndHorizontal ();
 				}
+
+				CustomGUILayout.EndVertical ();
 			}
-			CustomGUILayout.EndVertical ();
 
 			EditorGUILayout.Space ();
 
-			foundSaveFiles = saveFileHandler.GatherSaveFiles (selectedProfileID);
+			SaveSystem.UpdateSaveFileLabels (ref foundSaveFiles);
 
-			EditorGUILayout.BeginVertical (CustomStyles.thinBox);
 			showSaves = CustomGUILayout.ToggleHeader (showSaves, "Save game files");
 			if (showSaves)
 			{
+				CustomGUILayout.BeginVertical ();
 				if (foundSaveFiles != null)
 				{
 					for (int saveIndex = 0; saveIndex < foundSaveFiles.Count; saveIndex++)
@@ -269,11 +278,12 @@ namespace AC
 					if (canDelete)
 					{
 						saveFileHandler.DeleteAll (selectedProfileID);
+						saveFileHandler.GatherSaveFiles (selectedProfileID, OnGatherSaveFiles);
 					}
 				}
 				CustomGUILayout.EndVertical ();
+				CustomGUILayout.EndVertical ();
 			}
-			CustomGUILayout.EndVertical ();
 
 			if (selectedSaveIndex < 0 || foundSaveFiles == null || selectedSaveIndex >= foundSaveFiles.Count)
 			{
@@ -284,16 +294,21 @@ namespace AC
 
 			SaveFile selectedSaveFile = foundSaveFiles[selectedSaveIndex];
 
-			EditorGUILayout.BeginVertical (CustomStyles.thinBox);
 			showSave = CustomGUILayout.ToggleHeader (showSave, "Save game " + selectedSaveIndex + ": Properties");
 			if (showSave)
 			{
+				CustomGUILayout.BeginVertical ();
+
 				EditorGUILayout.LabelField ("Label:", selectedSaveFile.label);
 				EditorGUILayout.LabelField ("ID:", selectedSaveFile.saveID.ToString ());
 
 				CustomGUILayout.MultiLineLabelGUI ("Filename:", selectedSaveFile.fileName);
 
-				EditorGUILayout.LabelField ("Timestamp:", selectedSaveFile.updatedTime.ToString ());
+				if (selectedSaveFile.updatedTime != 0)
+				{
+					var updatedTime = selectedSaveFile.GetUpdatedTime ();
+					EditorGUILayout.LabelField ("Timestamp:", updatedTime.ToShortDateString () + " " + updatedTime.ToShortTimeString ());
+				}
 				if (!string.IsNullOrEmpty (selectedSaveFile.screenshotFilename))
 				{
 					CustomGUILayout.MultiLineLabelGUI ("Filename:", selectedSaveFile.screenshotFilename);
@@ -323,18 +338,19 @@ namespace AC
 					if (canDelete)
 					{
 						saveFileHandler.Delete (selectedSaveFile);
+						saveFileHandler.GatherSaveFiles (selectedProfileID, OnGatherSaveFiles);
 					}
 				}
 				GUILayout.EndHorizontal ();
+				CustomGUILayout.EndVertical ();
 			}
-			CustomGUILayout.EndVertical ();
 
 			EditorGUILayout.Space ();
 
-			EditorGUILayout.BeginVertical (CustomStyles.thinBox);
 			showSaveData = CustomGUILayout.ToggleHeader (showSaveData, "Save game " + selectedSaveIndex + ": Data");
 			if (showSaveData)
 			{
+				CustomGUILayout.BeginVertical ();
 				if (GUI.changed || !runCache)
 				{
 					CacheSaveData (saveFileHandler, selectedSaveFile);
@@ -354,18 +370,26 @@ namespace AC
 						cachedLevelData[i].ShowGUI ();
 					}
 				}
+				CustomGUILayout.EndVertical ();
 			}
-			CustomGUILayout.EndVertical ();
 		}
 
 
 		private void CacheSaveData (iSaveFileHandler saveFileHandler, SaveFile saveFile)
 		{
 			runCache = true;
+			saveFileHandler.Load (saveFile, false, OnCompleteLoadForCache);
+		}
 
-			string fileData = saveFileHandler.Load (saveFile, false);
+
+		private void OnCompleteLoadForCache (SaveFile saveFile, string fileData)
+		{
+			if (KickStarter.settingsManager.saveCompression)
+			{
+				fileData = SaveSystem.DecompressString (fileData);
+			}
+			
 			cachedSaveData = SaveSystem.ExtractMainData (fileData);
-
 			cachedLevelData = SaveSystem.ExtractSceneData (fileData);
 		}
 

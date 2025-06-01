@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2024
  *	
  *	"GameCamera.cs"
  * 
@@ -48,6 +48,8 @@ namespace AC
 		public CameraLocConstrainType xRotConstrainType = CameraLocConstrainType.TargetHeight;
 		/** The constrain type on spin rotation, if lockYRotAxis = False (TargetX, TargetZ, TargetAcrossScreen, TargetIntoScreen, LookAtTarget) */
 		public CameraRotConstrainType yRotConstrainType;
+
+		public BoxCollider boxColliderBounds = null;
 
 		/** The influence of the target's position on X-axis movement, if lockXLocAxis = False */
 		public float xGradient = 1f;
@@ -153,17 +155,38 @@ namespace AC
 			
 			if (!lockXLocAxis && limitX)
 			{
-				desiredPosition.x = ConstrainAxis (desiredPosition.x, constrainX);
+				if (boxColliderBounds)
+				{
+					desiredPosition.x = Mathf.Clamp (desiredPosition.x, boxColliderBounds.bounds.min.x, boxColliderBounds.bounds.max.x);
+				}
+				else
+				{
+					desiredPosition.x = ConstrainAxis (desiredPosition.x, constrainX);
+				}
 			}
 			
 			if (!lockYLocAxis && limitY)
 			{
-				desiredPosition.y = ConstrainAxis (desiredPosition.y, constrainYLoc);
+				if (boxColliderBounds)
+				{
+					desiredPosition.y = Mathf.Clamp (desiredPosition.y, boxColliderBounds.bounds.min.y, boxColliderBounds.bounds.max.y);
+				}
+				else
+				{
+					desiredPosition.y = ConstrainAxis (desiredPosition.y, constrainYLoc);
+				}
 			}
 			
 			if (!lockZLocAxis && limitZ)
 			{
-				desiredPosition.z = ConstrainAxis (desiredPosition.z, constrainZ);
+				if (boxColliderBounds)
+				{
+					desiredPosition.z = Mathf.Clamp (desiredPosition.z, boxColliderBounds.bounds.min.z, boxColliderBounds.bounds.max.z);
+				}
+				else
+				{
+					desiredPosition.z = ConstrainAxis (desiredPosition.z, constrainZ);
+				}
 			}
 
 			if (!lockXRotAxis && limitXRot)
@@ -208,24 +231,18 @@ namespace AC
 			
 			if (!lockXLocAxis || !lockYLocAxis || !lockZLocAxis)
 			{
-				Transform.position = (dampSpeed > 0f)
-										? Vector3.Lerp (Transform.position, desiredPosition, Time.deltaTime * dampSpeed)
-										: desiredPosition;
+				Transform.position = Vector3.Lerp (Transform.position, desiredPosition, LerpSpeed);
 			}
 			
 			if (!lockFOV)
 			{
 				if (Camera.orthographic)
 				{
-					Camera.orthographicSize = (dampSpeed > 0f)
-						? Mathf.Lerp (Camera.orthographicSize, desiredFOV, Time.deltaTime * dampSpeed)
-												: desiredFOV;
+					Camera.orthographicSize = Mathf.Lerp (Camera.orthographicSize, desiredFOV, LerpSpeed);
 				}
 				else
 				{
-					Camera.fieldOfView = (dampSpeed > 0f)
-						? Mathf.Lerp (Camera.fieldOfView, desiredFOV, Time.deltaTime * dampSpeed)
-											: desiredFOV;
+					Camera.fieldOfView = Mathf.Lerp (Camera.fieldOfView, desiredFOV, LerpSpeed);
 				}
 			}
 
@@ -238,9 +255,7 @@ namespace AC
 					t -= 360f;
 				}
 
-				newPitch = (dampSpeed > 0f)
-							? Mathf.Lerp (t, desiredPitch, Time.deltaTime * dampSpeed)
-							: desiredPitch;
+				newPitch = Mathf.Lerp (t, desiredPitch, LerpSpeed);
 			}
 			
 			if (!lockYRotAxis)
@@ -262,10 +277,8 @@ namespace AC
 						}
 
 						Quaternion lookRotation = Quaternion.LookRotation (lookDir);
+						Quaternion newRotation = Quaternion.Slerp (Transform.rotation, lookRotation, LerpSpeed);
 
-						Quaternion newRotation = (dampSpeed > 0f)
-												 ? Quaternion.Slerp (Transform.rotation, lookRotation, Time.deltaTime * dampSpeed)
-												 : lookRotation;
 						if (limitY)
 						{
 							Vector3 newEuler = newRotation.eulerAngles;
@@ -294,9 +307,7 @@ namespace AC
 						thisSpin -= 360f;
 					}
 
-					float newSpin = (dampSpeed > 0f)
-									  ? Mathf.Lerp (thisSpin, desiredSpin, Time.deltaTime * dampSpeed)
-									  : desiredSpin;
+					float newSpin = Mathf.Lerp (thisSpin, desiredSpin, LerpSpeed);
 
 					Transform.eulerAngles = new Vector3 (newPitch, newSpin, Transform.eulerAngles.z);
 				}
@@ -349,8 +360,14 @@ namespace AC
 						lookAtPos.y += targetHeight;
 						lookAtPos.x += targetXOffset;
 						lookAtPos.z += targetZOffset;
-						
-						Quaternion rotation = Quaternion.LookRotation (lookAtPos - Transform.position);
+
+						Vector3 lookDir = lookAtPos - Transform.position;
+						if (!Mathf.Approximately (directionInfluence, 0f))
+						{
+							lookDir += TargetForward * directionInfluence;
+						}
+
+						Quaternion rotation = Quaternion.LookRotation (lookDir);
 
 						if (limitY)
 						{
@@ -377,7 +394,14 @@ namespace AC
 			SetDesiredFOV ();
 			if (!lockFOV)
 			{
-				Camera.fieldOfView = desiredFOV;
+				if (Camera.orthographic)
+				{
+					Camera.orthographicSize = desiredFOV;
+				}
+				else
+				{
+					Camera.fieldOfView = desiredFOV;
+				}
 			}
 
 			SetFocalPoint ();
@@ -528,7 +552,7 @@ namespace AC
 
 				if (Camera)
 				{
-					originalFOV = Camera.fieldOfView;
+					originalFOV = Camera.orthographic ? Camera.orthographicSize : Camera.fieldOfView;
 				}
 				haveSetOriginalPosition = true;
 			}
@@ -557,7 +581,14 @@ namespace AC
 				
 				if (limitX)
 				{
-					desiredPosition.x = ConstrainAxis (desiredPosition.x, constrainX);
+					if (boxColliderBounds)
+					{
+						desiredPosition.x = Mathf.Clamp (desiredPosition.x, boxColliderBounds.bounds.min.x, boxColliderBounds.bounds.max.x);
+					}
+					else
+					{
+						desiredPosition.x = ConstrainAxis (desiredPosition.x, constrainX);
+					}
 				}
 			}
 			
@@ -581,7 +612,14 @@ namespace AC
 				
 				if (limitYLoc)
 				{
-					desiredPosition.y = ConstrainAxis (desiredPosition.y, constrainYLoc);
+					if (boxColliderBounds)
+					{
+						desiredPosition.y = Mathf.Clamp (desiredPosition.y, boxColliderBounds.bounds.min.y, boxColliderBounds.bounds.max.y);
+					}
+					else
+					{
+						desiredPosition.y = ConstrainAxis (desiredPosition.y, constrainYLoc);
+					}
 				}
 			}
 			
@@ -650,7 +688,14 @@ namespace AC
 				
 				if (limitZ)
 				{
-					desiredPosition.z = ConstrainAxis (desiredPosition.z, constrainZ);
+					if (boxColliderBounds)
+					{
+						desiredPosition.z = Mathf.Clamp (desiredPosition.z, boxColliderBounds.bounds.min.z, boxColliderBounds.bounds.max.z);
+					}
+					else
+					{
+						desiredPosition.z = ConstrainAxis (desiredPosition.z, constrainZ);
+					}
 				}
 			}
 			
@@ -662,14 +707,7 @@ namespace AC
 		{
 			if (lockFOV)
 			{
-				if (Camera.orthographic)
-				{
-					desiredFOV = Camera.orthographicSize;
-				}
-				else
-				{
-					desiredFOV = Camera.fieldOfView;
-				}
+				desiredFOV = Camera.orthographic ? Camera.orthographicSize : Camera.fieldOfView;
 			}
 			else
 			{
@@ -684,6 +722,13 @@ namespace AC
 				}
 			}
 		}
+
+		#endregion
+
+
+		#region GetSet
+
+		private float LerpSpeed { get { return (1f - Mathf.Pow (1f - Mathf.Clamp01 (dampSpeed), updateWhilePaused ? Time.unscaledDeltaTime : Time.deltaTime)); } }
 
 		#endregion
 

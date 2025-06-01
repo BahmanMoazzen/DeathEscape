@@ -1,3 +1,5 @@
+#if UNITY_EDITOR
+
 using UnityEngine;
 using UnityEditor;
 using System.Collections.Generic;
@@ -26,14 +28,14 @@ namespace AC
 
 			if (Application.isPlaying)
 			{
-				if (!_target.IsOn ())
+				if (!_target.enabled || !_target.IsOn ())
 				{
 					EditorGUILayout.HelpBox ("Current state: OFF", MessageType.Info);
 				}
 			}
 
+			CustomGUILayout.Header ("Properties");
 			CustomGUILayout.BeginVertical ();
-			EditorGUILayout.LabelField ("Trigger properties", EditorStyles.boldLabel);
 			_target.source = (ActionListSource) CustomGUILayout.EnumPopup ("Actions source:", _target.source, string.Empty, "Where the Actions are stored");
 			if (_target.source == ActionListSource.AssetFile)
 			{
@@ -47,6 +49,14 @@ namespace AC
 			}
 			_target.triggerType = CustomGUILayout.Popup ("Trigger type:", _target.triggerType, Options, string.Empty, "What kind of contact the Trigger reacts to");
 			_target.triggerReacts = (TriggerReacts) CustomGUILayout.EnumPopup ("Reacts:", _target.triggerReacts, string.Empty, "The state of the game under which the trigger reacts");
+
+			if (_target.triggerReacts == TriggerReacts.DuringCutscenesAndGameplay ||
+				(_target.triggerReacts == TriggerReacts.OnlyDuringCutscenes && _target.actionListType == ActionListType.PauseGameplay) ||
+				(_target.triggerReacts == TriggerReacts.OnlyDuringGameplay && _target.actionListType == ActionListType.RunInBackground))
+			{
+				_target.canInterruptSelf = CustomGUILayout.Toggle ("Can interrupt self?", _target.canInterruptSelf, string.Empty, "If True, then the Trigger will restart if it is triggered while already running. Otherwise, it will not restart.");
+			}
+
 			_target.cancelInteractions = CustomGUILayout.Toggle ("Cancels interactions?", _target.cancelInteractions, string.Empty, "If True, and the Player sets off the Trigger while walking towards a Hotspot Interaction, then the Player will stop and the Interaction will be cancelled");
 			_target.tagID = ShowTagUI (_target.actions.ToArray (), _target.tagID);
 
@@ -63,6 +73,11 @@ namespace AC
 					_target.assetFile.NumParameters > 0)
 			{
 				_target.gameObjectParameterID = Action.ChooseParameterGUI ("Collider parameter:", _target.assetFile.DefaultParameters, _target.gameObjectParameterID, ParameterType.GameObject, -1, "The GameObject parameter to automatically set as the colliding object when run.");
+
+			if (_target.source == ActionListSource.AssetFile && _target.assetFile != null && !_target.syncParamValues && _target.assetFile.useParameters)
+			{
+				_target.useParameters = CustomGUILayout.Toggle ("Set local parameter values?", _target.useParameters, "", "If True, parameter values set here will be assigned locally, and not on the ActionList asset");
+			}
 			}
 
 			_target.detectionMethod = (TriggerDetectionMethod) CustomGUILayout.EnumPopup ("Detection method:", _target.detectionMethod, string.Empty, "How this Trigger detects objects. If 'Rigidbody Collider', then it requires that incoming objects have a Rigidbody and a Collider - and it will rely on collisions.  If 'Point Based', it will check an incoming object's root position for whether it is within the Trigger's collider boundary.");
@@ -140,6 +155,17 @@ namespace AC
 					_target.parameters.Add (newParameter);
 				}
 			}
+			else if (_target.useParameters && !_target.syncParamValues && _target.source == ActionListSource.AssetFile && _target.assetFile != null && _target.assetFile.useParameters)
+			{
+				bool isAsset = UnityVersionHandler.IsPrefabFile (_target.gameObject);
+
+				CustomGUILayout.Header ("Local parameter values");
+				CustomGUILayout.BeginVertical ();
+
+				ActionListEditor.ShowLocalParametersGUI (_target.parameters, _target.assetFile.GetParameters (), isAsset);
+
+				CustomGUILayout.EndVertical ();
+			}
 	    }
 
 
@@ -167,3 +193,5 @@ namespace AC
 	}
 
 }
+
+#endif

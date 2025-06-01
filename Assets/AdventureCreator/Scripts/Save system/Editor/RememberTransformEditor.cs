@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿#if UNITY_EDITOR
+
+using UnityEngine;
 using UnityEditor;
 
 namespace AC
@@ -12,11 +14,15 @@ namespace AC
 		{
 			RememberTransform _target = (RememberTransform) target;
 
+			CustomGUILayout.Header ("Transform");
 			CustomGUILayout.BeginVertical ();
-			EditorGUILayout.LabelField ("Transform", EditorStyles.boldLabel);
 			_target.transformSpace = (GlobalLocal) CustomGUILayout.EnumPopup ("Co-ordinate space:", _target.transformSpace, "", "The co-ordinate space to store position and rotation values in");
 			_target.saveParent = CustomGUILayout.Toggle ("Save change in Parent?", _target.saveParent, "", "If True, the GameObject's change in parent should be recorded");
-			_target.saveScenePresence = CustomGUILayout.Toggle ("Save scene presence?", _target.saveScenePresence, "", "If True, the GameObject's change in scene presence should be recorded");
+
+			if (_target.GetComponent<RememberSceneItem> () == null)
+			{
+				_target.saveScenePresence = CustomGUILayout.Toggle ("Save scene presence?", _target.saveScenePresence, "", "If True, the GameObject's change in scene presence should be recorded");
+			}
 
 			if (_target.saveScenePresence)
 			{
@@ -42,6 +48,7 @@ namespace AC
 					}
 				}
 			}
+			_target.loadOrder = CustomGUILayout.IntField ("Relative load order:", _target.loadOrder, "", "The order, relative to other Remember Transform components, that data is loaded in");
 			CustomGUILayout.EndVertical ();
 
 			SharedGUI ();
@@ -50,3 +57,5 @@ namespace AC
 	}
 
 }
+
+#endif

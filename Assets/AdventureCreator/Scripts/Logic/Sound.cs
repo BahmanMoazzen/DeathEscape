@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2024
  *	
  *	"Sound.cs"
  * 
@@ -102,7 +102,7 @@ namespace AC
 			{
 				if (playWhilePaused)
 				{
-					deltaTime = Time.fixedDeltaTime;
+					deltaTime = Time.unscaledDeltaTime;
 				}
 				else
 				{
@@ -114,7 +114,6 @@ namespace AC
 			{
 				relativeChangeTime -= deltaTime;
 				float i = (originalRelativeChangeTime - relativeChangeTime) / originalRelativeChangeTime; // 0 -> 1
-				
 				if (relativeChangeTime <= 0f)
 				{
 					relativeVolume = targetRelativeVolume;
@@ -247,9 +246,7 @@ namespace AC
 		}
 
 
-		/**
-		 * <summary>Plays the AudioSource's current AudioClip, without starting over if it was paused or changing its "loop" variable.</summary>
-		 */
+		/** Plays the AudioSource's current AudioClip, without starting over if it was paused or changing its "loop" variable. */
 		public void Play ()
 		{
 			if (audioSource == null)
@@ -258,6 +255,12 @@ namespace AC
 			}
 			fadeTime = 0f;
 			SetMaxVolume ();
+			SnapSmoothVolume ();
+			if (audioSource)
+			{
+				audioSource.volume = smoothVolume;
+			}
+
 			audioSource.Play ();
 
 			KickStarter.eventManager.Call_OnPlaySound (this, audioSource, audioSource.clip, 0f);
@@ -583,9 +586,11 @@ namespace AC
 
 			if (audioSource)
 			{
-				audioSource.playOnAwake = false;
+				//audioSource.playOnAwake = false;
 				audioSource.ignoreListenerPause = playWhilePaused;
 			}
+
+			SetMaxVolume ();
 
 			// Search for duplicates carried over from scene change
 			ConstantID ownConstantID = GetComponent<ConstantID> ();
@@ -601,7 +606,7 @@ namespace AC
 							if (otherSound.IsPlaying ())
 							{
 								//DestroyImmediate (gameObject);
-								KickStarter.sceneChanger.ScheduleForDeletion (otherSound.gameObject);
+								KickStarter.sceneChanger.ScheduleForDeletion (gameObject);
 								return;
 							}
 							else

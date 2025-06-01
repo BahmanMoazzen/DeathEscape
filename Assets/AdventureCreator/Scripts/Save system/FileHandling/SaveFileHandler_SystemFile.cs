@@ -20,7 +20,9 @@ namespace AC
 	public class SaveFileHandler_SystemFile : iSaveFileHandler
 	{
 
-		public string GetDefaultSaveLabel (int saveID)
+		#region PublicFunctions
+
+		public virtual string GetDefaultSaveLabel (int saveID)
 		{
 			string label = (saveID == 0)
 							? SaveSystem.AutosaveLabel
@@ -31,17 +33,13 @@ namespace AC
 		}
 
 
-		public void DeleteAll (int profileID)
+		public virtual void DeleteAll (int profileID)
 		{
-			List<SaveFile> allSaveFiles = GatherSaveFiles (profileID);
-			foreach (SaveFile saveFile in allSaveFiles)
-			{
-				Delete (saveFile);
-			}
+			GatherSaveFiles (profileID, OnGatherFilesForDeletion);
 		}
 
 
-		public bool Delete (SaveFile saveFile)
+		public virtual void Delete (SaveFile saveFile, System.Action<bool> callback = null)
 		{
 			string filename = saveFile.fileName;
 
@@ -60,14 +58,16 @@ namespace AC
 					#endif
 
 					ACDebug.Log ("File deleted: " + filename);
-					return true;
+					if (callback != null) callback.Invoke (true);
+					return;
 				}
 			}
-			return false;
+
+			if (callback != null) callback.Invoke (false);
 		}
 
 
-		public void Save (SaveFile saveFile, string dataToSave)
+		public virtual void Save (SaveFile saveFile, string dataToSave, System.Action<bool> callback)
 		{
 			string fullFilename = GetSaveDirectory () + Path.DirectorySeparatorChar.ToString () + GetSaveFilename (saveFile.saveID, saveFile.profileID);
 			bool isSuccessful = false;
@@ -98,11 +98,11 @@ namespace AC
 				ACDebug.LogWarning ("Could not save data to file '" + fullFilename + "'. Exception: " + e);
  			}
 
-			KickStarter.saveSystem.OnFinishSaveRequest (saveFile, isSuccessful);
+			callback.Invoke (isSuccessful);
 		}
 
 
-		public string Load (SaveFile saveFile, bool doLog)
+		public virtual void Load (SaveFile saveFile, bool doLog, System.Action<SaveFile, string> callback)
 		{
 			string _data = string.Empty;
 			
@@ -120,39 +120,61 @@ namespace AC
 				ACDebug.Log ("File read: " + saveFile.fileName);
 			}
 
-			return _data;
+			callback.Invoke (saveFile, _data);
 		}
 
 
-		public bool SupportsSaveThreading ()
+		public virtual bool SupportsSaveThreading ()
 		{
 			return true;
 		}
 
 
-		public List<SaveFile> GatherSaveFiles (int profileID)
+		public virtual void GatherSaveFiles (int profileID, System.Action<List<SaveFile>> callback)
 		{
-			return GatherSaveFiles (profileID, false, -1, string.Empty, string.Empty);
+			GatherSaveFiles (profileID, false, -1, string.Empty, string.Empty, callback);
 		}
 
 
-		public List<SaveFile> GatherImportFiles (int profileID, int boolID, string separateProjectName, string separateFilePrefix)
+		public virtual void GatherImportFiles (int profileID, int boolID, string separateProjectName, string separateFilePrefix, System.Action<List<SaveFile>> callback)
 		{
 			if (!string.IsNullOrEmpty (separateProjectName) && !string.IsNullOrEmpty (separateFilePrefix))
 			{
-				return GatherSaveFiles (profileID, true, boolID, separateProjectName, separateFilePrefix);
+				GatherSaveFiles (profileID, true, boolID, separateProjectName, separateFilePrefix, callback);
 			}
-			return null;
 		}
 
 
-		public SaveFile GetSaveFile (int saveID, int profileID)
+		public virtual SaveFile GetSaveFile (int saveID, int profileID)
 		{
 			return GetSaveFile (saveID, profileID, false, -1, string.Empty, string.Empty);
 		}
 
 
-		protected SaveFile GetSaveFile (int saveID, int profileID, bool isImport, int boolID, string separateProductName, string separateFilePrefix)
+		public virtual void SaveScreenshot (SaveFile saveFile)
+		{
+			#if CAN_HANDLE_SCREENSHOTS
+			if (saveFile.screenShot != null)
+			{
+				string fullFilename = GetSaveDirectory () + Path.DirectorySeparatorChar.ToString () + GetSaveFilename (saveFile.saveID, saveFile.profileID, ".jpg");
+
+				byte[] bytes = saveFile.screenShot.EncodeToJPG ();
+				File.WriteAllBytes (fullFilename, bytes);
+				ACDebug.Log ("Saved screenshot: " + fullFilename);
+			}
+			else
+			{
+				ACDebug.LogWarning ("Cannot save screenshot - SaveFile's screenshot variable is null.");
+			}
+			#endif
+		}
+
+		#endregion
+
+
+		#region ProtectedFunctions
+
+		protected virtual SaveFile GetSaveFile (int saveID, int profileID, bool isImport, int boolID, string separateProductName, string separateFilePrefix, FileInfo[] info = null)
 		{
 			string saveDirectory = GetSaveDirectory (separateProductName);
 			string filePrefix = (isImport) ? separateFilePrefix : KickStarter.settingsManager.SavePrefix;
@@ -161,8 +183,24 @@ namespace AC
 			string filenameWithExtention = filename + SaveSystem.GetSaveExtension ();
 			string fullFilename = saveDirectory + Path.DirectorySeparatorChar.ToString () + filenameWithExtention;
 
-			if (File.Exists (fullFilename))
+			if (info == null)
 			{
+				DirectoryInfo dir = new DirectoryInfo (saveDirectory);
+				info = dir.GetFiles (filenameWithExtention);
+			}
+
+			if (info == null)
+			{
+				return null;
+			}
+
+			foreach (FileInfo fileInfo in info)
+			{
+				if (fileInfo.Name != filenameWithExtention)
+				{
+					continue;
+				}
+
 				if (isImport && boolID >= 0)
 				{
 					string allData = LoadFile (fullFilename, false);
@@ -181,21 +219,12 @@ namespace AC
 					isAutoSave = true;
 				}
 
+				System.TimeSpan t = fileInfo.LastWriteTime - new System.DateTime (2015, 1, 1);
+				updateTime = (int) t.TotalSeconds;
+
 				if (KickStarter.settingsManager.saveTimeDisplay != SaveTimeDisplay.None)
 				{
-					DirectoryInfo dir = new DirectoryInfo (saveDirectory);
-					FileInfo[] info = dir.GetFiles (filenameWithExtention);
-
-					if (info != null && info.Length > 0)
-					{
-						if (!isAutoSave)
-						{
-							System.TimeSpan t = info[0].LastWriteTime - new System.DateTime (2015, 1, 1);
-							updateTime = (int) t.TotalSeconds;
-						}
-
-						label += GetTimeString (info[0].LastWriteTime);
-					}
+					label += GetTimeString (fileInfo.LastWriteTime);
 				}
 
 				Texture2D screenShot = null;
@@ -213,43 +242,28 @@ namespace AC
 		}
 
 
-		protected List<SaveFile> GatherSaveFiles (int profileID, bool isImport, int boolID, string separateProductName, string separateFilePrefix)
+		protected virtual void GatherSaveFiles (int profileID, bool isImport, int boolID, string separateProductName, string separateFilePrefix, System.Action<List<SaveFile>> callback)
 		{
-			List<SaveFile> gatheredFiles = new List<SaveFile>();
+			List<SaveFile> gatheredFiles = new List<SaveFile> ();
 
-			for (int i=0; i<50; i++)
+			string saveDirectory = GetSaveDirectory (separateProductName);
+			DirectoryInfo dir = new DirectoryInfo (saveDirectory);
+			FileInfo[] info = dir.GetFiles ("*" + SaveSystem.GetSaveExtension ());
+
+			for (int i = 0; i < MaxSaves; i++)
 			{
-				SaveFile saveFile = GetSaveFile (i, profileID, isImport, boolID, separateProductName, separateFilePrefix);
+				SaveFile saveFile = GetSaveFile (i, profileID, isImport, boolID, separateProductName, separateFilePrefix, info);
 				if (saveFile != null)
 				{
 					gatheredFiles.Add (saveFile);
 				}
 			}
 
-			return gatheredFiles;
+			callback?.Invoke (gatheredFiles);
 		}
 
 
-		public void SaveScreenshot (SaveFile saveFile)
-		{
-			#if CAN_HANDLE_SCREENSHOTS
-			if (saveFile.screenShot != null)
-			{
-				string fullFilename = GetSaveDirectory () + Path.DirectorySeparatorChar.ToString () + GetSaveFilename (saveFile.saveID, saveFile.profileID, ".jpg");
-
-				byte[] bytes = saveFile.screenShot.EncodeToJPG ();
-				File.WriteAllBytes (fullFilename, bytes);
-				ACDebug.Log ("Saved screenshot: " + fullFilename);
-			}
-			else
-			{
-				ACDebug.LogWarning ("Cannot save screenshot - SaveFile's screenshot variable is null.");
-			}
-			#endif
-		}
-
-
-		protected void DeleteScreenshot (string sceenshotFilename)
+		protected virtual void DeleteScreenshot (string sceenshotFilename)
 		{
 			#if CAN_HANDLE_SCREENSHOTS
 			if (File.Exists (sceenshotFilename))
@@ -260,7 +274,7 @@ namespace AC
 		}
 
 
-		protected Texture2D LoadScreenshot (string fileName)
+		protected virtual Texture2D LoadScreenshot (string fileName)
 		{
 			#if CAN_HANDLE_SCREENSHOTS
 			if (File.Exists (fileName) && Application.isPlaying && KickStarter.saveSystem)
@@ -268,7 +282,7 @@ namespace AC
 				byte[] bytes = File.ReadAllBytes (fileName);
 				Texture2D screenshotTex = new Texture2D (KickStarter.saveSystem.ScreenshotWidth, KickStarter.saveSystem.ScreenshotHeight, TextureFormat.RGB24, false, KickStarter.settingsManager.linearColorTextures);
 				screenshotTex.LoadImage (bytes);
-
+				screenshotTex.Compress (true);
 				return screenshotTex;
 			}
 			#endif
@@ -276,7 +290,7 @@ namespace AC
 		}
 
 
-		protected string GetSaveFilename (int saveID, int profileID = -1, string extensionOverride = "")
+		protected virtual string GetSaveFilename (int saveID, int profileID = -1, string extensionOverride = "")
 		{
 			if (profileID == -1)
 			{
@@ -288,11 +302,9 @@ namespace AC
 		}
 
 
-		protected string GetSaveDirectory (string separateProjectName = "")
+		protected virtual string GetSaveDirectory (string separateProjectName = "")
 		{
-			string normalSaveDirectory = (KickStarter.saveSystem) 
-										? KickStarter.saveSystem.PersistentDataPath
-										: Application.persistentDataPath;
+			string normalSaveDirectory = SaveSystem.PersistentDataPath;
 
 			if (!string.IsNullOrEmpty (separateProjectName))
 			{
@@ -305,9 +317,9 @@ namespace AC
 		}
 
 
-		protected string GetTimeString (System.DateTime dateTime)
+		protected virtual string GetTimeString (System.DateTime dateTime)
 		{
-			if (KickStarter.settingsManager.saveTimeDisplay != SaveTimeDisplay.None)
+			if (KickStarter.settingsManager && KickStarter.settingsManager.saveTimeDisplay != SaveTimeDisplay.None)
 			{
 				if (KickStarter.settingsManager.saveTimeDisplay == SaveTimeDisplay.CustomFormat)
 				{
@@ -329,7 +341,7 @@ namespace AC
 		}
 
 
-		protected string LoadFile (string fullFilename, bool doLog = true)
+		protected virtual string LoadFile (string fullFilename, bool doLog = true)
 		{
 			string _data = string.Empty;
 			
@@ -342,12 +354,34 @@ namespace AC
 				_data = _info;
 			}
 			
-			if (_data != "" && doLog)
+			if (!string.IsNullOrEmpty (_data) && doLog)
 			{
 				ACDebug.Log ("File Read: " + fullFilename);
 			}
 			return (_data);
 		}
+
+		#endregion
+
+
+		#region PrivateFunctions
+
+		private void OnGatherFilesForDeletion (List<SaveFile> saveFiles)
+		{
+			foreach (SaveFile saveFile in saveFiles)
+			{
+				Delete (saveFile);
+			}
+		}
+
+		#endregion
+
+
+		#region GetSet
+
+		protected virtual int MaxSaves { get { return 50; } }
+
+		#endregion
 
 	}
 

@@ -1,17 +1,16 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2024
  *	
  *	"ActionInputCheck.cs"
  * 
- *	This action checks if a specific key
- *	is being pressed
+ *	This action enabled and disables Active Inputs
  * 
  */
 
 using System.Collections.Generic;
-
+using UnityEngine;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -34,31 +33,26 @@ namespace AC
 
 		public override float Run ()
 		{
-			if (KickStarter.settingsManager != null && KickStarter.settingsManager.activeInputs != null)
+			ActiveInput activeInput = KickStarter.settingsManager.GetActiveInput (activeInputID);
+			if (activeInput != null)
 			{
-				foreach (ActiveInput activeInput in KickStarter.settingsManager.activeInputs)
-				{
-					if (activeInput.ID == activeInputID)
-					{
-						activeInput.IsEnabled = newState;
-						return 0f;
-					}
-				}
-
-				LogWarning ("Couldn't find the Active Input with ID=" + activeInputID);
+				activeInput.IsEnabled = newState;
 				return 0f;
 			}
-
-			LogWarning ("No Active Inputs found! Is the Settings Manager assigned properly?");
+			LogWarning ("Couldn't find the Active Input with ID=" + activeInputID);
 			return 0f;
 		}
 		
-
 		
 		#if UNITY_EDITOR
 		
 		public override void ShowGUI (List<ActionParameter> parameters)
 		{
+			if (GUILayout.Button ("Actve Inputs window"))
+			{
+				ActiveInputsEditor.Init ();
+			}
+
 			int tempNumber = -1;
 
 			if (KickStarter.settingsManager != null && KickStarter.settingsManager.activeInputs != null && KickStarter.settingsManager.activeInputs.Count > 0)
@@ -91,7 +85,7 @@ namespace AC
 			}
 			else
 			{
-				EditorGUILayout.HelpBox ("No active inputs exist! They can be defined in Adventure Creator -> Editors -> Active Inputs.", MessageType.Info);
+				EditorGUILayout.HelpBox ("No active inputs exist!", MessageType.Info);
 				activeInputID = 0;
 				tempNumber = 0;
 			}

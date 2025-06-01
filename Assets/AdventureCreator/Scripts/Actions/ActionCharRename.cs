@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2024
  *	
  *	"ActionCharRename.cs"
  * 
@@ -91,13 +91,10 @@ namespace AC
 			}
 			else
 			{
-				_char = (Char) EditorGUILayout.ObjectField ("Character:", _char, typeof (Char), true);
-				
-				_charID = FieldToID <Char> (_char, _charID);
-				_char = IDToField <Char> (_char, _charID, true);
+				ComponentField ("Character:", ref _char, ref _charID);
 			}
 			
-			newName = EditorGUILayout.TextField ("New name:", newName);
+			newName = TextField ("New name:", newName);
 		}
 
 
@@ -113,7 +110,7 @@ namespace AC
 					}
 				}
 
-				AssignConstantID <Char> (_char, _charID, 0);
+				_charID = AssignConstantID<Char> (_char, _charID, 0);
 			}
 		}
 
@@ -132,10 +129,10 @@ namespace AC
 		{
 			if (!isPlayer)
 			{
-				if (_char != null && _char.gameObject == _gameObject) return true;
+				if (_char && _char.gameObject == _gameObject) return true;
 				if (_charID == id) return true;
 			}
-			if (isPlayer && _gameObject.GetComponent <Player>() != null) return true;
+			if (isPlayer && _gameObject && _gameObject.GetComponent <Player>()) return true;
 			return base.ReferencesObjectOrID (_gameObject, id);
 		}
 
@@ -230,6 +227,7 @@ namespace AC
 		{
 			ActionCharRename newAction = CreateNew<ActionCharRename> ();
 			newAction._char = characterToRename;
+			newAction.TryAssignConstantID (newAction._char, ref newAction._charID);
 			newAction.newName = newName;
 			newAction.lineID = translationID;
 			return newAction;

@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2024
  *	
  *	"ActionInteraction.cs"
  * 
@@ -33,6 +33,8 @@ namespace AC
 		public ChangeType changeType = ChangeType.Enable;
 		public int number = 0;
 
+		private enum NumberRepresents { Index, ID };
+		[SerializeField] private NumberRepresents numberRepresents = NumberRepresents.Index;
 		
 		public override ActionCategory Category { get { return ActionCategory.Hotspot; }}
 		public override string Title { get { return "Change interaction"; }}
@@ -52,15 +54,37 @@ namespace AC
 				return 0f;
 			}
 
+			int index = number;
+
 			if (interactionType == InteractionType.Use)
 			{
-				if (runtimeHotspot.useButtons.Count > number)
+				if (parameterID >= 0 && numberRepresents == NumberRepresents.ID)
 				{
-					ChangeButton (runtimeHotspot.useButtons [number]);
+					bool foundValue = false;
+					for (int i = 0; i < runtimeHotspot.useButtons.Count; i++)
+					{
+						if (runtimeHotspot.useButtons[i].iconID == number)
+						{
+							index = i;
+							foundValue = true;
+							break;
+						}
+					}
+
+					if (!foundValue)
+					{
+						LogWarning ("Cannot change Hotspot " + runtimeHotspot + "'s Use interaction ID " + number + " because it doesn't exist!");
+						return 0f;
+					}
+				}
+
+				if (runtimeHotspot.useButtons.Count > index)
+				{
+					ChangeButton (runtimeHotspot.useButtons [index]);
 				}
 				else
 				{
-					LogWarning ("Cannot change Hotspot " + runtimeHotspot.gameObject.name + "'s Use button " + number.ToString () + " because it doesn't exist!");
+					LogWarning ("Cannot change Hotspot " + runtimeHotspot + "'s Use interaction " + index + " because it doesn't exist!");
 				}
 			}
 			else if (interactionType == InteractionType.Examine)
@@ -69,13 +93,33 @@ namespace AC
 			}
 			else if (interactionType == InteractionType.Inventory)
 			{
-				if (runtimeHotspot.invButtons.Count > number)
+				if (parameterID >= 0 && numberRepresents == NumberRepresents.ID)
 				{
-					ChangeButton (runtimeHotspot.invButtons [number]);
+					bool foundValue = false;
+					for (int i = 0; i < runtimeHotspot.invButtons.Count; i++)
+					{
+						if (runtimeHotspot.invButtons[i].invID == number)
+						{
+							index = i;
+							foundValue = true;
+							break;
+						}
+					}
+
+					if (!foundValue)
+					{
+						LogWarning ("Cannot change Hotspot " + runtimeHotspot + "'s Use inventory ID " + number + " because it doesn't exist!");
+						return 0f;
+					}
+				}
+
+				if (runtimeHotspot.invButtons.Count > index)
+				{
+					ChangeButton (runtimeHotspot.invButtons [index]);
 				}
 				else
 				{
-					LogWarning ("Cannot change Hotspot " + runtimeHotspot.gameObject.name + "'s Inventory button " + number.ToString () + " because it doesn't exist!");
+					LogWarning ("Cannot change Hotspot " + runtimeHotspot + "'s Inventory interaction " + index + " because it doesn't exist!");
 				}
 			}
 			runtimeHotspot.ResetMainIcon ();
@@ -108,21 +152,9 @@ namespace AC
 		
 		public override void ShowGUI (List<ActionParameter> parameters)
 		{
-			if (AdvGame.GetReferences () && AdvGame.GetReferences ().settingsManager)
+			if (KickStarter.settingsManager)
 			{
-				parameterID = Action.ChooseParameterGUI ("Hotspot to change:", parameters, parameterID, ParameterType.GameObject);
-				if (parameterID >= 0)
-				{
-					constantID = 0;
-					hotspot = null;
-				}
-				else
-				{
-					hotspot = (Hotspot) EditorGUILayout.ObjectField ("Hotspot to change:", hotspot, typeof (Hotspot), true);
-					
-					constantID = FieldToID <Hotspot> (hotspot, constantID);
-					hotspot = IDToField <Hotspot> (hotspot, constantID, false);
-				}
+				ComponentField ("Hotspot to change:", ref hotspot, ref constantID, parameters, ref parameterID);
 
 				interactionType = (InteractionType) EditorGUILayout.EnumPopup ("Interaction to change:", interactionType);
 
@@ -131,11 +163,14 @@ namespace AC
 					switch (interactionType)
 					{
 						case InteractionType.Use:
-							if (hotspot == null)
+							if (hotspot == null || parameterID >= 0)
 							{
 								number = EditorGUILayout.IntField ("Use interaction:", number);
+
+								if (parameterID >= 0)
+									numberRepresents = (NumberRepresents) EditorGUILayout.EnumPopup ("Value represents:", numberRepresents);
 							}
-							else if (AdvGame.GetReferences ().cursorManager)
+							else if (KickStarter.cursorManager)
 							{
 								// Multiple use interactions
 								if (hotspot.useButtons.Count > 0 && hotspot.provideUseInteraction)
@@ -144,7 +179,7 @@ namespace AC
 
 									foreach (AC.Button button in hotspot.useButtons)
 									{
-										labelList.Add (hotspot.useButtons.IndexOf (button) + ": " + AdvGame.GetReferences ().cursorManager.GetLabelFromID (button.iconID, 0));
+										labelList.Add (hotspot.useButtons.IndexOf (button) + ": " + KickStarter.cursorManager.GetLabelFromID (button.iconID, 0));
 									}
 
 									number = EditorGUILayout.Popup ("Use interaction:", number, labelList.ToArray ());
@@ -169,11 +204,14 @@ namespace AC
 							break;
 
 						case InteractionType.Inventory:
-							if (hotspot == null)
+							if (hotspot == null || parameterID >= 0)
 							{
 								number = EditorGUILayout.IntField ("Inventory interaction:", number);
+
+								if (parameterID >= 0)
+									numberRepresents = (NumberRepresents) EditorGUILayout.EnumPopup ("Value represents:", numberRepresents);
 							}
-							else if (AdvGame.GetReferences ().inventoryManager)
+							else if (KickStarter.inventoryManager)
 							{
 								if (hotspot.invButtons.Count > 0 && hotspot.provideInvInteraction)
 								{
@@ -181,7 +219,7 @@ namespace AC
 
 									foreach (AC.Button button in hotspot.invButtons)
 									{
-										labelList.Add (hotspot.invButtons.IndexOf (button) + ": " + AdvGame.GetReferences ().inventoryManager.GetLabel (button.invID));
+										labelList.Add (hotspot.invButtons.IndexOf (button) + ": " + KickStarter.inventoryManager.GetLabel (button.invID));
 									}
 
 									number = EditorGUILayout.Popup ("Inventory interaction:", number, labelList.ToArray ());
@@ -215,7 +253,7 @@ namespace AC
 				AddSaveScript <RememberHotspot> (hotspot);
 			}
 
-			AssignConstantID <Hotspot> (hotspot, constantID, parameterID);
+			constantID = AssignConstantID<Hotspot> (hotspot, constantID, parameterID);
 		}
 		
 		
@@ -233,7 +271,7 @@ namespace AC
 		{
 			if (parameterID < 0)
 			{
-				if (hotspot != null && hotspot.gameObject == _gameObject) return true;
+				if (hotspot && hotspot.gameObject == _gameObject) return true;
 				if (constantID == id) return true;
 			}
 			return base.ReferencesObjectOrID (_gameObject, id);
@@ -254,6 +292,7 @@ namespace AC
 		{
 			ActionInteraction newAction = CreateNew<ActionInteraction> ();
 			newAction.hotspot = hotspot;
+			newAction.TryAssignConstantID (newAction.hotspot, ref newAction.constantID);
 			newAction.interactionType = interactionType;
 			newAction.changeType = changeType;
 			newAction.number = interactionIndex;

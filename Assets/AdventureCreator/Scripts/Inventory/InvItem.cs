@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2024
  *	
  *	"InvItem.cs"
  * 
@@ -23,7 +23,7 @@ namespace AC
 	 * Items are stored in InventoryManager, and referenced in InvInstance classes when added to the Player's inventory at runtime.
 	 */
 	[System.Serializable]
-	public class InvItem : ITranslatable
+	public class InvItem : ITranslatable, IItemReferencer
 	{
 
 		#region Variables
@@ -94,6 +94,8 @@ namespace AC
 		[SerializeField] private List<int> combineID = new List<int>();
 		/** The ActionListAsset to run when using the item on a Hotspot is unhandled */
 		public ActionListAsset unhandledActionList;
+		/** The ActionListAsset to run when giving the item to an NPC is unhandled */
+		public ActionListAsset unhandledGiveActionList;
 		/** The ActionListAsset to run when using the item on another InvItem is unhandled */
 		public ActionListAsset unhandledCombineActionList;
 
@@ -103,7 +105,7 @@ namespace AC
 		[SerializeField] bool selectSingle;
 
 		#if UNITY_EDITOR
-		public bool showInFilter;
+		[System.NonSerialized] public bool showInFilter;
 		private int sideInteraction = -1;
 		private int sideCombineInteraction = -1;
 		#endif
@@ -218,10 +220,10 @@ namespace AC
 			canBeLowerCase = assetItem.canBeLowerCase;
 
 			binID = assetItem.binID;
-			if (binID == -1 && KickStarter.inventoryManager && KickStarter.inventoryManager.bins != null && KickStarter.inventoryManager.bins.Count > 0)
+			if (binID == -1 && KickStarter.inventoryManager)
 			{
 				// Place item in first available cateogry if undefined
-				binID = KickStarter.inventoryManager.bins[0].id;
+				binID = KickStarter.inventoryManager.GetFirstItemsCategoryID ();
 			}
 
 			maxCount = assetItem.maxCount;
@@ -236,6 +238,7 @@ namespace AC
 			interactions = assetItem.interactions;
 			combineInteractions = assetItem.combineInteractions;
 			unhandledActionList = assetItem.unhandledActionList;
+			unhandledGiveActionList = assetItem.unhandledGiveActionList;
 			unhandledCombineActionList = assetItem.unhandledCombineActionList;
 			linkedPrefab = assetItem.linkedPrefab;
 
@@ -263,7 +266,7 @@ namespace AC
 
 		#if UNITY_EDITOR
 
-		public void ShowGUI (string apiPrefix, List<string> binList)
+		public void ShowGUI (string apiPrefix, System.Action<ActionListAsset> showALAEditor)
 		{
 			Upgrade ();
 
@@ -274,23 +277,10 @@ namespace AC
 			isPronoun = CustomGUILayout.Toggle ("Name is pronoun?", isPronoun, "!" + apiPrefix + ".canBeLowerCase", "If False, the name will be lower-cased when inside sentences.");
 			canBeLowerCase = !isPronoun;
 
-			EditorGUILayout.BeginHorizontal ();
-			EditorGUILayout.LabelField (new GUIContent ("Category:", "The category that the item belongs to"), GUILayout.Width (146f));
-			if (KickStarter.inventoryManager.bins.Count > 0)
-			{
-				int binNumber = KickStarter.inventoryManager.GetBinSlot (binID);
-				binNumber = CustomGUILayout.Popup (binNumber, binList.ToArray (), apiPrefix + ".binID");
-				binID = KickStarter.inventoryManager.bins[binNumber].id;
-			}
-			else
-			{
-				binID = -1;
-				EditorGUILayout.LabelField ("No categories defined!", EditorStyles.miniLabel, GUILayout.Width (146f));
-			}
-			EditorGUILayout.EndHorizontal ();
+			binID = KickStarter.inventoryManager.ChooseCategoryGUI ("Category:", binID, true, false, false, apiPrefix + ".binID", "The category that the item belongs to");
 
 			carryOnStart = CustomGUILayout.Toggle ("Carry on start?", carryOnStart, apiPrefix + ".carryOnStart", "If True, the Player carries the item when the game begins");
-			if (carryOnStart && AdvGame.GetReferences ().settingsManager && AdvGame.GetReferences ().settingsManager.playerSwitching == PlayerSwitching.Allow && !AdvGame.GetReferences ().settingsManager.shareInventory)
+			if (carryOnStart && KickStarter.settingsManager && KickStarter.settingsManager.playerSwitching == PlayerSwitching.Allow && !KickStarter.settingsManager.shareInventory)
 			{
 				carryOnStartNotDefault = CustomGUILayout.Toggle ("Non-default Player(s)?", carryOnStartNotDefault, apiPrefix + ".carryOnStartNotDefault", "If True, then a Player prefab that is not the default carries the item when the game begins");
 				if (carryOnStartNotDefault)
@@ -325,6 +315,11 @@ namespace AC
 				if (maxCount > 1)
 				{
 					itemStackingMode = (ItemStackingMode) CustomGUILayout.EnumPopup ("Selection mode:", itemStackingMode, apiPrefix + ".itemStackingMode", "How to select items when multiple are in a given slot");
+
+					if (itemStackingMode == ItemStackingMode.Stack && KickStarter.settingsManager && KickStarter.settingsManager.InventoryDragDrop)
+					{
+						EditorGUILayout.HelpBox ("'Stack' is not compatible with drag-and-drop - call the AddStack function to manually increase the stack", MessageType.Info);
+					}
 				}
 			}
 
@@ -341,10 +336,6 @@ namespace AC
 			}
 
 			linkedPrefab = (GameObject) CustomGUILayout.ObjectField<GameObject> ("Linked prefab:", linkedPrefab, false, apiPrefix + ".linkedPrefab", "A GameObject that can be associated with the item, for the creation of e.g. 3D inventory items (through scripting only)");
-			if (linkedPrefab != null)
-			{
-				EditorGUILayout.HelpBox ("This reference is accessible through scripting, or via Inventory parameter in the 'Object: Add or remove' Action.", MessageType.Info);
-			}
 
 			CustomGUILayout.DrawUILine ();
 
@@ -358,16 +349,16 @@ namespace AC
 			activeTex = (Texture) CustomGUILayout.ObjectField<Texture> (activeTex, false, GUILayout.Width (70), GUILayout.Height (70), apiPrefix + ".activeTex");
 			EditorGUILayout.EndHorizontal ();
 
-			if (AdvGame.GetReferences ().settingsManager != null && AdvGame.GetReferences ().settingsManager.selectInventoryDisplay == SelectInventoryDisplay.ShowSelectedGraphic)
+			if (KickStarter.settingsManager != null && KickStarter.settingsManager.selectInventoryDisplay == SelectInventoryDisplay.ShowSelectedGraphic)
 			{
 				EditorGUILayout.BeginHorizontal ();
 				EditorGUILayout.LabelField (new GUIContent ("Selected graphic:", "The item's 'selected' graphic"), GUILayout.Width (145));
 				selectedTex = (Texture) CustomGUILayout.ObjectField<Texture> (selectedTex, false, GUILayout.Width (70), GUILayout.Height (70), apiPrefix + ".selectedTex");
 				EditorGUILayout.EndHorizontal ();
 			}
-			if (AdvGame.GetReferences ().cursorManager != null)
+			if (KickStarter.cursorManager != null)
 			{
-				CursorManager cursorManager = AdvGame.GetReferences ().cursorManager;
+				CursorManager cursorManager = KickStarter.cursorManager;
 				if (cursorManager.inventoryHandling == InventoryHandling.ChangeCursor || cursorManager.inventoryHandling == InventoryHandling.ChangeCursorAndHotspotLabel)
 				{
 					cursorIcon.ShowGUI (true, true, "Cursor (optional):", cursorManager.cursorRendering, apiPrefix + ".cursorIcon", "A Cursor that, if assigned, will be used in place of the 'tex' Texture when the item is selected on the cursor");
@@ -403,7 +394,7 @@ namespace AC
 						interaction.icon = KickStarter.cursorManager.cursorIcons[invNumber];
 
 						string autoName = label + "_" + interaction.icon.label;
-						interaction.actionList = ActionListAssetMenu.AssetGUI (string.Empty, interaction.actionList, autoName, apiPrefix + ".interactions[" + i + "].actionList", "The ActionList to run when the interaction is triggered");
+						interaction.actionList = ActionListAssetMenu.AssetGUI (string.Empty, interaction.actionList, autoName, apiPrefix + ".interactions[" + i + "].actionList", "The ActionList to run when the interaction is triggered", null, showALAEditor);
 
 						if (GUILayout.Button (string.Empty, CustomStyles.IconCog))
 						{
@@ -426,7 +417,7 @@ namespace AC
 			else
 			{
 				string autoName = label + "_Use";
-				useActionList = ActionListAssetMenu.AssetGUI ("Use:", useActionList, autoName, apiPrefix + ".useActionList", "The ActionList asset to run when using the item is used");
+				useActionList = ActionListAssetMenu.AssetGUI ("Use:", useActionList, autoName, apiPrefix + ".useActionList", "The ActionList asset to run when using the item is used", null, showALAEditor);
 				if (KickStarter.cursorManager && KickStarter.cursorManager.allowInteractionCursorForInventory && KickStarter.cursorManager.cursorIcons.Count > 0)
 				{
 					int useCursor_int = KickStarter.cursorManager.GetIntFromID (useIconID) + 1;
@@ -447,7 +438,7 @@ namespace AC
 					useIconID = 0;
 				}
 				autoName = label + "_Examine";
-				lookActionList = ActionListAssetMenu.AssetGUI ("Examine:", lookActionList, autoName, apiPrefix + ".lookActionList", "The ActionListAsset to run when the item is examined");
+				lookActionList = ActionListAssetMenu.AssetGUI ("Examine:", lookActionList, autoName, apiPrefix + ".lookActionList", "The ActionListAsset to run when the item is examined", null, showALAEditor);
 			}
 
 			if (KickStarter.settingsManager && KickStarter.settingsManager.CanSelectItems (false))
@@ -455,9 +446,11 @@ namespace AC
 				EditorGUILayout.Space ();
 				EditorGUILayout.LabelField ("Unhandled interactions", CustomStyles.subHeader);
 				string autoName = label + "_Unhandled_Hotspot";
-				unhandledActionList = ActionListAssetMenu.AssetGUI ("Use on Hotspot:", unhandledActionList, autoName, apiPrefix + ".unhandledActionList", "The ActionList asset to run when using the item on a Hotspot is unhandled");
+				unhandledActionList = ActionListAssetMenu.AssetGUI ("Use on Hotspot:", unhandledActionList, autoName, apiPrefix + ".unhandledActionList", "The ActionList asset to run when using the item on a Hotspot is unhandled", null, showALAEditor);
+				autoName = label + "_Unhandled_Give";
+				unhandledGiveActionList = ActionListAssetMenu.AssetGUI ("Give to NPC:", unhandledGiveActionList, autoName, apiPrefix + ".unhandledGiveActionList", "The ActionList asset to run when giving the item to an NPC is unhandled", null, showALAEditor);
 				autoName = label + "_Unhandled_Combine";
-				unhandledCombineActionList = ActionListAssetMenu.AssetGUI ("Combine:", unhandledCombineActionList, autoName, apiPrefix + ".unhandledCombineActionList", "The ActionListAsset to run when using the item on another InvItem is unhandled");
+				unhandledCombineActionList = ActionListAssetMenu.AssetGUI ("Combine:", unhandledCombineActionList, autoName, apiPrefix + ".unhandledCombineActionList", "The ActionListAsset to run when using the item on another InvItem is unhandled", null, showALAEditor);
 			}
 
 			EditorGUILayout.Space ();
@@ -710,11 +703,11 @@ namespace AC
 
 		private List<int> ChoosePlayerGUI (List<int> playerIDs, string api)
 		{
-			CustomGUILayout.LabelField ("Item is carried by:", api);
+			CustomGUILayout.LabelField ("Item is carried by:", string.Empty, api);
 
 			foreach (PlayerPrefab playerPrefab in KickStarter.settingsManager.players)
 			{
-				string playerName = "    " + playerPrefab.ID + ": " + ((playerPrefab.playerOb != null) ? playerPrefab.playerOb.GetName () : "(Unnamed)");
+				string playerName = "    " + playerPrefab.ID + ": " + ((playerPrefab.EditorPrefab != null) ? playerPrefab.EditorPrefab.GetName () : "(Unnamed)");
 				bool isActive = false;
 				foreach (int playerID in playerIDs)
 				{
@@ -775,7 +768,7 @@ namespace AC
 		private int GetIconSlot (int iconID)
 		{
 			int i = 0;
-			foreach (CursorIcon icon in AdvGame.GetReferences ().cursorManager.cursorIcons)
+			foreach (CursorIcon icon in KickStarter.cursorManager.cursorIcons)
 			{
 				if (icon.id == iconID)
 				{
@@ -789,7 +782,7 @@ namespace AC
 
 		public bool ReferencesAsset (ActionListAsset actionListAsset)
 		{
-			if (KickStarter.settingsManager && KickStarter.settingsManager.InventoryInteractions == InventoryInteractions.Multiple && AdvGame.GetReferences ().cursorManager)
+			if (KickStarter.settingsManager && KickStarter.settingsManager.InventoryInteractions == InventoryInteractions.Multiple && KickStarter.cursorManager)
 			{
 				foreach (InvInteraction interaction in interactions)
 				{
@@ -805,6 +798,7 @@ namespace AC
 			if (KickStarter.settingsManager && KickStarter.settingsManager.CanSelectItems (false))
 			{
 				if (unhandledActionList == actionListAsset) return true;
+				if (unhandledGiveActionList == actionListAsset) return true;
 				if (unhandledCombineActionList == actionListAsset) return true;
 			}
 
@@ -826,6 +820,37 @@ namespace AC
 			{
 				return id.ToString () + " (" + GetLabel (0) + ")";
 			}
+		}
+
+
+		public int GetNumItemReferences (int _itemID)
+		{
+			int numReferences = 0;
+			foreach (InvCombineInteraction invCombineInteraction in combineInteractions)
+			{
+				if (invCombineInteraction.combineID == _itemID)
+				{
+					numReferences++;
+				}
+			}
+
+			return numReferences;
+		}
+
+
+		public int UpdateItemReferences (int oldItemID, int newItemID)
+		{
+			int numReferences = 0;
+			foreach (InvCombineInteraction invCombineInteraction in combineInteractions)
+			{
+				if (invCombineInteraction.combineID == oldItemID)
+				{
+					invCombineInteraction.combineID = newItemID;
+					numReferences++;
+				}
+			}
+
+			return numReferences;
 		}
 
 		#endif
@@ -923,18 +948,22 @@ namespace AC
 		 */
 		public string GetLabel (int languageNumber)
 		{
-			if (languageNumber > 0)
-			{
-				return AdvGame.ConvertTokens (KickStarter.runtimeLanguages.GetTranslation (label, lineID, languageNumber, GetTranslationType (0)));
-			}
-			else
+			#if UNITY_EDITOR
+			if (!Application.isPlaying)
 			{
 				if (!string.IsNullOrEmpty (altLabel))
 				{
-					return AdvGame.ConvertTokens (altLabel);
+					return altLabel;
 				}
+				return label;
 			}
-			return AdvGame.ConvertTokens (label);
+			#endif
+
+			if (!string.IsNullOrEmpty (altLabel))
+			{
+				return AdvGame.ConvertTokens (KickStarter.runtimeLanguages.GetTranslation (altLabel, lineID, languageNumber, GetTranslationType (0)));
+			}
+			return AdvGame.ConvertTokens (KickStarter.runtimeLanguages.GetTranslation (label, lineID, languageNumber, GetTranslationType (0)));
 		}
 
 
@@ -956,9 +985,7 @@ namespace AC
 		}
 
 
-		/**
-		 * <summary>Runs the item's 'Examine' interaction, if one is defined.</summary>
-		 */
+		/** Runs the item's 'Examine' interaction, if one is defined. */
 		public void RunExamineInteraction ()
 		{
 			InvInstance newInstance = new InvInstance (this);
@@ -966,9 +993,7 @@ namespace AC
 		}
 
 
-		/**
-		 * <summary>Combines the item with itself. This is normally only available when combining items via Hotspot-based InventoryBox elements, but this allows it to be enforced.</summary>
-		 */
+		/** Combines the item with itself. This is normally only available when combining items via Hotspot-based InventoryBox elements, but this allows it to be enforced. */
 		public void CombineWithSelf ()
 		{
 			InvInstance newInstance = new InvInstance (this);
@@ -1005,9 +1030,7 @@ namespace AC
 		}
 
 
-		/**
-		 * <summary>Shows any Menus with appearType = AppearType.OnInteraction, connected to a the InvItem.</summary>
-		 */
+		/** Shows any Menus with appearType = AppearType.OnInteraction, connected to a the InvItem. */
 		public void ShowInteractionMenus ()
 		{
 			if (KickStarter.playerMenus)
@@ -1030,23 +1053,8 @@ namespace AC
 
 
 		/**
-		 * <summary>If True, the inventory item has a graphic that can be used by the cursor when selected.</summary>
-		 * <returns>True if the inventory item has a graphic that can be used by the cursor when selected.</returns>
-		 */
-		public bool HasCursorIcon ()
-		{
-			if (tex || (cursorIcon != null && cursorIcon.texture))
-			{
-				return true;
-			}
-			return false;
-		}
-
-
-		/**
 		 * <summary>Gets a property of the inventory item.</summary>
 		 * <param name = "ID">The ID number of the property to get</param>
-		 * <param name = "multiplyByItemCount">If True, then the property's integer/float value will be multipled by the item's count</param>
 		 * <returns>The property of the inventory item</returns>
 		 */
 		public InvVar GetProperty (int ID)
@@ -1062,6 +1070,37 @@ namespace AC
 				}
 			}
 			return null;
+		}
+
+
+		/**
+		 * <summary>Gets a property of the inventory item.</summary>
+		 * <param name = "propertyName">The name of the property to get</param>
+		 * <returns>The property of the inventory item</returns>
+		 */
+		public InvVar GetProperty (string propertyName)
+		{
+			if (vars.Count > 0 && !string.IsNullOrEmpty (propertyName))
+			{
+				foreach (InvVar var in vars)
+				{
+					if (var.label == propertyName)
+					{
+						return var;
+					}
+				}
+			}
+			return null;
+		}
+
+
+		public override string ToString ()
+		{
+			if (!string.IsNullOrEmpty (altLabel))
+			{
+				return "Item ID " + id + "; " + altLabel;
+			}
+			return "Item ID " + id + "; " + label;
 		}
 
 		#endregion
@@ -1107,7 +1146,7 @@ namespace AC
 			}
 			else
 			{
-				return AC_TextType.InventoryItemProperty;
+				return AC_TextType.InventoryProperty;
 			}
 		}
 

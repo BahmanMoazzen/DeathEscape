@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2024
  *	
  *	"ActionManageProfiles.cs"
  * 
@@ -31,8 +31,11 @@ namespace AC
 
 		public int varID;
 		public int slotVarID;
+		public string customLabel;
 
 		public bool useCustomLabel = false;
+		public bool preProcessTokens = true;
+		protected string newProfileLabel;
 
 		public string menuName = "";
 		public string elementName = "";
@@ -45,7 +48,15 @@ namespace AC
 
 		public override void AssignValues (List<ActionParameter> parameters)
 		{
+			UpgradeSelf ();
 			profileIndex = AssignInteger (parameters, profileIndexParameterID, profileIndex);
+
+			newProfileLabel = string.Empty;
+			if ((manageProfileType == ManageProfileType.CreateProfile && useCustomLabel) || manageProfileType == ManageProfileType.RenameProfile)
+			{
+				newProfileLabel = customLabel;
+				newProfileLabel = AdvGame.ConvertParameterTokens (newProfileLabel, parameters, Options.GetLanguage ());
+			}
 		}
 		
 		
@@ -57,18 +68,11 @@ namespace AC
 				return 0f;
 			}
 
-			string newProfileLabel = "";
 			if ((manageProfileType == ManageProfileType.CreateProfile && useCustomLabel) || manageProfileType == ManageProfileType.RenameProfile)
 			{
-				GVar gVar = GlobalVariables.GetVariable (varID);
-				if (gVar != null)
+				if (preProcessTokens)
 				{
-					newProfileLabel = gVar.TextValue;
-				}
-				else
-				{
-					LogWarning ("Could not " + manageProfileType.ToString () + " - no variable found.");
-					return 0f;
+					newProfileLabel = AdvGame.ConvertTokens (newProfileLabel);
 				}
 			}
 
@@ -178,7 +182,9 @@ namespace AC
 		
 		public override void ShowGUI (List<ActionParameter> parameters)
 		{
-			if (AdvGame.GetReferences ().settingsManager != null && !AdvGame.GetReferences ().settingsManager.useProfiles)
+			UpgradeSelf ();
+
+			if (KickStarter.settingsManager != null && !KickStarter.settingsManager.useProfiles)
 			{
 				EditorGUILayout.HelpBox ("Save game profiles are not enabled - please set in Settings Manager to use this Action.", MessageType.Warning);
 				return;
@@ -193,7 +199,8 @@ namespace AC
 
 			if ((manageProfileType == ManageProfileType.CreateProfile && useCustomLabel) || manageProfileType == AC.ManageProfileType.RenameProfile)
 			{
-				varID = AdvGame.GlobalVariableGUI ("Label as String variable:", varID, VariableType.String);
+				customLabel = TextField ("Custom label:", customLabel);
+				preProcessTokens = EditorGUILayout.Toggle ("Pre-process tokens?", preProcessTokens);
 			}
 
 			if (manageProfileType == ManageProfileType.DeleteProfile ||
@@ -213,11 +220,7 @@ namespace AC
 				deleteProfileType = (DeleteProfileType) EditorGUILayout.EnumPopup ("Profile to " + _action + ":", deleteProfileType);
 				if (deleteProfileType == DeleteProfileType.SetSlotIndex)
 				{
-					profileIndexParameterID = Action.ChooseParameterGUI ("Slot index to " + _action + ":", parameters, profileIndexParameterID, ParameterType.Integer);
-					if (profileIndexParameterID == -1)
-					{
-						profileIndex = EditorGUILayout.IntField ("Slot index to " + _action + ":", profileIndex);
-					}
+					IntField ("Slot index to " + _action + ":", ref profileIndex, parameters, ref profileIndexParameterID);
 				}
 				else if (deleteProfileType == DeleteProfileType.SlotIndexFromVariable)
 				{
@@ -225,11 +228,7 @@ namespace AC
 				}
 				else if (deleteProfileType == DeleteProfileType.SetProfileID)
 				{
-					profileIndexParameterID = Action.ChooseParameterGUI ("Profile ID to " + _action + ":", parameters, profileIndexParameterID, ParameterType.Integer);
-					if (profileIndexParameterID == -1)
-					{
-						profileIndex = EditorGUILayout.IntField ("Profile ID to " + _action + ":", profileIndex);
-					}
+					IntField ("Profile ID to " + _action + ":", ref profileIndex, parameters, ref profileIndexParameterID);
 				}
 				else if (deleteProfileType == DeleteProfileType.ActiveProfile)
 				{
@@ -243,19 +242,61 @@ namespace AC
 						 deleteProfileType == DeleteProfileType.SlotIndexFromVariable)
 				{
 					EditorGUILayout.Space ();
-					menuName = EditorGUILayout.TextField ("Menu with ProfilesList:", menuName);
-					elementName = EditorGUILayout.TextField ("ProfilesList element:", elementName);
+					menuName = TextField ("Menu with ProfilesList:", menuName);
+					elementName = TextField ("ProfilesList element:", elementName);
 				}
 			}
 		}
-		
-		
+
+
 		public override string SetLabel ()
 		{
 			return manageProfileType.ToString ();
 		}
-		
+
+
+		public override int GetNumVariableReferences (VariableLocation location, int _varID, List<ActionParameter> parameters, Variables variables = null, int variablesConstantID = 0)
+		{
+			UpgradeSelf ();
+			if ((manageProfileType == ManageProfileType.CreateProfile && useCustomLabel) || manageProfileType == AC.ManageProfileType.RenameProfile)
+			{
+				string tokenText = AdvGame.GetVariableTokenText (location, _varID, variablesConstantID);
+				if (customLabel.ToLower ().Contains (tokenText))
+				{
+					return 1 + base.GetNumVariableReferences (location, _varID, parameters, variables, variablesConstantID);
+				}
+			}
+			return base.GetNumVariableReferences (location, _varID, parameters, variables, variablesConstantID);
+		}
+
+
+		public override int UpdateVariableReferences (VariableLocation location, int oldVarID, int newVarID, List<ActionParameter> parameters, Variables variables = null, int variablesConstantID = 0)
+		{
+			UpgradeSelf ();
+			if ((manageProfileType == ManageProfileType.CreateProfile && useCustomLabel) || manageProfileType == ManageProfileType.RenameProfile)
+			{
+				string oldTokenText = AdvGame.GetVariableTokenText (location, oldVarID, variablesConstantID);
+				if (customLabel.ToLower ().Contains (oldTokenText))
+				{
+					string newTokenText = AdvGame.GetVariableTokenText (location, newVarID, variablesConstantID);
+					customLabel = customLabel.Replace (oldTokenText, newTokenText);
+					return 1 + base.UpdateVariableReferences (location, oldVarID, newVarID, parameters, variables, variablesConstantID);
+				}
+			}
+			return base.UpdateVariableReferences (location, oldVarID, newVarID, parameters, variables, variablesConstantID);
+		}
+
 		#endif
+
+
+		private void UpgradeSelf ()
+		{
+			if (string.IsNullOrEmpty (customLabel) && varID >= 0)
+			{
+				customLabel = "[var:" + varID.ToString () + "]";
+				varID = -1;
+			}
+		}
 
 
 		/**
@@ -268,7 +309,7 @@ namespace AC
 			ActionManageProfiles newAction = CreateNew<ActionManageProfiles> ();
 			newAction.manageProfileType = ManageProfileType.CreateProfile;
 			newAction.useCustomLabel = (labelGlobalStringVariableID >= 0);
-			newAction.varID = labelGlobalStringVariableID;
+			newAction.customLabel = "[var:" + labelGlobalStringVariableID + "]";
 			return newAction;
 		}
 
@@ -288,6 +329,8 @@ namespace AC
 			newAction.deleteProfileType = deleteProfileType;
 			newAction.profileIndex = indexOrID;
 			newAction.slotVarID = indexOrID;
+			newAction.menuName = menuName;
+			newAction.elementName = elementName;
 			return newAction;
 		}
 
@@ -308,6 +351,8 @@ namespace AC
 			newAction.varID = labelGlobalStringVariableID;
 			newAction.profileIndex = indexOrID;
 			newAction.slotVarID = indexOrID;
+			newAction.menuName = menuName;
+			newAction.elementName = elementName;
 			return newAction;
 		}
 
@@ -327,6 +372,8 @@ namespace AC
 			newAction.deleteProfileType = selectProfileType;
 			newAction.profileIndex = indexOrID;
 			newAction.slotVarID = indexOrID;
+			newAction.menuName = menuName;
+			newAction.elementName = elementName;
 			return newAction;
 		}
 		

@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2024
  *	
  *	"MenuManager.cs"
  * 
@@ -31,7 +31,7 @@ namespace AC
 		/** The EventSystem to instantiate when Unity UI-based Menus are used */
 		public UnityEngine.EventSystems.EventSystem eventSystem;
 		/** The game's full list of menus */
-		public List<Menu> menus = new List<Menu>();
+		public List<Menu> menus = new List<Menu> ();
 		/** The depth at which to draw OnGUI-based (Adventure Creator) Menus */
 		public int globalDepth;
 		/** A texture to apply full-screen when a 'Pause' Menu is enabled */
@@ -50,10 +50,12 @@ namespace AC
 		public string horizontalInputAxis = "Horizontal";
 		/** The input axis used to directly-navigate AC menus vertically */
 		public string verticalInputAxis = "Vertical";
-		
+		/** If True, then Unity UI prefab menus will be referenced by Addressable instead of directly */
+		public bool useAddressables = false;
+
 		[SerializeField] private bool hasUpgraded = false;
 
-		#if UNITY_EDITOR
+#if UNITY_EDITOR
 
 		public bool doWindowsPreviewFix = true;
 
@@ -77,32 +79,40 @@ namespace AC
 		private Vector2 scrollPos;
 		private Vector2 elementScrollPos;
 		private string nameFilter = "";
+		private bool filterIncludesElements = false;
 		private bool oldVisibility;
 		private int typeNumber = 0;
 		private string[] elementTypes = { "Button", "Crafting", "Cycle", "DialogList", "Drag", "Graphic", "Input", "Interaction", "InventoryBox", "Journal", "Label", "ProfilesList", "SavesList", "Slider", "Timer", "Toggle" };
+
+		private Menu lastDragMenuOver;
+		private int lastSwapMenuIndex;
+		private bool ignoreMenuDrag;
+		private const string DragMenuKey = "AC.Menus";
+
+		private MenuElementDrag lastDragElementOver;
+		private int lastSwapElementIndex;
+		private bool ignoreElementDrag;
+		private const string DragElementKey = "AC.MenuElements";
 
 
 		private void OnEnable ()
 		{
 			if (menus == null)
 			{
-				menus = new List<Menu>();
-			} 
+				menus = new List<Menu> ();
+			}
 		}
 
 
-		/**
-		 * Shows the GUI.
-		 */
-		public void ShowGUI ()
+		/** Shows the GUI. */
+		public void ShowGUI (System.Action<ActionListAsset> showALAEditor)
 		{
-			EditorGUILayout.BeginVertical (CustomStyles.thinBox);
-
 			Upgrade ();
 
 			showSettings = CustomGUILayout.ToggleHeader (showSettings, "Global menu settings");
 			if (showSettings)
 			{
+				CustomGUILayout.BeginVertical ();
 				drawInEditor = CustomGUILayout.Toggle ("Preview in Game window?", drawInEditor, "", "If True, Adventure Creator-sourced menus will be displayed in the Game window in Edit mode so long as a GameEngine prefab is present in the scene.");
 				if (drawInEditor)
 				{
@@ -115,18 +125,18 @@ namespace AC
 				}
 				scaleTextEffects = CustomGUILayout.Toggle ("Scale text effects?", scaleTextEffects, "AC.KickStarter.menuManager.scaleTextEffects", "If True, then the size of text effects (shadows, outlines) will be based on the size of the text, rather than fixed");
 				EditorGUILayout.BeginHorizontal ();
-				EditorGUILayout.LabelField (new GUIContent ("Pause background texture:", "A texture to apply full-screen when a 'Pause' Menu is enabled"), GUILayout.Width (255f));
-				pauseTexture = (Texture2D) CustomGUILayout.ObjectField <Texture2D> (pauseTexture, false, GUILayout.Width (70f), GUILayout.Height (30f), "AC.Kickstarter.menuManager.pauseTexture");
+				EditorGUILayout.LabelField (new GUIContent ("Pause background texture:", "A texture to apply full-screen when a 'Pause' Menu is enabled (AC menus only)"), GUILayout.Width (255f));
+				pauseTexture = (Texture2D) CustomGUILayout.ObjectField<Texture2D> (pauseTexture, false, GUILayout.Width (70f), GUILayout.Height (30f), "AC.Kickstarter.menuManager.pauseTexture");
 				EditorGUILayout.EndHorizontal ();
 				globalDepth = CustomGUILayout.IntField ("GUI depth:", globalDepth, "AC.KickStarter.menuManager.globalDepth", "The depth at which to draw OnGUI-based (Adventure Creator) menus");
-				eventSystem = (UnityEngine.EventSystems.EventSystem) CustomGUILayout.ObjectField <UnityEngine.EventSystems.EventSystem> ("Event system prefab:", eventSystem, false, "AC.KickStarter.menuManager.eventSystem", "The EventSystem to instantiate when Unity UI-based Menus are used. If none is set, a default one will be used");
+				eventSystem = (UnityEngine.EventSystems.EventSystem) CustomGUILayout.ObjectField<UnityEngine.EventSystems.EventSystem> ("Event system prefab:", eventSystem, false, "AC.KickStarter.menuManager.eventSystem", "The EventSystem to instantiate when Unity UI-based Menus are used. If none is set, a default one will be used");
 
-				if (AdvGame.GetReferences ().settingsManager != null && AdvGame.GetReferences ().settingsManager.inputMethod != InputMethod.TouchScreen)
+				if (KickStarter.settingsManager && KickStarter.settingsManager.inputMethod != InputMethod.TouchScreen)
 				{
 					EditorGUILayout.Space ();
-					keyboardControlWhenPaused = CustomGUILayout.ToggleLeft ("Directly-navigate Menus when paused?", keyboardControlWhenPaused, "AC.KickStarter.menuManager.keyboardControlWhenPaused", "If True, then Menus will be navigated directly, not with the cursor, when the game is paused");
-					keyboardControlWhenCutscene = CustomGUILayout.ToggleLeft ("Directly-navigate Menus during Cutscenes?", keyboardControlWhenCutscene, "AC.KickStarter.menuManager.keyboardControlWhenCutscene", "If True, then Menus will be navigated directly, not with the cursor, when the game is in a cutscene");
-					keyboardControlWhenDialogOptions = CustomGUILayout.ToggleLeft ("Directly-navigate Menus during Conversations?", keyboardControlWhenDialogOptions, "AC.KickStarter.menuManager.keyboardControlWhenDialogOptions", "If True, then Menus will be navigated directly, not with the cursor, when Conversation dialogue options are shown");
+					keyboardControlWhenPaused = CustomGUILayout.ToggleLeft ("Directly navigate when paused?", keyboardControlWhenPaused, "AC.KickStarter.menuManager.keyboardControlWhenPaused", "If True, then Menus will be navigated directly, not with the cursor, when the game is paused");
+					keyboardControlWhenCutscene = CustomGUILayout.ToggleLeft ("Directly navigate during Cutscenes?", keyboardControlWhenCutscene, "AC.KickStarter.menuManager.keyboardControlWhenCutscene", "If True, then Menus will be navigated directly, not with the cursor, when the game is in a cutscene");
+					keyboardControlWhenDialogOptions = CustomGUILayout.ToggleLeft ("Directly navigate during Conversations?", keyboardControlWhenDialogOptions, "AC.KickStarter.menuManager.keyboardControlWhenDialogOptions", "If True, then Menus will be navigated directly, not with the cursor, when Conversation dialogue options are shown");
 
 					if (keyboardControlWhenPaused || keyboardControlWhenCutscene || keyboardControlWhenDialogOptions)
 					{
@@ -134,27 +144,41 @@ namespace AC
 						//verticalInputAxis = CustomGUILayout.TextField ("Vertical input axis:", verticalInputAxis, "AC.KickStarter.menuManager.verticalInputAxis", "The vertical input axis to use when directly-navigating an AC menu.");
 					}
 
-					if (AdvGame.GetReferences ().settingsManager != null && AdvGame.GetReferences ().settingsManager.inputMethod == InputMethod.KeyboardOrController)
+					if (KickStarter.settingsManager && KickStarter.settingsManager.inputMethod == InputMethod.KeyboardOrController)
 					{
 						autoSelectValidRaycasts = CustomGUILayout.ToggleLeft ("Auto-select valid UI raycasts?", autoSelectValidRaycasts, "AC.KickStarter.menuManager.autoSelectValidRaycasts", "If True, then the simulated cursor will auto-select valid Unity UI elements");
 					}
 				}
 
-				if (drawInEditor && KickStarter.menuPreview == null)
-				{	
-					EditorGUILayout.HelpBox ("A GameEngine is required to display menus while editing - please set up the scene using the Scene Manager.", MessageType.Warning);
-				}
-				else if (drawInEditor && KickStarter.mainCamera == null)
+				useAddressables = CustomGUILayout.ToggleLeft ("Use Addressables for UI prefab references?", useAddressables, "AC.KickStarter.menuManager.useAddressables", "If True, then Unity UI Prefab menus are loaded using Unit's Addressable system");
+#if !AddressableIsPresent
+				if (useAddressables)
 				{
-					EditorGUILayout.HelpBox ("An AC MainCamera is required to display menus while editing - please set up the scene using the Scene Manager.", MessageType.Warning);
+					EditorGUILayout.HelpBox ("The 'AddressableIsPresent' preprocessor define must be declared in the Player Settings.", MessageType.Warning);
 				}
-				else if (Application.isPlaying)
+#endif
+
+				if (Application.isPlaying)
 				{
 					EditorGUILayout.HelpBox ("Changes made to the menus will not be registed by the game until the game is restarted.", MessageType.Info);
 				}
+				else if (drawInEditor)
+				{
+					if (selectedMenu != null && selectedMenu.menuSource == MenuSource.AdventureCreator)
+					{
+						if (KickStarter.menuPreview == null)
+						{
+							EditorGUILayout.HelpBox ("A GameEngine is required to display menus while editing - please set up the scene using the Scene Manager.", MessageType.Warning);
+						}
+						else if (KickStarter.mainCamera == null)
+						{
+							EditorGUILayout.HelpBox ("An AC MainCamera is required to display menus while editing - please set up the scene using the Scene Manager.", MessageType.Warning);
+						}
+					}
+				}
+				CustomGUILayout.EndVertical ();
 			}
-			CustomGUILayout.EndVertical ();
-			
+
 			EditorGUILayout.Space ();
 
 			CreateMenusGUI ();
@@ -162,43 +186,43 @@ namespace AC
 			if (selectedMenu != null && menus.Contains (selectedMenu))
 			{
 				EditorGUILayout.Space ();
-				
+
 				string menuTitle = selectedMenu.title;
 				if (menuTitle == "")
 				{
 					menuTitle = "(Untitled)";
 				}
-				
-				EditorGUILayout.BeginVertical (CustomStyles.thinBox);
+
 
 				showMenuProperties = CustomGUILayout.ToggleHeader (showMenuProperties, "Menu " + selectedMenu.id + ": '" + menuTitle + "' properties");
 				if (showMenuProperties)
 				{
-					selectedMenu.ShowGUI ();
+					CustomGUILayout.BeginVertical ();
+					selectedMenu.ShowGUI (showALAEditor);
+					CustomGUILayout.EndVertical ();
 				}
-				CustomGUILayout.EndVertical ();
-				
+
 				EditorGUILayout.Space ();
-				
-				EditorGUILayout.BeginVertical (CustomStyles.thinBox);
+
 				showElementList = CustomGUILayout.ToggleHeader (showElementList, "Menu " + selectedMenu.id + ": '" + menuTitle + "' elements");
 				if (showElementList)
 				{
+					CustomGUILayout.BeginVertical ();
 					CreateElementsGUI (selectedMenu);
+					CustomGUILayout.EndVertical ();
 				}
-				CustomGUILayout.EndVertical ();
-				
+
 				if (selectedMenuElement != null && selectedMenu.elements.Contains (selectedMenuElement))
 				{
 					EditorGUILayout.Space ();
-					
+
 					string elementName = selectedMenuElement.title;
-					if (elementName == "")
+					if (string.IsNullOrEmpty (elementName))
 					{
 						elementName = "(Untitled)";
 					}
-					
-					string elementType = "";
+
+					string elementType = string.Empty;
 					foreach (string _elementType in elementTypes)
 					{
 						if (selectedMenuElement.GetType ().ToString ().Contains (_elementType))
@@ -208,16 +232,12 @@ namespace AC
 						}
 					}
 
-					EditorGUILayout.BeginVertical (CustomStyles.thinBox);
 					showElementProperties = CustomGUILayout.ToggleHeader (showElementProperties, elementType + " " + selectedMenuElement.ID + ": '" + elementName + "' properties");
 					if (showElementProperties)
 					{
+						CustomGUILayout.BeginVertical ();
 						oldVisibility = selectedMenuElement.IsVisible;
-						selectedMenuElement.ShowGUIStart (selectedMenu);
-					}
-					else
-					{
-						CustomGUILayout.EndVertical ();
+						selectedMenuElement.ShowGUIStart (selectedMenu, showALAEditor);
 					}
 					if (selectedMenuElement.IsVisible != oldVisibility)
 					{
@@ -228,29 +248,41 @@ namespace AC
 					}
 				}
 			}
-			
+
 			if (GUI.changed)
 			{
 				EditorUtility.SetDirty (this);
 			}
 		}
 
-		
+
 		private void CreateMenusGUI ()
 		{
-			EditorGUILayout.BeginVertical (CustomStyles.thinBox);
 			showMenuList = CustomGUILayout.ToggleHeader (showMenuList, "Menus");
 			if (showMenuList)
 			{
+				CustomGUILayout.BeginVertical ();
 				if (menus != null && menus.Count > 1)
 				{
+					EditorGUILayout.BeginHorizontal ();
 					nameFilter = EditorGUILayout.TextField ("Filter by name:", nameFilter);
+					filterIncludesElements = GUILayout.Toggle (filterIncludesElements, "Include elements", "toolbarbutton", GUILayout.MaxWidth (130f));
+					EditorGUILayout.EndHorizontal ();
 					EditorGUILayout.Space ();
 				}
 
-				int numInFilter = 0;
-				foreach (AC.Menu _menu in menus)
+				CustomGUILayout.UpdateDrag (DragMenuKey, lastDragMenuOver, lastDragMenuOver != null ? lastDragMenuOver.title : string.Empty, ref ignoreMenuDrag, OnCompleteDragMenu);
+				if (Event.current.type == EventType.Repaint)
 				{
+					lastDragMenuOver = null;
+					lastSwapMenuIndex = -1;
+				}
+
+				int numInFilter = 0;
+				for (int i = 0; i < menus.Count; i++)
+				{
+					Menu _menu = menus[i];
+
 					if (_menu == null)
 					{
 						menus.Remove (_menu);
@@ -263,24 +295,40 @@ namespace AC
 					if (string.IsNullOrEmpty (nameFilter) || _menu.title.ToLower ().Contains (nameFilter.ToLower ()))
 					{
 						_menu.showInFilter = true;
-						numInFilter ++;
+						numInFilter++;
+						continue;
+					}
+
+					if (filterIncludesElements)
+					{
+						foreach (MenuElement element in _menu.elements)
+						{
+							if (element.title.ToLower ().Contains (nameFilter.ToLower ()))
+							{
+								_menu.showInFilter = true;
+								numInFilter++;
+								break;
+							}
+						}
 					}
 				}
 
 				if (numInFilter > 0)
 				{
-					scrollPos = EditorGUILayout.BeginScrollView (scrollPos, GUILayout.Height (Mathf.Min (numInFilter * 22, ACEditorPrefs.MenuItemsBeforeScroll * 22) + 9));
+					CustomGUILayout.BeginScrollView (ref scrollPos, numInFilter);
 
-					foreach (AC.Menu _menu in menus)
+					for (int i = 0; i < menus.Count; i++)
 					{
+						Menu _menu = menus[i];
+
 						if (_menu.showInFilter)
 						{
 							EditorGUILayout.BeginHorizontal ();
-						
+
 							string buttonLabel = _menu.title;
 							if (string.IsNullOrEmpty (buttonLabel))
 							{
-								buttonLabel = "(Untitled)";	
+								buttonLabel = "(Untitled)";
 							}
 							if (GUILayout.Toggle (selectedMenu == _menu, buttonLabel, "Button"))
 							{
@@ -291,16 +339,27 @@ namespace AC
 								}
 							}
 
+							Rect buttonRect = GUILayoutUtility.GetLastRect ();
+							if (buttonRect.Contains (Event.current.mousePosition) && Event.current.type == EventType.Repaint)
+							{
+								lastDragMenuOver = _menu;
+							}
+
 							if (GUILayout.Button (string.Empty, CustomStyles.IconCog))
 							{
 								SideMenu (_menu);
 							}
-					
+
 							EditorGUILayout.EndHorizontal ();
+
+							if (IsDraggingMenu ())
+							{
+								CustomGUILayout.DrawDragLine (i, ref lastSwapMenuIndex);
+							}
 						}
 					}
 
-					EditorGUILayout.EndScrollView ();
+					CustomGUILayout.EndScrollView ();
 
 					if (numInFilter != menus.Count)
 					{
@@ -318,14 +377,14 @@ namespace AC
 				if (GUILayout.Button ("Create new menu"))
 				{
 					Undo.RecordObject (this, "Add menu");
-					
-					Menu newMenu = (Menu) CreateInstance <Menu>();
+
+					Menu newMenu = (Menu) CreateInstance<Menu> ();
 					newMenu.Declare (GetIDArray ());
 					menus.Add (newMenu);
-					
+
 					DeactivateAllMenus ();
 					ActivateMenu (newMenu);
-					
+
 					newMenu.hideFlags = HideFlags.HideInHierarchy;
 					AssetDatabase.AddObjectToAsset (newMenu, this);
 					AssetDatabase.ImportAsset (AssetDatabase.GetAssetPath (newMenu));
@@ -342,12 +401,12 @@ namespace AC
 				}
 				GUI.enabled = true;
 				EditorGUILayout.EndHorizontal ();
+				CustomGUILayout.EndVertical ();
 			}
-			CustomGUILayout.EndVertical ();
 		}
 
 
-		private void CleanUpAsset ()
+		public void CleanUpAsset ()
 		{
 			string assetPath = AssetDatabase.GetAssetPath (this);
 			Object[] objects = AssetDatabase.LoadAllAssetsAtPath (assetPath);
@@ -375,12 +434,12 @@ namespace AC
 						DestroyImmediate (_object, true);
 					}
 
-					for (int i=0; i<_menu.elements.Count; i++)
+					for (int i = 0; i < _menu.elements.Count; i++)
 					{
 						if (_menu.elements[i] == null)
 						{
 							_menu.elements.RemoveAt (i);
-							i=0;
+							i = 0;
 						}
 					}
 				}
@@ -434,27 +493,43 @@ namespace AC
 				}
 			}
 		}
-		
-		
+
+
 		private void CreateElementsGUI (AC.Menu _menu)
-		{	
+		{
 			if (_menu.elements != null && _menu.elements.Count > 0)
 			{
-				elementScrollPos = EditorGUILayout.BeginScrollView (elementScrollPos, GUILayout.Height (Mathf.Min (_menu.elements.Count * 22, 295f) + 9));
-				
-				foreach (MenuElement _element in _menu.elements)
+				CustomGUILayout.UpdateDrag (DragElementKey, lastDragElementOver, lastDragElementOver != null ? lastDragElementOver.element.title : string.Empty, ref ignoreElementDrag, OnCompleteDragElement);
+				if (Event.current.type == EventType.Repaint)
 				{
+					lastDragElementOver = null;
+					lastSwapElementIndex = -1;
+				}
+
+				CustomGUILayout.BeginScrollView (ref elementScrollPos, _menu.elements.Count);
+
+				for (int i = 0; i < _menu.elements.Count; i++)
+				{
+					MenuElement _element = _menu.elements[i];
 					if (_element != null)
 					{
 						string elementName = _element.title;
-						
-						if (elementName == "")
+
+						if (filterIncludesElements && !string.IsNullOrEmpty (nameFilter))
+						{
+							if (!elementName.ToLower ().Contains (nameFilter.ToLower ()))
+							{
+								continue;
+							}
+						}
+
+						if (string.IsNullOrEmpty (elementName))
 						{
 							elementName = "(Untitled)";
 						}
-						
+
 						EditorGUILayout.BeginHorizontal ();
-						
+
 						if (GUILayout.Toggle (selectedMenuElement == _element, elementName, "Button"))
 						{
 							if (selectedMenuElement != _element)
@@ -464,22 +539,33 @@ namespace AC
 							}
 						}
 
-						if (GUILayout.Button ("", CustomStyles.IconCog))
+						Rect buttonRect = GUILayoutUtility.GetLastRect ();
+						if (buttonRect.Contains (Event.current.mousePosition) && Event.current.type == EventType.Repaint)
+						{
+							lastDragElementOver = new MenuElementDrag (_menu, _element);
+						}
+
+						if (GUILayout.Button (string.Empty, CustomStyles.IconCog))
 						{
 							SideMenu (_menu, _element);
 						}
-					
+
 						EditorGUILayout.EndHorizontal ();
+
+						if (IsDraggingElement ())
+						{
+							CustomGUILayout.DrawDragLine (i, ref lastSwapElementIndex);
+						}
 					}
 				}
 
-				EditorGUILayout.EndScrollView ();
+				CustomGUILayout.EndScrollView ();
 			}
 
 			EditorGUILayout.BeginHorizontal ();
 			EditorGUILayout.LabelField ("Element type:", GUILayout.Width (80f));
 			typeNumber = EditorGUILayout.Popup (typeNumber, elementTypes);
-			
+
 			if (GUILayout.Button ("Add new"))
 			{
 				AddElement (elementTypes[typeNumber], _menu);
@@ -489,50 +575,50 @@ namespace AC
 			{
 				if (GUILayout.Button ("Paste"))
 				{
-					PasteElement (menus.IndexOf (_menu), _menu.elements.Count -1);
+					PasteElement (menus.IndexOf (_menu), _menu.elements.Count - 1);
 				}
 			}
 			EditorGUILayout.EndHorizontal ();
 		}
-		
-		
+
+
 		private void ActivateMenu (AC.Menu menu)
 		{
 			selectedMenu = menu;
 		}
-		
-		
+
+
 		private void DeactivateAllMenus ()
 		{
 			selectedMenu = null;
 			selectedMenuElement = null;
 			EditorGUIUtility.editingTextField = false;
 		}
-		
-		
+
+
 		private void ActivateElement (MenuElement menuElement)
 		{
 			selectedMenuElement = menuElement;
 		}
-		
-		
+
+
 		private void DeleteAllElements (AC.Menu menu)
 		{
 			foreach (MenuElement menuElement in menu.elements)
 			{
-				UnityEngine.Object.DestroyImmediate (menuElement, true);
-				AssetDatabase.SaveAssets();
+				DestroyImmediate (menuElement, true);
+				AssetDatabase.SaveAssets ();
 			}
 			CleanUpAsset ();
 		}
-		
-		
+
+
 		private void DeactivateAllElements (AC.Menu menu)
 		{
 			foreach (MenuElement menuElement in menu.elements)
 			{
 				if (menuElement != null)
-				EditorGUIUtility.editingTextField = false;
+					EditorGUIUtility.editingTextField = false;
 			}
 		}
 
@@ -540,8 +626,8 @@ namespace AC
 		private int[] GetElementIDArray (int i)
 		{
 			// Returns a list of id's in the list
-			List<int> idArray = new List<int>();
-			
+			List<int> idArray = new List<int> ();
+
 			foreach (MenuElement _element in menus[i].elements)
 			{
 				if (_element != null)
@@ -549,17 +635,17 @@ namespace AC
 					idArray.Add (_element.ID);
 				}
 			}
-			
+
 			idArray.Sort ();
 			return idArray.ToArray ();
 		}
-					
-		
+
+
 		private int[] GetIDArray ()
 		{
 			// Returns a list of id's in the list
-			List<int> idArray = new List<int>();
-			
+			List<int> idArray = new List<int> ();
+
 			foreach (AC.Menu menu in menus)
 			{
 				if (menu != null)
@@ -567,18 +653,18 @@ namespace AC
 					idArray.Add (menu.id);
 				}
 			}
-			
+
 			idArray.Sort ();
 			return idArray.ToArray ();
 		}
-		
-		
+
+
 		private void AddElement (string className, AC.Menu _menu)
 		{
 			Undo.RecordObject (_menu, "Add element");
 
-			List<int> idArray = new List<int>();
-			
+			List<int> idArray = new List<int> ();
+
 			foreach (MenuElement _element in _menu.elements)
 			{
 				if (_element != null)
@@ -587,21 +673,21 @@ namespace AC
 				}
 			}
 			idArray.Sort ();
-			
+
 			className = "Menu" + className;
-			MenuElement newElement = (MenuElement) CreateInstance (className);
+			MenuElement newElement = (MenuElement) CreateInstance ("AC." + className);
 			newElement.Declare ();
 			newElement.title = className.Substring (4);
-			
+
 			// Update id based on array
-			foreach (int _id in idArray.ToArray())
+			foreach (int _id in idArray.ToArray ())
 			{
 				if (newElement.ID == _id)
 				{
-					newElement.ID ++;
+					newElement.ID++;
 				}
 			}
-			
+
 			_menu.elements.Add (newElement);
 			if (!Application.isPlaying)
 			{
@@ -621,7 +707,7 @@ namespace AC
 
 		private void PasteMenu ()
 		{
-			PasteMenu (menus.Count-1);
+			PasteMenu (menus.Count - 1);
 		}
 
 
@@ -630,8 +716,8 @@ namespace AC
 			if (MenuManager.copiedMenu != null)
 			{
 				Undo.RecordObject (this, "Paste menu");
-				
-				Menu newMenu = (Menu) CreateInstance <Menu>();
+
+				Menu newMenu = (Menu) CreateInstance<Menu> ();
 				newMenu.Declare (GetIDArray ());
 				int newMenuID = newMenu.id;
 				newMenu.Copy (MenuManager.copiedMenu, true);
@@ -647,8 +733,8 @@ namespace AC
 					}
 				}
 
-				menus.Insert (i+1, newMenu);
-				
+				menus.Insert (i + 1, newMenu);
+
 				DeactivateAllMenus ();
 				ActivateMenu (newMenu);
 
@@ -674,7 +760,7 @@ namespace AC
 			if (MenuManager.copiedElement != null)
 			{
 				Undo.RegisterCompleteObjectUndo (menus[menuIndex], "Paste menu element");
-             	
+
 				int[] idArray = GetElementIDArray (menuIndex);
 
 				MenuElement newElement = MenuManager.copiedElement.DuplicateSelf (true, false);
@@ -692,7 +778,7 @@ namespace AC
 				newElement.UpdateID (idArray);
 				newElement.lineID = -1;
 				newElement.hideFlags = HideFlags.HideInHierarchy;
-				menus[menuIndex].elements.Insert (elementIndex+1, newElement);
+				menus[menuIndex].elements.Insert (elementIndex + 1, newElement);
 
 				AssetDatabase.AddObjectToAsset (newElement, this);
 				AssetDatabase.ImportAsset (AssetDatabase.GetAssetPath (newElement));
@@ -723,7 +809,7 @@ namespace AC
 				menu.AddItem (new GUIContent ("Paste after"), false, MenuCallback, "Paste after");
 			}
 
-			if (sideMenu > 0 || sideMenu < menus.Count-1)
+			if (sideMenu > 0 || sideMenu < menus.Count - 1)
 			{
 				menu.AddSeparator (string.Empty);
 				if (sideMenu > 0)
@@ -731,7 +817,7 @@ namespace AC
 					menu.AddItem (new GUIContent ("Re-arrange/Move to top"), false, MenuCallback, "Move to top");
 					menu.AddItem (new GUIContent ("Re-arrange/Move up"), false, MenuCallback, "Move up");
 				}
-				if (sideMenu < menus.Count-1)
+				if (sideMenu < menus.Count - 1)
 				{
 					menu.AddItem (new GUIContent ("Re-arrange/Move down"), false, MenuCallback, "Move down");
 					menu.AddItem (new GUIContent ("Re-arrange/Move to bottom"), false, MenuCallback, "Move to bottom");
@@ -740,7 +826,7 @@ namespace AC
 
 			menu.AddSeparator (string.Empty);
 			menu.AddItem (new GUIContent ("Find references"), false, MenuCallback, "Find references");
-			
+
 			menu.ShowAsContext ();
 		}
 
@@ -751,100 +837,100 @@ namespace AC
 			{
 				switch (obj.ToString ())
 				{
-				case "Copy":
-					MenuManager.copiedMenu = (Menu) CreateInstance <Menu>();
-					MenuManager.copiedMenu.Copy (menus[sideMenu], true);
-					break;
+					case "Copy":
+						MenuManager.copiedMenu = (Menu) CreateInstance<Menu> ();
+						MenuManager.copiedMenu.Copy (menus[sideMenu], true);
+						break;
 
-				case "Paste after":
-					PasteMenu (sideMenu);
-					break;
+					case "Paste after":
+						PasteMenu (sideMenu);
+						break;
 
-				case "Insert after":
-					Undo.RecordObject (this, "Insert menu");
-					Menu newMenu = (Menu) CreateInstance <Menu>();
-					newMenu.Declare (GetIDArray ());
-					menus.Insert (sideMenu+1, newMenu);
-					
-					DeactivateAllMenus ();
-					ActivateMenu (newMenu);
+					case "Insert after":
+						Undo.RecordObject (this, "Insert menu");
+						Menu newMenu = (Menu) CreateInstance<Menu> ();
+						newMenu.Declare (GetIDArray ());
+						menus.Insert (sideMenu + 1, newMenu);
 
-					newMenu.hideFlags = HideFlags.HideInHierarchy;
-					AssetDatabase.AddObjectToAsset (newMenu, this);
-					AssetDatabase.ImportAsset (AssetDatabase.GetAssetPath (newMenu));
-					break;
-					
-				case "Delete":
-					Undo.RegisterCompleteObjectUndo (this, "Delete menu");
-					Undo.RegisterCompleteObjectUndo (menus[sideMenu], "Delete menu");
-					for (int i=0; i<menus[sideMenu].elements.Count; i++)
-					{
-						if (menus[sideMenu].elements[i] != null)
+						DeactivateAllMenus ();
+						ActivateMenu (newMenu);
+
+						newMenu.hideFlags = HideFlags.HideInHierarchy;
+						AssetDatabase.AddObjectToAsset (newMenu, this);
+						AssetDatabase.ImportAsset (AssetDatabase.GetAssetPath (newMenu));
+						break;
+
+					case "Delete":
+						Undo.RegisterCompleteObjectUndo (this, "Delete menu");
+						Undo.RegisterCompleteObjectUndo (menus[sideMenu], "Delete menu");
+						for (int i = 0; i < menus[sideMenu].elements.Count; i++)
 						{
-							Undo.RegisterCompleteObjectUndo (menus[sideMenu].elements[i], "Delete menu");
+							if (menus[sideMenu].elements[i] != null)
+							{
+								Undo.RegisterCompleteObjectUndo (menus[sideMenu].elements[i], "Delete menu");
+							}
 						}
-					}
-             		
-					if (menus[sideMenu] == selectedMenu)
-					{
-						DeactivateAllElements (menus[sideMenu]);
-						DeleteAllElements (menus[sideMenu]);
-						selectedMenuElement = null;
-					}
-					DeactivateAllMenus ();
-					Menu tempMenu = menus[sideMenu];
-					foreach (MenuElement element in tempMenu.elements)
-					{
-						if (element != null)
+
+						if (menus[sideMenu] == selectedMenu)
 						{
-							Undo.DestroyObjectImmediate (element);
+							DeactivateAllElements (menus[sideMenu]);
+							DeleteAllElements (menus[sideMenu]);
+							selectedMenuElement = null;
 						}
-					}
-					Undo.SetCurrentGroupName ("Delete menu '" + tempMenu.title + "'");
+						DeactivateAllMenus ();
+						Menu tempMenu = menus[sideMenu];
+						foreach (MenuElement element in tempMenu.elements)
+						{
+							if (element != null)
+							{
+								Undo.DestroyObjectImmediate (element);
+							}
+						}
+						Undo.SetCurrentGroupName ("Delete menu '" + tempMenu.title + "'");
 
-					menus.RemoveAt (sideMenu);
-					Undo.DestroyObjectImmediate (tempMenu);
-					AssetDatabase.SaveAssets ();
-					CleanUpAsset ();
-					break;
-					
-				case "Move up":
-					Undo.RecordObject (this, "Move menu up");
-					menus = SwapMenus (menus, sideMenu, sideMenu-1);
-					menus[sideMenu].ResetVisibleElements ();
-					AssetDatabase.SaveAssets ();
-					break;
-					
-				case "Move down":
-					Undo.RecordObject (this, "Move menu down");
-					menus = SwapMenus (menus, sideMenu, sideMenu+1);
-					menus[sideMenu].ResetVisibleElements ();
-					AssetDatabase.SaveAssets ();
-					break;
+						menus.RemoveAt (sideMenu);
+						Undo.DestroyObjectImmediate (tempMenu);
+						AssetDatabase.SaveAssets ();
+						CleanUpAsset ();
+						break;
 
-				case "Move to top":
-					Undo.RecordObject (this, "Move menu to top");
-					menus = MoveMenuToTop (menus, sideMenu);
-					menus[sideMenu].ResetVisibleElements ();
-					AssetDatabase.SaveAssets ();
-					break;
-				
-				case "Move to bottom":
-					Undo.RecordObject (this, "Move menu to bottom");
-					menus = MoveMenuToBottom (menus, sideMenu);
-					menus[sideMenu].ResetVisibleElements ();
-					AssetDatabase.SaveAssets ();
-					break;
+					case "Move up":
+						Undo.RecordObject (this, "Move menu up");
+						menus = SwapMenus (menus, sideMenu, sideMenu - 1);
+						menus[sideMenu].ResetVisibleElements ();
+						AssetDatabase.SaveAssets ();
+						break;
 
-				case "Find references":
-					FindReferences (menus[sideMenu]);
-					break;
+					case "Move down":
+						Undo.RecordObject (this, "Move menu down");
+						menus = SwapMenus (menus, sideMenu, sideMenu + 1);
+						menus[sideMenu].ResetVisibleElements ();
+						AssetDatabase.SaveAssets ();
+						break;
 
-				default:
-					break;
+					case "Move to top":
+						Undo.RecordObject (this, "Move menu to top");
+						menus = MoveMenuToTop (menus, sideMenu);
+						menus[sideMenu].ResetVisibleElements ();
+						AssetDatabase.SaveAssets ();
+						break;
+
+					case "Move to bottom":
+						Undo.RecordObject (this, "Move menu to bottom");
+						menus = MoveMenuToBottom (menus, sideMenu);
+						menus[sideMenu].ResetVisibleElements ();
+						AssetDatabase.SaveAssets ();
+						break;
+
+					case "Find references":
+						FindReferences (menus[sideMenu]);
+						break;
+
+					default:
+						break;
 				}
 			}
-			
+
 			sideMenu = -1;
 			sideElement = -1;
 
@@ -857,7 +943,7 @@ namespace AC
 			GenericMenu menu = new GenericMenu ();
 			sideElement = _menu.elements.IndexOf (_element);
 			sideMenu = menus.IndexOf (_menu);
-			
+
 			if (_menu.elements.Count > 0)
 			{
 				menu.AddItem (new GUIContent ("Delete"), false, ElementCallback, "Delete");
@@ -869,7 +955,7 @@ namespace AC
 			{
 				menu.AddItem (new GUIContent ("Paste after"), false, ElementCallback, "Paste after");
 			}
-			if (sideElement > 0 || sideElement < _menu.elements.Count-1)
+			if (sideElement > 0 || sideElement < _menu.elements.Count - 1)
 			{
 				menu.AddSeparator (string.Empty);
 			}
@@ -879,80 +965,80 @@ namespace AC
 				menu.AddItem (new GUIContent ("Re-arrange/Move to top"), false, ElementCallback, "Move to top");
 				menu.AddItem (new GUIContent ("Re-arrange/Move up"), false, ElementCallback, "Move up");
 			}
-			if (sideElement < _menu.elements.Count-1)
+			if (sideElement < _menu.elements.Count - 1)
 			{
 				menu.AddItem (new GUIContent ("Re-arrange/Move down"), false, ElementCallback, "Move down");
 				menu.AddItem (new GUIContent ("Re-arrange/Move to bottom"), false, ElementCallback, "Move to bottom");
 			}
 
 			menu.AddSeparator (string.Empty);
-			menu.AddItem (new GUIContent ("Find references"), false, ElementCallback, "Find refences");
-			
+			menu.AddItem (new GUIContent ("Find references"), false, ElementCallback, "Find references");
+
 			menu.ShowAsContext ();
 		}
-		
-		
+
+
 		private void ElementCallback (object obj)
 		{
 			if (sideElement >= 0 && sideMenu >= 0)
 			{
 				switch (obj.ToString ())
 				{
-				case "Copy":
-					MenuManager.copiedElement = menus[sideMenu].elements[sideElement].DuplicateSelf (true, false);
-					break;
-					
-				case "Paste after":
-					PasteElement (sideMenu, sideElement);
-					break;
+					case "Copy":
+						MenuManager.copiedElement = menus[sideMenu].elements[sideElement].DuplicateSelf (true, false);
+						break;
 
-				case "Delete":
-					Undo.RegisterCompleteObjectUndo (menus[sideMenu], "Delete menu element");
-                 	DeactivateAllElements (menus[sideMenu]);
-					selectedMenuElement = null;
-					MenuElement tempElement = menus[sideMenu].elements[sideElement];
-					menus[sideMenu].elements.RemoveAt (sideElement);
-					Undo.SetCurrentGroupName ("Delete menu element '" + tempElement.title + "'");
-					Undo.DestroyObjectImmediate (tempElement);
-					AssetDatabase.SaveAssets ();
-					CleanUpAsset ();
-					break;
-					
-				case "Move up":
-					Undo.RegisterCompleteObjectUndo (menus[sideMenu], "Move menu element up");
-					menus[sideMenu].elements = SwapElements (menus[sideMenu].elements, sideElement, sideElement-1);
-					menus[sideMenu].ResetVisibleElements ();
-					AssetDatabase.SaveAssets ();
+					case "Paste after":
+						PasteElement (sideMenu, sideElement);
+						break;
 
-					break;
-					
-				case "Move down":
-					Undo.RegisterCompleteObjectUndo (menus[sideMenu], "Move menu element down");
-					menus[sideMenu].elements = SwapElements (menus[sideMenu].elements, sideElement, sideElement+1);
-					menus[sideMenu].ResetVisibleElements ();
-					AssetDatabase.SaveAssets ();
-					break;
+					case "Delete":
+						Undo.RegisterCompleteObjectUndo (menus[sideMenu], "Delete menu element");
+						DeactivateAllElements (menus[sideMenu]);
+						selectedMenuElement = null;
+						MenuElement tempElement = menus[sideMenu].elements[sideElement];
+						menus[sideMenu].elements.RemoveAt (sideElement);
+						Undo.SetCurrentGroupName ("Delete menu element '" + tempElement.title + "'");
+						Undo.DestroyObjectImmediate (tempElement);
+						AssetDatabase.SaveAssets ();
+						CleanUpAsset ();
+						break;
 
-				case "Move to top":
-					Undo.RegisterCompleteObjectUndo (menus[sideMenu], "Move menu element to top");
-					menus[sideMenu].elements = MoveElementToTop (menus[sideMenu].elements, sideElement);
-					menus[sideMenu].ResetVisibleElements ();
-					AssetDatabase.SaveAssets ();
-					break;
-					
-				case "Move to bottom":
-					Undo.RegisterCompleteObjectUndo (menus[sideMenu], "Move menu element to bottom");
-					menus[sideMenu].elements = MoveElementToBottom (menus[sideMenu].elements, sideElement);
-					menus[sideMenu].ResetVisibleElements ();
-					AssetDatabase.SaveAssets ();
-					break;
+					case "Move up":
+						Undo.RegisterCompleteObjectUndo (menus[sideMenu], "Move menu element up");
+						menus[sideMenu].elements = SwapElements (menus[sideMenu].elements, sideElement, sideElement - 1);
+						menus[sideMenu].ResetVisibleElements ();
+						AssetDatabase.SaveAssets ();
 
-				case "Find references":
-					FindReferences (menus[sideMenu], menus[sideMenu].elements[sideElement]);
-					break;
+						break;
 
-				default:
-					break;
+					case "Move down":
+						Undo.RegisterCompleteObjectUndo (menus[sideMenu], "Move menu element down");
+						menus[sideMenu].elements = SwapElements (menus[sideMenu].elements, sideElement, sideElement + 1);
+						menus[sideMenu].ResetVisibleElements ();
+						AssetDatabase.SaveAssets ();
+						break;
+
+					case "Move to top":
+						Undo.RegisterCompleteObjectUndo (menus[sideMenu], "Move menu element to top");
+						menus[sideMenu].elements = MoveElementToTop (menus[sideMenu].elements, sideElement);
+						menus[sideMenu].ResetVisibleElements ();
+						AssetDatabase.SaveAssets ();
+						break;
+
+					case "Move to bottom":
+						Undo.RegisterCompleteObjectUndo (menus[sideMenu], "Move menu element to bottom");
+						menus[sideMenu].elements = MoveElementToBottom (menus[sideMenu].elements, sideElement);
+						menus[sideMenu].ResetVisibleElements ();
+						AssetDatabase.SaveAssets ();
+						break;
+
+					case "Find references":
+						FindReferences (menus[sideMenu], menus[sideMenu].elements[sideElement]);
+						break;
+
+					default:
+						break;
 				}
 			}
 
@@ -967,7 +1053,7 @@ namespace AC
 		{
 			Menu tempMenu = list[a1];
 			list.Insert (0, tempMenu);
-			list.RemoveAt (a1+1);
+			list.RemoveAt (a1 + 1);
 			return (list);
 		}
 
@@ -979,7 +1065,7 @@ namespace AC
 			list.RemoveAt (a1);
 			return (list);
 		}
-		
+
 
 		private List<Menu> SwapMenus (List<Menu> list, int a1, int a2)
 		{
@@ -994,11 +1080,11 @@ namespace AC
 		{
 			MenuElement tempElement = list[a1];
 			list.Insert (0, tempElement);
-			list.RemoveAt (a1+1);
+			list.RemoveAt (a1 + 1);
 			return (list);
 		}
-		
-		
+
+
 		private List<MenuElement> MoveElementToBottom (List<MenuElement> list, int a1)
 		{
 			MenuElement tempElement = list[a1];
@@ -1007,7 +1093,7 @@ namespace AC
 			return (list);
 		}
 
-		
+
 		private List<MenuElement> SwapElements (List<MenuElement> list, int a1, int a2)
 		{
 			MenuElement tempElement = list[a1];
@@ -1027,12 +1113,12 @@ namespace AC
 				return;
 			}
 
-			if (EditorUtility.DisplayDialog("Search '" + menu.title + "' references?", "The Editor will search assets, and active scenes listed in the Build Settings, for references to the Menu.  The current scene will need to be saved and listed to be included in the search process. Continue?", "OK", "Cancel"))
+			if (EditorUtility.DisplayDialog ("Search '" + menu.title + "' references?", "The Editor will search assets, and active scenes listed in the Build Settings, for references to the Menu.  The current scene will need to be saved and listed to be included in the search process. Continue?", "OK", "Cancel"))
 			{
 				if (UnityEditor.SceneManagement.EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo ())
 				{
 					int totalNumReferences = 0;
-					
+
 					// Search menus
 					foreach (Menu _menu in menus)
 					{
@@ -1046,7 +1132,7 @@ namespace AC
 								if (button.buttonClickType == AC_ButtonClickType.Crossfade && button.switchMenuTitle == menu.title)
 								{
 									totalNumReferences++;
-									ACDebug.Log ("Found reference to menu '" + menu.title+ "' in Button element '" + element.title + "' in Menu '" + _menu.title + "'");
+									ACDebug.Log ("Found reference to menu '" + menu.title + "' in Button element '" + element.title + "' in Menu '" + _menu.title + "'");
 								}
 							}
 						}
@@ -1057,28 +1143,45 @@ namespace AC
 					string[] sceneFiles = AdvGame.GetSceneFiles ();
 					foreach (string sceneFile in sceneFiles)
 					{
-						UnityVersionHandler.OpenScene(sceneFile);
+						UnityVersionHandler.OpenScene (sceneFile);
 
-						ActionList[] actionLists = FindObjectsOfType <ActionList>();
-						foreach (ActionList actionList in actionLists)
+						MonoBehaviour[] sceneObjects = UnityVersionHandler.FindObjectsOfType<MonoBehaviour> ();
+						for (int i = 0; i < sceneObjects.Length; i++)
 						{
-							totalNumReferences += actionList.GetMenuReferences (menu, sceneFile);
+							MonoBehaviour currentObj = sceneObjects[i];
+							IMenuReferencer currentComponent = currentObj as IMenuReferencer;
+							if (currentComponent != null)
+							{
+								ActionList.logSuffix = string.Empty;
+								int thisNumReferences = currentComponent.GetNumMenuReferences (menu.title);
+								if (thisNumReferences > 0)
+								{
+									totalNumReferences += thisNumReferences;
+									ACDebug.Log ("Found " + thisNumReferences + " reference(s) to Menu '" + menu.title + "' in " + currentComponent.GetType () + " '" + currentObj.gameObject.name + "' in scene '" + sceneFile + "'" + ActionList.logSuffix, currentObj);
+								}
+							}
 						}
 					}
 
-					UnityVersionHandler.OpenScene(originalScene);
+					UnityVersionHandler.OpenScene (originalScene);
 
 					// Search assets
-					if (AdvGame.GetReferences().speechManager != null)
+					if (KickStarter.speechManager)
 					{
-						ActionListAsset[] allActionListAssets = AdvGame.GetReferences ().speechManager.GetAllActionListAssets ();
+						ActionListAsset[] allActionListAssets = KickStarter.speechManager.GetAllActionListAssets ();
 						foreach (ActionListAsset actionListAsset in allActionListAssets)
 						{
-							totalNumReferences += actionListAsset.GetMenuReferences (menu);
+							ActionList.logSuffix = string.Empty;
+							int thisNumReferences = actionListAsset.GetNumMenuReferences (menu.title);
+							if (thisNumReferences > 0)
+							{
+								ACDebug.Log ("Found " + thisNumReferences + " reference(s) to Menu '" + menu.title + "' in ActionList asset '" + actionListAsset.name + "'" + ActionList.logSuffix, actionListAsset);
+								totalNumReferences += thisNumReferences;
+							}
 						}
 					}
 
-					EditorUtility.DisplayDialog("Menu search complete", "In total, found " + totalNumReferences + " references to menu '" + menu.title + "' in the project.  Please see the Console window for full details.", "OK");
+					EditorUtility.DisplayDialog ("Menu search complete", "In total, found " + totalNumReferences + " references to menu '" + menu.title + "' in the project.  Please see the Console window for full details.", "OK");
 				}
 			}
 		}
@@ -1094,12 +1197,12 @@ namespace AC
 				return;
 			}
 
-			if (EditorUtility.DisplayDialog("Search '" + element.title + "' references?", "The Editor will search assets, and active scenes listed in the Build Settings, for references to the Menu Element.  The current scene will need to be saved and listed to be included in the search process. Continue?", "OK", "Cancel"))
+			if (EditorUtility.DisplayDialog ("Search '" + element.title + "' references?", "The Editor will search assets, and active scenes listed in the Build Settings, for references to the Menu Element.  The current scene will need to be saved and listed to be included in the search process. Continue?", "OK", "Cancel"))
 			{
-				if (UnityEditor.SceneManagement.EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
+				if (UnityEditor.SceneManagement.EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo ())
 				{
 					int totalNumReferences = 0;
-					
+
 					// Search menus
 					foreach (Menu _menu in menus)
 					{
@@ -1113,7 +1216,7 @@ namespace AC
 								if ((button.buttonClickType == AC_ButtonClickType.OffsetElementSlot || button.buttonClickType == AC_ButtonClickType.OffsetJournal) && button.inventoryBoxTitle == element.title)
 								{
 									totalNumReferences++;
-									ACDebug.Log ("Found reference to element '" + element.title + "' in Button element '" + _element.title + "' in Menu '" + _menu.title + "'");
+									ACDebug.Log ("Found reference to Menu element  '" + element.title + "' in Button element '" + _element.title + "' in Menu '" + _menu.title + "'");
 								}
 							}
 						}
@@ -1124,24 +1227,41 @@ namespace AC
 					string[] sceneFiles = AdvGame.GetSceneFiles ();
 					foreach (string sceneFile in sceneFiles)
 					{
-						UnityVersionHandler.OpenScene(sceneFile);
+						UnityVersionHandler.OpenScene (sceneFile);
 
-						ActionList[] actionLists = FindObjectsOfType <ActionList>();
-						foreach (ActionList actionList in actionLists)
+						MonoBehaviour[] sceneObjects = UnityVersionHandler.FindObjectsOfType<MonoBehaviour> ();
+						for (int i = 0; i < sceneObjects.Length; i++)
 						{
-							totalNumReferences += actionList.GetMenuElementReferences (menu, element, sceneFile);
+							MonoBehaviour currentObj = sceneObjects[i];
+							IMenuReferencer currentComponent = currentObj as IMenuReferencer;
+							if (currentComponent != null)
+							{
+								ActionList.logSuffix = string.Empty;
+								int thisNumReferences = currentComponent.GetNumMenuReferences (menu.title, element.title);
+								if (thisNumReferences > 0)
+								{
+									totalNumReferences += thisNumReferences;
+									ACDebug.Log ("Found " + thisNumReferences + " reference(s) to Menu element '" + element.title + "' in " + currentComponent.GetType () + " " + currentObj.name + " in scene '" + sceneFile + "'" + ActionList.logSuffix, currentObj);
+								}
+							}
 						}
 					}
 
-					UnityVersionHandler.OpenScene(originalScene);
+					UnityVersionHandler.OpenScene (originalScene);
 
 					// Search assets
-					if (AdvGame.GetReferences().speechManager != null)
+					if (KickStarter.speechManager)
 					{
-						ActionListAsset[] allActionListAssets = AdvGame.GetReferences ().speechManager.GetAllActionListAssets ();
+						ActionListAsset[] allActionListAssets = KickStarter.speechManager.GetAllActionListAssets ();
 						foreach (ActionListAsset actionListAsset in allActionListAssets)
 						{
-							totalNumReferences += actionListAsset.GetMenuElementReferences (menu, element);
+							ActionList.logSuffix = string.Empty;
+							int thisNumReferences = actionListAsset.GetNumMenuReferences (menu.title, element.title);
+							if (thisNumReferences > 0)
+							{
+								totalNumReferences += thisNumReferences;
+								ACDebug.Log ("Found " + thisNumReferences + " reference(s) to Menu element '" + element.title + "' in ActionList asset '" + actionListAsset.name + "'" + ActionList.logSuffix, actionListAsset);
+							}
 						}
 					}
 
@@ -1149,7 +1269,7 @@ namespace AC
 				}
 			}
 		}
-		
+
 
 		/**
 		 * <sumamry>Gets the currently-selected Menu.</summary>
@@ -1159,7 +1279,7 @@ namespace AC
 		{
 			return selectedMenu;
 		}
-		
+
 
 		/**
 		 * <sumamry>Gets the currently-selected MenuElement.</summary>
@@ -1170,34 +1290,6 @@ namespace AC
 			return selectedMenuElement;
 		}
 
-
-		/**
-		 * <summary>Gets a MenuElement by name.</summary>
-		 * <param name = "menuName">The title of the Menu that the MenuElement is a part of</param>
-		 * <param name = "menuElementName">The title of the MenuElement to return</param>
-		 * <returns>The MenuElement</returns>
-		 */
-		public static MenuElement GetElementWithName (string menuName, string menuElementName)
-		{
-			if (AdvGame.GetReferences () && AdvGame.GetReferences ().menuManager)
-			{
-				foreach (AC.Menu menu in AdvGame.GetReferences ().menuManager.menus)
-				{
-					if (menu.title == menuName)
-					{
-						foreach (MenuElement menuElement in menu.elements)
-						{
-							if (menuElement.title == menuElementName)
-							{
-								return menuElement;
-							}
-						}
-					}
-				}
-			}
-			
-			return null;
-		}
 
 
 		/**
@@ -1273,13 +1365,13 @@ namespace AC
 		 */
 		public Menu CreatePreviewMenu (string previewMenuName)
 		{
-			if (KickStarter.speechManager != null && !string.IsNullOrEmpty (previewMenuName))
+			if (KickStarter.speechManager && !string.IsNullOrEmpty (previewMenuName))
 			{
 				foreach (Menu menu in menus)
 				{
 					if (menu != null && menu.title == previewMenuName)
 					{
-						Menu newMenu = ScriptableObject.CreateInstance <Menu>();
+						Menu newMenu = ScriptableObject.CreateInstance<Menu> ();
 						newMenu.Copy (menu, false);
 						if (newMenu.menuSource != MenuSource.AdventureCreator)
 						{
@@ -1292,7 +1384,35 @@ namespace AC
 			return null;
 		}
 
-		#endif
+#endif
+
+		/**
+		 * <summary>Gets a MenuElement by name.</summary>
+		 * <param name = "menuName">The title of the Menu that the MenuElement is a part of</param>
+		 * <param name = "menuElementName">The title of the MenuElement to return</param>
+		 * <returns>The MenuElement</returns>
+		 */
+		public static MenuElement GetElementWithName (string menuName, string menuElementName)
+		{
+			if (KickStarter.menuManager)
+			{
+				foreach (AC.Menu menu in KickStarter.menuManager.menus)
+				{
+					if (menu.title == menuName)
+					{
+						foreach (MenuElement menuElement in menu.elements)
+						{
+							if (menuElement.title == menuElementName)
+							{
+								return menuElement;
+							}
+						}
+					}
+				}
+			}
+
+			return null;
+		}
 
 
 		/**
@@ -1300,14 +1420,116 @@ namespace AC
 		 */
 		public void Upgrade ()
 		{
-			if (KickStarter.settingsManager != null && !hasUpgraded)
+			if (KickStarter.settingsManager && !hasUpgraded)
 			{
 				keyboardControlWhenPaused = (KickStarter.settingsManager.inputMethod == InputMethod.KeyboardOrController);
 				keyboardControlWhenDialogOptions = (KickStarter.settingsManager.inputMethod == InputMethod.KeyboardOrController);
 				hasUpgraded = true;
 			}
 		}
-		
+
+
+#if UNITY_EDITOR
+
+		private void OnCompleteDragMenu (object data)
+		{
+			Menu menu = (Menu) data;
+			if (menu == null) return;
+
+			int dragIndex = menus.IndexOf (menu);
+			if (dragIndex >= 0 && lastSwapMenuIndex >= 0)
+			{
+				Menu tempItem = menu;
+
+				menus.RemoveAt (dragIndex);
+
+				if (lastSwapMenuIndex > dragIndex)
+				{
+					menus.Insert (lastSwapMenuIndex - 1, tempItem);
+				}
+				else
+				{
+					menus.Insert (lastSwapMenuIndex, tempItem);
+				}
+
+				Event.current.Use ();
+				EditorUtility.SetDirty (this);
+			}
+
+			DeactivateAllMenus ();
+			ActivateMenu (menu);
+		}
+
+
+		private bool IsDraggingMenu ()
+		{
+			object dragObject = DragAndDrop.GetGenericData (DragMenuKey);
+			if (dragObject != null && dragObject is Menu)
+			{
+				return true;
+			}
+			return false;
+		}
+
+
+		private void OnCompleteDragElement (object data)
+		{
+			MenuElementDrag elementDrag = (MenuElementDrag) data;
+			if (elementDrag == null) return;
+
+			int dragIndex = elementDrag.menu.elements.IndexOf (elementDrag.element);
+			if (dragIndex >= 0 && lastSwapElementIndex >= 0)
+			{
+				MenuElement tempItem = elementDrag.element;
+
+				elementDrag.menu.elements.RemoveAt (dragIndex);
+
+				if (lastSwapElementIndex > dragIndex)
+				{
+					elementDrag.menu.elements.Insert (lastSwapElementIndex - 1, tempItem);
+				}
+				else
+				{
+					elementDrag.menu.elements.Insert (lastSwapElementIndex, tempItem);
+				}
+
+				Event.current.Use ();
+				EditorUtility.SetDirty (this);
+			}
+
+			if (dragIndex >= 0)
+			{
+				DeactivateAllElements (elementDrag.menu);
+				ActivateElement (elementDrag.menu.elements[dragIndex]);
+			}
+		}
+
+
+		private bool IsDraggingElement ()
+		{
+			object dragObject = DragAndDrop.GetGenericData (DragElementKey);
+			if (dragObject != null && dragObject is MenuElementDrag)
+			{
+				return true;
+			}
+			return false;
+		}
+
+
+		public class MenuElementDrag
+		{
+			public readonly MenuElement element;
+			public readonly Menu menu;
+
+			public MenuElementDrag (Menu _menu, MenuElement _element)
+			{
+				menu = _menu;
+				element = _element;
+			}
+		}
+
+#endif
+
 	}
 
 }

@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2024
  *	
  *	"ActiveList.cs"
  * 
@@ -19,9 +19,7 @@ using UnityEngine.AddressableAssets;
 namespace AC
 {
 	
-	/**
-	 * A container for data about ActionLists and ActionListAssets that have been run.  It stores information about what to skip, pause-points and current parameter data.
-	 */
+	/** A container for data about ActionLists and ActionListAssets that have been run.  It stores information about what to skip, pause-points and current parameter data. */
 	public class ActiveList
 	{
 
@@ -127,9 +125,7 @@ namespace AC
 		}
 
 
-		/**
-		 * <summary>Clears any data that is causing the class to be deemed necessary.</summary>
-		 */
+		/** Clears any data that is causing the class to be deemed necessary. */
 		public void ClearNecessity ()
 		{
 			resumeIndices = new int[0];
@@ -222,9 +218,7 @@ namespace AC
 		}
 
 
-		/**
-		 * <summary>Skips the associated ActionList.</summary>
-		 */
+		/** Skips the associated ActionList. */
 		public void Skip ()
 		{
 			if (inSkipQueue)
@@ -282,9 +276,7 @@ namespace AC
 		}
 
 
-		/**
-		 * <summary>Runs the Conversation set to do so when the associated ActionList has finished.</summary>
-		 */
+		/** Runs the Conversation set to do so when the associated ActionList has finished. */
 		public void RunConversation ()
 		{
 			conversationOnEnd.Interact ();
@@ -300,7 +292,8 @@ namespace AC
 		public void Resume (RuntimeActionList runtimeActionList = null, bool rerunPausedActions = false)
 		{
 			if (runtimeActionList != null)
-			{
+			{ 
+				isRunning = true;
 				actionList = runtimeActionList;
 				runtimeActionList.Resume (startIndex, resumeIndices, parameterData, rerunPausedActions);
 			}
@@ -361,7 +354,11 @@ namespace AC
 					{
 						// OK
 					}
-					else if (subScene && UnityVersionHandler.GetSceneIndexFromGameObject (actionList.gameObject) == subScene.SceneIndex)
+					else if (KickStarter.settingsManager.referenceScenesInSave == ChooseSceneBy.Number && subScene && UnityVersionHandler.GetSceneIndexFromGameObject (actionList.gameObject) == subScene.SceneIndex)
+					{
+						// OK
+					}
+					else if (KickStarter.settingsManager.referenceScenesInSave == ChooseSceneBy.Name && subScene && UnityVersionHandler.GetSceneNameFromGameObject (actionList.gameObject) == subScene.SceneName)
 					{
 						// OK
 					}
@@ -462,6 +459,26 @@ namespace AC
 			// ActionList
 			if (!string.IsNullOrEmpty (listName))
 			{
+				// Scene component?
+				int ID = 0;
+				if (int.TryParse (listName, out ID))
+				{
+					// Scene
+					ConstantID constantID = (subScene != null)
+						? ConstantID.GetComponent (ID, subScene.gameObject.scene)
+						: ConstantID.GetComponent (ID);
+				
+					if (constantID)
+					{
+						actionList = constantID.GetComponent <ActionList>();
+						if (actionList)
+						{
+							KickStarter.actionListManager.AddToList (this);
+						}
+						return;
+					}
+				}
+
 				// Asset file
 				#if AddressableIsPresent
 				if (KickStarter.settingsManager.saveAssetReferencesWithAddressables)
@@ -481,26 +498,6 @@ namespace AC
 					else
 					{
 						KickStarter.actionListAssetManager.AddToList (this);
-					}
-				}
-			}
-			else
-			{
-				int ID = 0;
-				if (int.TryParse (listName, out ID))
-				{
-					// Scene
-					ConstantID constantID = (subScene != null)
-						? ConstantID.GetComponent (ID, subScene.gameObject.scene)
-						: ConstantID.GetComponent (ID);
-				
-					if (constantID)
-					{
-						actionList = constantID.GetComponent <ActionList>();
-						if (actionList)
-						{
-							KickStarter.actionListManager.AddToList (this);
-						}
 					}
 				}
 			}

@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2024
  *	
  *	"ActionFade.cs"
  * 
@@ -118,24 +118,16 @@ namespace AC
 				setTexture = EditorGUILayout.Toggle ("Custom fade texture?", setTexture);
 				if (setTexture)
 				{
-					tempTextureParameterID = Action.ChooseParameterGUI ("Fade texture:", parameters, tempTextureParameterID, ParameterType.UnityObject);
-					if (tempTextureParameterID < 0)
-					{
-						tempTexture = (Texture2D) EditorGUILayout.ObjectField ("Fade texture:", tempTexture, typeof (Texture2D), false);
-					}
+					AssetField ("Fade texture:", ref tempTexture, parameters, ref tempTextureParameterID);
 				}
 			}
 
 			isInstant = EditorGUILayout.Toggle ("Instant?", isInstant);
 			if (!isInstant)
 			{
-				fadeSpeedParameterID = Action.ChooseParameterGUI ("Time to fade (s):", parameters, fadeSpeedParameterID, ParameterType.Float);
-				if (fadeSpeedParameterID < 0)
-				{
-					fadeSpeed = EditorGUILayout.Slider ("Time to fade (s):", fadeSpeed, 0f, 10f);
-				}
+				SliderField ("Time to fade (s):", ref fadeSpeed, 0f, 10f, parameters, ref fadeSpeedParameterID);
 
-				forceCompleteTransition = EditorGUILayout.Toggle ("Force complete transition?", forceCompleteTransition);
+				forceCompleteTransition = EditorGUILayout.Toggle ("Force full transition?", forceCompleteTransition);
 				if (forceCompleteTransition)
 				{ 
 					fadeCurve = (AnimationCurve) EditorGUILayout.CurveField ("Transition curve:", fadeCurve);

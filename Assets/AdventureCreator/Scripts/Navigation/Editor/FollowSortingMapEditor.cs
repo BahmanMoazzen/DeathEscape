@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿#if UNITY_EDITOR
+
+using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEditor;
 
@@ -12,6 +14,9 @@ namespace AC
 		public override void OnInspectorGUI ()
 		{
 			FollowSortingMap _target = (FollowSortingMap) target;
+
+			CustomGUILayout.Header ("Properties");
+			CustomGUILayout.BeginVertical ();
 
 			_target.followSortingMap = CustomGUILayout.Toggle ("Follow default Sorting Map?", _target.followSortingMap, "", "If True, then the component will follow the default Sorting Map defined in the Scene Manager");
 			if (!_target.followSortingMap)
@@ -44,8 +49,11 @@ namespace AC
 				}
 			}
 
+			CustomGUILayout.EndVertical ();
 			UnityVersionHandler.CustomSetDirty (_target);
 		}
 	}
 
 }
+
+#endif

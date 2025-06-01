@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2024
  *	
  *	"ActionEndGame.cs"
  * 
@@ -10,9 +10,8 @@
  * 
  */
 
-using UnityEngine;
 using System.Collections.Generic;
-
+using UnityEngine;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -24,18 +23,28 @@ namespace AC
 	public class ActionEndGame : Action
 	{
 		
-		public enum AC_EndGameType { QuitGame, LoadAutosave, ResetScene, RestartGame };
+		public enum AC_EndGameType { QuitGame, LoadAutosave, ResetScene, RestartGame, ResetData };
 		public AC_EndGameType endGameType;
 		public ChooseSceneBy chooseSceneBy = ChooseSceneBy.Number;
 		public int sceneNumber;
+		public int sceneNumberParameterID = -1;
 		public string sceneName;
+		public int sceneNameParameterID = -1;
 		public bool resetMenus;
+		public bool killActionLists;
 		
 		
 		public override ActionCategory Category { get { return ActionCategory.Engine; }}
 		public override string Title { get { return "End game"; }}
 		public override string Description { get { return "Ends the current game, either by loading an autosave, restarting or quitting the game executable."; }}
 		public override int NumSockets { get { return 0; }}
+
+
+		public override void AssignValues (List<ActionParameter> parameters)
+		{
+			sceneNumber = AssignInteger (parameters, sceneNumberParameterID, sceneNumber);
+			sceneName = AssignString (parameters, sceneNameParameterID, sceneName);
+		}
 
 
 		public override float Run ()
@@ -55,12 +64,24 @@ namespace AC
 					break;
 
 				case AC_EndGameType.RestartGame:
-					int _sceneIndex = (chooseSceneBy == ChooseSceneBy.Name) ? KickStarter.sceneChanger.NameToIndex (sceneName) : sceneNumber;
-					KickStarter.RestartGame (resetMenus, _sceneIndex);
+					if (KickStarter.settingsManager.referenceScenesInSave == ChooseSceneBy.Name)
+					{
+						string _sceneName = (chooseSceneBy == ChooseSceneBy.Name) ? sceneName : KickStarter.sceneChanger.IndexToName (sceneNumber);
+						KickStarter.RestartGame (resetMenus, _sceneName, killActionLists);
+					}
+					else if (KickStarter.settingsManager.referenceScenesInSave == ChooseSceneBy.Number)
+					{
+						int _sceneIndex = (chooseSceneBy == ChooseSceneBy.Name) ? KickStarter.sceneChanger.NameToIndex (sceneName) : sceneNumber;
+						KickStarter.RestartGame (resetMenus, _sceneIndex, killActionLists);
+					}
 					break;
 
 				case AC_EndGameType.ResetScene:
 					KickStarter.sceneChanger.ResetCurrentScene ();
+					break;
+
+				case AC_EndGameType.ResetData:
+					KickStarter.ResetData ();
 					break;
 
 				default:
@@ -73,7 +94,7 @@ namespace AC
 		
 		#if UNITY_EDITOR
 
-		public override void ShowGUI ()
+		public override void ShowGUI (List<ActionParameter> parameters)
 		{
 			endGameType = (AC_EndGameType) EditorGUILayout.EnumPopup ("Command:", endGameType);
 
@@ -82,14 +103,15 @@ namespace AC
 				chooseSceneBy = (ChooseSceneBy) EditorGUILayout.EnumPopup ("Choose scene by:", chooseSceneBy);
 				if (chooseSceneBy == ChooseSceneBy.Name)
 				{
-					sceneName = EditorGUILayout.TextField ("Scene to restart to:", sceneName);
+					TextField ("Scene to restart to:", ref sceneName, parameters, ref sceneNameParameterID);
 				}
 				else
 				{
-					sceneNumber = EditorGUILayout.IntField ("Scene to restart to:", sceneNumber);
+					IntField ("Scene to restart to:", ref sceneNumber, parameters, ref sceneNumberParameterID);
 				}
 
-				resetMenus = EditorGUILayout.Toggle ("Reset Menus too?", resetMenus);
+				resetMenus = EditorGUILayout.Toggle ("Reset all Menus?", resetMenus);
+				killActionLists = EditorGUILayout.Toggle ("End all ActionLists?", killActionLists);
 			}
 		}
 		

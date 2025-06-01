@@ -290,6 +290,7 @@ namespace AC
 							if (action.newSound)
 							{
 								character.walkSound = action.newSound;
+
 							}
 							else
 							{

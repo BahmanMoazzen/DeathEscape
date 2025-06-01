@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿#if UNITY_EDITOR
+
+using UnityEngine;
 using UnityEditor;
 using UnityEditorInternal;
 using System.Collections.Generic;
@@ -8,8 +10,8 @@ namespace AC
 
 	[CustomEditor (typeof (AC.Char))]
 	public class CharEditor : Editor
-	{
 
+	{
 		private Expression expressionToAffect;
 
 
@@ -21,11 +23,17 @@ namespace AC
 
 		protected void SharedGUIOne (AC.Char _target)
 		{
+			_target.Upgrade ();
 			_target.GetAnimEngine ();
 
+			CustomGUILayout.Header ("Animation");
 			CustomGUILayout.BeginVertical ();
-			EditorGUILayout.LabelField ("Animation settings", EditorStyles.boldLabel);
+			AnimationEngine animationEngine = _target.animationEngine;
 			_target.animationEngine = (AnimationEngine) CustomGUILayout.EnumPopup ("Animation engine:", _target.animationEngine, "", "The animation engine that the character relies on for animation playback");
+			if (animationEngine != _target.animationEngine)
+			{
+				_target.ResetAnimationEngine ();
+			}
 			if (_target.animationEngine == AnimationEngine.Custom)
 			{
 				_target.customAnimationClass = CustomGUILayout.TextField ("Script name:", _target.customAnimationClass, "", "The class name of the AnimEngine ScriptableObject subclass that animates the character");
@@ -35,8 +43,8 @@ namespace AC
 
 			_target.GetAnimEngine ().CharSettingsGUI ();
 
+			CustomGUILayout.Header ("Movement");
 			CustomGUILayout.BeginVertical ();
-			EditorGUILayout.LabelField ("Movement settings", EditorStyles.boldLabel);
 
 			_target.walkSpeedScale = CustomGUILayout.FloatField ("Walk speed scale:", _target.walkSpeedScale, "", "The movement speed when walking");
 			_target.runSpeedScale = CustomGUILayout.FloatField ("Run speed scale:", _target.runSpeedScale, "", "The movement speed when running");
@@ -47,28 +55,87 @@ namespace AC
 
 			if (_target.GetMotionControl () != MotionControl.Manual)
 			{
-				if (_target.GetAnimEngine ().isSpriteBased)
+				if (_target.GetAnimEngine ().isSpriteBased && _target.spriteChild)
 				{
 					_target.turn2DCharactersIn3DSpace = CustomGUILayout.Toggle ("Turn root object in 3D?", _target.turn2DCharactersIn3DSpace, "", "If True, then the root object of a 2D, sprite-based character will rotate around the Z-axis. Otherwise, turning will be simulated and the actual rotation will be unaffected");
 				}
 			}
-			_target.turnBeforeWalking = CustomGUILayout.Toggle ("Turn before walking?", _target.turnBeforeWalking, "", "If True, the character will turn on the spot to face their destination before moving");
+			_target.turnBeforeWalking = CustomGUILayout.Toggle ("Turn before pathfinding?", _target.turnBeforeWalking, "", "If True, the character will turn on the spot to face their destination before moving");
 			_target.retroPathfinding = CustomGUILayout.Toggle ("Retro-style movement?", _target.retroPathfinding, "", "Enables 'retro-style' movement when pathfinding, where characters ignore Acceleration and Deceleration values, and turn instantly when moving");
 
 			_target.headTurnSpeed = CustomGUILayout.Slider ("Head turn speed:", _target.headTurnSpeed, 0.1f, 20f, "", "The speed of head-turning");
-			if (_target.IsPlayer && AdvGame.GetReferences ().settingsManager != null && AdvGame.GetReferences ().settingsManager.PlayerCanReverse ())
+			if (_target.IsPlayer && KickStarter.settingsManager && KickStarter.settingsManager.PlayerCanReverse ())
 			{
 				_target.reverseSpeedFactor = CustomGUILayout.Slider ("Reverse speed factor:", _target.reverseSpeedFactor, 0f, 1f, "", "The factor by which speed is reduced when reversing");
+				_target.canRunInReverse = CustomGUILayout.Toggle ("Can run in reverse?", _target.canRunInReverse, "", "If True, the Player can run backwards");
 			}
 
 			CustomGUILayout.EndVertical ();
 		}
 
 
+		private void ResizeAttachmentPoints (AC.Char _target, int newLength)
+		{
+			List<AttachmentPoint> buttonList = new List<AttachmentPoint> ();
+			for (int i = 0; i < Mathf.Min (newLength, _target.attachmentPoints.Length); i++)
+			{
+				if (i < _target.attachmentPoints.Length)
+				{
+					buttonList.Add (_target.attachmentPoints[i]);
+				}
+				else
+				{
+					buttonList.Add (new AttachmentPoint (GetAttachmentPointIDArray (_target)));
+				}
+			}
+
+			while (buttonList.Count < newLength)
+			{
+				buttonList.Add (new AttachmentPoint (GetAttachmentPointIDArray (_target)));
+			}
+
+			_target.attachmentPoints = buttonList.ToArray ();
+		}
+
+
+		private int[] GetAttachmentPointIDArray (AC.Char _target)
+		{
+			List<int> idArray = new List<int>();
+			foreach (AttachmentPoint attachmentPoint in _target.attachmentPoints)
+			{
+				idArray.Add (attachmentPoint.ID);
+			}
+			idArray.Sort ();
+			return idArray.ToArray ();
+		}
+
+
 		protected void SharedGUITwo (AC.Char _target)
 		{
+			CustomGUILayout.Header ("Attachment points");
 			CustomGUILayout.BeginVertical ();
-			EditorGUILayout.LabelField ("Physics settings", EditorStyles.boldLabel);
+			int numPoints = _target.attachmentPoints.Length;
+			numPoints = CustomGUILayout.DelayedIntField ("# of attachment points:", numPoints);
+			if (numPoints != _target.attachmentPoints.Length) ResizeAttachmentPoints (_target, Mathf.Max (2, numPoints));
+			for (int i = 0; i < _target.attachmentPoints.Length; i++)
+			{
+				CustomGUILayout.BeginHorizontal ();
+				CustomGUILayout.LabelField (_target.attachmentPoints[i].ID + ":", GUILayout.MaxWidth (20));
+				if (i > 1)
+				{
+					_target.attachmentPoints[i].label = CustomGUILayout.TextField (_target.attachmentPoints[i].label, GUILayout.Width (149));
+				}
+				else
+				{
+					CustomGUILayout.LabelField (_target.attachmentPoints[i].label, GUILayout.Width (149));
+				}
+				_target.attachmentPoints[i].transform = (Transform) CustomGUILayout.ObjectField<Transform> (_target.attachmentPoints[i].transform, true, GUILayout.MaxWidth (400));
+				CustomGUILayout.EndHorizontal ();
+			}
+			CustomGUILayout.EndVertical ();
+
+			CustomGUILayout.Header ("Physics");
+			CustomGUILayout.BeginVertical ();
 			_target.ignoreGravity = CustomGUILayout.Toggle ("Ignore gravity?", _target.ignoreGravity, "", "If True, the character will ignore the effects of gravity");
 			if (_target.GetComponent <Rigidbody>() != null || _target.GetComponent <Rigidbody2D>())
 			{
@@ -124,31 +191,30 @@ namespace AC
 				}
 			}
 
-			if (_target.GetComponent <Collider>() != null && _target.GetComponent <CharacterController>() == null)
+			if (!_target.ignoreGravity && _target.GetComponent<CharacterController>())
 			{
-				_target.groundCheckLayerMask = LayerMaskField ("Ground-check layer(s):", _target.groundCheckLayerMask);
+				_target.simulatedMass = EditorGUILayout.FloatField ("Simulated mass:", _target.simulatedMass);
 			}
+
+			_target.groundCheckLayerMask = LayerMaskField ("Ground-check layer(s):", _target.groundCheckLayerMask);
 			CustomGUILayout.EndVertical ();
-			
-			
+
+			CustomGUILayout.Header ("Audio");
 			CustomGUILayout.BeginVertical ();
-			EditorGUILayout.LabelField ("Audio clips", EditorStyles.boldLabel);
 		
-			_target.walkSound = (AudioClip) CustomGUILayout.ObjectField <AudioClip> ("Walk sound:", _target.walkSound, false, "", "The sound to play when walking");
-			_target.runSound = (AudioClip) CustomGUILayout.ObjectField <AudioClip> ("Run sound:", _target.runSound, false, "", "The sound to play when running");
-			if (AdvGame.GetReferences () != null && AdvGame.GetReferences ().speechManager != null && AdvGame.GetReferences ().speechManager.scrollSubtitles)
+			if (KickStarter.speechManager != null && KickStarter.speechManager.scrollSubtitles)
 			{
 				_target.textScrollClip = (AudioClip) CustomGUILayout.ObjectField <AudioClip> ("Text scroll override:", _target.textScrollClip, false, "", "The sound to play when the character's speech text is scrolling");
 			}
-			_target.soundChild = (Sound) CustomGUILayout.ObjectField <Sound> ("SFX Sound child:", _target.soundChild, true, "", "");
 			_target.speechAudioSource = (AudioSource) CustomGUILayout.ObjectField <AudioSource> ("Speech AudioSource:", _target.speechAudioSource, true, "", "The AudioSource from which to play speech audio");
 			CustomGUILayout.EndVertical ();
 			
+			CustomGUILayout.Header ("Dialogue");
 			CustomGUILayout.BeginVertical ();
-			EditorGUILayout.LabelField ("Dialogue settings", EditorStyles.boldLabel);
 
 			_target.speechColor = CustomGUILayout.ColorField ("Speech text colour:", _target.speechColor, "", "");
 			_target.speechLabel = CustomGUILayout.TextField ("Speaker label:", _target.speechLabel, "", "");
+			if (_target.lineID > 0) EditorGUILayout.LabelField ("Speech Manager ID:", _target.lineID.ToString ());
 			_target.speechMenuPlacement = (Transform) CustomGUILayout.ObjectField <Transform> ("Speech menu placement child:", _target.speechMenuPlacement, true, "", "The Transform at which to place Menus set to appear 'Above Speaking Character'. If this is not set, the placement will be set automatically");
 
 			if (_target.useExpressions)
@@ -164,8 +230,6 @@ namespace AC
 			_target.useExpressions = CustomGUILayout.Toggle ("Use expressions?", _target.useExpressions, "", "If True, speech text can use expression tokens to change the character's expression");
 			if (_target.useExpressions)
 			{
-				_target.GetAnimEngine ().CharExpressionsGUI ();
-
 				EditorGUILayout.Space ();
 				CustomGUILayout.BeginVertical ();
 				for (int i=0; i<_target.expressions.Count; i++)
@@ -173,7 +237,7 @@ namespace AC
 					EditorGUILayout.BeginHorizontal ();
 					EditorGUILayout.LabelField ("Expression #" + _target.expressions[i].ID.ToString (), EditorStyles.boldLabel);
 
-					if (GUILayout.Button ("", CustomStyles.IconCog))
+					if (GUILayout.Button (string.Empty, CustomStyles.IconCog))
 					{
 						ExpressionSideMenu (_target, i);
 					}
@@ -186,9 +250,37 @@ namespace AC
 					_target.expressions.Add (new Expression (GetExpressionIDArray (_target.expressions)));
 				}
 				CustomGUILayout.EndVertical ();
+
+				if (Application.isPlaying && _target.CurrentExpression != null)
+				{
+					GUILayout.Label ("Current expression:" + _target.CurrentExpression.label, EditorStyles.miniLabel);
+				}
+
+				EditorGUILayout.Space ();
+				_target.GetAnimEngine ().CharExpressionsGUI ();
 			}
 
+			EditorGUILayout.HelpBox ("The following tokens are available to place in this character's speech text:" + GetTokensList (_target), MessageType.Info);
+
 			CustomGUILayout.EndVertical ();
+		}
+
+
+		private string GetTokensList (AC.Char _target)
+		{
+			string result = "\n  [wait]\n  [wait:X]\n  [hold]\n  [continue]\n  [speaker]\n  [line:ID]\n  [token:ID]";
+			if (_target.useExpressions)
+			{
+				result += "\n  [expression:none]";
+				for (int i=0; i < _target.expressions.Count; i++)
+				{
+					if (!string.IsNullOrEmpty (_target.expressions[i].label))
+					{
+						result += "\n  [expression:" + _target.expressions[i].label + "]";
+					}
+				}
+			}
+			return result;
 		}
 
 
@@ -290,7 +382,7 @@ namespace AC
 				}
 			}
 
-			maskWithoutEmpty = UnityEditor.EditorGUILayout.MaskField (label, maskWithoutEmpty, layers);
+			maskWithoutEmpty = EditorGUILayout.MaskField (label, maskWithoutEmpty, layers);
 
 			int mask = 0;
 			for (int i = 0; i < layerNumbers.Count; i++)
@@ -308,3 +400,5 @@ namespace AC
 	}
 
 }
+
+#endif

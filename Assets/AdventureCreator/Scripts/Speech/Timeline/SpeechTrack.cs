@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2024
  *	
  *	"SpeechPlayableTrack.cs"
  * 
@@ -9,7 +9,7 @@
  * 
  */
 
-#if !ACIgnoreTimeline
+#if TimelineIsPresent
 using UnityEngine.Timeline;
 using UnityEngine;
 using UnityEngine.Playables;
@@ -51,8 +51,8 @@ namespace AC
 		#region PublicFunctions
 
 		public override Playable CreateTrackMixer (PlayableGraph graph, GameObject go, int inputCount)
-	    {
-	    	foreach (TimelineClip timelineClip in GetClips ())
+		{
+			foreach (TimelineClip timelineClip in GetClips ())
 			{
 				SpeechPlayableClip clip = (SpeechPlayableClip) timelineClip.asset;
 				timelineClip.displayName = clip.GetDisplayName ();
@@ -67,8 +67,13 @@ namespace AC
 					else if (speakerConstantID != 0)
 					{
 						speaker = ConstantID.GetComponent <Char> (speakerConstantID);
+						if (speaker == null)
+						{
+							ACDebug.LogWarning ("Speech Track " + name + " cannot find speaker with Constant ID = " + speakerConstantID);
+						}
 					}
 				}
+				#if UNITY_EDITOR
 				else
 				{
 					if (isPlayerLine)
@@ -78,7 +83,7 @@ namespace AC
 							if (KickStarter.settingsManager.playerSwitching == PlayerSwitching.Allow && playerID >= 0)
 							{
 								PlayerPrefab playerPrefab = KickStarter.settingsManager.GetPlayerPrefab (playerID);
-								if (playerPrefab != null) speaker = playerPrefab.playerOb;
+								if (playerPrefab != null) speaker = playerPrefab.EditorPrefab;
 							}
 							else
 							{
@@ -91,6 +96,7 @@ namespace AC
 						speaker = SpeakerPrefab;
 					}
 				}
+				#endif
 
 				clip.speechTrackPlaybackMode = playbackMode;
 				clip.speaker = speaker;
@@ -180,9 +186,9 @@ namespace AC
 			
 			foreach (PlayerPrefab playerPrefab in settingsManager.players)
 			{
-				if (playerPrefab.playerOb != null)
+				if (playerPrefab.EditorPrefab != null)
 				{
-					labelList.Add (playerPrefab.ID.ToString () + ": " + playerPrefab.playerOb.name);
+					labelList.Add (playerPrefab.ID.ToString () + ": " + playerPrefab.EditorPrefab.name);
 				}
 				else
 				{
@@ -245,6 +251,28 @@ namespace AC
 				return null;
 			}
 			return KickStarter.player;
+		}
+
+
+		protected SpeechPlayableClip[] GetClipsArray ()
+		{
+			List<SpeechPlayableClip> clipsList = new List<SpeechPlayableClip> ();
+			IEnumerable<TimelineClip> timelineClips = GetClips ();
+			foreach (TimelineClip timelineClip in timelineClips)
+			{
+				if (timelineClip != null && timelineClip.asset is SpeechPlayableClip)
+				{
+					clipsList.Add (timelineClip.asset as SpeechPlayableClip);
+				}
+			}
+
+			return clipsList.ToArray ();
+		}
+
+
+		protected SpeechPlayableClip GetClip (int index)
+		{
+			return GetClipsArray ()[index];
 		}
 
 		#endregion
@@ -321,15 +349,15 @@ namespace AC
 					if (playerID >= 0)
 					{
 						PlayerPrefab playerPrefab = KickStarter.settingsManager.GetPlayerPrefab (playerID);
-						if (playerPrefab != null && playerPrefab.playerOb)
+						if (playerPrefab != null && playerPrefab.EditorPrefab)
 						{
-							return playerPrefab.playerOb.name;
+							return playerPrefab.EditorPrefab.name;
 						}
 					}
 				}
-				else if (isPlayerLine && KickStarter.settingsManager && KickStarter.settingsManager.playerSwitching == PlayerSwitching.DoNotAllow && KickStarter.settingsManager.player)
+				else if (isPlayerLine && KickStarter.settingsManager && KickStarter.settingsManager.playerSwitching == PlayerSwitching.DoNotAllow && KickStarter.settingsManager.PlayerPrefab.EditorPrefab)
 				{
-					return KickStarter.settingsManager.player.name;
+					return KickStarter.settingsManager.PlayerPrefab.EditorPrefab.name;
 				}
 				else if (!isPlayerLine && SpeakerPrefab)
 				{
@@ -378,32 +406,6 @@ namespace AC
 		}
 
 		#endif
-
-		#endregion
-
-
-		#region ProtectedFunctions
-
-		protected SpeechPlayableClip[] GetClipsArray ()
-		{
-			List<SpeechPlayableClip> clipsList = new List<SpeechPlayableClip>();
-			IEnumerable<TimelineClip> timelineClips = GetClips ();
-			foreach (TimelineClip timelineClip in timelineClips)
-			{
-				if (timelineClip != null && timelineClip.asset is SpeechPlayableClip)
-				{	
-					clipsList.Add (timelineClip.asset as SpeechPlayableClip);
-				}
-			}
-
-			return clipsList.ToArray ();
-		}
-
-
-		protected SpeechPlayableClip GetClip (int index)
-		{
-			return GetClipsArray ()[index];
-		}
 
 		#endregion
 

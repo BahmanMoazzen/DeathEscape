@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2024
  *	
  *	"ButtonDialog.cs"
  * 
@@ -26,8 +26,7 @@ namespace AC
 		public string label = "(Not set)";
 		/** The translation ID number of the display label, as set by SpeechManager */
 		public int lineID = -1;
-		/** Deprecated */
-		public Texture2D icon;
+		[SerializeField] private Texture2D icon;
 		/** The option's display icon */
 		public CursorIconBase cursorIcon;
 		/** If True, the option is enabled, and will be displayed in a MenuDialogList element */
@@ -42,6 +41,8 @@ namespace AC
 		public int ID = 0;
 		/** If True, then the option has been chosen at least once by the player */
 		public bool hasBeenChosen = false;
+		/** If True, then the option will be disabled once chosen by the player */
+		public bool autoTurnOff = false;
 
 		/** If True, then the option will only be visible if a given inventory item is being carried */
 		public bool linkToInventory = false;

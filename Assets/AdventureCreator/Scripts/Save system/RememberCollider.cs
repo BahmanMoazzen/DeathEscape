@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2024
  *	
  *	"RememberCollider.cs"
  * 
@@ -15,45 +15,41 @@ using UnityEngine;
 namespace AC
 {
 
-	/**
-	 * This script is attached to Colliders in the scene whose on/off state you wish to save.
-	 */
+	/** This script is attached to Colliders in the scene whose on/off state you wish to save. */
 	[AddComponentMenu("Adventure Creator/Save system/Remember Collider")]
 	[HelpURL("https://www.adventurecreator.org/scripting-guide/class_a_c_1_1_remember_collider.html")]
 	public class RememberCollider : Remember
 	{
 
+		#region Variables
+
 		/** Determines whether the Collider is on or off when the game begins */
 		public AC_OnOff startState = AC_OnOff.On;
 
-		private bool loadedData = false;
+		#endregion
 
-		
-		private void Awake ()
+
+		#region CustomEvents
+
+		protected override void OnInitialiseScene ()
 		{
-			if (loadedData) return;
+			bool isOn = startState == AC_OnOff.On;
 
-			if (KickStarter.settingsManager && GameIsPlaying ())
+			if (GetComponent <Collider>())
 			{
-				bool isOn = (startState == AC_OnOff.On);
-
-				if (GetComponent <Collider>())
-				{
-					GetComponent <Collider>().enabled = isOn;
-				}
-
-				else if (GetComponent <Collider2D>())
-				{
-					GetComponent <Collider2D>().enabled = isOn;
-				}
+				GetComponent <Collider>().enabled = isOn;
+			}
+			else if (GetComponent <Collider2D>())
+			{
+				GetComponent <Collider2D>().enabled = isOn;
 			}
 		}
-		
 
-		/**
-		 * <summary>Serialises appropriate GameObject values into a string.</summary>
-		 * <returns>The data, serialised as a string</returns>
-		 */
+		#endregion
+
+
+		#region PublicFunctions
+
 		public override string SaveData ()
 		{
 			ColliderData colliderData = new ColliderData ();
@@ -75,16 +71,11 @@ namespace AC
 		}
 		
 
-		/**
-		 * <summary>Deserialises a string of data, and restores the GameObject to its previous state.</summary>
-		 * <param name = "stringData">The data, serialised as a string</param>
-		 */
 		public override void LoadData (string stringData)
 		{
 			ColliderData data = Serializer.LoadScriptData <ColliderData> (stringData);
 			if (data == null)
 			{
-				loadedData = false;
 				return;
 			}
 			SavePrevented = data.savePrevented; if (savePrevented) return;
@@ -97,16 +88,14 @@ namespace AC
 			{
 				GetComponent <Collider2D>().enabled = data.isOn;
 			}
-
-			loadedData = true;
 		}
+
+		#endregion
 
 	}
 
 
-	/**
-	 * A data container used by the RememberCollider script.
-	 */
+	/** A data container used by the RememberCollider script. */
 	[System.Serializable]
 	public class ColliderData : RememberData
 	{
@@ -114,9 +103,7 @@ namespace AC
 		/** True if the Collider is enabled */
 		public bool isOn;
 
-		/**
-		 * The default Constructor.
-		 */
+		/** The default Constructor. */
 		public ColliderData () { }
 
 	}

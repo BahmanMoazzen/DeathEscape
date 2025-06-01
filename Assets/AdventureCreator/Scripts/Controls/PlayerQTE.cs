@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2024
  *	
  *	"PlayerQTE.cs"
  * 
@@ -26,7 +26,9 @@ namespace AC
 
 		protected QTEState qteState = QTEState.None;
 		protected QTEType qteType = QTEType.SingleKeypress;
-		
+
+		protected QTEHoldReleaseBehaviour qteHoldReleaseBehaviour;
+
 		protected string inputName;
 		protected Animator animator;
 		protected bool wrongKeyFails;
@@ -43,6 +45,7 @@ namespace AC
 		protected float lastPressTime;
 		protected bool canMash;
 		protected float axisThreshold;
+		protected bool isIndefinite;
 
 		protected const string touchScreenTap = "TOUCHSCREENTAP";
 
@@ -53,14 +56,25 @@ namespace AC
 		protected float maxRotation;
 		protected Vector2 lastFrameRotationInput;
 
+
 		#endregion
 
 
 		#region PublicFunctions
 
+		/** Displays QTE-related information for the AC Status window */
+		public void DrawStatus ()
+		{
+			if (qteState != QTEState.None)
+			{
+				GUILayout.Label ("QTE: " + qteType);
+			}
+		}
+
+
 		/**
-		 * <summary>Gets the current QTE state (None, Win, Lose)</summary>
-		 * <returns>The current QTE state (None, Win, Lose)</returns>
+		 * <summary>Gets the current QTE state (None, Win, Lose, Running)</summary>
+		 * <returns>The current QTE state (None, Win, Lose, Running)</returns>
 		 */
 		public QTEState GetState ()
 		{
@@ -68,13 +82,19 @@ namespace AC
 		}
 
 
-		/**
-		 * Automatically wins the current QTE.
-		 */
+		/** Automatically wins the current QTE. */
 		public void SkipQTE ()
 		{
 			endTime = 0f;
 			qteState = QTEState.Win;
+		}
+
+
+		/** Automatically end the current QTE. */
+		public void KillQTE ()
+		{
+			endTime = 0f;
+			qteState = QTEState.None;
 		}
 
 
@@ -92,7 +112,7 @@ namespace AC
 				_inputName = touchScreenTap;
 			}
 
-			if (string.IsNullOrEmpty (_inputName) || _duration <= 0f)
+			if (string.IsNullOrEmpty (_inputName))
 			{
 				return;
 			}
@@ -111,7 +131,7 @@ namespace AC
 		 */
 		public void StartSingleAxisQTE (string _inputName, float _duration, float _axisThreshold, Animator _animator = null, bool _wrongKeyFails = false)
 		{
-			if (string.IsNullOrEmpty (_inputName) || _duration <= 0f)
+			if (string.IsNullOrEmpty (_inputName))
 			{
 				return;
 			}
@@ -125,27 +145,29 @@ namespace AC
 		 * <param name = "_inputName">The name of the input button that must be held down to win</param>
 		 * <param name = "_duration">The duration, in seconds, that the QTE lasts</param>
 		 * <param name = "_holdDuration">The duration, in seconds, that the key must be held down for</param>
-		 * <param name = "_animator">An Animator that will be manipulated if it has "Win" and "Lose" states, and a "Held" trigger</param>
+		 * <param name = "_qteHoldReleaseBehaviour">What happens if the key is released</param>
+		 * <param name = "_animator">An Animator that will be manipulated if it has "Win" and "Lose" states, and a "Held" bool</param>
 		 * <param name = "_wrongKeyFails">If True, then pressing any key other than _inputName will instantly fail the QTE</param>
 		 */
-		public void StartHoldKeyQTE (string _inputName, float _duration, float _holdDuration, Animator _animator = null, bool _wrongKeyFails = false)
+		public void StartHoldKeyQTE (string _inputName, float _duration, float _holdDuration, QTEHoldReleaseBehaviour _qteHoldReleaseBehaviour = QTEHoldReleaseBehaviour.Reset, Animator _animator = null, bool _wrongKeyFails = false)
 		{
 			if (string.IsNullOrEmpty (_inputName) && KickStarter.settingsManager.inputMethod == InputMethod.TouchScreen)
 			{
 				_inputName = touchScreenTap;
 			}
 
-			if (string.IsNullOrEmpty (_inputName) || _duration <= 0f)
+			if (string.IsNullOrEmpty (_inputName))
 			{
 				return;
 			}
 
-			if (_holdDuration > _duration)
+			if (_holdDuration > _duration && _duration >= 0f)
 			{
 				_holdDuration = _duration;
 			}
 
 			holdDuration = _holdDuration;
+			qteHoldReleaseBehaviour = _qteHoldReleaseBehaviour;
 			Setup (QTEType.HoldKey, _inputName, _duration, _animator, _wrongKeyFails, 0f);
 		}
 
@@ -167,7 +189,7 @@ namespace AC
 				_inputName = touchScreenTap;
 			}
 
-			if (string.IsNullOrEmpty (_inputName) || _duration <= 0f)
+			if (string.IsNullOrEmpty (_inputName))
 			{
 				return;
 			}
@@ -219,6 +241,11 @@ namespace AC
 				return 1f;
 			}
 
+			if (isIndefinite)
+			{
+				return 1f;
+			}
+
 			if (Time.time >= endTime)
 			{
 				return 0f;
@@ -233,33 +260,44 @@ namespace AC
 		 */
 		public float GetProgress ()
 		{
-			if (qteState == QTEState.Win)
+			switch (qteState)
 			{
-				progress = 1f;
-			}
-			else if (qteState == QTEState.Lose)
-			{
-				progress = 0f;
-			}
-			else if (endTime > 0f)
-			{
-				switch (qteType)
-				{
-					case QTEType.HoldKey:
-						progress = (lastPressTime > 0f) ? ((Time.time - lastPressTime) / holdDuration) : 0f;
-						break;
+				case QTEState.Win:
+					progress = 1f;
+					break;
 
-					case QTEType.ButtonMash:
-						progress = (float) numPresses / (float) targetPresses;
-						break;
+				case QTEState.Lose:
+					progress = 1f;
+					break;
 
-					case QTEType.ThumbstickRotation:
-						progress = Mathf.Clamp01 (currentRotations / targetRotations);
-						break;
+				case QTEState.Running:
+					{
+						if (endTime > 0f)
+						{
+							switch (qteType)
+							{
+								case QTEType.HoldKey:
+									progress = (lastPressTime > 0f) ? ((Time.time - lastPressTime) / holdDuration) : 0f;
+									break;
 
-					default:
-						break;
-				}
+								case QTEType.ButtonMash:
+									progress = (float) numPresses / (float) targetPresses;
+									break;
+
+								case QTEType.ThumbstickRotation:
+									progress = Mathf.Clamp01 (currentRotations / targetRotations);
+									break;
+
+								default:
+									break;
+							}
+						}
+					}
+					break;
+
+				default:
+					progress = 0f;
+					break;
 			}
 
 			return progress;
@@ -280,9 +318,7 @@ namespace AC
 		}
 
 
-		/**
-		 * Updates the current QTE. This is called every frame by StateHandler.
-		 */
+		/**  Updates the current QTE. This is called every frame by StateHandler. */
 		public void UpdateQTE ()
 		{
 			if (endTime <= 0f)
@@ -290,12 +326,11 @@ namespace AC
 				return;
 			}
 
-			if (Time.time > endTime)
+			if (!isIndefinite && Time.time > endTime)
 			{
 				Lose ();
 				return;
 			}
-
 			switch (qteType)
 			{
 				case QTEType.SingleKeypress:
@@ -315,7 +350,7 @@ namespace AC
 							Win ();
 							return;
 						}
-						else if (wrongKeyFails && KickStarter.playerInput.InputAnyKey () && KickStarter.playerInput.GetMouseState () == MouseState.Normal)
+						else if (wrongKeyFails && KickStarter.playerInput.InputAnyKeyDown () && KickStarter.playerInput.GetMouseState () == MouseState.Normal)
 						{
 							Lose ();
 							return;
@@ -370,6 +405,31 @@ namespace AC
 								return;
 							}
 						}
+						else if (lastPressTime > 0f)
+						{
+							switch (qteHoldReleaseBehaviour)
+							{
+								case QTEHoldReleaseBehaviour.Fail:
+									Lose ();
+									return;
+
+								case QTEHoldReleaseBehaviour.Preserve:
+									lastPressTime += Time.deltaTime;
+									break;
+
+								case QTEHoldReleaseBehaviour.Cooldown:
+									lastPressTime += Time.deltaTime * 2f;
+									if (lastPressTime >= Time.time) lastPressTime = 0f;
+									break;
+
+								case QTEHoldReleaseBehaviour.Reset:
+									lastPressTime = 0f;
+									break;
+
+								default:
+									break;
+							}
+						}
 						else
 						{
 							lastPressTime = 0f;
@@ -393,6 +453,31 @@ namespace AC
 						{
 							Lose ();
 							return;
+						}
+						else if (lastPressTime > 0f)
+						{
+							switch (qteHoldReleaseBehaviour)
+							{
+								case QTEHoldReleaseBehaviour.Fail:
+									Lose ();
+									return;
+
+								case QTEHoldReleaseBehaviour.Preserve:
+									lastPressTime += Time.deltaTime;
+									break;
+
+								case QTEHoldReleaseBehaviour.Cooldown:
+									lastPressTime += Time.deltaTime * 2f;
+									if (lastPressTime >= Time.time) lastPressTime = 0f;
+									break;
+
+								case QTEHoldReleaseBehaviour.Reset:
+									lastPressTime = 0f;
+									break;
+
+								default:
+									break;
+							}
 						}
 						else
 						{
@@ -577,7 +662,7 @@ namespace AC
 		protected void Setup (QTEType _qteType, string _inputName, float _duration, Animator _animator, bool _wrongKeyFails, float _axisThreshold)
 		{
 			qteType = _qteType;
-			qteState = QTEState.None;
+			qteState = QTEState.Running;
 
 			progress = 0f;
 			inputName = _inputName;
@@ -588,6 +673,12 @@ namespace AC
 			lastPressTime = 0f;
 			endTime = Time.time + _duration;
 			axisThreshold = _axisThreshold;
+			isIndefinite = _duration < 0f;
+			
+			if (isIndefinite)
+			{
+				endTime = 1f;
+			}
 
 			KickStarter.eventManager.Call_OnQTEBegin (qteType, inputName, _duration);
 		}

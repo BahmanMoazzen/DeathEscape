@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2024
  *	
  *	"ActionSceneAdd.cs"
  * 
@@ -32,6 +32,7 @@ namespace AC
 		public int sceneNumber;
 		public int sceneNumberParameterID = -1;
 		public string sceneName;
+		private string runtimeSceneName;
 		public int sceneNameParameterID = -1;
 
 		protected bool awaitingCallback = false;
@@ -46,7 +47,8 @@ namespace AC
 		public override void AssignValues (List<ActionParameter> parameters)
 		{
 			sceneNumber = AssignInteger (parameters, sceneNumberParameterID, sceneNumber);
-			sceneName = AssignString (parameters, sceneNameParameterID, sceneName);
+			runtimeSceneName = AssignString (parameters, sceneNameParameterID, sceneName);
+			runtimeSceneName = AdvGame.ConvertTokens (runtimeSceneName, Options.GetLanguage ());
 		}
 		
 		
@@ -64,37 +66,14 @@ namespace AC
 					ACDebug.LogError ("The current scene overrides the default camera perspective - this feature should not be used in conjunction with multiple-open scenes.");
 				}
 
-				int runtimeSceneIndex = (chooseSceneBy == ChooseSceneBy.Name) ? KickStarter.sceneChanger.NameToIndex (sceneName) : sceneNumber;
-
-				switch (sceneAddRemove)
+				switch (KickStarter.settingsManager.referenceScenesInSave)
 				{
-					case SceneAddRemove.Add:
-						if (KickStarter.sceneChanger.AddSubScene (runtimeSceneIndex))
-						{
-							awaitingCallback = true;
-							return defaultPauseTime;
-						}
+					case ChooseSceneBy.Name:
+						return UpdateSceneByName ();
 
-						if (runCutsceneIfAlreadyOpen && runCutsceneOnStart)
-						{
-							foreach (SubScene subScene in KickStarter.sceneChanger.SubScenes)
-							{
-								if (subScene.SceneIndex == runtimeSceneIndex)
-								{
-									PlayStartCutscene (subScene.SceneSettings);
-									break;
-								}
-							}
-						}
-						break;
-
-					case SceneAddRemove.Remove:
-						KickStarter.sceneChanger.RemoveScene (runtimeSceneIndex);
-						awaitingCallback = true;
-						return defaultPauseTime;
-
+					case ChooseSceneBy.Number:
 					default:
-						break;
+						return UpdateSceneByNumber ();
 				}
 			}
 			else
@@ -109,6 +88,88 @@ namespace AC
 			}
 
 			RemoveEventHooks ();
+			return 0f;
+		}
+
+
+		private float UpdateSceneByName ()
+		{
+			string runtimeSceneName = (chooseSceneBy == ChooseSceneBy.Name) ? sceneName : KickStarter.sceneChanger.IndexToName (sceneNumber);
+			runtimeSceneName = AdvGame.ConvertTokens (runtimeSceneName, Options.GetLanguage ());
+			
+			if (string.IsNullOrEmpty (runtimeSceneName)) return 0f;
+
+			switch (sceneAddRemove)
+			{
+				case SceneAddRemove.Add:
+					if (KickStarter.sceneChanger.AddSubScene (runtimeSceneName))
+					{
+						awaitingCallback = true;
+						return defaultPauseTime;
+					}
+
+					if (runCutsceneIfAlreadyOpen && runCutsceneOnStart)
+					{
+						foreach (SubScene subScene in KickStarter.sceneChanger.SubScenes)
+						{
+							if (subScene.SceneName == runtimeSceneName)
+							{
+								PlayStartCutscene (subScene.SceneSettings);
+								break;
+							}
+						}
+					}
+					break;
+
+				case SceneAddRemove.Remove:
+					KickStarter.sceneChanger.RemoveScene (runtimeSceneName);
+					awaitingCallback = true;
+					return defaultPauseTime;
+
+				default:
+					break;
+			}
+
+			return 0f;
+		}
+
+
+		private float UpdateSceneByNumber ()
+		{
+			int runtimeSceneIndex = (chooseSceneBy == ChooseSceneBy.Name) ? KickStarter.sceneChanger.NameToIndex (sceneName) : sceneNumber;
+			if (runtimeSceneIndex < 0) return 0f;
+
+			switch (sceneAddRemove)
+			{
+				case SceneAddRemove.Add:
+					if (KickStarter.sceneChanger.AddSubScene (runtimeSceneIndex))
+					{
+						awaitingCallback = true;
+						return defaultPauseTime;
+					}
+
+					if (runCutsceneIfAlreadyOpen && runCutsceneOnStart)
+					{
+						foreach (SubScene subScene in KickStarter.sceneChanger.SubScenes)
+						{
+							if (subScene.SceneIndex == runtimeSceneIndex)
+							{
+								PlayStartCutscene (subScene.SceneSettings);
+								break;
+							}
+						}
+					}
+					break;
+
+				case SceneAddRemove.Remove:
+					KickStarter.sceneChanger.RemoveScene (runtimeSceneIndex);
+					awaitingCallback = true;
+					return defaultPauseTime;
+
+				default:
+					break;
+			}
+
 			return 0f;
 		}
 
@@ -150,8 +211,19 @@ namespace AC
 
 				if (!found)
 				{
-					int runtimeSceneIndex = (chooseSceneBy == ChooseSceneBy.Name) ? KickStarter.sceneChanger.NameToIndex (sceneName) : sceneNumber;
-					LogWarning ("Could not find SubScene class for scene " + runtimeSceneIndex + " - is it added to Unity's Build Settings?\nIf this is a non-AC scene, add a SubScene component to it and check 'Self Initialise'.");
+					switch (KickStarter.settingsManager.referenceScenesInSave)
+					{
+						case ChooseSceneBy.Name:
+							string runtimeSceneName = (chooseSceneBy == ChooseSceneBy.Name) ? sceneName : KickStarter.sceneChanger.IndexToName (sceneNumber);
+							LogWarning ("Could not find SubScene class for scene " + runtimeSceneName + " - is it added to Unity's Build Settings?\nIf this is a non-AC scene, add a SubScene component to it and check 'Self Initialise'.");
+							break;
+
+						case ChooseSceneBy.Number:
+						default:
+							int runtimeSceneIndex = (chooseSceneBy == ChooseSceneBy.Name) ? KickStarter.sceneChanger.NameToIndex (sceneName) : sceneNumber;
+							LogWarning ("Could not find SubScene class for scene " + runtimeSceneIndex + " - is it added to Unity's Build Settings?\nIf this is a non-AC scene, add a SubScene component to it and check 'Self Initialise'.");
+							break;
+					}
 				}
 
 				awaitingCallback = false;
@@ -203,19 +275,11 @@ namespace AC
 			chooseSceneBy = (ChooseSceneBy) EditorGUILayout.EnumPopup ("Choose scene by:", chooseSceneBy);
 			if (chooseSceneBy == ChooseSceneBy.Name)
 			{
-				sceneNameParameterID = Action.ChooseParameterGUI ("Scene name:", parameters, sceneNameParameterID, ParameterType.String);
-				if (sceneNameParameterID < 0)
-				{
-					sceneName = EditorGUILayout.TextField ("Scene name:", sceneName);
-				}
+				TextField ("Scene name:", ref sceneName, parameters, ref sceneNameParameterID);
 			}
 			else
 			{
-				sceneNumberParameterID = Action.ChooseParameterGUI ("Scene number:", parameters, sceneNumberParameterID, ParameterType.Integer);
-				if (sceneNumberParameterID < 0)
-				{
-					sceneNumber = EditorGUILayout.IntField ("Scene number:", sceneNumber);
-				}
+				IntField ("Scene number:", ref sceneNumber, parameters, ref sceneNumberParameterID);
 			}
 
 			if (sceneAddRemove == SceneAddRemove.Add)

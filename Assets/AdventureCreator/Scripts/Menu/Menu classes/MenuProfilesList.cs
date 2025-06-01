@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2024
  *	
  *	"MenuProfilesList.cs"
  * 
@@ -18,9 +18,7 @@ using UnityEditor;
 namespace AC
 {
 
-	/**
-	 * This MenuElement lists any save profiles found on by SaveSystem.
-	 */
+	/** This MenuElement lists any save profiles found on by SaveSystem. */
 	public class MenuProfilesList : MenuElement
 	{
 
@@ -30,6 +28,8 @@ namespace AC
 		public TextEffects textEffects;
 		/** The outline thickness, if textEffects != TextEffects.None */
 		public float outlineSize = 2f;
+		/** The outline colour */
+		public Color effectColour = Color.black;
 		/** The text alignment */
 		public TextAnchor anchor;
 		/** The maximum number of profiles that can be displayed at once */
@@ -55,9 +55,6 @@ namespace AC
 		private string[] labels = null;
 
 
-		/**
-		 * Initialises the element when it is created within MenuManager.
-		 */
 		public override void Declare ()
 		{
 			uiSlots = null;
@@ -74,6 +71,7 @@ namespace AC
 			actionListOnClick = null;
 			textEffects = TextEffects.None;
 			outlineSize = 2f;
+			effectColour = Color.black;
 			uiHideStyle = UIHideStyle.DisableObject;
 
 			fixedOption = false;
@@ -107,11 +105,13 @@ namespace AC
 				for (int i=0; i<uiSlots.Length; i++)
 				{
 					uiSlots[i] = new UISlot (_element.uiSlots[i]);
+					uiSlots[i].uiButton = null;
 				}
 			}
 			
 			textEffects = _element.textEffects;
 			outlineSize = _element.outlineSize;
+			effectColour = _element.effectColour;
 			anchor = _element.anchor;
 			maxSlots = _element.maxSlots;
 			actionListOnClick = _element.actionListOnClick;
@@ -132,7 +132,7 @@ namespace AC
 			int i=0;
 			foreach (UISlot uiSlot in uiSlots)
 			{
-				uiSlot.LinkUIElements (canvas, linkUIGraphic);
+				uiSlot.LinkUIElements (_menu, canvas, linkUIGraphic);
 				if (addEventListeners)
 				{
 					if (uiSlot != null && uiSlot.uiButton)
@@ -143,6 +143,7 @@ namespace AC
 						});
 					}
 				}
+				CreateHoverSoundHandler (uiSlot.uiButton, _menu, i);
 				i++;
 			}
 		}
@@ -158,20 +159,12 @@ namespace AC
 		}
 
 
-		/**
-		 * Hides all linked Unity UI GameObjects associated with the element.
-		 */
 		public override void HideAllUISlots ()
 		{
 			LimitUISlotVisibility (uiSlots, 0, uiHideStyle);
 		}
 		
 
-		/**
-		 * <summary>Gets the boundary of a slot</summary>
-		 * <param name = "_slot">The index number of the slot to get the boundary of</param>
-		 * <returns>The boundary Rect of the slot</returns>
-		 */
 		public override RectTransform GetRectTransform (int _slot)
 		{
 			if (uiSlots != null && uiSlots.Length > _slot)
@@ -190,7 +183,7 @@ namespace AC
 		
 		#if UNITY_EDITOR
 		
-		public override void ShowGUI (Menu menu)
+		public override void ShowGUI (Menu menu, System.Action<ActionListAsset> showALAEditor)
 		{
 			string apiPrefix = "(AC.PlayerMenus.GetElementWithName (\"" + menu.title + "\", \"" + title + "\") as AC.MenuProfilesList)";
 
@@ -233,11 +226,11 @@ namespace AC
 
 			if (autoHandle)
 			{
-				ActionListGUI ("ActionList after selecting:", menu.title, "After_Selecting", apiPrefix, "The ActionList asset to run once a profile has been switched to");
+				ActionListGUI ("ActionList after selecting:", menu.title, "After_Selecting", apiPrefix, "The ActionList asset to run once a profile has been switched to", showALAEditor);
 			}
 			else
 			{
-				ActionListGUI ("ActionList when click:", menu.title, "When_Click", apiPrefix, "The ActionList asset to run once a profile has been clicked on");
+				ActionListGUI ("ActionList when click:", menu.title, "When_Click", apiPrefix, "The ActionList asset to run once a profile has been clicked on", showALAEditor);
 			}
 
 			if (source != MenuSource.AdventureCreator)
@@ -250,7 +243,7 @@ namespace AC
 				uiSlots = ResizeUISlots (uiSlots, maxSlots);
 				for (int i=0; i<uiSlots.Length; i++)
 				{
-					uiSlots[i].LinkedUiGUI (i, source);
+					uiSlots[i].LinkedUiGUI (i, menu);
 				}
 
 				linkUIGraphic = (LinkUIGraphic) CustomGUILayout.EnumPopup ("Link graphics to:", linkUIGraphic, "", "What Image component the element's graphics should be linked to");
@@ -258,7 +251,7 @@ namespace AC
 			
 			CustomGUILayout.EndVertical ();
 			
-			base.ShowGUI (menu);
+			base.ShowGUI (menu, showALAEditor);
 		}
 
 
@@ -268,14 +261,15 @@ namespace AC
 			textEffects = (TextEffects) CustomGUILayout.EnumPopup ("Text effect:", textEffects, apiPrefix + ".anchor");
 			if (textEffects != TextEffects.None)
 			{
-				outlineSize = CustomGUILayout.Slider ("Effect size:", outlineSize, 1f, 5f, apiPrefix + ".outlineSize", "The outline thickness");
+				outlineSize = CustomGUILayout.Slider ("Effect size:", outlineSize, 1f, 5f, apiPrefix + ".outlineSize", "The effect thickness");
+				effectColour = CustomGUILayout.ColorField ("Effect colour:", effectColour, apiPrefix + ".effectColour", "The effect colour");
 			}
 		}
 
 
-		private void ActionListGUI (string label, string menuTitle, string suffix, string apiPrefix, string tooltip)
+		private void ActionListGUI (string label, string menuTitle, string suffix, string apiPrefix, string tooltip, System.Action<ActionListAsset> showALAEditor)
 		{
-			actionListOnClick = ActionListAssetMenu.AssetGUI (label, actionListOnClick, menuTitle + "_" + title + "_" + suffix, apiPrefix + ".actionListOnClick", tooltip);
+			actionListOnClick = ActionListAssetMenu.AssetGUI (label, actionListOnClick, menuTitle + "_" + title + "_" + suffix, apiPrefix + ".actionListOnClick", tooltip, null, showALAEditor);
 			
 			if (actionListOnClick && actionListOnClick.NumParameters > 0)
 			{
@@ -320,11 +314,19 @@ namespace AC
 		}
 
 
-		/**
-		 * <summary>Shifts which slots are on display, if the number of slots the element has exceeds the number of slots it can show at once.</summary>
-		 * <param name = "shiftType">The direction to shift slots in (Left, Right)</param>
-		 * <param name = "amount">The amount to shift slots by</param>
-		 */
+		public override int GetSlotIndex (GameObject gameObject)
+		{
+			for (int i = 0; i < uiSlots.Length; i++)
+			{
+				if (uiSlots[i].uiButton && uiSlots[i].uiButton == gameObject)
+				{
+					return i;
+				}
+			}
+			return base.GetSlotIndex (gameObject);
+		}
+
+
 		public override void Shift (AC_ShiftInventory shiftType, int amount)
 		{
 			if (fixedOption) return;
@@ -336,11 +338,6 @@ namespace AC
 		}
 
 
-		/**
-		 * <summary>Checks if the element's slots can be shifted in a particular direction.</summary>
-		 * <param name = "shiftType">The direction to shift slots in (Left, Right)</param>
-		 * <returns>True if the element's slots can be shifted in the particular direction</returns>
-		 */
 		public override bool CanBeShifted (AC_ShiftInventory shiftType)
 		{
 			if (numSlots == 0 || fixedOption)
@@ -380,12 +377,6 @@ namespace AC
 		}
 		
 
-		/**
-		 * <summary>Gets the display text of the element</summary>
-		 * <param name = "slot">The index number of the slot</param>
-		 * <param name = "languageNumber">The index number of the language number to get the text in</param>
-		 * <returns>The display text of the element's slot, or the whole element if it only has one slot</returns>
-		 */
 		public override string GetLabel (int slot, int languageNumber)
 		{
 			if (Application.isPlaying)
@@ -416,6 +407,16 @@ namespace AC
 			}
 			return false;
 		}
+
+
+		public override bool IsSelectableInteractable (int slotIndex)
+		{
+			if (uiSlots != null && slotIndex >= 0 && uiSlots.Length > slotIndex && uiSlots[slotIndex] != null && uiSlots[slotIndex].uiButton)
+			{
+				return uiSlots[slotIndex].uiButton.IsInteractable ();
+			}
+			return false;
+		}
 		
 
 		public override void PreDisplay (int _slot, int languageNumber, bool isActive)
@@ -443,13 +444,6 @@ namespace AC
 		}
 		
 	
-		/**
-		 * <summary>Draws the element using OnGUI</summary>
-		 * <param name = "_style">The GUIStyle to draw with</param>
-		 * <param name = "_slot">The index number of the slot to display</param>
-		 * <param name = "zoom">The zoom factor</param>
-		 * <param name = "isActive If True, then the element will be drawn as though highlighted</param>
-		 */
 		public override void Display (GUIStyle _style, int _slot, float zoom, bool isActive)
 		{
 			base.Display (_style, _slot, zoom, isActive);
@@ -467,7 +461,7 @@ namespace AC
 
 			if (textEffects != TextEffects.None)
 			{
-				AdvGame.DrawTextEffect (ZoomRect (GetSlotRectRelative (_slot), zoom), labels[_slot], _style, Color.black, _style.normal.textColor, outlineSize, textEffects);
+				AdvGame.DrawTextEffect (ZoomRect (GetSlotRectRelative (_slot), zoom), labels[_slot], _style, effectColour, _style.normal.textColor, outlineSize, textEffects);
 			}
 			else
 			{
@@ -516,11 +510,6 @@ namespace AC
 		}
 
 
-		/**
-		 * <summary>Recalculates the element's size.
-		 * This should be called whenever a Menu's shape is changed.</summary>
-		 * <param name = "source">How the parent Menu is displayed (AdventureCreator, UnityUiPrefab, UnityUiInScene)</param>
-		 */
 		public override void RecalculateSize (MenuSource source)
 		{
 			if (Application.isPlaying)

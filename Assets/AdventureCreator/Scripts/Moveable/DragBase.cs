@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2024
  *	
  *	"DragBase.cs"
  * 
@@ -62,11 +62,11 @@ namespace AC
 		/** The minimum speed that the object must be moving by for sound to play */
 		public float slideSoundThreshold = 0.03f;
 		/** The factor by which the movement sound's pitch is adjusted in relation to speed */
-		public float slidePitchFactor = 1f;
+		public float slidePitchFactor = 50f;
 		/** If True, then the collision sound will only play when the object collides with its lower boundary collider */
 		public bool onlyPlayLowerCollisionSound = false;
 
-		/** If True, then the Physics system will ignore collisions between this object and the bounday colliders of any DragTrack that this is not locked to */
+		/** If True, then the Physics system will ignore collisions between this object and the boundary colliders of any DragTrack that this is not locked to */
 		public bool ignoreMoveableRigidbodies;
 		/** If True, then the Physics system will ignore collisions between this object and the player */
 		public bool ignorePlayerCollider;
@@ -87,7 +87,10 @@ namespace AC
 
 		protected CursorIconBase icon;
 		protected Sound collideSound;
-		protected Sound moveSound;
+
+		/** The Sound component to play move sounds from */
+		public Sound moveSound;
+		private float lerpSpeed;
 		protected bool isOn = true;
 
 		#endregion
@@ -104,14 +107,15 @@ namespace AC
 			grabPoint = newOb.transform;
 			grabPoint.parent = this.transform;
 
-			if (moveSoundClip)
+			if (moveSoundClip && moveSound == null)
 			{
 				GameObject newSoundOb = new GameObject ();
 				newSoundOb.name = this.name + " (Move sound)";
 				newSoundOb.transform.parent = this.transform;
 				newSoundOb.AddComponent <Sound>();
-				newSoundOb.GetComponent <AudioSource>().playOnAwake = false;
 				moveSound = newSoundOb.GetComponent <Sound>();
+				moveSound.audioSource.playOnAwake = false;
+				moveSound.audioSource.spatialBlend = SceneSettings.IsUnity2D () ? 0f : 1f;
 			}
 
 			icon = GetMainIcon ();
@@ -148,9 +152,7 @@ namespace AC
 		}
 
 
-		/**
-		 * Called every frame by StateHandler.
-		 */
+		/** Called every frame by StateHandler. */
 		public virtual void UpdateMovement ()
 		{}
 
@@ -239,18 +241,14 @@ namespace AC
 		}
 
 
-		/**
-		 * If True, 'ToggleCursor' can be used while the object is held.
-		 */
+		/** If True, 'ToggleCursor' can be used while the object is held. */
 		public virtual bool CanToggleCursor ()
 		{
 			return false;
 		}
 
 
-		/**
-		 * Draws an icon at the point of contact on the object, if appropriate.
-		 */
+		/** Draws an icon at the point of contact on the object, if appropriate. */
 		public virtual void DrawGrabIcon ()
 		{
 			if (isHeld && showIcon && KickStarter.CameraMain.WorldToScreenPoint (Transform.position).z > 0f && icon != null)
@@ -269,18 +267,16 @@ namespace AC
 		{
 			isHeld = true;
 			grabPoint.position = grabPosition;
-			originalDrag = _rigidbody.drag;
-			originalAngularDrag = _rigidbody.angularDrag;
-			_rigidbody.drag = 20f;
-			_rigidbody.angularDrag = 20f;
+			originalDrag = UnityVersionHandler.GetRigidbodyDrag (_rigidbody);
+			originalAngularDrag = UnityVersionHandler.GetRigidbodyAngularDrag (_rigidbody);
+			UnityVersionHandler.SetRigidbodyDrag (_rigidbody, 20f);
+			UnityVersionHandler.SetRigidbodyAngularDrag (_rigidbody, 20f);
 
 			KickStarter.eventManager.Call_OnGrabMoveable (this);
 		}
 
 
-		/**
-		 * Detaches the object from the player's control.
-		 */
+		/** Detaches the object from the player's control. */
 		public virtual void LetGo (bool ignoreInteractions = false)
 		{
 			isHeld = false;
@@ -427,22 +423,24 @@ namespace AC
 
 		protected void PlayMoveSound (float speed)
 		{
-			if (slidePitchFactor > 0f)
+			lerpSpeed = Mathf.Lerp (lerpSpeed, speed, Time.deltaTime * ((speed > 0f) ? 10f : 10000f));
+			if (lerpSpeed > slideSoundThreshold)
 			{
-				float targetPitch = Mathf.Min (1f, speed * slidePitchFactor);
-				moveSound.audioSource.pitch = Mathf.Lerp (moveSound.audioSource.pitch, targetPitch, Time.deltaTime * 3f);
-			}
+				if (slidePitchFactor > 0f)
+				{
+					float targetPitch = Mathf.Min (1f, lerpSpeed * slidePitchFactor);
+					moveSound.audioSource.pitch = Mathf.Lerp (moveSound.audioSource.pitch, targetPitch, Time.deltaTime * 3f);
+				}
 
-			if (speed > slideSoundThreshold)
-			{
 				if (!moveSound.IsPlaying ())
 				{
 					moveSound.Play (moveSoundClip, true);
 				}
+				moveSound.SetVolume (1f);
 			}
-			else if (moveSound.IsPlaying () && !moveSound.IsFading ())
+			else
 			{
-				moveSound.FadeOut (0.2f);
+				moveSound.SetVolume (Mathf.MoveTowards (moveSound.audioSource.volume, 0f, Time.deltaTime * 60f));
 			}
 		}
 
@@ -466,7 +464,7 @@ namespace AC
 				if ((distanceToCamera < minZoom && zoom < 0f) || (distanceToCamera > maxZoom && zoom > 0f))
 				{
 					_rigidbody.AddForce (-moveVector * zoom * zoomSpeed);
-					_rigidbody.velocity = Vector3.zero;
+					UnityVersionHandler.SetRigidbodyVelocity (_rigidbody, Vector3.zero);
 				}
 				else
 				{
@@ -526,18 +524,9 @@ namespace AC
 					Physics.IgnoreCollision (_collider1, _collider2, true);
 				}
 
-				if (ignorePlayerCollider && KickStarter.player)
-				{
-					Collider[] playerColliders = KickStarter.player.gameObject.GetComponentsInChildren<Collider> ();
-					foreach (Collider playerCollider in playerColliders)
-					{
-						Physics.IgnoreCollision (playerCollider, _collider1, true);
-					}
-				}
-
 				if (ignoreMoveableRigidbodies)
 				{
-					Collider[] allColliders = FindObjectsOfType (typeof (Collider)) as Collider[];
+					Collider[] allColliders = UnityVersionHandler.FindObjectsOfType<Collider> ();
 					foreach (Collider allCollider in allColliders)
 					{
 						if (allCollider == _collider1) continue;
@@ -550,6 +539,27 @@ namespace AC
 							}
 						}
 					}
+				}
+			}
+
+			LimitPlayerCollisions ();
+		}
+
+
+		protected void LimitPlayerCollisions ()
+		{
+			if (KickStarter.player == null || !ignorePlayerCollider) return;
+
+			Collider[] ownColliders = GetComponentsInChildren<Collider> ();
+
+			foreach (Collider _collider1 in ownColliders)
+			{
+				if (_collider1.isTrigger) continue;
+
+				Collider[] playerColliders = KickStarter.player.gameObject.GetComponentsInChildren<Collider> ();
+				foreach (Collider playerCollider in playerColliders)
+				{
+					Physics.IgnoreCollision (playerCollider, _collider1, true);
 				}
 			}
 		}

@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿#if UNITY_EDITOR
+
+using UnityEngine;
 using UnityEditor;
 using System.Collections.Generic;
 
@@ -11,8 +13,25 @@ namespace AC
 
 		public void SnapDataGUI (DragTrack _target, bool useAngles)
 		{
+			CustomGUILayout.Header ("Snapping");
 			CustomGUILayout.BeginVertical ();
-			EditorGUILayout.LabelField ("Track regions", EditorStyles.boldLabel);
+
+			_target.doSnapping = CustomGUILayout.Toggle ("Enable region snapping?", _target.doSnapping, string.Empty, "If True, then snapping is enabled and any object attached to the track can snap to pre-set regions along it when let go by the player");
+			if (_target.doSnapping)
+			{
+				if (_target.allTrackSnapData.Count == 0)
+				{
+					EditorGUILayout.HelpBox ("At least one Track region must be defined below.", MessageType.Warning);
+				}
+				_target.snapSpeed = CustomGUILayout.FloatField ("Snap speed:", _target.snapSpeed, string.Empty, "The speed to move by when attached objects snap");
+				_target.onlySnapOnPlayerRelease = CustomGUILayout.Toggle ("Only snap on release?", _target.onlySnapOnPlayerRelease, string.Empty, "If True, then snapping will only occur when the player releases the object - and not when moving on its own accord");
+				_target.actionListSource = (ActionListSource) CustomGUILayout.EnumPopup ("ActionList source:", _target.actionListSource, string.Empty, "The source of ActionLists that can be run when a draggable option snaps to a region.");
+			}
+
+			CustomGUILayout.EndVertical ();
+
+			CustomGUILayout.Header ("Track regions");
+			CustomGUILayout.BeginVertical ();
 
 			for (int i=0; i<_target.allTrackSnapData.Count; i++)
 			{
@@ -28,12 +47,12 @@ namespace AC
 				}
 				EditorGUILayout.EndHorizontal ();
 
-				_target.allTrackSnapData[i] = _target.allTrackSnapData[i].ShowGUI (_target, useAngles);
+				_target.allTrackSnapData[i] = _target.allTrackSnapData[i].ShowGUI (_target, useAngles, ActionListEditorWindow.Init, ActionListEditorWindow.Init);
 				EditorGUILayout.Space ();
 
 				if (i < _target.allTrackSnapData.Count - 1)
 				{ 
-					GUILayout.Box(string.Empty, GUILayout.ExpandWidth(true), GUILayout.Height(1));
+					GUILayout.Box (string.Empty, GUILayout.ExpandWidth(true), GUILayout.Height(1));
 				}
 			}
 			if (GUILayout.Button ("Create new track region"))
@@ -44,23 +63,6 @@ namespace AC
 			}
 
 			CustomGUILayout.EndVertical ();
-
-			if (_target.allTrackSnapData.Count > 0)
-			{
-				CustomGUILayout.BeginVertical ();
-				EditorGUILayout.LabelField ("Snapping", EditorStyles.boldLabel);
-
-				_target.doSnapping = CustomGUILayout.Toggle ("Enable region snapping?", _target.doSnapping, string.Empty, "If True, then snapping is enabled and any object attached to the track can snap to pre-set regions along it when let go by the player");
-				if (_target.doSnapping)
-				{
-					_target.snapSpeed = CustomGUILayout.FloatField ("Snap speed:", _target.snapSpeed, string.Empty, "The speed to move by when attached objects snap");
-					_target.onlySnapOnPlayerRelease = CustomGUILayout.Toggle ("Only snap on release?", _target.onlySnapOnPlayerRelease, string.Empty, "If True, then snapping will only occur when the player releases the object - and not when moving on its own accord");
-					_target.actionListSource = (ActionListSource) CustomGUILayout.EnumPopup ("ActionList source:", _target.actionListSource, string.Empty, "The source of ActionLists that can be run when a draggable option snaps to a region.");
-				}
-
-				CustomGUILayout.EndVertical ();
-			}
-
 
 			UnityVersionHandler.CustomSetDirty (_target);
 		}
@@ -83,3 +85,5 @@ namespace AC
 	}
 
 }
+
+#endif

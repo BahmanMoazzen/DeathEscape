@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2024
  *	
  *	"TrackSnapConnection.cs"
  * 
@@ -48,7 +48,7 @@ namespace AC
 					return connectedTrack.GetForceDotProduct(dragForce, draggable);
 					
 				case DragMovementCalculation.CursorPosition:
-					return connectedTrack.GetMinDistanceToScreenPoint (KickStarter.playerInput.GetMousePosition());
+					return connectedTrack.GetMinDistanceToScreenPoint (KickStarter.playerInput.GetMousePosition (), draggable);
 
 				default:
 					return 0f;

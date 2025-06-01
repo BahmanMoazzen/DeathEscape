@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2024
  *	
  *	"_Camera.cs"
  * 
@@ -35,6 +35,9 @@ namespace AC
 		/** The camera's focal distance */
 		public float focalDistance = 10f;
 
+		/** If True, the camera will not be frozen while the game is paused */
+		[HideInInspector] public bool updateWhilePaused = false;
+		
 		private Transform _transform;
 		private Transform _cameraTransform;
 
@@ -51,11 +54,18 @@ namespace AC
 
 		protected virtual void Awake ()
 		{
-			if (Camera && Camera == GetComponent <Camera>())
+			if (Camera)
 			{
 				if (KickStarter.mainCamera)
 				{
-					Camera.enabled = false;
+					if (KickStarter.mainCamera.Camera != Camera)
+					{
+						Camera.enabled = false;
+					}
+					else
+					{
+						ACDebug.LogWarning ("The AC MainCamera has a " + GetType ().Name + " component attached - this should be on a separate GameObject.", this);
+					}
 				}
 			}
 
@@ -132,9 +142,7 @@ namespace AC
 		{}
 
 
-		/**
-		 * Auto-assigns "target" as the Player prefab Transform if targetIsPlayer = True.
-		 */
+		/** Auto-assigns "target" as the Player prefab Transform if targetIsPlayer = True. */
 		public virtual void ResetTarget ()
 		{
 			if (targetIsPlayer && KickStarter.player)
@@ -144,17 +152,13 @@ namespace AC
 		}
 
 
-		/**
-		 * Moves the camera instantly to its destination.
-		 */
+		/** Moves the camera instantly to its destination. */
 		public virtual void MoveCameraInstant ()
 		{ }
 
 
 
-		/**
-		 * Enables the camera for split-screen, using the MainCamera as the "main" part of the split, with all the data.
-		 */
+		/** Enables the camera for split-screen, using the MainCamera as the "main" part of the split, with all the data. */
 		public void SetSplitScreen ()
 		{
 			Camera.enabled = true;
@@ -162,9 +166,7 @@ namespace AC
 		}
 
 
-		/**
-		 * Removes the split-screen effect on this camera.
-		 */
+		/** Removes the split-screen effect on this camera. */
 		public void RemoveSplitScreen ()
 		{
 			if (Camera.enabled)
@@ -196,6 +198,28 @@ namespace AC
 				return (KickStarter.mainCamera.attachedCamera == this);
 			}
 			return false;
+		}
+
+
+		/** Makes the Camera the MainCamera's active camera (attachedCamera) */
+		[ContextMenu("Make active")]
+		public void MakeActive()
+		{
+			if (Application.isPlaying)
+			{
+				if (KickStarter.mainCamera)
+				{
+					KickStarter.mainCamera.SetGameCamera (this);
+				}
+				else
+				{
+					ACDebug.LogWarning ("Cannot find a MainCamera in the scene!");
+				}
+			}
+			else
+			{
+				ACDebug.Log ("Cannot switch active camera outside of Play mode.");
+			}
 		}
 
 		#endregion
@@ -361,32 +385,17 @@ namespace AC
 			}
 		}
 
-		#endregion
 
-
-		#if UNITY_EDITOR
-
-		[ContextMenu ("Make active")]
-		protected void MakeActive ()
+		/** If True, then the influence of the cursor (if any) will cause a change in position, rather than rotation */
+		public virtual bool CursorOffsetForcesTranslation
 		{
-			if (Application.isPlaying)
+			get
 			{
-				if (KickStarter.mainCamera)
-				{
-					KickStarter.mainCamera.SetGameCamera (this);
-				}
-				else
-				{
-					ACDebug.LogWarning ("Cannot find a MainCamera in the scene!");
-				}
-			}
-			else
-			{
-				ACDebug.Log ("Cannot switch active camera outside of Play mode.");
+				return false;
 			}
 		}
 
-		#endif
+		#endregion
 
 	}
 

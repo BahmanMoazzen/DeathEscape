@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿#if UNITY_EDITOR
+
+using UnityEngine;
 using UnityEditor;
 
 namespace AC
@@ -12,6 +14,8 @@ namespace AC
 		{
 			TintMap _target = (TintMap) target;
 
+			CustomGUILayout.Header ("Properties");
+			CustomGUILayout.BeginVertical ();
 			_target.tintMapTexture = (Texture2D) CustomGUILayout.ObjectField <Texture2D> ("Texture to use (optional):", _target.tintMapTexture, false, "", "An optional texture to make use of.  If this field is empty, then the texture found on the attached MeshRenderer's material will be used instead");
 			if (_target.tintMapTexture && !Application.isPlaying)
 			{
@@ -19,6 +23,7 @@ namespace AC
 			}
 			_target.colorModifier = EditorGUILayout.ColorField ("Color modifier:", _target.colorModifier);
 			_target.disableRenderer = CustomGUILayout.Toggle ("Disable mesh renderer?", _target.disableRenderer, "", "If True, then the MeshRenderer component will be disabled automatically when the game begins");
+			CustomGUILayout.EndVertical ();
 
 			UnityVersionHandler.CustomSetDirty (_target);
 		}
@@ -26,3 +31,5 @@ namespace AC
 	}
 
 }
+
+#endif

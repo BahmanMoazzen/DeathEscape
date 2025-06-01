@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2024
  *	
  *	"HeldObjectData.cs"
  * 
@@ -24,6 +24,7 @@ namespace AC
 		private Vector3 dragForce;
 		private bool ignoreDragState;
 		private int touchIndex = -1;
+		private bool ignoreBuiltInDragInput;
 
 		#endregion
 
@@ -37,8 +38,10 @@ namespace AC
 		public HeldObjectData (DragBase _dragBase)
 		{
 			dragBase = _dragBase;
-			touchIndex = -1;
+			//touchIndex = -1;
+			touchIndex = KickStarter.playerInput.InputTouchCount () - 1;
 			ignoreDragState = false;
+			ignoreBuiltInDragInput = false;
 		}
 
 		#endregion
@@ -48,20 +51,20 @@ namespace AC
 
 		/**
 		 * <summary>Attempts to release the object</summary>
-		 * <param name="force">If True, the object will be released for certain. Otherwise, it will only be released if natural conditions mean it should be.</param>
+		 * <param name = "force">If True, the object will be released for certain. Otherwise, it will only be released if natural conditions mean it should be.</param>
 		 */
 		public void AttemptRelease (bool force)
 		{
 			if (!force &&
 				dragBase.IsHeld &&
 				dragBase.IsOnScreen () &&
-				dragBase.IsCloseToCamera (KickStarter.settingsManager.moveableRaycastLength))
+				dragBase.IsCloseToCamera (KickStarter.settingsManager.moveableRaycastLength * 1.25f))
 			{
 				if (ignoreDragState)
 				{
 					return;
 				}
-				if (touchIndex < 0 && KickStarter.playerInput.GetDragState () == DragState.Moveable)
+				if (touchIndex < 0 && (KickStarter.playerInput.GetDragState () == DragState.Moveable || KickStarter.playerInput.GetDragState () == DragState.PreMoveable))
 				{
 					return;
 				}
@@ -86,9 +89,12 @@ namespace AC
 			{
 				if (Input.touchCount > touchIndex)
 				{
-					Touch touch = Input.GetTouch (touchIndex);
-					deltaInput = touch.deltaPosition;
-					inputPosition = touch.position;
+					var touchInstance = KickStarter.playerInput.GetTouchInstance (touchIndex);
+					if (touchInstance != null)
+					{
+						deltaInput = touchInstance.delta;
+						inputPosition = touchInstance.position;
+					}
 				}
 				else
 				{
@@ -100,6 +106,11 @@ namespace AC
 				deltaInput = new Vector2 (-deltaInput.x, -deltaInput.y);
 			}
 
+			/*if (ACScreen.width > ACScreen.height)
+				deltaInput *= 1920 / ACScreen.width;
+			else
+				deltaInput *= 1080 / ACScreen.height;*/
+
 			dragForce = (KickStarter.CameraMainTransform.right * deltaInput.x) + (KickStarter.CameraMainTransform.up * deltaInput.y);
 
 			// Scale force with distance to camera, to lessen effects when close
@@ -108,7 +119,7 @@ namespace AC
 			// Incoporate camera movement
 			if (dragBase.playerMovementInfluence > 0f)
 			{
-				dragForce += deltaCamera * 100000f * dragBase.playerMovementInfluence;
+				dragForce += 100000f * dragBase.playerMovementInfluence * deltaCamera;
 			}
 
 			dragForce /= Time.fixedDeltaTime * 50f;
@@ -150,6 +161,20 @@ namespace AC
 			set
 			{
 				ignoreDragState = value;
+			}
+		}
+
+
+		/** If True, the object will not be moved by AC's built-in calls to the Drag function, allowing values to be set manually */
+		public bool IgnoreBuiltInDragInput
+		{
+			get
+			{
+				return ignoreBuiltInDragInput;
+			}
+			set
+			{
+				ignoreBuiltInDragInput = value;
 			}
 		}
 

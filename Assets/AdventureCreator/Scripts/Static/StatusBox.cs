@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2024
  *	
  *	"StatusBox.cs"
  * 
@@ -19,12 +19,10 @@ namespace AC
 	{
 
 		private static Rect debugWindowRect = new Rect (0, 0, 260, 500);
-		private static GUISkin sceneManagerSkin = null;
+		private const float OptimalScaleFactor = 0.25f;
 
 
-		/**
-		 * <summary>Draws the debug window in the top-left corner of the Game window</summar>
-		 */
+		/** Draws the debug window in the top-left corner of the Game window */
 		public static void DrawDebugWindow ()
 		{
 			if (KickStarter.settingsManager.showActiveActionLists != DebugWindowDisplays.Never)
@@ -36,6 +34,11 @@ namespace AC
 				}
 				#endif
 				GUI.depth = KickStarter.menuManager.globalDepth + 1;
+
+				float scaleFactor = debugWindowRect.width / Screen.width;
+				float scaleDiff = OptimalScaleFactor / scaleFactor;
+				GUIUtility.ScaleAroundPivot (Vector2.one * scaleDiff, Vector2.zero);
+				
 				debugWindowRect.height = 21f;
 				debugWindowRect = GUILayout.Window (10, debugWindowRect, StatusWindow, "AC status", GUILayout.Width (260));
 			}
@@ -44,12 +47,6 @@ namespace AC
 
 		private static void StatusWindow (int windowID)
 		{
-			if (sceneManagerSkin == null)
-			{
-				sceneManagerSkin = (GUISkin) Resources.Load ("SceneManagerSkin");
-			}
-			GUI.skin = sceneManagerSkin;
-
 			GUILayout.Label ("Current game state: " + KickStarter.stateHandler.gameState.ToString ());
 
 			Options.DrawStatus ();
@@ -70,29 +67,38 @@ namespace AC
 				KickStarter.mainCamera.DrawStatus ();
 			}
 
-			if (KickStarter.stateHandler.gameState == GameState.DialogOptions && KickStarter.playerInput.IsInConversation ())
+			foreach (Timer timer in KickStarter.variablesManager.timers)
 			{
-				if (GUILayout.Button ("Conversation: " + KickStarter.playerInput.activeConversation.gameObject.name))
-				{
-					#if UNITY_EDITOR
-					UnityEditor.EditorGUIUtility.PingObject (KickStarter.playerInput.activeConversation.gameObject);
-					#endif
+				if (timer.IsRunning)
+				{ 
+					GUILayout.Label ("Timer " + timer.Label + " is running");
 				}
 			}
 
 			KickStarter.playerInput.DrawStatus ();
+			KickStarter.playerQTE.DrawStatus ();
 			
 			GUILayout.Space (4f);
 
 			KickStarter.actionListManager.DrawStatus ();
 			KickStarter.actionListAssetManager.DrawStatus ();
 
-			if (KickStarter.actionListManager.IsGameplayBlocked ())
+			if (KickStarter.actionListManager.IsGameplayBlocked () || KickStarter.stateHandler.MovementIsOff || !KickStarter.stateHandler.CanInteract ())
 			{
 				GUILayout.Space (4f);
-				GUILayout.Label ("Gameplay is blocked");
+				if (KickStarter.actionListManager.IsGameplayBlocked ())
+				{
+					GUILayout.Label ("Gameplay is blocked");
+				}
+				if (KickStarter.stateHandler.MovementIsOff)
+				{
+					GUILayout.Label ("Movement system disabled");
+				}
+				if (!KickStarter.stateHandler.CanInteract ())
+				{
+					GUILayout.Label ("Interaction system disabled");
+				}
 			}
-
 			GUI.DragWindow ();
 		}
 

@@ -1,13 +1,12 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2024
  *	
  *	"MenuElement.cs"
  * 
  *	This is the base class for all menu elements.  It should never
  *	be added itself to a menu, as it is only a container of shared data.
- * ecal
  */
 
 using UnityEngine;
@@ -46,7 +45,6 @@ namespace AC
 		public float slotSpacing = 0f;
 		/** The translation ID, as set within SpeechManager */
 		public int lineID = -1;
-		private SpeechLine speechLine;
 		/** The name of the input button that triggers the element when pressed */
 		public string alternativeInputButton = "";
 
@@ -89,7 +87,6 @@ namespace AC
 		public int linkedUiID;
 
 		protected int offset = 0;
-		private string idString;
 		private Vector2 dragOffset;
 
 		/** If an AC element and set to scale automatically, how much of the width of the screen it can cover */
@@ -99,16 +96,17 @@ namespace AC
 		private bool doProportionalScaling = false;
 		#endif
 
+		private string cachedLabel;
 		protected Menu parentMenu;
+
+		private List<EventTrigger.Entry> definedTriggers = new List<EventTrigger.Entry> ();
 
 		[SerializeField] protected Rect relativeRect;
 		[SerializeField] protected Vector2 relativePosition;
 		[SerializeField] protected int numSlots;
 		
 
-		/**
-		 * Initialises the MenuElement when it is created within MenuManager.
-		 */
+		/** Initialises the MenuElement when it is created within MenuManager. */
 		public virtual void Declare ()
 		{
 			linkedUiID = 0;
@@ -184,8 +182,6 @@ namespace AC
 			cursorID = _element.cursorID;
 			alternativeInputButton = _element.alternativeInputButton;
 			maxAutoWidthFactor = _element.maxAutoWidthFactor;
-
-			idString = ID.ToString ();
 		}
 
 
@@ -212,20 +208,31 @@ namespace AC
 		protected void CreateUIEvent (UnityEngine.UI.Button uiButton, AC.Menu _menu, UIPointerState uiPointerState = UIPointerState.PointerClick, int _slotIndex = 0, bool liveState = true)
 		{
 			liveState = false; // Causing issues, just use Event System
-
-			if (uiPointerState == UIPointerState.PointerClick)
+			/*if (uiPointerState == UIPointerState.PointerClick)
 			{
 				uiButton.onClick.AddListener (() => {
 					ProcessClickUI (_menu, _slotIndex, liveState ? KickStarter.playerInput.GetMouseState () : MouseState.SingleClick);
 				});
 			}
-			else
+			else*/
 			{
 				EventTrigger eventTrigger = uiButton.gameObject.GetComponent <EventTrigger>();
-				if (eventTrigger == null)
+				if (eventTrigger)
+				{
+					// Clear previous
+					foreach (var definedTrigger in definedTriggers)
+					{
+						if (eventTrigger.triggers.Contains (definedTrigger))
+						{
+							eventTrigger.triggers.Remove (definedTrigger);
+						}
+					}
+				}
+				else
 				{
 					eventTrigger = uiButton.gameObject.AddComponent <EventTrigger>();
 				}
+
 				EventTrigger.Entry entry = new EventTrigger.Entry ();
 
 				if (uiPointerState == UIPointerState.PointerDown)
@@ -236,18 +243,42 @@ namespace AC
 				{
 					entry.eventID = EventTriggerType.PointerEnter;
 				}
+				else if (uiPointerState == UIPointerState.PointerClick)
+				{
+					entry.eventID = EventTriggerType.PointerClick;
+				}
 
 				entry.callback.AddListener ((eventData) => {
-					ProcessClickUI (_menu, _slotIndex, liveState ? KickStarter.playerInput.GetMouseState () : MouseState.SingleClick);
+					ProcessClickUI ((PointerEventData) eventData, _menu, _slotIndex);
+					//ProcessClickUI (_menu, _slotIndex, liveState ? KickStarter.playerInput.GetMouseState () : MouseState.SingleClick);
 				} );
 
 				eventTrigger.triggers.Add (entry);
+
+				EventTrigger.Entry submitEntry = new EventTrigger.Entry ();
+				submitEntry.eventID = EventTriggerType.Submit;
+				submitEntry.callback.AddListener ((eventData) => { ProcessClickUI (_menu, _slotIndex, MouseState.SingleClick); } );
+				eventTrigger.triggers.Add (submitEntry);
+
+				EventTrigger.Entry cancelEntry = new EventTrigger.Entry ();
+				cancelEntry.eventID = EventTriggerType.Cancel;
+				cancelEntry.callback.AddListener ((eventData) => { ProcessClickUI (_menu, _slotIndex, MouseState.RightClick); } );
+				eventTrigger.triggers.Add (cancelEntry);
+
+				definedTriggers.Add (entry);
+				definedTriggers.Add (submitEntry);
+				definedTriggers.Add (cancelEntry);
 			}
 		}
 
 
 		protected void CreateHoverSoundHandler (Selectable selectable, AC.Menu _menu, int _slotIndex = 0)
 		{
+			if (selectable == null)
+			{
+				ACDebug.LogWarning ("No linked Selectable found for element " + title + " inside menu " + _menu, _menu.RuntimeCanvas);
+				return;
+			}
 			UISlotClick uiSlotClick = selectable.gameObject.GetComponent <UISlotClick>();
 			if (uiSlotClick == null)
 			{
@@ -257,8 +288,26 @@ namespace AC
 		}
 
 
+		private void ProcessClickUI (PointerEventData data, Menu _menu, int _slotIndex)
+		{
+			if (data.button == PointerEventData.InputButton.Left)
+			{
+				ProcessClickUI (_menu, _slotIndex, MouseState.SingleClick);
+			}
+			else if (data.button == PointerEventData.InputButton.Right)
+			{
+				ProcessClick (_menu, _slotIndex, MouseState.RightClick);
+			}
+		}
+
+
 		protected virtual void ProcessClickUI (AC.Menu _menu, int _slot, MouseState _mouseState)
 		{
+			if (_menu.ignoreMouseClicks)
+			{
+				return;
+			}
+
 			KickStarter.playerInput.ResetClick ();
 			ProcessClick (_menu, _slot, _mouseState);
 		}
@@ -348,23 +397,53 @@ namespace AC
 		}
 
 
-		protected string TranslateLabel (string label, int languageNumber)
+		public virtual void OverrideLabel (string newLabel, int _lineID = -1)
 		{
-			if (languageNumber == 0)
+			ACDebug.LogWarning ("Overriding element labels of the type " + GetType () + " is not supported");
+		}
+
+
+		protected virtual string GetLabelToTranslate ()
+		{
+			return string.Empty;
+		}
+
+
+		public void UpdateLabel (int languageNumber)
+		{
+			string label = GetLabelToTranslate ();
+			if (!string.IsNullOrEmpty (label))
 			{
-				return label;
+				cachedLabel = KickStarter.runtimeLanguages.GetTranslation (label, lineID, languageNumber, AC_TextType.MenuElement);
 			}
-			
-			if (speechLine == null)
+		}
+
+
+		protected void ClearCache ()
+		{
+			cachedLabel = string.Empty;
+		}
+
+
+		protected string TranslateLabel (int languageNumber)
+		{
+			#if UNITY_EDITOR
+			if (!Application.isPlaying)
 			{
-				speechLine = KickStarter.runtimeLanguages.GetSpeechLine (label, lineID, languageNumber, AC_TextType.MenuElement);
+				return GetLabelToTranslate ();
+			}
+			#endif
+
+			if (languageNumber == Options.GetLanguage ())
+			{
+				if (string.IsNullOrEmpty (cachedLabel))
+				{
+					UpdateLabel (languageNumber);
+				}
+				return cachedLabel;
 			}
 
-			if (speechLine != null)
-			{
-				return speechLine.GetTranslation (label, languageNumber);
-			}
-			return label;
+			return KickStarter.runtimeLanguages.GetTranslation (GetLabelToTranslate (), lineID, languageNumber, AC_TextType.MenuElement);
 		}
 
 
@@ -381,11 +460,22 @@ namespace AC
 
 
 		/**
-		 * <summary>Checks if the element is selected by Unity UI's EventSystem.</summary>
+		 * <summary>Checks if the element is selected by Unity UI's EventSystem (if the Menu is Unity UI-based).</summary>
 		 * <param name = "slotIndex">The element's slot index, if it has multiple slots</param>
 		 * <returns>True if the element is selected by Unity UI's EventSystem.</returns>
 		 */
 		public virtual bool IsSelectedByEventSystem (int slotIndex)
+		{
+			return false;
+		}
+
+
+		/**
+		 * <summary>Checks if the element's linked Selectable is currently Interactable (if the Menu is Unity UI-based).</summary>
+		 * <param name = "slotIndex">The element's slot index, if it has multiple slots</param>
+		 * <returns>True if the element's linked Selectable is currently Interactable</returns>
+		 */
+		public virtual bool IsSelectableInteractable (int slotIndex)
 		{
 			return false;
 		}
@@ -411,7 +501,7 @@ namespace AC
 		
 		#if UNITY_EDITOR
 		
-		public void ShowGUIStart (Menu menu)
+		public void ShowGUIStart (Menu menu, System.Action<ActionListAsset> showALAEditor)
 		{
 			string apiPrefix = "AC.PlayerMenus.GetElementWithName (\"" + menu.title + "\", \"" + title + "\")";
 
@@ -420,7 +510,7 @@ namespace AC
 			isVisible = CustomGUILayout.Toggle ("Is visible?", isVisible, apiPrefix + ".IsVisible", "If True, the element is enabled and visible");
 			CustomGUILayout.EndVertical ();
 
-			ShowGUI (menu);
+			ShowGUI (menu, showALAEditor);
 		}
 
 
@@ -434,7 +524,7 @@ namespace AC
 		}
 		
 		
-		public virtual void ShowGUI (Menu menu)
+		public virtual void ShowGUI (Menu menu, System.Action<ActionListAsset> showALAEditor)
 		{
 			string apiPrefix = "AC.PlayerMenus.GetElementWithName (\"" + menu.title + "\", \"" + title + "\")";
 
@@ -455,10 +545,10 @@ namespace AC
 				CustomGUILayout.BeginVertical ();
 				font = (Font) CustomGUILayout.ObjectField <Font> ("Font:", font, false, apiPrefix + ".font", "The text font");
 				fontScaleFactor = CustomGUILayout.Slider ("Text size:", fontScaleFactor, 1f, 4f, apiPrefix + ".fontScaleFactor", "The font size");
+				fontColor = CustomGUILayout.ColorField ("Text colour:", fontColor, apiPrefix + ".fontColor", "The font colour");
 
 				ShowTextGUI (apiPrefix);
 
-				fontColor = CustomGUILayout.ColorField ("Text colour:", fontColor, apiPrefix + ".fontColor", "The font colour");
 				if (isClickable)
 				{
 					fontHighlightColor = CustomGUILayout.ColorField ("Text colour (highlighted):", fontHighlightColor, apiPrefix + ".fontHighlightColor", "The font colour when the element is highlighted");
@@ -586,11 +676,11 @@ namespace AC
 		}
 
 
-		protected T LinkedUiGUI <T> (T field, string label, MenuSource source, string tooltip = "") where T : Component
+		protected T LinkedUiGUI <T> (T field, string label, Menu menu, string tooltip = "") where T : Component
 		{
 			field = (T) EditorGUILayout.ObjectField (new GUIContent (label, tooltip), field, typeof (T), true);
 			linkedUiID = Menu.FieldToID <T> (field, linkedUiID);
-			return Menu.IDToField <T> (field, linkedUiID, source);
+			return Menu.IDToField <T> (field, linkedUiID, menu);
 		}
 
 
@@ -643,10 +733,10 @@ namespace AC
 		{
 			string apiPrefix = "AC.PlayerMenus.GetElementWithName (\"" + menu.title + "\", \"" + title + "\")";
 
-			changeCursor = CustomGUILayout.Toggle ("Change cursor when over?", changeCursor, apiPrefix + ".changeCursor", "If True, then the mouse cursor will change when it hovers over the element");
+			changeCursor = CustomGUILayout.Toggle ("Change cursor on hover?", changeCursor, apiPrefix + ".changeCursor", "If True, then the mouse cursor will change when it hovers over the element");
 			if (changeCursor)
 			{
-				CursorManager cursorManager = AdvGame.GetReferences ().cursorManager;
+				CursorManager cursorManager = KickStarter.cursorManager;
 				if (cursorManager)
 				{
 					int cursorIndex = cursorManager.GetIntFromID (cursorID);
@@ -685,6 +775,18 @@ namespace AC
 
 
 		/**
+		 * <summary>Updates references the MenuElement makes to a global variable</summary>
+		 * <param name = "varID">The global variable's original ID number</param>
+		 * <param name = "varID">The global variable's new ID number</param>
+		 * <returns>The number of references the MenuElement makes to the variable</returns>
+		 */
+		public virtual int UpdateVariableReferences (int oldVarID, int newVarID)
+		{
+			return 0;
+		}
+
+
+		/**
 		 * <summary>Checks if the Menu makes reference to a particular ActionList asset</summary>
 		 * <param name = "actionListAsset">The ActionList to check for</param>
 		 * <returns>True if the Menu references the ActionList</param>
@@ -710,8 +812,17 @@ namespace AC
 
 
 		/**
-		 * Hides all linked Unity UI GameObjects associated with the element.
+		 * <summary>Gets the slot index that reference a particular GameObject</summary>
+		 * <param name = "gameObject">The GameObject to check for</param>
+		 * <returns>The slot index that references the GameObject</param>
 		 */
+		public virtual int GetSlotIndex (GameObject gameObject)
+		{
+			return -1;
+		}
+
+
+		/** Hides all linked Unity UI GameObjects associated with the element. */
 		public virtual void HideAllUISlots ()
 		{}
 
@@ -736,7 +847,8 @@ namespace AC
 				}
 				else
 				{
-					uiSlots[i].HideUIElement (uiHideStyle);
+					bool wasSelected = uiSlots[i].HideUIElement (uiHideStyle);
+					if (wasSelected) KickStarter.eventManager.Call_OnHideSelectedElement (parentMenu, this, i);
 				}
 			}
 		}
@@ -762,7 +874,8 @@ namespace AC
 				}
 				else
 				{
-					uiSlots[i].HideUIElement (uiHideStyle);
+					bool wasSelected = uiSlots[i].HideUIElement (uiHideStyle);
+					if (wasSelected) KickStarter.eventManager.Call_OnHideSelectedElement (parentMenu, this, i);
 				}
 			}
 		}
@@ -904,27 +1017,61 @@ namespace AC
 		}
 
 
-		protected void Shift (AC_ShiftInventory shiftType, int maxSlots, int arraySize, int amount)
+		protected void Shift (AC_ShiftInventory shiftType, int maxSlots, int arraySize, int amount, bool canBeLooped = false)
 		{
+			if (canBeLooped && arraySize < maxSlots) return;
+
 			int newOffset = offset;
+			int maxValue = arraySize - maxSlots;
 
-			if (shiftType == AC_ShiftInventory.ShiftNext)
-			{
-				newOffset += amount;
+			switch (shiftType)
+			{ 
+				case AC_ShiftInventory.ShiftPrevious:
+					if (canBeLooped)
+					{
+						newOffset -= amount;
+						while (newOffset < 0)
+						{
+							newOffset = maxValue + 1 + newOffset;
+						}
+					}
+					else
+					{
+						if (offset > 0)
+						{
+							newOffset -= amount;
+							if (newOffset < 0)
+							{
+								newOffset = 0;
+							}
+						}
+					}
+					break;
 
-				if ((maxSlots + newOffset) >= arraySize)
-				{
-					newOffset = arraySize - maxSlots;
-				}
-			}
-			else if (shiftType == AC_ShiftInventory.ShiftPrevious && offset > 0)
-			{
-				newOffset -= amount;
+				case AC_ShiftInventory.ShiftNext:
+					{
+						newOffset += amount;
 
-				if (newOffset < 0)
-				{
-					newOffset = 0;
-				}
+						if (canBeLooped)
+						{
+							while (newOffset > maxValue)
+							{
+								int extra = newOffset - maxValue - 1;
+								newOffset = extra;
+							}
+						}
+						else
+						{
+							if (newOffset > maxValue)
+							{
+								newOffset = maxValue;
+							}
+						}
+					}
+					break;
+
+				default:
+					break;
 			}
 
 			if (newOffset != offset)
@@ -1281,7 +1428,7 @@ namespace AC
 		}
 
 
-		protected T LinkUIElement <T> (Canvas canvas) where T : Behaviour
+		protected void LinkUIElement <T> (Canvas canvas, ref T existingField) where T : Behaviour
 		{
 			if (canvas)
 			{
@@ -1289,11 +1436,18 @@ namespace AC
 
 				if (field == null)
 				{
-					ACDebug.LogWarning ("Cannot find linked UI Element for " + title, canvas);
+					if (!(parentMenu && parentMenu.menuSource == MenuSource.UnityUiInScene))
+					{
+						ACDebug.LogWarning ("Cannot find " + typeof (T) + " for menu element " + title + " in Canvas " + canvas.name, canvas);
+					}
 				}
-				return field;
+
+				existingField = field;
 			}
-			return null;
+			else
+			{
+				existingField = null;
+			}
 		}
 
 
@@ -1301,23 +1455,40 @@ namespace AC
 		{
 			if (Application.isPlaying && field)
 			{
-				if (uiSelectableHideStyle == UISelectableHideStyle.DisableObject)
+				switch (uiSelectableHideStyle)
 				{
-					field.gameObject.SetActive (IsVisible);
-				}
-				else if (uiSelectableHideStyle == UISelectableHideStyle.DisableInteractability)
-				{
-					field.interactable = IsVisible;
+					case UISelectableHideStyle.DisableObject:
+						field.gameObject.SetActive (IsVisible);
+						break;
+
+					case  UISelectableHideStyle.DisableInteractability:
+						field.interactable = IsVisible;
+						break;
+
+					default:
+						break;
 				}
 			}
 		}
 
 
-		protected void UpdateUIElement <T> (T field) where T : Behaviour
+		protected void UpdateUIElement <T> (T field, UIComponentHideStyle uiComponentHideStyle) where T : Behaviour
 		{
-			if (Application.isPlaying && field && field.gameObject.activeSelf != IsVisible)
+			if (Application.isPlaying && field)
 			{
-				field.gameObject.SetActive (IsVisible);
+				switch (uiComponentHideStyle)
+				{
+					case UIComponentHideStyle.DisableObject:
+						field.gameObject.SetActive (IsVisible);
+						break;
+
+					case  UIComponentHideStyle.DisableComponent:
+						field.enabled = IsVisible;
+						break;
+
+					default:
+						break;
+				}
 			}
 		}
 
@@ -1393,15 +1564,21 @@ namespace AC
 		}
 
 
-		/**
-		 * The Menu's id number as a string.
-		 */
-		public string IDString
+		public virtual bool SupportsRightClicks ()
 		{
-			get
-			{
-				return idString;
-			}
+			return false;
+		}
+
+
+		/** Gets the data related to the element's visiblity as a serialized string */
+		public string GetVisibilitySaveData ()
+		{
+			System.Text.StringBuilder sb = new System.Text.StringBuilder ();
+			sb.Append (ID.ToString ());
+			sb.Append ("=");
+			sb.Append (isVisible.ToString ());
+			sb.Append ("+");
+			return sb.ToString ();
 		}
 
 
@@ -1411,6 +1588,16 @@ namespace AC
 			{
 				return parentMenu;
 			}
+		}
+
+
+		public override string ToString ()
+		{
+			if (!string.IsNullOrEmpty (title))
+			{
+				return "Element ID " + ID + "; " + title;
+			}
+			return "Element ID " + ID;
 		}
 
 	}

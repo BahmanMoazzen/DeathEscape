@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2024
  *	
  *	"ActionCharHold.cs"
  * 
@@ -42,22 +42,39 @@ namespace AC
 
 		protected GameObject loadedObject = null;
 
+		public int droppedObjectParameterID = -1;
+		protected ActionParameter droppedObjectParameter;
+
 		public AnimationCurve ikTransitionCurve = AnimationCurve.Linear (0f, 0f, 1f, 1f);
-		protected enum CharHoldMethod { ParentObjectToHand, MoveHandWithIK };
+		protected enum CharHoldMethod { ParentObjectToHand, MoveHandWithIK, DropObject };
 		[SerializeField] protected CharHoldMethod charHoldMethod = CharHoldMethod.ParentObjectToHand;
 		protected enum IKHoldMethod { SetTarget, Release, ReleaseInstantly };
 		[SerializeField] protected IKHoldMethod ikHoldMethod = IKHoldMethod.SetTarget;
 
-		public Hand hand;
+		[SerializeField] private bool deleteDroppedObject;
 
+		[SerializeField] private Hand hand;
+		public int attachmentPointID = -1;
+		public int attachmentPointParameterID = -1;
 
 		public override ActionCategory Category { get { return ActionCategory.Character; }}
 		public override string Title { get { return "Hold object"; }}
 		public override string Description { get { return "Parents a GameObject to a Character's hand Transform, as chosen in the Character's inspector. The local transforms of the GameObject will be cleared. Note that this action only works with 3D characters."; }}
 
 
+		public override void Upgrade ()
+		{
+			if (attachmentPointID < 0)
+			{
+				attachmentPointID = hand == Hand.Left ? 0 : 1;
+			}
+			base.Upgrade ();
+		}
+
+
 		public override void AssignValues (List<ActionParameter> parameters)
 		{
+			Upgrade ();
 			objectToHold = AssignFile (parameters, objectToHoldParameterID, objectToHoldID, objectToHold);
 
 			if (objectToHold != null && !objectToHold.activeInHierarchy)
@@ -75,6 +92,14 @@ namespace AC
 			}
 
 			localEulerAngles = AssignVector3 (parameters, localEulerAnglesParameterID, localEulerAngles);
+
+			droppedObjectParameter = GetParameterWithID (parameters, droppedObjectParameterID);
+			if (droppedObjectParameter != null && droppedObjectParameter.parameterType != ParameterType.GameObject)
+			{
+				droppedObjectParameter = null;
+			}
+
+			attachmentPointID = AssignInteger (parameters, attachmentPointParameterID, attachmentPointID);
 		}
 
 
@@ -98,32 +123,38 @@ namespace AC
 		{
 			if (runtimeChar != null)
 			{
-				if (runtimeChar.GetAnimEngine () != null && runtimeChar.GetAnimEngine ().ActionCharHoldPossible ())
+				runtimeChar.Upgrade ();
+				if (charHoldMethod == CharHoldMethod.MoveHandWithIK && runtimeChar.GetAnimEngine ().IKEnabled)
 				{
-					if (charHoldMethod == CharHoldMethod.MoveHandWithIK && runtimeChar.GetAnimEngine ().IKEnabled)
+					if (GetObjectToHold () == null && ikHoldMethod == IKHoldMethod.SetTarget) return 0f;
+
+					switch (attachmentPointID)
 					{
-						if (GetObjectToHold () == null && ikHoldMethod == IKHoldMethod.SetTarget) return 0f;
+						case 0:
+							ApplyIK (runtimeChar.LeftHandIKController, isSkipping);
+							break;
 
-						switch (hand)
-						{
-							case Hand.Left:
-								ApplyIK (runtimeChar.LeftHandIKController, isSkipping);
-								break;
+						case 1:
+							ApplyIK (runtimeChar.RightHandIKController, isSkipping);
+							break;
 
-							case Hand.Right:
-								ApplyIK (runtimeChar.RightHandIKController, isSkipping);
-								break;
-
-							default:
-								break;
-						}
+						default:
+							break;
 					}
-					else if (charHoldMethod == CharHoldMethod.ParentObjectToHand)
+				}
+				else if (charHoldMethod == CharHoldMethod.ParentObjectToHand)
+				{
+					if (runtimeChar.HoldObject (GetObjectToHold (), attachmentPointID))
 					{
-						if (runtimeChar.HoldObject (GetObjectToHold (), hand))
-						{
-							GetObjectToHold ().transform.localEulerAngles = localEulerAngles;
-						}
+						GetObjectToHold ().transform.localEulerAngles = localEulerAngles;
+					}
+				}
+				else if (charHoldMethod == CharHoldMethod.DropObject)
+				{
+					GameObject droppedObject = runtimeChar.ReleaseHeldObject (attachmentPointID, deleteDroppedObject);
+					if (droppedObjectParameter != null)
+					{
+						droppedObjectParameter.SetValue (droppedObject);
 					}
 				}
 			}
@@ -165,15 +196,13 @@ namespace AC
 		
 		public override void ShowGUI (List<ActionParameter> parameters)
 		{
+			Upgrade ();
+			Char editorChar = _char;
+
 			isPlayer = EditorGUILayout.Toggle ("Is Player?", isPlayer);
 			if (isPlayer)
 			{
-				if (KickStarter.settingsManager != null && KickStarter.settingsManager.playerSwitching == PlayerSwitching.Allow)
-				{
-					playerParameterID = ChooseParameterGUI ("Player ID:", parameters, playerParameterID, ParameterType.Integer);
-					if (playerParameterID < 0)
-						playerID = ChoosePlayerGUI (playerID, true);
-				}
+				PlayerField (ref playerID, parameters, ref playerParameterID);
 
 				if (playerParameterID < 0)
 				{
@@ -182,80 +211,79 @@ namespace AC
 						PlayerPrefab playerPrefab = KickStarter.settingsManager.GetPlayerPrefab (playerID);
 						if (playerPrefab != null)
 						{
-							_char = (Application.isPlaying) ? playerPrefab.GetSceneInstance () : playerPrefab.playerOb;
+							editorChar = (Application.isPlaying) ? playerPrefab.GetSceneInstance () : playerPrefab.EditorPrefab;
 						}
 					}
 					else
 					{
-						_char = (Application.isPlaying) ? KickStarter.player : AdvGame.GetReferences ().settingsManager.GetDefaultPlayer ();
+						editorChar = (Application.isPlaying) ? KickStarter.player : KickStarter.settingsManager.GetDefaultPlayer ();
 					}
 				}
 			}
 			else
 			{
-				_char = (Char) EditorGUILayout.ObjectField ("Character:", _char, typeof (Char), true);
-					
-				_charID = FieldToID <Char> (_char, _charID);
-				_char = IDToField <Char> (_char, _charID, true);
+				ComponentField ("Character:", ref editorChar, ref _charID, true);
+				_char = editorChar;
 			}
-			
-			if (_char != null)
+
+			if (editorChar && editorChar.GetAnimEngine ())
 			{
-				if (_char.GetAnimEngine () && _char.GetAnimEngine ().ActionCharHoldPossible ())
+				editorChar.Upgrade ();
+				if (editorChar.GetAnimEngine ().IKEnabled)
 				{
-					if (_char.GetAnimEngine ().IKEnabled)
+					charHoldMethod = (CharHoldMethod) EditorGUILayout.EnumPopup ("Hold method:", charHoldMethod);
+					if (charHoldMethod == CharHoldMethod.MoveHandWithIK)
 					{
-						charHoldMethod = (CharHoldMethod) EditorGUILayout.EnumPopup ("Hold method:", charHoldMethod);
-						if (charHoldMethod == CharHoldMethod.MoveHandWithIK)
-						{
-							ikHoldMethod = (IKHoldMethod)EditorGUILayout.EnumPopup ("IK command:", ikHoldMethod);
-						}
+						ikHoldMethod = (IKHoldMethod) EditorGUILayout.EnumPopup ("IK command:", ikHoldMethod);
 					}
-					else
-					{
-						charHoldMethod = CharHoldMethod.ParentObjectToHand;
-					}
+				}
+				else if (charHoldMethod == CharHoldMethod.MoveHandWithIK)
+				{
+					charHoldMethod = CharHoldMethod.ParentObjectToHand;
+				}
+			}
 
-					if (charHoldMethod == CharHoldMethod.ParentObjectToHand || ikHoldMethod == IKHoldMethod.SetTarget)
-					{
-						objectToHoldParameterID = Action.ChooseParameterGUI ("Object to hold:", parameters, objectToHoldParameterID, ParameterType.GameObject);
-						if (objectToHoldParameterID >= 0)
-						{
-							objectToHoldID = 0;
-							objectToHold = null;
-						}
-						else
-						{
-							objectToHold = (GameObject)EditorGUILayout.ObjectField ("Object to hold:", objectToHold, typeof (GameObject), true);
-
-							objectToHoldID = FieldToID (objectToHold, objectToHoldID);
-							objectToHold = IDToField (objectToHold, objectToHoldID, false);
-						}
-					}
+			if (charHoldMethod == CharHoldMethod.ParentObjectToHand || (charHoldMethod == CharHoldMethod.MoveHandWithIK && ikHoldMethod == IKHoldMethod.SetTarget))
+			{
+				GameObjectField ("Object to hold:", ref objectToHold, ref objectToHoldID, parameters, ref objectToHoldParameterID);
+			}
 					
-					hand = (Hand) EditorGUILayout.EnumPopup ("Hand:", hand);
-
-					if (charHoldMethod == CharHoldMethod.ParentObjectToHand)
-					{
-						localEulerAnglesParameterID = Action.ChooseParameterGUI ("Object local angles:", parameters, localEulerAnglesParameterID, ParameterType.Vector3);
-						if (localEulerAnglesParameterID < 0)
-						{
-							localEulerAngles = EditorGUILayout.Vector3Field ("Object local angles:", localEulerAngles);
-						}
-					}
-					else if (charHoldMethod == CharHoldMethod.MoveHandWithIK && ikHoldMethod == IKHoldMethod.SetTarget)
-					{
-						ikTransitionCurve = EditorGUILayout.CurveField ("Transition curve:", ikTransitionCurve);
-					}
-				}
-				else
+			if (editorChar)
+			{
+				int index = 0;
+				string[] labelsArray = new string[editorChar.attachmentPoints.Length];
+				for (int i = 0; i < editorChar.attachmentPoints.Length; i++)
 				{
-					EditorGUILayout.HelpBox ("This Action is not compatible with this Character's Animation Engine.", MessageType.Info);
+					if (editorChar.attachmentPoints[i].ID == attachmentPointID)
+					{
+						index = i;
+					}
+					labelsArray[i] = editorChar.attachmentPoints[i].ID + ": " + editorChar.attachmentPoints[i].label;
 				}
+				index = EditorGUILayout.Popup ("Attachment point:", index, labelsArray);
+				attachmentPointID = (index >= 0 && index < editorChar.attachmentPoints.Length) ? editorChar.attachmentPoints[index].ID : 0;
 			}
 			else
 			{
-				EditorGUILayout.HelpBox ("This Action requires a Character before more options will show.", MessageType.Info);
+				IntField ("Attachment point ID:", ref attachmentPointID, parameters, ref attachmentPointParameterID);
+			}
+
+			if (charHoldMethod == CharHoldMethod.ParentObjectToHand)
+			{
+				Vector3Field ("Object local angles:", ref localEulerAngles, parameters, ref localEulerAnglesParameterID);
+			}
+			else if (charHoldMethod == CharHoldMethod.MoveHandWithIK && ikHoldMethod == IKHoldMethod.SetTarget)
+			{
+				ikTransitionCurve = EditorGUILayout.CurveField ("Transition curve:", ikTransitionCurve);
+			}
+			else if (charHoldMethod == CharHoldMethod.DropObject)
+			{
+				deleteDroppedObject = EditorGUILayout.Toggle ("Delete dropped object?", deleteDroppedObject);
+
+				if (!deleteDroppedObject)
+				{
+					droppedObjectParameterID = ChooseParameterGUI ("Dropped object assignment:", parameters, droppedObjectParameterID, ParameterType.GameObject);
+				}
 			}
 		}
 
@@ -282,17 +310,35 @@ namespace AC
 
 			if (!isPlayer)
 			{
-				AssignConstantID <Char> (_char, _charID, 0);
+				_charID = AssignConstantID<Char> (_char, _charID, 0);
 			}
-			AssignConstantID (objectToHold, objectToHoldID, objectToHoldParameterID);
+			objectToHoldID = AssignConstantID (objectToHold, objectToHoldID, objectToHoldParameterID);
 		}
 
 		
 		public override string SetLabel ()
 		{
-			if (_char != null && objectToHold != null)
+			Char editorChar = _char;
+
+			if (isPlayer && playerParameterID < 0)
 			{
-				return _char.name + " hold " + objectToHold.name;
+				if (playerID >= 0)
+				{
+					PlayerPrefab playerPrefab = KickStarter.settingsManager.GetPlayerPrefab (playerID);
+					if (playerPrefab != null)
+					{
+						editorChar = playerPrefab.EditorPrefab;
+					}
+				}
+				else
+				{
+					editorChar = KickStarter.settingsManager.GetDefaultPlayer ();
+				}
+			}
+
+			if (editorChar != null && objectToHold != null)
+			{
+				return editorChar.name + " hold " + objectToHold.name;
 			}
 			return string.Empty;
 		}
@@ -302,13 +348,13 @@ namespace AC
 		{
 			if (!isPlayer)
 			{
-				if (_char != null && _char.gameObject == _gameObject) return true;
+				if (_char && _char.gameObject == _gameObject) return true;
 				if (_charID == id) return true;
 			}
-			if (isPlayer && _gameObject.GetComponent <Player>() != null) return true;
+			if (isPlayer && _gameObject && _gameObject.GetComponent <Player>() != null) return true;
 			if (objectToHoldParameterID < 0)
 			{
-				if (objectToHold != null && objectToHold == _gameObject) return true;
+				if (objectToHold && objectToHold == _gameObject) return true;
 				if (objectToHoldID == id) return true;
 			}
 			return base.ReferencesObjectOrID (_gameObject, id);
@@ -338,8 +384,10 @@ namespace AC
 		{
 			ActionCharHold newAction = CreateNew<ActionCharHold> ();
 			newAction._char = characterToUpdate;
+			newAction.TryAssignConstantID (newAction._char, ref newAction._charID);
 			newAction.objectToHold = objectToHold;
-			newAction.hand = handToUse;
+			newAction.TryAssignConstantID (newAction.objectToHold, ref newAction.objectToHoldID);
+			newAction.attachmentPointID = handToUse == Hand.Left ? 0 : 1;
 			newAction.localEulerAngles = localEulerAngles;
 			return newAction;
 		}

@@ -26,6 +26,16 @@ namespace AC
 		public Vector2 limitCursorInfluenceY;
 		/** The speed at which the camera follows the cursor */
 		public float followCursorSpeed = 3f;
+		[SerializeField] private bool cursorInfluenceDuringCutscenes = false;
+		/** The influence of the cursor position on the camera's rotation during cutscenes (Freeze, Allow, Reset) */
+		public CutsceneBehaviour cutsceneBehaviour = CutsceneBehaviour.Freeze;
+
+		/** The influence of the cursor position on the camera's rotation during conversations (Freeze, Allow, Reset) */
+		public CutsceneBehaviour conversationBehaviour = CutsceneBehaviour.Freeze;
+
+		public enum CutsceneBehaviour { Freeze, Allow, Reset };
+
+		private bool forceFreeze;
 
 		protected Vector2 actualCursorOffset;
 
@@ -36,9 +46,30 @@ namespace AC
 
 		public override Vector2 CreateRotationOffset ()
 		{
-			if (followCursor && KickStarter.stateHandler)
+			#if UNITY_EDITOR
+			if (!Application.isPlaying)
 			{
-				if (KickStarter.stateHandler.IsInGameplay () && KickStarter.playerInput)
+				return Vector2.zero;
+			}
+			#endif
+
+			if (followCursor)
+			{
+				if (forceFreeze)
+				{
+					return actualCursorOffset;
+				}
+
+				if (cursorInfluenceDuringCutscenes)
+				{
+					cursorInfluenceDuringCutscenes = false;
+					cutsceneBehaviour = CutsceneBehaviour.Allow;
+				}
+
+				bool isInCutsene = KickStarter.stateHandler.IsInCutscene ();
+				bool isInConversation = KickStarter.stateHandler.gameState == GameState.DialogOptions;
+
+				if (KickStarter.stateHandler.IsInGameplay () || (conversationBehaviour == CutsceneBehaviour.Allow && isInConversation) || (cutsceneBehaviour == CutsceneBehaviour.Allow && isInCutsene) || (KickStarter.stateHandler.IsPaused () && updateWhilePaused))
 				{
 					Vector2 mousePosition = KickStarter.playerInput.GetMousePosition ();
 					Vector2 mouseOffset = new Vector2 (mousePosition.x / ( ACScreen.width / 2) - 1, mousePosition.y / ( ACScreen.height / 2) - 1);
@@ -57,7 +88,11 @@ namespace AC
 					}
 
 					Vector2 targetCursorOffset = new Vector2 (mouseOffset.x * cursorInfluence.x, mouseOffset.y * cursorInfluence.y);
-					actualCursorOffset = Vector2.Lerp (actualCursorOffset, targetCursorOffset, Time.deltaTime * followCursorSpeed);
+					actualCursorOffset = Vector2.Lerp (actualCursorOffset, targetCursorOffset, LerpSpeed);
+				}
+				else if ((isInCutsene && cutsceneBehaviour == CutsceneBehaviour.Reset) || (isInConversation && conversationBehaviour == CutsceneBehaviour.Reset))
+				{
+					actualCursorOffset = Vector2.Lerp (actualCursorOffset, Vector2.zero, LerpSpeed);
 				}
 
 				return actualCursorOffset;
@@ -72,26 +107,37 @@ namespace AC
 
 		public void ShowCursorInfluenceGUI ()
 		{
+			CustomGUILayout.Header ("Cursor influence");
 			CustomGUILayout.BeginVertical ();
-			EditorGUILayout.LabelField ("Cursor influence", EditorStyles.boldLabel);
-			followCursor = CustomGUILayout.Toggle ("Follow cursor?", followCursor, "", "If True, then the camera will rotate towards the cursor's position on-screen");
+			followCursor = CustomGUILayout.Toggle ("Follow cursor?", followCursor, string.Empty, "If True, then the camera will rotate towards the cursor's position on-screen");
 			if (followCursor)
 			{
-				cursorInfluence = CustomGUILayout.Vector2Field ("Panning factor:", cursorInfluence, "", "The influence that the cursor's position has on rotation");
-				followCursorSpeed = CustomGUILayout.Slider ("Follow speed:", followCursorSpeed, 0f, 10f, "", "The speed at which the camera follows the cursor.");
+				cursorInfluence = CustomGUILayout.Vector2Field ("Panning factor:", cursorInfluence, string.Empty, "The influence that the cursor's position has on rotation");
+				followCursorSpeed = CustomGUILayout.Slider ("Follow speed:", followCursorSpeed, 0.01f, 1f, string.Empty, "The speed at which the camera follows the cursor.");
 
-				constrainCursorInfluenceX = CustomGUILayout.ToggleLeft ("Constrain panning in X direction?", constrainCursorInfluenceX, "", "If True, then camera rotation according to the cursor's X position will be limited");
+				if (cursorInfluenceDuringCutscenes)
+				{
+					cursorInfluenceDuringCutscenes = false;
+					cutsceneBehaviour = CutsceneBehaviour.Allow;
+				}
+
+				cutsceneBehaviour = (CutsceneBehaviour) CustomGUILayout.EnumPopup ("Cutscene behaviour:", cutsceneBehaviour, string.Empty, "The influence of the cursor position on the camera's rotation during cutscenes");
+				conversationBehaviour = (CutsceneBehaviour) CustomGUILayout.EnumPopup ("Conversation behaviour:", conversationBehaviour, string.Empty, "The influence of the cursor position on the camera's rotation during conversations");
+
+				constrainCursorInfluenceX = CustomGUILayout.Toggle ("Constrain in X direction?", constrainCursorInfluenceX, string.Empty, "If True, then camera rotation according to the cursor's X position will be limited");
 				if (constrainCursorInfluenceX)
 				{
-					limitCursorInfluenceX[0] = CustomGUILayout.Slider ("Minimum X constraint:", limitCursorInfluenceX[0], -1.4f, 0f, "", "The cursor influence's lower limit in the X-direction");
-					limitCursorInfluenceX[1] = CustomGUILayout.Slider ("Maximum X constraint:", limitCursorInfluenceX[1], 0f, 1.4f, "", "The cursor influence's upper limit in the X-direction");
+					limitCursorInfluenceX[0] = CustomGUILayout.Slider ("Minimum X constraint:", limitCursorInfluenceX[0], -1.4f, 0f, string.Empty, "The cursor influence's lower limit in the X-direction");
+					limitCursorInfluenceX[1] = CustomGUILayout.Slider ("Maximum X constraint:", limitCursorInfluenceX[1], 0f, 1.4f, string.Empty, "The cursor influence's upper limit in the X-direction");
 				}
-				constrainCursorInfluenceY = CustomGUILayout.ToggleLeft ("Constrain panning in Y direction?", constrainCursorInfluenceY, "", "If True, then camera rotation according to the cursor's Y position will be limited");
+				constrainCursorInfluenceY = CustomGUILayout.Toggle ("Constrain in Y direction?", constrainCursorInfluenceY, string.Empty, "If True, then camera rotation according to the cursor's Y position will be limited");
 				if (constrainCursorInfluenceY)
 				{
-					limitCursorInfluenceY[0] = CustomGUILayout.Slider ("Minimum Y constraint:", limitCursorInfluenceY[0], -1.4f, 0f, "", "The cursor influence's lower limit in the Y-direction");
-					limitCursorInfluenceY[1] = CustomGUILayout.Slider ("Maximum Y constraint:", limitCursorInfluenceY[1], 0f, 1.4f, "", "The cursor influence's upper limit in the Y-direction");
+					limitCursorInfluenceY[0] = CustomGUILayout.Slider ("Minimum Y constraint:", limitCursorInfluenceY[0], -1.4f, 0f, string.Empty, "The cursor influence's lower limit in the Y-direction");
+					limitCursorInfluenceY[1] = CustomGUILayout.Slider ("Maximum Y constraint:", limitCursorInfluenceY[1], 0f, 1.4f, string.Empty, "The cursor influence's upper limit in the Y-direction");
 				}
+
+				updateWhilePaused = CustomGUILayout.Toggle ("Update while paused?", updateWhilePaused, "", "If True, the camera will not be frozen while the game is paused");
 
 				if (Application.isPlaying && KickStarter.mainCamera && KickStarter.mainCamera.attachedCamera == this)
 				{
@@ -102,6 +148,26 @@ namespace AC
 		}
 
 		#endif
+
+
+		#region GetSet
+
+		private float LerpSpeed { get { return (1f - Mathf.Pow (1f - Mathf.Clamp01 (followCursorSpeed), updateWhilePaused ? Time.unscaledDeltaTime : Time.deltaTime)); } }
+
+		/** If True, the cursor's influence over the camera will be frozen */
+		public bool FreezeCursorInfluence
+		{
+			get
+			{
+				return forceFreeze;
+			}
+			set
+			{
+				forceFreeze = value;
+			}
+		}
+
+		#endregion
 
 	}
 

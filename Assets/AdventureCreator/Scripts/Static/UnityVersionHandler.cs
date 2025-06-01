@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2024
  *	
  *	"UnityVersionHandler.cs"
  * 
@@ -24,11 +24,54 @@ using UnityEditor.SceneManagement;
 namespace AC
 {
 
-	/**
-	 * This is a class that contains commonly-used functions that vary depending on which version of Unity is being used.
-	 */
+	/** This is a class that contains commonly-used functions that vary depending on which version of Unity is being used. */
 	public class UnityVersionHandler
 	{
+
+		private static ContactFilter2D filter2DWithLayer = new ContactFilter2D ();
+
+
+		public static T FindObjectOfType<T> () where T : Object
+		{
+			#if UNITY_2022_3_OR_NEWER
+			return Object.FindFirstObjectByType <T> ();
+			#else
+			return Object.FindObjectOfType <T> ();
+			#endif
+		}
+
+
+		public static T[] FindObjectsOfType<T> () where T : Object
+		{
+			#if UNITY_2022_3_OR_NEWER
+			return Object.FindObjectsByType <T> (FindObjectsSortMode.None);
+			#else
+			return Object.FindObjectsOfType <T> ();
+			#endif
+		}
+
+
+		public static T[] FindObjectsOfType<T> (bool includeInactive) where T : Object
+		{
+			#if UNITY_2022_3_OR_NEWER
+			return Object.FindObjectsByType <T> (includeInactive ? FindObjectsInactive.Include : FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+			#elif UNITY_2021_3_OR_NEWER
+			return Object.FindObjectsOfType <T> (includeInactive);
+			#else
+			return Object.FindObjectsOfType <T> ();
+			#endif
+		}
+
+
+		public static Object[] FindObjectsOfType (System.Type type)
+		{
+			#if UNITY_2022_3_OR_NEWER
+			return Object.FindObjectsByType (type, FindObjectsSortMode.None);
+			#else
+			return Object.FindObjectsOfType (type);
+			#endif
+		}
+
 
 		/**
 		 * <summary>Performs a Physics2D.Raycast on Triggers in the scene.</summary>
@@ -37,14 +80,23 @@ namespace AC
 		 * <param name = "layerMask">The LayerMask to act upon</param>
 		 * <returns>The result of the Physics2D.Raycast</returns>
 		 */
-		public static RaycastHit2D Perform2DRaycast (Vector2 origin, Vector2 direction, float length, LayerMask layerMask)
+		public static RaycastHit2D Perform2DRaycast (Vector2 origin, Vector2 direction, float length, LayerMask layerMask, float radius = 0f)
 		{
-			RaycastHit2D[] hits = new RaycastHit2D [1];
-			ContactFilter2D filter = new ContactFilter2D();
+			RaycastHit2D[] hits = new RaycastHit2D[1];
+			ContactFilter2D filter = new ContactFilter2D ();
 			filter.useTriggers = true;
 			filter.SetLayerMask (layerMask);
 			filter.ClearDepth ();
-			Physics2D.Raycast (origin, direction, filter, hits, length);
+
+			if (radius > 0f)
+			{
+				Physics2D.CircleCast (origin, radius, direction, filter, hits, length);
+			}
+			else
+			{
+				Physics2D.Raycast (origin, direction, filter, hits, length);
+			}
+
 			return hits[0];
 		}
 
@@ -56,25 +108,47 @@ namespace AC
 		 * <param name = "length">The ray's length</param>
 		 * <returns>The result of the Physics2D.Raycast</returns>
 		 */
-		public static RaycastHit2D Perform2DRaycast (Vector2 origin, Vector2 direction, float length)
+		public static RaycastHit2D Perform2DRaycast (Vector2 origin, Vector2 direction, float length, float radius = 0f)
 		{
-			RaycastHit2D[] hits = new RaycastHit2D [1];
-			ContactFilter2D filter = new ContactFilter2D();
+			RaycastHit2D[] hits = new RaycastHit2D[1];
+			ContactFilter2D filter = new ContactFilter2D ();
 			filter.useTriggers = true;
 			filter.ClearDepth ();
-			Physics2D.Raycast (origin, direction, filter, hits, length);
+
+			if (radius > 0f)
+			{
+				Physics2D.CircleCast (origin, radius, direction, filter, hits, length);
+			}
+			else
+			{
+				Physics2D.Raycast (origin, direction, filter, hits, length);
+			}
+
 			return hits[0];
 		}
 
 
-		/**
-		 * The 'lock' state of the cursor.
-		 */
+		public static int Perform2DRaycasts (ref RaycastHit2D[] hits, Vector2 origin, Vector2 direction, float length, LayerMask layerMask, float radius = 0f)
+		{
+			filter2DWithLayer.useTriggers = true;
+			filter2DWithLayer.SetLayerMask (layerMask);
+			filter2DWithLayer.ClearDepth ();
+
+			if (radius > 0f)
+			{
+				return Physics2D.CircleCast (origin, radius, direction, filter2DWithLayer, hits, length);
+			}
+
+			return Physics2D.Raycast (origin, direction, filter2DWithLayer, hits, length);
+		}
+
+
+		/** The 'lock' state of the cursor. */
 		public static bool CursorLock
 		{
 			get
 			{
-				return (Cursor.lockState == CursorLockMode.Locked) ? true : false;
+				return Cursor.lockState == CursorLockMode.Locked;
 			}
 			set
 			{
@@ -114,6 +188,17 @@ namespace AC
 
 
 		/**
+		 * <summary>Gets the name of the scene that a given GameObject is in.</summary>
+		 * <param name = "_gameObject">The GameObject in the scene</param>
+		 * <returns>The name of the scene that a given GameObject is in.</returns>
+		 */
+		public static string GetSceneNameFromGameObject (GameObject _gameObject)
+		{
+			return _gameObject.scene.name;
+		}
+
+
+		/**
 		 * <summary>Gets the LocalVariables component that is in the same scene as a given GameObject.</summary>
 		 * <param name = "_gameObject">The GameObject in the scene</param>
 		 * <returns>The LocalVariables component that is in the same scene as the given GameObject</returns>
@@ -138,7 +223,7 @@ namespace AC
 			}
 			else
 			{
-				foreach (LocalVariables localVariables in GameObject.FindObjectsOfType <LocalVariables>())
+				foreach (LocalVariables localVariables in UnityVersionHandler.FindObjectsOfType <LocalVariables>())
 				{
 					if (localVariables.gameObject.scene == scene)
 					{
@@ -176,7 +261,7 @@ namespace AC
 			}
 			else
 			{
-				foreach (SceneSettings sceneSettings in GameObject.FindObjectsOfType <SceneSettings>())
+				foreach (SceneSettings sceneSettings in UnityVersionHandler.FindObjectsOfType <SceneSettings>())
 				{
 					if (sceneSettings.gameObject.scene == scene)
 					{
@@ -208,7 +293,7 @@ namespace AC
 		{
 			if (ob == null || string.IsNullOrEmpty (folderName)) return false;
 
-			UnityEngine.Object[] folders = Object.FindObjectsOfType (typeof (GameObject));
+			UnityEngine.Object[] folders = UnityVersionHandler.FindObjectsOfType<GameObject> ();
 			foreach (GameObject folder in folders)
 			{
 				if (folder.name == folderName && folder.transform.position == Vector3.zero && folderName.Contains ("_") && folder.gameObject.scene == UnityEngine.SceneManagement.SceneManager.GetActiveScene ())
@@ -288,7 +373,7 @@ namespace AC
 
 			UnityEngine.SceneManagement.Scene activeScene = UnityEngine.SceneManagement.SceneManager.GetActiveScene ();
 
-			UnityEngine.Object[] allObjects = Object.FindObjectsOfType (typeof (GameObject));
+			UnityEngine.Object[] allObjects = UnityVersionHandler.FindObjectsOfType<GameObject> ();
 			foreach (GameObject _object in allObjects)
 			{
 				if (_object.name == gameObjectName)
@@ -482,13 +567,34 @@ namespace AC
 		public static bool IsPrefabEditing (Object _target)
 		{
 			#if NEW_PREFABS
+			#if UNITY_2021_2_OR_NEWER
 			UnityEditor.SceneManagement.PrefabStage prefabStage = UnityEditor.SceneManagement.PrefabStageUtility.GetCurrentPrefabStage ();
+			#else
+			UnityEditor.Experimental.SceneManagement.PrefabStage prefabStage = UnityEditor.Experimental.SceneManagement.PrefabStageUtility.GetCurrentPrefabStage ();
+			#endif
 			if (prefabStage != null && _target is GameObject)
 			{
 				return prefabStage.IsPartOfPrefabContents (_target as GameObject);
 			}
 			#endif
 			return false;
+		}
+
+
+		public static GameObject GetPrefabStageRoot ()
+		{
+			#if NEW_PREFABS
+			#if UNITY_2021_2_OR_NEWER
+			UnityEditor.SceneManagement.PrefabStage prefabStage = UnityEditor.SceneManagement.PrefabStageUtility.GetCurrentPrefabStage ();
+			#else
+			UnityEditor.Experimental.SceneManagement.PrefabStage prefabStage = UnityEditor.Experimental.SceneManagement.PrefabStageUtility.GetCurrentPrefabStage ();
+			#endif
+			if (prefabStage != null)
+			{
+				return prefabStage.prefabContentsRoot;
+			}
+			#endif
+			return null;
 		}
 
 
@@ -542,7 +648,9 @@ namespace AC
 					}
 				}
 			}
-			return string.Empty;
+
+			var activeScene = UnityEngine.SceneManagement.SceneManager.GetActiveScene ();
+			return activeScene.path;
 		}
 
 
@@ -603,16 +711,14 @@ namespace AC
 		}
 
 
-		/**
-		 * <summary>Finds the correct instance of a component required by the KickStarter script.</summary>
-		 */
+		/** Finds the correct instance of a component required by the KickStarter script. */
 		public static T GetKickStarterComponent <T> () where T : Behaviour
 		{
 			#if UNITY_EDITOR
-			if (Object.FindObjectsOfType <T>() != null)
+			T[] instances = UnityVersionHandler.FindObjectsOfType <T>() as T[];
+			if (instances != null && instances.Length > 0)
 			{
 				UnityEngine.SceneManagement.Scene activeScene = UnityEngine.SceneManagement.SceneManager.GetActiveScene ();
-				T[] instances = Object.FindObjectsOfType <T>() as T[];
 				foreach (T instance in instances)
 				{
 					if (instance.gameObject.scene == activeScene || instance.gameObject.scene.name == "DontDestroyOnLoad")
@@ -621,13 +727,10 @@ namespace AC
 					}
 				}
 			}
-			#else
-			if (Object.FindObjectOfType <T>())
-			{
-				return Object.FindObjectOfType <T>();
-			}
-			#endif
 			return null;
+			#else
+			return UnityVersionHandler.FindObjectOfType <T>();
+			#endif
 		}
 
 
@@ -645,7 +748,7 @@ namespace AC
 
 		public static T GetSceneInstance <T> (UnityEngine.SceneManagement.Scene scene) where T : Behaviour
 		{
-			T[] instances = Object.FindObjectsOfType (typeof (T)) as T[];
+			T[] instances = UnityVersionHandler.FindObjectsOfType<T> ();
 			foreach (T instance in instances)
 			{
 				if (instance && instance.gameObject.scene == scene)
@@ -656,6 +759,97 @@ namespace AC
 
 			return null;
 		}
+
+
+		public static void SetRigidbodyVelocity (Rigidbody rigidbody, Vector3 velocity)
+		{
+#if UNITY_6000_0_OR_NEWER
+			rigidbody.linearVelocity = velocity;
+#else
+			rigidbody.velocity = velocity;
+#endif
+		}
+
+
+		public static Vector3 GetRigidbodyVelocity (Rigidbody rigidbody)
+		{
+#if UNITY_6000_0_OR_NEWER
+			return rigidbody.linearVelocity;
+#else
+			return rigidbody.velocity;
+#endif
+		}
+
+		
+		public static void SetRigidbodyDrag (Rigidbody rigidbody, float drag)
+		{
+#if UNITY_6000_0_OR_NEWER
+			rigidbody.linearDamping = drag;
+#else
+			rigidbody.drag = drag;
+#endif
+		}
+
+
+		public static float GetRigidbodyDrag (Rigidbody rigidbody)
+		{
+#if UNITY_6000_0_OR_NEWER
+			return rigidbody.linearDamping;
+#else
+			return rigidbody.drag;
+#endif
+		}
+
+
+		public static void SetRigidbodyAngularDrag (Rigidbody rigidbody, float drag)
+		{
+#if UNITY_6000_0_OR_NEWER
+			rigidbody.angularDamping = drag;
+#else
+			rigidbody.angularDrag = drag;
+#endif
+		}
+
+
+		public static float GetRigidbodyAngularDrag (Rigidbody rigidbody)
+		{
+#if UNITY_6000_0_OR_NEWER
+			return rigidbody.angularDamping;
+#else
+			return rigidbody.angularDrag;
+#endif
+		}
+
+
+		public static void SetRigidbody2DKinematic (Rigidbody2D rigidbody, bool value)
+		{
+#if UNITY_6000_0_OR_NEWER
+			rigidbody.bodyType = value ? RigidbodyType2D.Kinematic : RigidbodyType2D.Dynamic;
+#else
+			rigidbody.isKinematic = value;
+#endif
+		}
+
+
+		public static bool GetRigidbody2DKinematic (Rigidbody2D rigidbody)
+		{
+#if UNITY_6000_0_OR_NEWER
+			return rigidbody.bodyType == RigidbodyType2D.Kinematic;
+#else
+			return rigidbody.isKinematic;
+#endif
+		}
+
+
+		public static Vector3 GetRigidbody2DVelocity (Rigidbody2D rigidbody)
+		{
+#if UNITY_6000_0_OR_NEWER
+			return rigidbody.linearVelocity;
+#else
+			return rigidbody.velocity;
+#endif
+		}
+
 
 	}
 

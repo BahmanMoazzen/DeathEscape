@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2024
  *	
  *	"Moveable_Drag.cs"
  * 
@@ -14,6 +14,7 @@
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.Events;
 
 namespace AC
 {
@@ -21,6 +22,7 @@ namespace AC
 	/**
 	 * Attaching this component to a GameObject allows it to be dragged, through physics, according to a set method.
 	 */
+	[AddComponentMenu ("Adventure Creator/Misc/Draggable")]
 	[HelpURL("https://www.adventurecreator.org/scripting-guide/class_a_c_1_1_moveable___drag.html")]
 	public class Moveable_Drag : DragBase, iActionListAssetReferencer
 	{
@@ -74,17 +76,13 @@ namespace AC
 
 		protected float colliderRadius = 0.5f;
 		protected float grabDistance = 0.5f;
-		/** How far along a track the object is, if it is locked to one */
-		[HideInInspector] public float trackValue;
-		/** A vector used in drag calculations */
-		[HideInInspector] public Vector3 _dragVector;
+		
+		protected float _trackValue;
+		protected Vector3 _dragVector;
 
-		/** The upper-limit collider when locked to a DragTrack. */
-		[HideInInspector] public Collider maxCollider;
-		/** The lower-limit collider when locked to a DragTrack */
-		[HideInInspector] public Collider minCollider;
-		/** The number of revolutions the object has been rotated by, if placed on a DragTrack_Hinge */
-		[HideInInspector] public int revolutions = 0;
+		protected Collider _maxCollider;
+		protected Collider _minCollider;
+		protected int _revolutions = 0;
 
 		protected bool canPlayCollideSound = false;
 		protected float screenToWorldOffset;
@@ -94,6 +92,7 @@ namespace AC
 
 		protected AutoMoveTrackData activeAutoMove;
 		public bool canCallSnapEvents = true;
+		[System.NonSerialized] public int regionID = 0;
 
 		private Vector3 thisFrameTorque;
 		/** The amount of damping to apply when rotating an object without a Rigidbody */
@@ -104,6 +103,7 @@ namespace AC
 		private float lastFrameTrackValue;
 		private float lastFrameTotalPositionAlong;
 		private float heldIntensity = 0f;
+		private bool isInitialising;
 		
 		#endregion
 
@@ -157,6 +157,20 @@ namespace AC
 			}
 
 			base.Start ();
+		}
+
+
+		protected override void OnEnable ()
+		{
+			EventManager.OnSetPlayer += OnSetPlayer;
+			base.OnEnable ();
+		}
+
+
+		protected override void OnDisable ()
+		{
+			EventManager.OnSetPlayer -= OnSetPlayer;
+			base.OnDisable ();
 		}
 
 
@@ -214,7 +228,7 @@ namespace AC
 
 			if (_rigidbody)
 			{
-				_rigidbody.velocity = Vector3.zero;
+				UnityVersionHandler.SetRigidbodyVelocity (_rigidbody, Vector3.zero);
 				_rigidbody.angularVelocity = Vector3.zero;
 			}
 		}
@@ -248,12 +262,14 @@ namespace AC
 
 		public override void UpdateMovement ()
 		{
+			if (isInitialising) return;
 			base.UpdateMovement ();
+
 			if (dragMode == DragMode.LockToTrack && track)
 			{
 				track.UpdateDraggable (this);
 				
-				if (UsesRigidbody && (_rigidbody.angularVelocity != Vector3.zero || _rigidbody.velocity != Vector3.zero))
+				if (UsesRigidbody && (_rigidbody.angularVelocity != Vector3.zero || UnityVersionHandler.GetRigidbodyVelocity (_rigidbody) != Vector3.zero))
 				{
 					RunInteraction (true);
 				}
@@ -292,7 +308,7 @@ namespace AC
 									break;
 							}
 						}
-						heldIntensity = Mathf.Lerp (heldIntensity, 0f, Time.deltaTime * simulatedMass);
+						heldIntensity = Mathf.Lerp (heldIntensity, 0f, Time.deltaTime * (2f + simulatedMass));
 					}
 				}
 
@@ -326,7 +342,7 @@ namespace AC
 				}
 				else if (_rigidbody)
 				{
-					PlayMoveSound (_rigidbody.velocity.magnitude);
+					PlayMoveSound (UnityVersionHandler.GetRigidbodyVelocity (_rigidbody).magnitude);
 				}
 			}
 
@@ -334,9 +350,6 @@ namespace AC
 		}
 		
 
-		/**
-		 * Draws an icon at the point of contact on the object, if appropriate.
-		 */
 		public override void DrawGrabIcon ()
 		{
 			if (isHeld && showIcon && KickStarter.CameraMain.WorldToScreenPoint (Transform.position).z > 0f && icon != null)
@@ -394,7 +407,7 @@ namespace AC
 								
 								float totalPositionAlong = mousePositionAlong + screenToWorldOffset;
 								
-								if (track.preventEndToEndJumping)
+								if (track.preventEndToEndJumping && !track.Loops)
 								{
 									bool inDeadZone = (totalPositionAlong >= 1f || totalPositionAlong <= 0f);
 									if (endLocked)
@@ -483,7 +496,7 @@ namespace AC
 						else
 						{
 							Vector3 rawTorque = newRot;
-							thisFrameTorque = torqueDampingLerp.Update(thisFrameTorque, rawTorque, toruqeDamping);
+							thisFrameTorque = torqueDampingLerp.Update (thisFrameTorque, rawTorque, toruqeDamping);
 						}
 
 						if (allowZooming)
@@ -496,8 +509,6 @@ namespace AC
 		}
 
 
-		/**
-		/** Detaches the object from the player's control. */
 		public override void LetGo (bool ignoreInteractions = false)
 		{
 			lastFrameForce = Vector3.zero;
@@ -507,7 +518,7 @@ namespace AC
 
 			if (dragMode == DragMode.RotateOnly && UsesRigidbody)
 			{
-				_rigidbody.velocity = Vector3.zero;
+				UnityVersionHandler.SetRigidbodyVelocity (_rigidbody, Vector3.zero);
 			}
 
 			if (!ignoreInteractions)
@@ -578,7 +589,7 @@ namespace AC
 
 			if (dragMode == DragMode.RotateOnly && UsesRigidbody)
 			{
-				_rigidbody.velocity = Vector3.zero;
+				UnityVersionHandler.SetRigidbodyVelocity (_rigidbody, Vector3.zero);
 			}
 
 			KickStarter.eventManager.Call_OnGrabMoveable (this);
@@ -610,7 +621,7 @@ namespace AC
 
 				if (UsesRigidbody)
 				{
-					_rigidbody.velocity = Vector3.zero;
+					UnityVersionHandler.SetRigidbodyVelocity (_rigidbody, Vector3.zero);
 					_rigidbody.angularVelocity = Vector3.zero;
 				}
 			}
@@ -672,6 +683,17 @@ namespace AC
 				{
 					activeAutoMove = null;
 					track.SetPositionAlong (_targetTrackValue, this);
+					lastFrameTrackValue = trackValue;
+					return;
+				}
+
+				if (Mathf.Abs (trackValue - _targetTrackValue) < 0.001f)
+				{
+					activeAutoMove = null;
+					track.SetPositionAlong (_targetTrackValue, this);
+					lastFrameTrackValue = trackValue;
+					var autoMove = new AutoMoveTrackData (_targetTrackValue, _targetTrackSpeed / 6000f, layerMask, snapID);
+					autoMove.CheckForEnd (this);
 					return;
 				}
 
@@ -684,7 +706,7 @@ namespace AC
 			}
 			else
 			{
-				ACDebug.LogWarning ("Cannot move " + this.name + " along a track, because no track has been assigned to it", this);
+				ACDebug.LogWarning ("Cannot move " + name + " along a track, because no track has been assigned to it", this);
 			}
 		}
 
@@ -718,6 +740,7 @@ namespace AC
 		{
 			if (track)
 			{
+				isInitialising = true;
 				ChildTransformData[] childTransformData = GetChildTransforms ();
 
 				track.Connect (this);
@@ -738,6 +761,7 @@ namespace AC
 					track.SnapToTrack (this, true);
 				}
 				trackValue = track.GetDecimalAlong (this);
+				isInitialising = false;
 			}
 		}
 
@@ -849,6 +873,32 @@ namespace AC
 		#endregion
 
 
+		#region CustomEvents
+
+		private void OnSetPlayer (Player player)
+		{
+			if (dragMode != DragMode.LockToTrack)
+			{
+				LimitPlayerCollisions ();
+			}
+			else if (track && player)
+			{
+				Collider[] dragColliders = GetComponentsInChildren<Collider> ();
+				Collider[] playerColliders = player.gameObject.GetComponentsInChildren<Collider> ();
+
+				foreach (Collider playerCollider in playerColliders)
+				{
+					foreach (Collider dragCollider in dragColliders)
+					{
+						Physics.IgnoreCollision (playerCollider, dragCollider, ignorePlayerCollider);
+					}
+				}
+			}
+		}
+
+		#endregion
+
+
 		#region GetSet
 
 		public float ColliderWidth
@@ -879,6 +929,71 @@ namespace AC
 					}
 				}
 				return false;
+			}
+		}
+
+
+		public float trackValue
+		{
+			get
+			{
+				return _trackValue;
+			}
+			set
+			{
+				_trackValue = value;
+			}
+		}
+		
+
+		public Vector3 dragVector
+		{
+			get
+			{
+				return _dragVector;
+			}
+			set
+			{
+				_dragVector = value;
+			}
+		}
+		
+
+		public Collider maxCollider
+		{
+			get
+			{
+				return _maxCollider;
+			}
+			set
+			{
+				_maxCollider = value;
+			}
+		}
+
+
+		public Collider minCollider
+		{
+			get
+			{
+				return _minCollider;
+			}
+			set
+			{
+				_minCollider = value;
+			}
+		}
+
+
+		public int revolutions
+		{
+			get
+			{
+				return _revolutions;
+			}
+			set
+			{
+				_revolutions = value;
 			}
 		}
 
@@ -1010,6 +1125,16 @@ namespace AC
 				if (actionListAssetOnDrop == actionListAsset) return true;
 			}
 			return false;
+		}
+
+
+		public List<ActionListAsset> GetReferencedActionListAssets ()
+		{
+			if (actionListSource == ActionListSource.AssetFile)
+			{
+				return new List<ActionListAsset> { actionListAssetOnMove, actionListAssetOnDrop };
+			}
+			return null;
 		}
 
 		#endif

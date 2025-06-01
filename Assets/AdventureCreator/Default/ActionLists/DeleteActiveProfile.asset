@@ -15,7 +15,7 @@ MonoBehaviour:
   actions:
   - {fileID: 11483948}
   isSkippable: 1
-  actionListType: 0
+  actionListType: 1
   unfreezePauseMenus: 1
   useParameters: 0
   canRunMultipleInstances: 0
@@ -23,6 +23,7 @@ MonoBehaviour:
   revertToDefaultParametersAfterRunning: 0
   parameters: []
   tagID: 0
+  groups: []
   backupData: []
 --- !u!114 &11483948
 MonoBehaviour:
@@ -64,12 +65,15 @@ MonoBehaviour:
   overrideColor: {r: 1, g: 1, b: 1, a: 1}
   showOutputSockets: 1
   parentActionListInEditor: {fileID: 0}
+  groupID: 0
   manageProfileType: 1
   deleteProfileType: 0
   profileIndex: 0
   profileIndexParameterID: -1
-  varID: 0
+  varID: -1
   slotVarID: 0
+  customLabel: 
   useCustomLabel: 0
+  preProcessTokens: 1
   menuName: 
   elementName: 

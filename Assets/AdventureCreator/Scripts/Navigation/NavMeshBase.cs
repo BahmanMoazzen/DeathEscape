@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2024
  *	
  *	"NavMeshBase.cs"
  * 
@@ -27,7 +27,7 @@ namespace AC
 		public bool disableRenderer = true;
 
 		private Collider _collider;
-		private MeshRenderer _meshRenderer;
+		private Renderer _meshRenderer;
 		private MeshCollider _meshCollider;
 		private MeshFilter _meshFilter;
 
@@ -68,7 +68,7 @@ namespace AC
 			#if UNITY_EDITOR
 			if (_meshRenderer == null)
 			{
-				_meshRenderer = GetComponent <MeshRenderer>();
+				_meshRenderer = GetComponent <Renderer>();
 			}
 			#endif
 
@@ -104,16 +104,14 @@ namespace AC
 		}
 
 
-		/**
-		 * Calls Physics.IgnoreCollision on all appropriate Collider combinations (Unity 5 only).
-		 */
+		/** Calls Physics.IgnoreCollision on all appropriate Collider combinations */
 		public void IgnoreNavMeshCollisions (Collider[] allColliders = null)
 		{
 			if (ignoreCollisions)
 			{
 				if (allColliders == null)
 				{
-					allColliders = FindObjectsOfType (typeof(Collider)) as Collider[];
+					allColliders = UnityVersionHandler.FindObjectsOfType<Collider> ();
 				}
 
 				if (_collider && _collider.enabled && _collider.gameObject.activeInHierarchy)
@@ -137,7 +135,7 @@ namespace AC
 		protected void BaseAwake ()
 		{
 			_collider = GetComponent <Collider>();
-			_meshRenderer = GetComponent <MeshRenderer>();
+			_meshRenderer = GetComponent <Renderer>();
 			_meshCollider = GetComponent <MeshCollider>();
 			_meshFilter = GetComponent <MeshFilter>();
 

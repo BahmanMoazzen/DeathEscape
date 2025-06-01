@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2024
  *	
  *	"RememberMoveable.cs"
  * 
@@ -11,31 +11,38 @@
  */
 
 using UnityEngine;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace AC
 {
 
-	/**
-	 * This script is attached to Moveable, Draggable or PickUp objects you wish to save.
-	 */
+	/** This script is attached to Moveable, Draggable or PickUp objects you wish to save. */
 	[AddComponentMenu("Adventure Creator/Save system/Remember Moveable")]
 	[HelpURL("https://www.adventurecreator.org/scripting-guide/class_a_c_1_1_remember_moveable.html")]
 	public class RememberMoveable : Remember
 	{
 
+		#region Variables
+
+		[SerializeField] private Moveable moveableToSave = null;
 		/** Determines whether the object is on or off when the game starts */
 		public AC_OnOff startState = AC_OnOff.On;
+		/** The co-ordinate system to record the object's Transform values in */
+		public Space saveTransformInSpace = Space.WorldSpace;
+		public enum Space { WorldSpace, LocalSpace };
+
+		#endregion
+
+
+		#region UnityStandards
 		
-		private bool loadedData = false;
-
-
-		private void Awake ()
+		protected override void OnInitialiseScene ()
 		{
-			if (loadedData) return;
-
-			if (KickStarter.settingsManager && GameIsPlaying () && isActiveAndEnabled)
+			if (KickStarter.settingsManager && isActiveAndEnabled && Moveable)
 			{
-				DragBase dragBase = GetComponent <DragBase>();
+				DragBase dragBase = Moveable as DragBase;
 				if (dragBase)
 				{
 					if (startState == AC_OnOff.On)
@@ -50,24 +57,30 @@ namespace AC
 
 				if (startState == AC_OnOff.On)
 				{
-					gameObject.layer = LayerMask.NameToLayer (KickStarter.settingsManager.hotspotLayer);
+					Moveable.gameObject.layer = LayerMask.NameToLayer (KickStarter.settingsManager.hotspotLayer);
 				}
 				else
 				{
-					gameObject.layer = LayerMask.NameToLayer (KickStarter.settingsManager.deactivatedLayer);
+					Moveable.gameObject.layer = LayerMask.NameToLayer (KickStarter.settingsManager.deactivatedLayer);
 				}
 			}
 		}
 
+		#endregion
+
+
+		#region PublicFunctions
 
 		public override string SaveData ()
 		{
+			if (Moveable == null) return string.Empty;
+
 			MoveableData moveableData = new MoveableData ();
 			
 			moveableData.objectID = constantID;
 			moveableData.savePrevented = savePrevented;
 
-			Moveable_Drag moveable_Drag = GetComponent <Moveable_Drag>();
+			Moveable_Drag moveable_Drag = Moveable as Moveable_Drag;
 			if (moveable_Drag)
 			{
 				moveableData.isOn = moveable_Drag.IsOn ();
@@ -83,40 +96,57 @@ namespace AC
 			{
 				moveableData.isOn = (gameObject.layer == LayerMask.NameToLayer (KickStarter.settingsManager.hotspotLayer));
 			}
-			
-			moveableData.LocX = transform.position.x;
-			moveableData.LocY = transform.position.y;
-			moveableData.LocZ = transform.position.z;
 
-			moveableData.RotX = transform.eulerAngles.x;
-			moveableData.RotY = transform.eulerAngles.y;
-			moveableData.RotZ = transform.eulerAngles.z;
+			Transform _transform = Moveable.Transform;
 			
-			moveableData.ScaleX = transform.localScale.x;
-			moveableData.ScaleY = transform.localScale.y;
-			moveableData.ScaleZ = transform.localScale.z;
-
-			Moveable moveable = GetComponent <Moveable>();
-			if (moveable)
+			switch (saveTransformInSpace)
 			{
-				moveableData = moveable.SaveData (moveableData);
+				case Space.WorldSpace:
+					moveableData.LocX = _transform.position.x;
+					moveableData.LocY = _transform.position.y;
+					moveableData.LocZ = _transform.position.z;
+
+					moveableData.RotX = _transform.eulerAngles.x;
+					moveableData.RotY = _transform.eulerAngles.y;
+					moveableData.RotZ = _transform.eulerAngles.z;
+					break;
+
+				case Space.LocalSpace:
+					moveableData.LocX = _transform.localPosition.x;
+					moveableData.LocY = _transform.localPosition.y;
+					moveableData.LocZ = _transform.localPosition.z;
+
+					moveableData.RotX = _transform.localEulerAngles.x;
+					moveableData.RotY = _transform.localEulerAngles.y;
+					moveableData.RotZ = _transform.localEulerAngles.z;
+					break;
+
+				default:
+					break;
 			}
 
+			moveableData.ScaleX = _transform.localScale.x;
+			moveableData.ScaleY = _transform.localScale.y;
+			moveableData.ScaleZ = _transform.localScale.z;
+
+			moveableData = Moveable.SaveData (moveableData);
+			
 			return Serializer.SaveScriptData <MoveableData> (moveableData);
 		}
 		
 
 		public override void LoadData (string stringData)
 		{
+			if (Moveable == null) return;
+
 			MoveableData data = Serializer.LoadScriptData <MoveableData> (stringData);
 			if (data == null)
 			{
-				loadedData = false;
 				return;
 			}
 			SavePrevented = data.savePrevented; if (savePrevented) return;
 
-			DragBase dragBase = GetComponent <DragBase>();
+			DragBase dragBase = Moveable as DragBase;
 			if (dragBase)
 			{
 				if (data.isOn)
@@ -131,18 +161,35 @@ namespace AC
 
 			if (data.isOn)
 			{
-				gameObject.layer = LayerMask.NameToLayer (KickStarter.settingsManager.hotspotLayer);
+				Moveable.gameObject.layer = LayerMask.NameToLayer (KickStarter.settingsManager.hotspotLayer);
 			}
 			else
 			{
-				gameObject.layer = LayerMask.NameToLayer (KickStarter.settingsManager.deactivatedLayer);
+				Moveable.gameObject.layer = LayerMask.NameToLayer (KickStarter.settingsManager.deactivatedLayer);
 			}
 
-			transform.position = new Vector3 (data.LocX, data.LocY, data.LocZ);
-			transform.eulerAngles = new Vector3 (data.RotX, data.RotY, data.RotZ);
-			transform.localScale = new Vector3 (data.ScaleX, data.ScaleY, data.ScaleZ);
+			if (Moveable.GetComponent<Player> () == null && Moveable.GetComponent<RememberNPC> () == null)
+			{
+				switch (saveTransformInSpace)
+				{
+					case Space.WorldSpace:
+						Moveable.Transform.position = new Vector3 (data.LocX, data.LocY, data.LocZ);
+						Moveable.Transform.eulerAngles = new Vector3 (data.RotX, data.RotY, data.RotZ);
+						break;
 
-			Moveable_Drag moveable_Drag = GetComponent <Moveable_Drag>();
+					case Space.LocalSpace:
+						Moveable.Transform.localPosition = new Vector3 (data.LocX, data.LocY, data.LocZ);
+						Moveable.Transform.localEulerAngles = new Vector3 (data.RotX, data.RotY, data.RotZ);
+						break;
+
+					default:
+						break;
+				}
+			}
+
+			Moveable.Transform.localScale = new Vector3 (data.ScaleX, data.ScaleY, data.ScaleZ);
+
+			Moveable_Drag moveable_Drag = Moveable as Moveable_Drag;
 			if (moveable_Drag)
 			{
 				if (moveable_Drag.IsHeld)
@@ -167,21 +214,49 @@ namespace AC
 				}
 			}
 
-			Moveable moveable = GetComponent <Moveable>();
-			if (moveable)
-			{
-				moveable.LoadData (data);
-			}
-
-			loadedData = true;
+			Moveable.LoadData (data);
 		}
-		
-	}
-	
 
-	/**
-	 * A data container used by the RememberMoveable script.
-	 */
+
+		#if UNITY_EDITOR
+
+		public void ShowGUI ()
+		{
+			if (moveableToSave == null) moveableToSave = GetComponent<Moveable> ();
+
+			CustomGUILayout.Header ("Moveable");
+			CustomGUILayout.BeginVertical ();
+			moveableToSave = (Moveable) CustomGUILayout.ObjectField<Moveable> ("Moveable to save:", moveableToSave, true);
+			startState = (AC_OnOff) CustomGUILayout.EnumPopup ("Moveable state on start:", startState, "", "The interactive state of the object when the game begins");
+			saveTransformInSpace = (RememberMoveable.Space) CustomGUILayout.EnumPopup ("Save Transforms in:", saveTransformInSpace, "", "The co-ordinate system to record the object's Transform values in");
+			CustomGUILayout.EndVertical ();
+		}
+
+		#endif
+
+		#endregion
+
+
+		#region GetSet
+
+		private Moveable Moveable
+		{
+			get
+			{
+				if (moveableToSave == null)
+				{
+					moveableToSave = GetComponent <Moveable> ();
+				}
+				return moveableToSave;
+			}
+		}
+
+		#endregion
+
+	}
+
+
+	/** A data container used by the RememberMoveable script. */
 	[System.Serializable]
 	public class MoveableData : RememberData
 	{

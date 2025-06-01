@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2024
  *	
  *	"AdvGame.cs"
  * 
@@ -41,10 +41,30 @@ namespace AC
 		 */
 		public static void SetMixerVolume (AudioMixerGroup audioMixerGroup, string parameter, float volume)
 		{
-			if (audioMixerGroup && KickStarter.settingsManager.volumeControl == VolumeControl.AudioMixerGroups)
+			if (string.IsNullOrEmpty (parameter) || audioMixerGroup == null)
+			{
+				return;
+			}
+
+			if (KickStarter.settingsManager.volumeControl == VolumeControl.AudioMixerGroups)
 			{
 				float attenuation = (volume > 0f) ? (Mathf.Log10 (volume) * 20f) : -80f;
 				audioMixerGroup.audioMixer.SetFloat (parameter, attenuation);
+
+				#if AddressableIsPresent
+				if (parameter == KickStarter.settingsManager.sfxAttentuationParameter &&
+					KickStarter.settingsManager.loadScenesFromAddressable)
+				{
+					if (KickStarter.sceneSettings && KickStarter.sceneSettings.defaultSound && KickStarter.sceneSettings.defaultSound.audioSource && KickStarter.sceneSettings.defaultSound.audioSource.outputAudioMixerGroup)
+					{
+						var defaultSFXMixer = KickStarter.sceneSettings.defaultSound.audioSource.outputAudioMixerGroup.audioMixer;
+						if (defaultSFXMixer != null && defaultSFXMixer != audioMixerGroup.audioMixer)
+						{
+							defaultSFXMixer.SetFloat (parameter, attenuation);
+						}
+					}
+				}
+				#endif
 			}
 		}
 
@@ -629,6 +649,32 @@ namespace AC
 						}
 					}
 
+					// Timers
+					tokenStart = "[timer:";
+					tokenIndex = _text.IndexOf (tokenStart);
+					if (tokenIndex >= 0)
+					{
+						tokenValueStartIndex = tokenIndex + tokenStart.Length;
+						tokenValueEndIndex = _text.Substring (tokenValueStartIndex).IndexOf ("]");
+
+						if (tokenValueEndIndex > 0)
+						{
+							string stringValue = _text.Substring (tokenValueStartIndex, tokenValueEndIndex);
+							int _timerID = -1;
+							if (int.TryParse (stringValue, out _timerID))
+							{
+								Timer timer = KickStarter.variablesManager.GetTimer (_timerID);
+								if (timer != null)
+								{
+									string fullToken = tokenStart + stringValue + "]";
+									string timerValue = timer.GetFormattedValue ();
+									_text = _text.Replace (fullToken, timerValue);
+									numIterations = 2;
+								}
+							}
+						}
+					}
+
 					numIterations --;
 				}
 
@@ -640,11 +686,125 @@ namespace AC
 			
 			return _text;
 		}
+
+
+		public static string ConvertParameterTokens (string _text, List<ActionParameter> parameters, int languageNumber)
+		{
+			if (!Application.isPlaying)
+			{
+				return _text;
+			}
+
+			if (!string.IsNullOrEmpty (_text))
+			{
+				int numIterations = 1;
+				while (numIterations > 0)
+				{
+					// Parameters
+					if (parameters != null)
+					{
+						tokenStart = "[param:";
+						tokenIndex = _text.IndexOf (tokenStart);
+						if (tokenIndex >= 0)
+						{
+							tokenValueStartIndex = tokenIndex + tokenStart.Length;
+							tokenValueEndIndex = _text.Substring (tokenValueStartIndex).IndexOf ("]");
+
+							if (tokenValueEndIndex > 0)
+							{
+								string stringValue = _text.Substring (tokenValueStartIndex, tokenValueEndIndex);
+								int _paramID = -1;
+								if (int.TryParse (stringValue, out _paramID))
+								{
+									foreach (ActionParameter parameter in parameters)
+									{
+										if (parameter.ID == _paramID)
+										{
+											string fullToken = tokenStart + stringValue + "]";
+											_text = _text.Replace (fullToken, parameter.GetValueAsString ());
+											numIterations = 2;
+										}
+									}
+								}
+							}
+						}
+
+						// Parameter values
+						tokenStart = "[paramval:";
+						tokenIndex = _text.IndexOf (tokenStart);
+						if (tokenIndex >= 0)
+						{
+							tokenValueStartIndex = tokenIndex + tokenStart.Length;
+							tokenValueEndIndex = _text.Substring (tokenValueStartIndex).IndexOf ("]");
+
+							if (tokenValueEndIndex > 0)
+							{
+								string stringValue = _text.Substring (tokenValueStartIndex, tokenValueEndIndex);
+								int _paramID = -1;
+								if (int.TryParse (stringValue, out _paramID))
+								{
+									foreach (ActionParameter parameter in parameters)
+									{
+										if (parameter.ID == _paramID)
+										{
+											string fullToken = tokenStart + stringValue + "]";
+											string paramValue = string.Empty;
+											GVar paramVariable = parameter.GetVariable ();
+											if (paramVariable != null)
+											{
+												paramValue = paramVariable.GetValue (languageNumber);
+											}
+											else
+											{
+												paramValue = parameter.GetValueAsString ();
+											}
+											_text = _text.Replace (fullToken, paramValue);
+											numIterations = 2;
+										}
+									}
+								}
+							}
+						}
+
+						// Parameter labels
+						tokenStart = "[paramlabel:";
+						tokenIndex = _text.IndexOf (tokenStart);
+						if (tokenIndex >= 0)
+						{
+							tokenValueStartIndex = tokenIndex + tokenStart.Length;
+							tokenValueEndIndex = _text.Substring (tokenValueStartIndex).IndexOf ("]");
+
+							if (tokenValueEndIndex > 0)
+							{
+								string stringValue = _text.Substring (tokenValueStartIndex, tokenValueEndIndex);
+								int _paramID = -1;
+								if (int.TryParse (stringValue, out _paramID))
+								{
+									foreach (ActionParameter parameter in parameters)
+									{
+										if (parameter.ID == _paramID)
+										{
+											string fullToken = tokenStart + stringValue + "]";
+											_text = _text.Replace (fullToken, parameter.GetLabel ());
+											numIterations = 2;
+										}
+									}
+								}
+							}
+						}
+					}
+
+					numIterations --;
+				}
+			}
+			
+			return _text;
+		}
 		
 		
 		#if UNITY_EDITOR
 
-		public static string GetVariableTokenText (VariableLocation location, int varID)
+		public static string GetVariableTokenText (VariableLocation location, int varID, int variablesConstantID = 0)
 		{
 			switch (location)
 			{
@@ -654,9 +814,18 @@ namespace AC
 				case VariableLocation.Local:
 					return "[localvar:" + varID.ToString () + "]";
 
+				case VariableLocation.Component:
+					if (variablesConstantID != 0)
+					{
+						return "[compvar:" + variablesConstantID.ToString () + ":" + varID.ToString () + "'";
+					}
+					break;
+
 				default:
-					return string.Empty;
+					break;
 			}
+
+			return string.Empty;
 		}
 
 
@@ -869,7 +1038,7 @@ namespace AC
 				{
 					UnityVersionHandler.OpenScene (sceneFile);
 
-					ConstantID[] idObjects = FindObjectsOfType (typeof (ConstantID)) as ConstantID[];
+					ConstantID[] idObjects = UnityVersionHandler.FindObjectsOfType<ConstantID> ();
 					if (idObjects != null && idObjects.Length > 0)
 					{
 						foreach (ConstantID idObject in idObjects)
@@ -922,9 +1091,9 @@ namespace AC
 		 */
 		public static int GlobalVariableGUI (string label, int variableID, string tooltip = "")
 		{
-			if (AdvGame.GetReferences () && AdvGame.GetReferences ().variablesManager)
+			if (KickStarter.variablesManager)
 			{
-				VariablesManager variablesManager = AdvGame.GetReferences ().variablesManager;
+				VariablesManager variablesManager = KickStarter.variablesManager;
 
 				// Create a string List of the field's names (for the PopUp box)
 				List<string> labelList = new List<string>();
@@ -983,9 +1152,9 @@ namespace AC
 		 */
 		public static int GlobalVariableGUI (string label, int variableID, VariableType variableType, string tooltip = "")
 		{
-			if (AdvGame.GetReferences () != null && AdvGame.GetReferences ().variablesManager)
+			if (KickStarter.variablesManager)
 			{
-				return VariableGUI (label, variableID, variableType, VariableLocation.Global, AdvGame.GetReferences ().variablesManager.vars, tooltip);
+				return VariableGUI (label, variableID, variableType, VariableLocation.Global, KickStarter.variablesManager.vars, tooltip);
 			}
 			return variableID;
 		}
@@ -1000,9 +1169,9 @@ namespace AC
 		 */
 		public static int GlobalVariableGUI (string label, int variableID, VariableType[] variableTypes, string tooltip = "")
 		{
-			if (AdvGame.GetReferences () != null && AdvGame.GetReferences ().variablesManager)
+			if (KickStarter.variablesManager)
 			{
-				return VariableGUI (label, variableID, variableTypes, VariableLocation.Global, AdvGame.GetReferences ().variablesManager.vars, tooltip);
+				return VariableGUI (label, variableID, variableTypes, VariableLocation.Global, KickStarter.variablesManager.vars, tooltip);
 			}
 			return variableID;
 		}
@@ -1098,18 +1267,31 @@ namespace AC
 				{
 					bool foundVarType = false;
 
-					foreach (VariableType variableType in variableTypes)
+					if (variableTypes == null)
 					{
-						if (!foundVarType && vars[i].type == variableType)
+						PopupSelectData popupSelectData = new PopupSelectData (vars[i].id, vars[i].label, i);
+						popupSelectDataList.Add (popupSelectData);
+
+						if (popupSelectData.ID == variableID)
 						{
-							foundVarType = true;
-
-							PopupSelectData popupSelectData = new PopupSelectData (vars[i].id, vars[i].label, i);
-							popupSelectDataList.Add (popupSelectData);
-
-							if (popupSelectData.ID == variableID)
+							variableNumber = popupSelectDataList.Count-1;
+						}
+					}
+					else
+					{
+						foreach (VariableType variableType in variableTypes)
+						{
+							if (!foundVarType && vars[i].type == variableType)
 							{
-								variableNumber = popupSelectDataList.Count-1;
+								foundVarType = true;
+
+								PopupSelectData popupSelectData = new PopupSelectData (vars[i].id, vars[i].label, i);
+								popupSelectDataList.Add (popupSelectData);
+
+								if (popupSelectData.ID == variableID)
+								{
+									variableNumber = popupSelectDataList.Count-1;
+								}
 							}
 						}
 					}
@@ -1168,7 +1350,7 @@ namespace AC
 		public static void DrawNodeCurve (Rect start, Rect end, Color color, int offset, bool onSide, bool isDisplayed)
 		{
 			bool arrangeVertically = true;
-			if (AdvGame.GetReferences ().actionsManager && AdvGame.GetReferences ().actionsManager.displayActionsInEditor == DisplayActionsInEditor.ArrangedHorizontally)
+			if (KickStarter.actionsManager && KickStarter.actionsManager.displayActionsInEditor == DisplayActionsInEditor.ArrangedHorizontally)
 			{
 				arrangeVertically = false;
 			}
@@ -1346,7 +1528,7 @@ namespace AC
 		 */
 		public static Vector3 GetScreenNavMesh (Vector3 targetWorldPosition)
 		{
-			SettingsManager settingsManager = AdvGame.GetReferences ().settingsManager;
+			SettingsManager settingsManager = KickStarter.settingsManager;
 
 			Vector3 targetScreenPosition = KickStarter.CameraMain.WorldToScreenPoint (targetWorldPosition);
 			Ray ray = KickStarter.CameraMain.ScreenPointToRay (targetScreenPosition);
@@ -1755,7 +1937,7 @@ namespace AC
 		 */
 		public static void DrawTextEffect (Rect rect, string text, GUIStyle style, Color outColor, Color inColor, float size, TextEffects textEffects)
 		{
-			if (AdvGame.GetReferences ().menuManager && AdvGame.GetReferences ().menuManager.scaleTextEffects)
+			if (KickStarter.menuManager && KickStarter.menuManager.scaleTextEffects)
 			{
 				size = ACScreen.safeArea.width / 200f / size;
 			}
@@ -1763,9 +1945,9 @@ namespace AC
 			int i=0;
 			string effectText = text;
 
-			if (effectText != null)
+			if (!string.IsNullOrEmpty (text))
 			{
-				while (i < text.Length && text.IndexOf ("<color=", i) >= 0)
+				while (i < effectText.Length && effectText.IndexOf ("<color=", i) >= 0)
 				{
 					int startPos = effectText.IndexOf ("<color=", i);
 					int endPos = 0;
@@ -1782,13 +1964,23 @@ namespace AC
 					i = startPos + 1;
 				}
 
-				if (textEffects == TextEffects.Outline || textEffects == TextEffects.OutlineAndShadow)
+				switch (textEffects)
 				{
-					AdvGame.DrawTextOutline (rect, text, style, outColor, inColor, size, effectText);
-				}
-				if (textEffects == TextEffects.Shadow || textEffects == TextEffects.OutlineAndShadow)
-				{
-					AdvGame.DrawTextShadow (rect, text, style, outColor, inColor, size, effectText);
+					case TextEffects.Outline:
+						DrawTextOutline (rect, text, style, outColor, inColor, size, effectText);
+						break;
+
+					case TextEffects.OutlineAndShadow:
+						DrawTextOutline (rect, text, style, outColor, inColor, size, effectText);
+						DrawTextShadow (rect, text, style, outColor, inColor, size, effectText);
+						break;
+
+					case TextEffects.Shadow:
+						DrawTextShadow (rect, text, style, outColor, inColor, size, effectText);
+						break;
+
+					default:
+						break;
 				}
 			}
 		}
@@ -1796,7 +1988,7 @@ namespace AC
 		
 		private static void DrawTextShadow (Rect rect, string text, GUIStyle style, Color outColor, Color inColor, float size, string effectText = "")
 		{
-			GUIStyle backupStyle = new GUIStyle(style);
+			GUIStyle backupStyle = new GUIStyle (style);
 			Color backupColor = GUI.color;
 
 			if (effectText.Length == 0)
@@ -1806,25 +1998,25 @@ namespace AC
 
 			if (style.normal.background != null)
 			{
-				GUI.Label(rect, "", style);
+				GUI.Label (rect, string.Empty, style);
 			}
 			style.normal.background = null;
 
-			outColor.a = GUI.color.a;
+			outColor.a *= GUI.color.a;
 			style.normal.textColor = outColor;
 			GUI.color = outColor;
 			
 			rect.x += size;
-			GUI.Label(rect, effectText, style);
+			GUI.Label (rect, effectText, style);
 			
 			rect.y += size;
-			GUI.Label(rect, effectText, style);
+			GUI.Label (rect, effectText, style);
 			
 			rect.x -= size;
 			rect.y -= size;
 			style.normal.textColor = inColor;
 			GUI.color = backupColor;
-			GUI.Label(rect, text, style);
+			GUI.Label (rect, text, style);
 			
 			style = backupStyle;
 		}
@@ -1832,54 +2024,53 @@ namespace AC
 		
 		private static void DrawTextOutline (Rect rect, string text, GUIStyle style, Color outColor, Color inColor, float size, string effectText = "")
 		{
-			float halfSize = size * 0.5F;
-			GUIStyle backupStyle = new GUIStyle(style);
+			float halfSize = size * 0.5f;
+			GUIStyle backupStyle = new GUIStyle (style);
 			Color backupColor = GUI.color;
 
-			if (effectText.Length == 0)
+			if (string.IsNullOrEmpty (effectText))
 			{
 				effectText = text;
 			}
 
 			if (style.normal.background != null)
 			{
-				GUI.Label(rect, "", style);
+				GUI.Label (rect, string.Empty, style);
 			}
 			style.normal.background = null;
-			
-			outColor.a = GUI.color.a;
+			outColor.a *= GUI.color.a;
 			style.normal.textColor = outColor;
 			GUI.color = outColor;
 			
 			rect.x -= halfSize;
-			GUI.Label(rect, effectText, style);
+			GUI.Label (rect, effectText, style);
 
 			rect.y -= halfSize;
-			GUI.Label(rect, effectText, style);
+			GUI.Label (rect, effectText, style);
 
 			rect.x += halfSize;
-			GUI.Label(rect, effectText, style);
+			GUI.Label (rect, effectText, style);
 
 			rect.x += halfSize;
-			GUI.Label(rect, effectText, style);
+			GUI.Label (rect, effectText, style);
 
 			rect.y += halfSize;
-			GUI.Label(rect, effectText, style);
+			GUI.Label (rect, effectText, style);
 
 			rect.y += halfSize;
-			GUI.Label(rect, effectText, style);
+			GUI.Label (rect, effectText, style);
 
 			rect.x -= halfSize;
-			GUI.Label(rect, effectText, style);
+			GUI.Label (rect, effectText, style);
 
 			rect.x -= halfSize;
-			GUI.Label(rect, effectText, style);
+			GUI.Label (rect, effectText, style);
 
 			rect.x += halfSize;
 			rect.y -= halfSize;
 			style.normal.textColor = inColor;
 			GUI.color = backupColor;
-			GUI.Label(rect, text, style);
+			GUI.Label (rect, text, style);
 			
 			style = backupStyle;
 		}
@@ -1892,6 +2083,8 @@ namespace AC
 		 */
 		public static string PrepareStringForSaving (string _string)
 		{
+			if (string.IsNullOrEmpty (_string)) return string.Empty;
+
 			_string = _string.Replace (SaveSystem.pipe, "*PIPE*");
 			_string = _string.Replace (SaveSystem.colon, "*COLON*");
 			
@@ -1906,6 +2099,8 @@ namespace AC
 		 */
 		public static string PrepareStringForLoading (string _string)
 		{
+			if (string.IsNullOrEmpty (_string)) return string.Empty;
+
 			_string = _string.Replace ("*PIPE*", SaveSystem.pipe);
 			_string = _string.Replace ("*COLON*", SaveSystem.colon);
 			
@@ -1920,15 +2115,21 @@ namespace AC
 		 * <returns>The signed angle</returns>
 		 */
 		public static float SignedAngle (Vector2 from, Vector2 to)
-        {
-            float unsigned_angle = Vector2.Angle (from, to);
-            float sign = Mathf.Sign(from.x * to.y - from.y * to.x);
-            return unsigned_angle * sign;
-        }
+		{
+			float unsigned_angle = Vector2.Angle (from, to);
+			float sign = Mathf.Sign(from.x * to.y - from.y * to.x);
+			return unsigned_angle * sign;
+		}
 
 
 		public static Vector3 GetCharLookVector (CharDirection direction, Char _character = null)
 		{
+			if (KickStarter.CameraMainTransform == null)
+			{
+				ACDebug.LogWarning ("No MainCamera transform found!");
+				return _character.TransformForward;
+			}
+
 			Vector3 camForward = KickStarter.CameraMainTransform.forward;
 			camForward = new Vector3 (camForward.x, 0f, camForward.z).normalized;
 

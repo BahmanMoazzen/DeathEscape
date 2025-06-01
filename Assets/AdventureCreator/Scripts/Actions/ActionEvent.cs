@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2024
  *	
  *	"ActionSendMessage.cs"
  * 
@@ -80,7 +80,22 @@ namespace AC
 			serializedObject.ApplyModifiedProperties ();
 			#endif
 
+			#if !UNITY_2019_1_OR_NEWER
 			EditorGUILayout.HelpBox ("Parameters passed from here cannot be set, unfortunately, due to a Unity limitation.", MessageType.Warning);
+			#endif
+		}
+
+
+		/**
+		 * <summary>Creates a new instance of the 'Object: Call event' Action</summary>
+		 * <param name = "unityEvent">The event to run</param>
+		 * <returns>The generated Action</returns>
+		 */
+		public static ActionEvent CreateNew (UnityEvent unityEvent)
+		{
+			ActionEvent newAction = CreateNew<ActionEvent> ();
+			newAction.unityEvent = unityEvent;
+			return newAction;
 		}
 
 		#endif

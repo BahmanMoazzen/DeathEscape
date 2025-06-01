@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2024
  *	
  *	"Moveable.cs"
  * 
@@ -19,8 +19,8 @@ namespace AC
 	 * This script provides functions to move or transform the GameObject it is attached to.
 	 * It is used by the "Object: Transform" Action to move objects without scripting.
 	 */
-	[AddComponentMenu("Adventure Creator/Misc/Moveable")]
-	[HelpURL("https://www.adventurecreator.org/scripting-guide/class_a_c_1_1_moveable.html")]
+	[AddComponentMenu ("Adventure Creator/Misc/Moveable")]
+	[HelpURL ("https://www.adventurecreator.org/scripting-guide/class_a_c_1_1_moveable.html")]
 	public class Moveable : MonoBehaviour
 	{
 
@@ -43,9 +43,11 @@ namespace AC
 
 		protected Vector3 startEulerRotation;
 		protected Vector3 endEulerRotation;
-		
+
 		protected Quaternion startRotation;
 		protected Quaternion endRotation;
+
+		protected bool copyMarkerPosition, copyMarkerRotation, copyMarkerScale;
 
 		protected float scaleChangeTime;
 		protected float scaleStartTime;
@@ -57,8 +59,13 @@ namespace AC
 
 		protected Char character;
 		protected Rigidbody _rigidbody;
+		protected Rigidbody2D _rigidbody2D;
 
+		[SerializeField] private bool _moveWithRigidbody = false;
+		/** If True, then movement will not occur if it results in a collision */
+		public bool predictCollisions;
 		private Transform _transform;
+		private RaycastHit2D[] raycastHit2Ds = new RaycastHit2D[5];
 
 		#endregion
 
@@ -67,7 +74,8 @@ namespace AC
 
 		protected virtual void Awake ()
 		{
-			_rigidbody = GetComponent <Rigidbody>();
+			_rigidbody = GetComponent<Rigidbody> ();
+			_rigidbody2D = GetComponent<Rigidbody2D> ();
 		}
 
 
@@ -91,26 +99,26 @@ namespace AC
 				{
 					if (inWorldSpace)
 					{
-						Transform.position = (positionMethod == MoveMethod.Curved)
-							? Vector3.Slerp (startPosition, endPosition, AdvGame.Interpolate (positionStartTime, positionChangeTime, positionMethod, positionTimeCurve)) 
-							:AdvGame.Lerp (startPosition, endPosition, AdvGame.Interpolate (positionStartTime, positionChangeTime, positionMethod, positionTimeCurve));
+						SetPosition ((positionMethod == MoveMethod.Curved)
+							? Vector3.Slerp (startPosition, endPosition, AdvGame.Interpolate (positionStartTime, positionChangeTime, positionMethod, positionTimeCurve))
+							: AdvGame.Lerp (startPosition, endPosition, AdvGame.Interpolate (positionStartTime, positionChangeTime, positionMethod, positionTimeCurve)));
 					}
 					else
 					{
-						Transform.localPosition = (positionMethod == MoveMethod.Curved)
-							? Vector3.Slerp (startPosition, endPosition, AdvGame.Interpolate (positionStartTime, positionChangeTime, positionMethod, positionTimeCurve)) 
-							:AdvGame.Lerp (startPosition, endPosition, AdvGame.Interpolate (positionStartTime, positionChangeTime, positionMethod, positionTimeCurve));
+						SetLocalPosition ((positionMethod == MoveMethod.Curved)
+							? Vector3.Slerp (startPosition, endPosition, AdvGame.Interpolate (positionStartTime, positionChangeTime, positionMethod, positionTimeCurve))
+							: AdvGame.Lerp (startPosition, endPosition, AdvGame.Interpolate (positionStartTime, positionChangeTime, positionMethod, positionTimeCurve)));
 					}
 				}
 				else
 				{
 					if (inWorldSpace)
 					{
-						Transform.position = endPosition;
+						SetPosition (endPosition);
 					}
 					else
 					{
-						Transform.localPosition = endPosition;
+						SetLocalPosition (endPosition);
 					}
 
 					positionChangeTime = 0f;
@@ -133,22 +141,22 @@ namespace AC
 						{
 							Transform.localEulerAngles = (rotateMethod == MoveMethod.Curved)
 								? Vector3.Slerp (startEulerRotation, endEulerRotation, AdvGame.Interpolate (rotateStartTime, rotateChangeTime, rotateMethod, rotateTimeCurve))
-								: AdvGame.Lerp (startEulerRotation, endEulerRotation, AdvGame.Interpolate (rotateStartTime, rotateChangeTime, rotateMethod, rotateTimeCurve)); 
+								: AdvGame.Lerp (startEulerRotation, endEulerRotation, AdvGame.Interpolate (rotateStartTime, rotateChangeTime, rotateMethod, rotateTimeCurve));
 						}
 					}
 					else
 					{
 						if (inWorldSpace)
 						{
-							Transform.rotation = (rotateMethod == MoveMethod.Curved)
+							SetRotation ((rotateMethod == MoveMethod.Curved)
 								? Quaternion.Slerp (startRotation, endRotation, AdvGame.Interpolate (rotateStartTime, rotateChangeTime, rotateMethod, rotateTimeCurve))
-								: AdvGame.Lerp (startRotation, endRotation, AdvGame.Interpolate (rotateStartTime, rotateChangeTime, rotateMethod, rotateTimeCurve));
+								: AdvGame.Lerp (startRotation, endRotation, AdvGame.Interpolate (rotateStartTime, rotateChangeTime, rotateMethod, rotateTimeCurve)));
 						}
 						else
 						{
-							Transform.localRotation = (rotateMethod == MoveMethod.Curved)
+							SetLocalRotation ((rotateMethod == MoveMethod.Curved)
 								? Quaternion.Slerp (startRotation, endRotation, AdvGame.Interpolate (rotateStartTime, rotateChangeTime, rotateMethod, rotateTimeCurve))
-								: AdvGame.Lerp (startRotation, endRotation, AdvGame.Interpolate (rotateStartTime, rotateChangeTime, rotateMethod, rotateTimeCurve)); 
+								: AdvGame.Lerp (startRotation, endRotation, AdvGame.Interpolate (rotateStartTime, rotateChangeTime, rotateMethod, rotateTimeCurve)));
 						}
 					}
 				}
@@ -169,17 +177,17 @@ namespace AC
 					{
 						if (inWorldSpace)
 						{
-							Transform.rotation = endRotation;
+							SetRotation (endRotation);
 						}
 						else
 						{
-							Transform.localRotation = endRotation;
+							SetLocalRotation (endRotation);
 						}
 					}
 
 					if (character == null)
 					{
-						character = GetComponent <Char>();
+						character = GetComponent<Char> ();
 					}
 
 					if (character)
@@ -198,11 +206,11 @@ namespace AC
 				{
 					if (scaleMethod == MoveMethod.Curved)
 					{
-						Transform.localScale = Vector3.Slerp (startScale, endScale, AdvGame.Interpolate (scaleStartTime, scaleChangeTime, scaleMethod, scaleTimeCurve)); 
+						Transform.localScale = Vector3.Slerp (startScale, endScale, AdvGame.Interpolate (scaleStartTime, scaleChangeTime, scaleMethod, scaleTimeCurve));
 					}
 					else
 					{
-						Transform.localScale = AdvGame.Lerp (startScale, endScale, AdvGame.Interpolate (scaleStartTime, scaleChangeTime, scaleMethod, scaleTimeCurve)); 
+						Transform.localScale = AdvGame.Lerp (startScale, endScale, AdvGame.Interpolate (scaleStartTime, scaleChangeTime, scaleMethod, scaleTimeCurve));
 					}
 				}
 				else
@@ -212,15 +220,13 @@ namespace AC
 				}
 			}
 		}
-		
+
 		#endregion
 
 
 		#region PublicFunctions
 
-		/**
-		 * Halts the GameObject, if it is being moved by this script.
-		 */
+		/** Halts the GameObject, if it is being moved by this script. */
 		public void StopMoving ()
 		{
 			positionChangeTime = rotateChangeTime = scaleChangeTime = 0f;
@@ -233,23 +239,27 @@ namespace AC
 			{
 				case TransformType.Translate:
 				case TransformType.CopyMarker:
-					return (positionChangeTime > 0f);
+					return positionChangeTime > 0f;
 
 				case TransformType.Rotate:
-					return (rotateChangeTime > 0f);
+					return rotateChangeTime > 0f;
 
 				case TransformType.Scale:
-					return (scaleChangeTime > 0f);
+					return scaleChangeTime > 0f;
 
-				default: 
+				default:
 					return false;
 			}
 		}
-		
 
-		/**
-		 * Halts the GameObject, and sets its Transform to its target values, if it is being moved by this script.
-		 */
+
+		public bool IsMoving ()
+		{
+			return positionChangeTime > 0f || rotateChangeTime > 0f || scaleChangeTime > 0f;
+		}
+
+
+		/** Halts the GameObject, and sets its Transform to its target values, if it is being moved by this script. */
 		public void EndMovement ()
 		{
 			if (positionChangeTime > 0f)
@@ -291,9 +301,46 @@ namespace AC
 		 */
 		public void Move (Vector3 _newVector, MoveMethod _moveMethod, bool _inWorldSpace, float _transitionTime, TransformType _transformType, bool _doEulerRotation, AnimationCurve _timeCurve, bool clearExisting)
 		{
+			copyMarkerPosition = true;
+			copyMarkerRotation = true;
+			copyMarkerScale = true;
+
+			if (_transformType == TransformType.Translate && predictCollisions)
+			{
+				Vector3 _endPosition = inWorldSpace ? _newVector : Transform.TransformVector (_newVector);
+				Vector3 _direction = _endPosition - Transform.position;
+				float _distance = (_endPosition - Transform.position).magnitude;
+
+				if (_rigidbody)
+				{
+					RaycastHit hitInfo;
+					if (_rigidbody.SweepTest (_direction, out hitInfo, _distance, QueryTriggerInteraction.Ignore))
+					{
+						ACDebug.LogWarning ("Cannot move " + this.name + " to " + _endPosition + " as it will collide with " + hitInfo.collider + " at " + hitInfo.point, this);
+						return;
+					}
+				}
+				else if (_rigidbody2D)
+				{
+					int numHits = _rigidbody2D.Cast (_direction, raycastHit2Ds, _distance);
+					for (int i = 0; i < numHits; i++)
+					{
+						if (!raycastHit2Ds[i].collider.isTrigger)
+						{
+							ACDebug.LogWarning ("Cannot move " + this.name + " to " + _endPosition + " as it will collide with " + raycastHit2Ds[i].collider + " at " + raycastHit2Ds[i].point, this);
+							return;
+						}
+					}
+				}
+				else
+				{
+					ACDebug.LogWarning ("A Rigidbody component is required on " + this.name + " to prevent collisions as a movement command is issued", this);
+				}
+			}
+
 			if (_rigidbody && !_rigidbody.isKinematic)
 			{
-				_rigidbody.velocity = _rigidbody.angularVelocity = Vector3.zero;
+				UnityVersionHandler.SetRigidbodyVelocity (_rigidbody, _rigidbody.angularVelocity = Vector3.zero);
 			}
 
 			inWorldSpace = _inWorldSpace;
@@ -309,11 +356,11 @@ namespace AC
 				{
 					if (inWorldSpace)
 					{
-						Transform.position = _newVector;
+						SetPosition (_newVector);
 					}
 					else
 					{
-						Transform.localPosition = _newVector;
+						SetLocalPosition (_newVector);
 					}
 					positionChangeTime = 0f;
 				}
@@ -452,7 +499,7 @@ namespace AC
 				}
 			}
 		}
-		
+
 
 		/**
 		 * <summary>Moves the GameObject by referencing a Marker component as its target Transform.</summary>
@@ -462,13 +509,51 @@ namespace AC
 		 * <param name = "_transitionTime">The time, in seconds, that the movement should take place over</param>
 		 * <param name = "_timeCurve">If _moveMethod = MoveMethod.CustomCurve, then the movement speed will follow the shape of the supplied AnimationCurve. This curve can exceed "1" in the Y-scale, allowing for overshoot effects.</param>
 		 */
-		public void Move (Marker _marker, MoveMethod _moveMethod, bool _inWorldSpace, float _transitionTime, AnimationCurve _timeCurve)
+		public void Move (Marker _marker, MoveMethod _moveMethod, bool _inWorldSpace, float _transitionTime, AnimationCurve _timeCurve, bool _copyMarkerPosition = true, bool _copyMarkerRotation = true, bool _copyMarkerScale = true)
 		{
+			copyMarkerPosition = _copyMarkerPosition;
+			copyMarkerRotation = _copyMarkerRotation;
+			copyMarkerScale = _copyMarkerScale;
+
+			if (predictCollisions)
+			{
+				Vector3 _endPosition = inWorldSpace ? _marker.Position : Transform.TransformVector (_marker.Transform.localPosition);
+				Vector3 _direction = _endPosition - Transform.position;
+				float _distance = (_endPosition - Transform.position).magnitude;
+
+				if (_rigidbody)
+				{
+					RaycastHit hitInfo;
+					if (_rigidbody.SweepTest (_direction, out hitInfo, _distance, QueryTriggerInteraction.Ignore))
+					{
+						ACDebug.LogWarning ("Cannot move " + this.name + " to " + _endPosition + " as it will collide with " + hitInfo.collider + " at " + hitInfo.point, this);
+						return;
+					}
+				}
+				else if (_rigidbody2D)
+				{
+					RaycastHit2D[] raycastHit2Ds = new RaycastHit2D[0];
+					int numHits = _rigidbody2D.Cast (_direction, raycastHit2Ds, _distance);
+					for (int i = 0; i < numHits; i++)
+					{
+						if (!raycastHit2Ds[i].collider.isTrigger)
+						{
+							ACDebug.LogWarning ("Cannot move " + this.name + " to " + _endPosition + " as it will collide with " + raycastHit2Ds[i].collider + " at " + raycastHit2Ds[i].point, this);
+							return;
+						}
+					}
+				}
+				else
+				{
+					ACDebug.LogWarning ("A Rigidbody component is required on " + this.name + " to prevent collisions as a movement command is issued", this);
+				}
+			}
+
 			if (_rigidbody && !_rigidbody.isKinematic)
 			{
-				_rigidbody.velocity = _rigidbody.angularVelocity = Vector3.zero;
+				UnityVersionHandler.SetRigidbodyVelocity (_rigidbody, _rigidbody.angularVelocity = Vector3.zero);
 			}
-			
+
 			inWorldSpace = _inWorldSpace;
 
 			if (_transitionTime <= 0f)
@@ -479,16 +564,16 @@ namespace AC
 				{
 					Transform oldParent = Transform.parent;
 					Transform.SetParent (null, true);
-					Transform.localScale = _marker.Transform.lossyScale;
-					Transform.position = _marker.Position;
-					Transform.rotation = _marker.Rotation;
+					if (copyMarkerScale) Transform.localScale = _marker.Transform.lossyScale;
+					if (copyMarkerPosition) SetPosition (_marker.Position);
+					if (copyMarkerRotation) SetRotation (_marker.Rotation);
 					if (oldParent) Transform.SetParent (oldParent, true);
 				}
 				else
 				{
-					Transform.localPosition = _marker.Transform.localPosition;
-					Transform.localEulerAngles = _marker.Transform.localEulerAngles;
-					Transform.localScale = _marker.Transform.localScale;
+					if (copyMarkerPosition) SetLocalPosition (_marker.Transform.localPosition);
+					if (copyMarkerRotation) Transform.localEulerAngles = _marker.Transform.localEulerAngles;
+					if (copyMarkerScale) Transform.localScale = _marker.Transform.localScale;
 				}
 			}
 			else
@@ -501,7 +586,7 @@ namespace AC
 					startPosition = Transform.position;
 					startRotation = Transform.rotation;
 					startScale = Transform.localScale;
-					
+
 					endPosition = _marker.Position;
 					endRotation = _marker.Rotation;
 					endScale = _marker.Transform.localScale;
@@ -511,21 +596,36 @@ namespace AC
 					startPosition = Transform.localPosition;
 					startRotation = Transform.localRotation;
 					startScale = Transform.localScale;
-					
+
 					endPosition = _marker.Transform.localPosition;
 					endRotation = _marker.Transform.localRotation;
 					endScale = _marker.Transform.localScale;
 				}
 
-				if (startPosition == endPosition && startRotation == endRotation && startScale == endScale)
+				if ((!copyMarkerPosition || startPosition == endPosition) && (!copyMarkerRotation || startRotation == endRotation) && (!copyMarkerScale || startScale == endScale))
 				{
 					Move (_marker, _moveMethod, _inWorldSpace, 0f, _timeCurve);
 					return;
 				}
-				
-				positionChangeTime = rotateChangeTime = scaleChangeTime = _transitionTime;
-				positionStartTime = rotateStartTime = scaleStartTime = Time.time;
-				
+
+				if (copyMarkerPosition)
+				{
+					positionChangeTime = _transitionTime;
+					positionStartTime = Time.time;
+				}
+
+				if (copyMarkerRotation)
+				{
+					rotateChangeTime = _transitionTime;
+					rotateStartTime = Time.time;
+				}
+
+				if (copyMarkerScale)
+				{
+					scaleChangeTime = _transitionTime;
+					scaleStartTime = Time.time;
+				}
+
 				if (_moveMethod == MoveMethod.CustomCurve)
 				{
 					positionTimeCurve = _timeCurve;
@@ -602,7 +702,7 @@ namespace AC
 			{
 				if (inWorldSpace)
 				{
-					Transform.rotation = new Quaternion (saveData.RotW, saveData.RotX, saveData.RotY, saveData.RotZ);
+					SetRotation (new Quaternion (saveData.RotW, saveData.RotX, saveData.RotY, saveData.RotZ));
 				}
 				else
 				{
@@ -613,6 +713,23 @@ namespace AC
 			StopMoving ();
 		}
 
+
+		public Vector3 GetTargetPosition ()
+		{
+			if (positionChangeTime > 0f)
+			{
+				if (inWorldSpace)
+				{
+					return endPosition;
+				}
+				else
+				{
+					return Transform.TransformVector (endPosition);
+				}
+			}
+			return Vector3.zero;
+		}
+
 		#endregion
 
 
@@ -621,6 +738,100 @@ namespace AC
 		protected void Kill ()
 		{
 			StopMoving ();
+		}
+
+		#endregion
+
+
+		#region PrivateFunctions
+
+		private void SetLocalPosition (Vector3 localPosition)
+		{
+			if (_moveWithRigidbody)
+			{
+				if (_rigidbody)
+				{
+					_rigidbody.MovePosition (Transform.TransformVector (localPosition));
+					return;
+				}
+
+				if (_rigidbody2D)
+				{
+					_rigidbody2D.MovePosition (Transform.TransformVector (localPosition));
+					return;
+				}
+			}
+
+			Transform.localPosition = localPosition;
+		}
+
+
+		private void SetPosition (Vector3 position)
+		{
+			if (_moveWithRigidbody)
+			{
+				if (_rigidbody)
+				{
+					_rigidbody.MovePosition (position);
+					return;
+				}
+
+				if (_rigidbody2D)
+				{
+					_rigidbody2D.MovePosition (position);
+					return;
+				}
+			}
+
+			Transform.position = position;
+		}
+
+
+		private void SetRotation (Quaternion rotation)
+		{
+			if (_moveWithRigidbody)
+			{
+				if (_rigidbody)
+				{
+					_rigidbody.MoveRotation (rotation);
+					return;
+				}
+
+				#if UNITY_2019_OR_LATER
+				if (_rigidbody2D)
+				{
+					_rigidbody2D.MoveRotation (rotation);
+					return;
+				}
+				#endif
+			}
+
+			Transform.rotation = rotation;
+		}
+
+
+		private void SetLocalRotation (Quaternion localRotation)
+		{
+			if (_moveWithRigidbody)
+			{
+				Quaternion rotation = Transform.parent ? transform.parent.rotation * localRotation : localRotation;
+
+				if (_rigidbody)
+				{
+					_rigidbody.MoveRotation (rotation);
+					return;
+				}
+
+				#if UNITY_2019_OR_LATER
+				if (_rigidbody2D)
+				{
+					_rigidbody2D.MoveRotation (rotation);
+					return;
+				}
+				#endif
+			}
+
+			Transform.localRotation = localRotation;
 		}
 
 		#endregion
@@ -651,5 +862,5 @@ namespace AC
 		#endregion
 
 	}
-	
+
 }

@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2024
  *	
  *	"ActionListManager.cs"
  * 
@@ -10,6 +10,7 @@
  */
 
 using UnityEngine;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -30,6 +31,9 @@ namespace AC
 		/** If True, then the next time ActionConversation's Skip() function is called, it will be ignored */
 		[HideInInspector] public bool ignoreNextConversationSkip = false;
 
+		private List<GameObject> skippableCutsceneSpawnedObjects = new List<GameObject> ();
+		private List<NestedAwaitingActiveList> nestedAwaitingActiveLists = new List<NestedAwaitingActiveList> ();
+
 		protected bool playCutsceneOnVarChange = false;
 		protected bool saveAfterCutscene = false;
 
@@ -37,6 +41,7 @@ namespace AC
 		protected bool noPlayerOnStartQueue;
 
 		protected List<ActiveList> activeLists = new List<ActiveList>();
+		private Coroutine endCutsceneCo;
 
 		#endregion
 
@@ -68,91 +73,11 @@ namespace AC
 		 */
 		public void EndCutscene ()
 		{
-			if (!IsInSkippableCutscene ())
+			if (endCutsceneCo != null)
 			{
-				return;
+				StopCoroutine (endCutsceneCo);
 			}
-
-			if (AdvGame.GetReferences ().settingsManager.blackOutWhenSkipping)
-			{
-				KickStarter.mainCamera.ForceOverlayForFrames (4);
-			}
-
-			KickStarter.eventManager.Call_OnSkipCutscene ();
-
-			// Stop all non-looping sound
-			Sound[] sounds = FindObjectsOfType (typeof (Sound)) as Sound[];
-			foreach (Sound sound in sounds)
-			{
-				if (sound.GetComponent <AudioSource>())
-				{
-					if (sound.soundType != SoundType.Music && !sound.GetComponent <AudioSource>().loop)
-					{
-						sound.Stop ();
-					}
-				}
-			}
-
-			// Set correct Player prefab before skipping
-			if (KickStarter.settingsManager.playerSwitching == PlayerSwitching.Allow)
-			{
-				if (!noPlayerOnStartQueue && playerIDOnStartQueue >= 0)
-				{
-					if (KickStarter.player == null || KickStarter.player.ID != playerIDOnStartQueue)
-					{
-						//
-						PlayerPrefab oldPlayerPrefab = KickStarter.settingsManager.GetPlayerPrefab (playerIDOnStartQueue);
-						if (oldPlayerPrefab != null)
-						{
-							if (KickStarter.player != null)
-							{
-								KickStarter.player.Halt ();
-							}
-
-							Player oldPlayer = oldPlayerPrefab.GetSceneInstance (true);
-							KickStarter.player = oldPlayer;
-						}
-					}
-				}
-			}
-
-			List<ActiveList> listsToSkip = new List<ActiveList>();
-			List<ActiveList> listsToReset = new List<ActiveList>();
-
-			foreach (ActiveList activeList in activeLists)
-			{
-				if (!activeList.inSkipQueue && activeList.actionList.IsSkippable ())
-				{
-					listsToReset.Add (activeList);
-				}
-				else
-				{
-					listsToSkip.Add (activeList);
-				}
-			}
-
-			foreach (ActiveList activeList in KickStarter.actionListAssetManager.ActiveLists)
-			{
-				if (!activeList.inSkipQueue && activeList.actionList.IsSkippable ())
-				{
-					listsToReset.Add (activeList);
-				}
-				else
-				{
-					listsToSkip.Add (activeList);
-				}
-			}
-
-			foreach (ActiveList listToReset in listsToReset)
-			{
-				// Kill, but do isolated, to bypass setting GameState etc
-				listToReset.Reset (true);
-			}
-
-			foreach (ActiveList listToSkip in listsToSkip)
-			{
-				listToSkip.Skip ();
-			}
+			endCutsceneCo = StartCoroutine (EndCutsceneCo ());
 		}
 
 
@@ -166,7 +91,7 @@ namespace AC
 			if (actionList == null) return false;
 
 			RuntimeActionList runtimeActionList = actionList as RuntimeActionList;
-			if (runtimeActionList != null)
+			if (runtimeActionList != null && KickStarter.actionListAssetManager)
 			{
 				foreach (ActiveList activeList in KickStarter.actionListAssetManager.ActiveLists)
 				{
@@ -201,7 +126,7 @@ namespace AC
 			if (actionList == null) return false;
 
 			RuntimeActionList runtimeActionList = actionList as RuntimeActionList;
-			if (runtimeActionList != null)
+			if (runtimeActionList && KickStarter.actionListAssetManager)
 			{
 				foreach (ActiveList activeList in KickStarter.actionListAssetManager.ActiveLists)
 				{
@@ -228,7 +153,7 @@ namespace AC
 		public bool CanResetSkipVars (ActionList actionList)
 		{
 			RuntimeActionList runtimeActionList = actionList as RuntimeActionList;
-			if (runtimeActionList != null)
+			if (runtimeActionList && KickStarter.actionListAssetManager)
 			{
 				foreach (ActiveList activeList in KickStarter.actionListAssetManager.ActiveLists)
 				{
@@ -256,6 +181,48 @@ namespace AC
 		}
 
 
+		public void SetActionPendingState (NestedAwaitingActiveList _nestedAwaitingActiveList, bool state)
+		{
+			if (state)
+			{
+				foreach (var nestedAwaitingActiveList in nestedAwaitingActiveLists)
+				{
+					if (nestedAwaitingActiveList.ActiveList == _nestedAwaitingActiveList.ActiveList &&
+						nestedAwaitingActiveList.Conversation == _nestedAwaitingActiveList.Conversation &&
+						nestedAwaitingActiveList.ActionList == _nestedAwaitingActiveList.ActionList)
+					{
+						return;
+					}
+				}
+				
+				nestedAwaitingActiveLists.Add (_nestedAwaitingActiveList);
+			}
+			else
+			{
+				foreach (var nestedAwaitingActiveList in nestedAwaitingActiveLists)
+				{
+					if (nestedAwaitingActiveList.ActiveList == _nestedAwaitingActiveList.ActiveList &&
+						nestedAwaitingActiveList.Conversation == _nestedAwaitingActiveList.Conversation &&
+						nestedAwaitingActiveList.ActionList == _nestedAwaitingActiveList.ActionList)
+					{
+						nestedAwaitingActiveLists.Remove (nestedAwaitingActiveList);
+						return;
+					}
+				}
+			}
+		}
+
+
+		public bool IsNestedAwaiting (ActiveList activeList)
+		{
+			foreach (var nestedAwaitingActiveList in nestedAwaitingActiveLists)
+			{
+				if (nestedAwaitingActiveList.ActiveList == activeList) return true;
+			}
+			return false;
+		}
+
+
 		/**
 		 * <summary>Checks if any currently-running ActionLists pause gameplay.</summary>
 		 * <param name = "_actionToIgnore">Any ActionList that contains this Action will be excluded from the check</param>
@@ -268,6 +235,18 @@ namespace AC
 			{
 				if (activeList.actionList.actionListType == ActionListType.PauseGameplay && activeList.IsRunning ())
 				{
+					bool foundPending = false;
+					foreach (var pendingList in nestedAwaitingActiveLists)
+					{
+						if (pendingList.ActiveList == activeList && (pendingList.Conversation == null || pendingList.Conversation.IsOverridingActionList (pendingList.ActionList)))
+						{
+							foundPending = true;
+							break;
+						}
+					}
+
+					if (foundPending) continue;
+
 					if (_actionToIgnore != null)
 					{
 						if (activeList.actionList.actions.Contains (_actionToIgnore))
@@ -284,23 +263,26 @@ namespace AC
 				}
 			}
 
-			foreach (ActiveList activeList in KickStarter.actionListAssetManager.ActiveLists)
+			if (KickStarter.actionListAssetManager)
 			{
-				if (activeList.actionList != null && activeList.actionList.actionListType == ActionListType.PauseGameplay && activeList.IsRunning ())
+				foreach (ActiveList activeList in KickStarter.actionListAssetManager.ActiveLists)
 				{
-					if (_actionToIgnore != null)
+					if (activeList.actionList != null && activeList.actionList.actionListType == ActionListType.PauseGameplay && activeList.IsRunning ())
 					{
-						if (activeList.actionList.actions.Contains (_actionToIgnore))
+						if (_actionToIgnore != null)
 						{
-							continue;
+							if (activeList.actionList.actions.Contains (_actionToIgnore))
+							{
+								continue;
+							}
 						}
-					}
 
-					if (showSaveDebug)
-					{
-						ACDebug.LogWarning ("Cannot save at this time - the ActionListAsset '" + activeList.actionList.name + "' is blocking gameplay.", activeList.actionList);
+						if (showSaveDebug)
+						{
+							ACDebug.LogWarning ("Cannot save at this time - the ActionListAsset '" + activeList.actionList.name + "' is blocking gameplay.", activeList.actionList);
+						}
+						return true;
 					}
-					return true;
 				}
 			}
 
@@ -322,11 +304,14 @@ namespace AC
 				}
 			}
 
-			foreach (ActiveList activeList in KickStarter.actionListAssetManager.ActiveLists)
+			if (KickStarter.actionListAssetManager)
 			{
-				if (activeList.CanUnfreezePauseMenus () && activeList.IsRunning ())
+				foreach (ActiveList activeList in KickStarter.actionListAssetManager.ActiveLists)
 				{
-					return true;
+					if (activeList.CanUnfreezePauseMenus () && activeList.IsRunning ())
+					{
+						return true;
+					}
 				}
 			}
 			return false;
@@ -357,14 +342,17 @@ namespace AC
 				}
 			}
 
-			foreach (ActiveList activeList in KickStarter.actionListAssetManager.ActiveLists)
+			if (KickStarter.actionListAssetManager)
 			{
-				if (activeList.IsRunning () && activeList.actionListAsset != null && activeList.actionListAsset.IsSkippable ())
+				foreach (ActiveList activeList in KickStarter.actionListAssetManager.ActiveLists)
 				{
-					return true;
+					if (activeList.IsRunning () && activeList.actionListAsset != null && activeList.actionListAsset.IsSkippable ())
+					{
+						return true;
+					}
 				}
 			}
-			
+
 			return false;
 		}
 
@@ -426,34 +414,34 @@ namespace AC
 		}
 
 
-		/**
-		 * Inform ActionListManager that a Variable's value has changed.
-		 */
+		/** Inform ActionListManager that a Variable's value has changed. */
 		public void VariableChanged ()
 		{
 			playCutsceneOnVarChange = true;
 		}
 
 
-		/**
-		 * Ends all currently-running ActionLists and ActionListAssets.
-		 */
+		/** Ends all currently-running ActionLists and ActionListAssets. */
 		public void KillAllLists ()
 		{
 			foreach (ActiveList activeList in activeLists)
 			{
 				activeList.Reset (true);
 			}
-			foreach (ActiveList activeList in KickStarter.actionListAssetManager.ActiveLists)
+
+			if (KickStarter.actionListAssetManager)
 			{
-				activeList.Reset (true);
+				foreach (ActiveList activeList in KickStarter.actionListAssetManager.ActiveLists)
+				{
+					activeList.Reset (true);
+				}
 			}
 		}
-		
+
 
 		/**
 		 * <summary>Ends all currently-running ActionLists present within a given scene.</summary>
-		 * <param name = "sceneInfo">A data container for information about the scene in question</param>
+		 * <param name = "sceneIndex">The index of the scene</param>
 		 */
 		public void KillAllFromScene (int sceneIndex)
 		{
@@ -464,12 +452,26 @@ namespace AC
 					activeList.Reset (true);
 				}
 			}
-		} 
+		}
 
 
 		/**
-		 * <summary>Clears all data about the current state of "skippable" Cutscenes, allowing you to prevent previously-run Cutscenes in the same block of gameplay-blocking ActionLists. Use with caution!</summary>
+		 * <summary>Ends all currently-running ActionLists present within a given scene.</summary>
+		 * <param name = "sceneName">The name of the scene</param>
 		 */
+		public void KillAllFromScene (string sceneName)
+		{
+			foreach (ActiveList activeList in activeLists)
+			{
+				if (activeList.actionList != null && UnityVersionHandler.GetSceneNameFromGameObject (activeList.actionList.gameObject) == sceneName && activeList.actionListAsset == null)
+				{
+					activeList.Reset (true);
+				}
+			}
+		}
+
+
+		/** Clears all data about the current state of "skippable" Cutscenes, allowing you to prevent previously-run Cutscenes in the same block of gameplay-blocking ActionLists. Use with caution! */
 		public void ResetSkippableData ()
 		{
 			ResetSkipVars (true);
@@ -626,6 +628,45 @@ namespace AC
 			}
 		}
 
+
+		/**
+		 * <summary>Registers an object as having been spawned as a result of the current skippable cutscene.  If this cutscene is skipped by the player, the object will be deleted - as it is assumed that re-running the cutscene in 'skip' mode will bring it back again.</summary>
+		 * <param name = "_gameObject">The spawned object</param>
+		 */
+		public void RegisterCutsceneSpawnedObject (GameObject _gameObject)
+		{
+			if (IsInSkippableCutscene () && !skippableCutsceneSpawnedObjects.Contains (_gameObject))
+			{
+				skippableCutsceneSpawnedObjects.Add (_gameObject);
+			}
+		}
+
+
+		/** Checks if any ActionLists, both scene-based and assets, are currently being skipped */
+		public bool AreAnyListsSkipping ()
+		{
+			foreach (ActiveList activeList in activeLists)
+			{
+				if (activeList.actionList && activeList.actionList.IsSkipping)
+				{
+					return true;
+				}
+			}
+
+			if (KickStarter.actionListAssetManager)
+			{
+				foreach (ActiveList activeList in KickStarter.actionListAssetManager.ActiveLists)
+				{
+					if (activeList.actionList && activeList.actionList.IsSkipping)
+					{
+						return true;
+					}
+				}
+			}
+
+			return false;
+		}
+
 		#endregion
 
 
@@ -638,6 +679,8 @@ namespace AC
 				ResetSkipVars ();
 			}
 			PurgeLists ();
+
+			RunVarChange ();
 		}
 
 
@@ -649,9 +692,15 @@ namespace AC
 				SaveSystem.SaveAutoSave ();
 			}
 
-			if (playCutsceneOnVarChange && (gameState == GameState.Normal || gameState == GameState.DialogOptions))
+			RunVarChange ();
+		}
+
+
+		protected void RunVarChange ()
+		{
+			playCutsceneOnVarChange = false;
+			/*if (playCutsceneOnVarChange && (gameState == GameState.Normal || gameState == GameState.DialogOptions))
 			{
-				playCutsceneOnVarChange = false;
 
 				if (KickStarter.sceneSettings.actionListSource == ActionListSource.InScene && KickStarter.sceneSettings.cutsceneOnVarChange != null)
 				{
@@ -661,7 +710,7 @@ namespace AC
 				{
 					KickStarter.sceneSettings.actionListAssetOnVarChange.Interact ();
 				}
-			}
+			}*/
 		}
 
 
@@ -681,12 +730,16 @@ namespace AC
 					i--;
 				}
 			}
-			for (int i=0; i<KickStarter.actionListAssetManager.ActiveLists.Count; i++)
+
+			if (KickStarter.actionListAssetManager)
 			{
-				if (!KickStarter.actionListAssetManager.ActiveLists[i].IsNecessary ())
+				for (int i=0; i<KickStarter.actionListAssetManager.ActiveLists.Count; i++)
 				{
-					KickStarter.actionListAssetManager.ActiveLists.RemoveAt (i);
-					i--;
+					if (!KickStarter.actionListAssetManager.ActiveLists[i].IsNecessary ())
+					{
+						KickStarter.actionListAssetManager.ActiveLists.RemoveAt (i);
+						i--;
+					}
 				}
 			}
 
@@ -713,13 +766,23 @@ namespace AC
 				{
 					activeList.inSkipQueue = false;
 				}
-				foreach (ActiveList activeList in KickStarter.actionListAssetManager.ActiveLists)
+
+				if (KickStarter.actionListAssetManager)
 				{
-					activeList.inSkipQueue = false;
+					foreach (ActiveList activeList in KickStarter.actionListAssetManager.ActiveLists)
+					{
+						activeList.inSkipQueue = false;
+					}
 				}
 
+				skippableCutsceneSpawnedObjects.Clear ();
+
 				GlobalVariables.BackupAll ();
-				KickStarter.localVariables.BackupAllValues ();
+
+				if (KickStarter.localVariables)
+				{
+					KickStarter.localVariables.BackupAllValues ();
+				}
 			}
 		}
 
@@ -734,15 +797,140 @@ namespace AC
 				}
 			}
 
-			foreach (ActiveList activeList in KickStarter.actionListAssetManager.ActiveLists)
+			if (KickStarter.actionListAssetManager)
 			{
-				if (activeList.IsRunning () && activeList.inSkipQueue)
+				foreach (ActiveList activeList in KickStarter.actionListAssetManager.ActiveLists)
 				{
-					return true;
+					if (activeList.IsRunning () && activeList.inSkipQueue)
+					{
+						return true;
+					}
 				}
 			}
-			
+
 			return false;
+		}
+
+		#endregion
+
+
+		#region PrivateFunctions
+
+		private IEnumerator EndCutsceneCo ()
+		{
+			if (!IsInSkippableCutscene ())
+			{
+				yield break;
+			}
+
+			if (KickStarter.settingsManager.blackOutWhenSkipping)
+			{
+				KickStarter.mainCamera.ForceOverlayForFrames (400);
+			}
+
+			KickStarter.eventManager.Call_OnSkipCutscene ();
+
+			// Stop all non-looping sound
+			Sound[] sounds = UnityVersionHandler.FindObjectsOfType<Sound> ();
+			foreach (Sound sound in sounds)
+			{
+				if (sound.GetComponent<AudioSource> ())
+				{
+					if (sound.soundType != SoundType.Music && !sound.GetComponent<AudioSource> ().loop)
+					{
+						sound.Stop ();
+					}
+				}
+			}
+
+			// Set correct Player prefab before skipping
+			if (KickStarter.settingsManager.playerSwitching == PlayerSwitching.Allow)
+			{
+				if (!noPlayerOnStartQueue && playerIDOnStartQueue >= 0)
+				{
+					if (KickStarter.player == null || KickStarter.player.ID != playerIDOnStartQueue)
+					{
+						//
+						PlayerPrefab oldPlayerPrefab = KickStarter.settingsManager.GetPlayerPrefab (playerIDOnStartQueue);
+						if (oldPlayerPrefab != null)
+						{
+							if (KickStarter.player != null)
+							{
+								KickStarter.player.Halt ();
+							}
+
+							Player oldPlayer = oldPlayerPrefab.GetSceneInstance ();
+							if (oldPlayer == null)
+							{
+								var spawnPlayerCoroutine = KickStarter.playerSpawner.SpawnPlayerCo (oldPlayerPrefab, (r) => oldPlayer = r);
+								while (spawnPlayerCoroutine.MoveNext ())
+								{
+									yield return spawnPlayerCoroutine.Current;
+								}
+							}
+							KickStarter.player = oldPlayer;
+						}
+					}
+				}
+			}
+
+			// Delete any objects spawned since the skippable cutscene began
+			for (int i = 0; i < skippableCutsceneSpawnedObjects.Count; i++)
+			{
+				KickStarter.sceneChanger.ScheduleForDeletion (skippableCutsceneSpawnedObjects[i]);
+			}
+			skippableCutsceneSpawnedObjects.Clear ();
+
+			List<ActiveList> listsToSkip = new List<ActiveList> ();
+			List<ActiveList> listsToReset = new List<ActiveList> ();
+
+			foreach (ActiveList activeList in activeLists)
+			{
+				if (!activeList.inSkipQueue && activeList.actionList.IsSkippable ())
+				{
+					listsToReset.Add (activeList);
+				}
+				else
+				{
+					listsToSkip.Add (activeList);
+				}
+			}
+
+			if (KickStarter.actionListAssetManager)
+			{
+				foreach (ActiveList activeList in KickStarter.actionListAssetManager.ActiveLists)
+				{
+					if (!activeList.inSkipQueue && activeList.actionList.IsSkippable ())
+					{
+						listsToReset.Add (activeList);
+					}
+					else
+					{
+						listsToSkip.Add (activeList);
+					}
+				}
+			}
+
+			foreach (ActiveList listToReset in listsToReset)
+			{
+				// Kill, but do isolated, to bypass setting GameState etc
+				listToReset.Reset (true);
+			}
+
+			foreach (ActiveList listToSkip in listsToSkip)
+			{
+				listToSkip.Skip ();
+				
+				while (AreAnyListsSkipping ())
+				{
+					yield return null;
+				}
+			}
+
+			if (KickStarter.settingsManager.blackOutWhenSkipping)
+			{
+				KickStarter.mainCamera.ForceOverlayForFrames (0);
+			}
 		}
 
 		#endregion
@@ -750,9 +938,7 @@ namespace AC
 
 		#region StaticFunctions
 
-		/**
-		 * Ends all currently-running ActionLists and ActionListAssets.
-		 */
+		/** Ends all currently-running ActionLists and ActionListAssets. */
 		public static void KillAll ()
 		{
 			KickStarter.actionListManager.KillAllLists ();
@@ -772,6 +958,26 @@ namespace AC
 				return activeLists;
 			}
 		}
+
+		#endregion
+
+
+		#region PublicClasses
+
+		public class NestedAwaitingActiveList
+		{
+			public readonly ActiveList ActiveList;
+			public readonly Conversation Conversation;
+			public readonly ActionList ActionList;
+
+			public NestedAwaitingActiveList (ActiveList activeList, Conversation conversation, ActionList actionList)
+			{
+				ActiveList = activeList;
+				Conversation = conversation;
+				ActionList = actionList;
+			}
+		}
+
 
 		#endregion
 

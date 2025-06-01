@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2024
  *	
  *	"ActionCameraCrossfade.cs"
  * 
@@ -62,12 +62,7 @@ namespace AC
 
 				if (runtimeLinkedCamera && mainCam.attachedCamera != runtimeLinkedCamera)
 				{
-					if (runtimeLinkedCamera is GameCameraThirdPerson)
-					{
-						GameCameraThirdPerson tpCam = (GameCameraThirdPerson) runtimeLinkedCamera;
-						tpCam.ResetRotation ();
-					}
-					else if (runtimeLinkedCamera is GameCameraAnimated)
+					if (runtimeLinkedCamera is GameCameraAnimated)
 					{
 						GameCameraAnimated animCam = (GameCameraAnimated) runtimeLinkedCamera;
 						animCam.PlayClip ();
@@ -97,12 +92,7 @@ namespace AC
 
 			if (runtimeLinkedCamera && mainCam.attachedCamera != runtimeLinkedCamera)
 			{
-				if (runtimeLinkedCamera is GameCameraThirdPerson)
-				{
-					GameCameraThirdPerson tpCam = (GameCameraThirdPerson) runtimeLinkedCamera;
-					tpCam.ResetRotation ();
-				}
-				else if (runtimeLinkedCamera is GameCameraAnimated)
+				if (runtimeLinkedCamera is GameCameraAnimated)
 				{
 					GameCameraAnimated animCam = (GameCameraAnimated) runtimeLinkedCamera;
 					animCam.PlayClip ();
@@ -121,26 +111,10 @@ namespace AC
 			returnToLast = EditorGUILayout.Toggle ("Return to last gameplay?", returnToLast);
 			if (!returnToLast)
 			{
-				parameterID = Action.ChooseParameterGUI ("New camera:", parameters, parameterID, ParameterType.GameObject);
-				if (parameterID >= 0)
-				{
-					constantID = 0;
-					linkedCamera = null;
-				}
-				else
-				{
-					linkedCamera = (_Camera) EditorGUILayout.ObjectField ("New camera:", linkedCamera, typeof(_Camera), true);
-					
-					constantID = FieldToID <_Camera> (linkedCamera, constantID);
-					linkedCamera = IDToField <_Camera> (linkedCamera, constantID, true);
-				}
+				ComponentField ("New camera:", ref linkedCamera, ref constantID, parameters, ref parameterID);
 			}
 
-			transitionTimeParameterID = Action.ChooseParameterGUI ("Transition time (s):", parameters, transitionTimeParameterID, ParameterType.Float);
-			if (transitionTimeParameterID < 0)
-			{
-				transitionTime = EditorGUILayout.FloatField ("Transition time (s):", transitionTime);
-			}
+			FloatField ("Transition time (s):", ref transitionTime, parameters, ref transitionTimeParameterID);
 
 			fadeCurve = (AnimationCurve)EditorGUILayout.CurveField ("Transition curve:", fadeCurve);
 			willWait = EditorGUILayout.Toggle ("Wait until finish?", willWait);
@@ -153,7 +127,7 @@ namespace AC
 			{
 				AddSaveScript <ConstantID> (linkedCamera);
 			}
-			AssignConstantID <_Camera> (linkedCamera, constantID, parameterID);
+			constantID = AssignConstantID<_Camera> (linkedCamera, constantID, parameterID);
 		}
 
 		
@@ -191,6 +165,7 @@ namespace AC
 		{
 			ActionCameraCrossfade newAction = CreateNew<ActionCameraCrossfade> ();
 			newAction.linkedCamera = newCamera;
+			newAction.TryAssignConstantID (newAction.linkedCamera, ref newAction.constantID);
 			newAction.transitionTime = transitionTime;
 			newAction.willWait = waitUntilFinish;
 			return newAction;

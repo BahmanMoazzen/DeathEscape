@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2024
  *	
  *	"ActionDocumentCheck.cs"
  * 
@@ -20,7 +20,7 @@ namespace AC
 {
 
 	[System.Serializable]
-	public class ActionDocumentCheck : ActionCheck
+	public class ActionDocumentCheck : ActionCheck, IDocumentReferencerAction
 	{
 
 		public int documentID;
@@ -48,11 +48,7 @@ namespace AC
 
 		public override void ShowGUI (List<ActionParameter> parameters)
 		{
-			parameterID = Action.ChooseParameterGUI ("Check carrying:", parameters, parameterID, ParameterType.Document);
-			if (parameterID < 0)
-			{
-				documentID = InventoryManager.DocumentSelectorList (documentID, "Check carrying:");
-			}
+			DocumentField ("Check carrying:", ref documentID, parameters, ref parameterID, "Check carrying ID:");
 		}
 
 
@@ -67,10 +63,21 @@ namespace AC
 		}
 
 
-		public override int GetDocumentReferences (List<ActionParameter> parameters, int _docID)
+		public int GetNumDocumentReferences (int _docID, List<ActionParameter> parameters)
 		{
 			if (parameterID < 0 && documentID == _docID)
 			{
+				return 1;
+			}
+			return 0;
+		}
+
+
+		public int UpdateDocumentReferences (int oldDocumentID, int newDocumentID, List<ActionParameter> actionParameters)
+		{
+			if (parameterID < 0 && documentID == oldDocumentID)
+			{
+				documentID = newDocumentID;
 				return 1;
 			}
 			return 0;

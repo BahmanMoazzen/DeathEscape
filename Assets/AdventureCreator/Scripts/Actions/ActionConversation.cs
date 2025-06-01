@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2024
  *	
  *	"ActionConversation.cs"
  * 
@@ -28,11 +28,24 @@ namespace AC
 		public Conversation conversation;
 		protected Conversation runtimeConversation;
 
+		[SerializeField] private List<int> overrideOptionSocketIDs = new List<int> ();
+
 		public bool overrideOptions = false;
 		protected ActionList parentActionList;
 		#if UNITY_EDITOR
 		protected Conversation tempConversation;
 		#endif
+
+		public bool setElement;
+		public string menuName;
+		public string containerElementName;
+
+		protected LocalVariables localVariables;
+		protected Menu runtimeMenu;
+		protected MenuDialogList runtimeDialogList;
+
+		public int menuParameterID = -1;
+		public int elementParameterID = -1;
 
 		public int numSockets;
 
@@ -46,6 +59,12 @@ namespace AC
 		public override void AssignParentList (ActionList actionList)
 		{
 			parentActionList = actionList;
+
+			if (localVariables == null)
+			{
+				localVariables = KickStarter.localVariables;
+			}
+
 			base.AssignParentList (actionList);
 		}
 
@@ -53,6 +72,34 @@ namespace AC
 		public override void AssignValues (List<ActionParameter> parameters)
 		{
 			runtimeConversation = AssignFile <Conversation> (parameters, parameterID, constantID, conversation);
+
+			if (!overrideOptions && setElement)
+			{
+				string runtimeMenuName = AssignString (parameters, menuParameterID, menuName);
+				string runtimeContainerElementName = AssignString (parameters, elementParameterID, containerElementName);
+
+				runtimeMenuName = AdvGame.ConvertTokens (runtimeMenuName, Options.GetLanguage (), localVariables, parameters);
+				runtimeContainerElementName = AdvGame.ConvertTokens (runtimeContainerElementName, Options.GetLanguage (), localVariables, parameters);
+
+				runtimeMenu = PlayerMenus.GetMenuWithName (runtimeMenuName);
+				if (runtimeMenu)
+				{
+					MenuElement element = runtimeMenu.GetElementWithName (runtimeContainerElementName);
+					if (element)
+					{
+						runtimeDialogList = element as MenuDialogList;
+					}
+				}
+				if (runtimeDialogList == null)
+				{
+					LogWarning ("Cannot find DialogList element " + runtimeContainerElementName + " inside Menu " + runtimeMenuName);
+				}
+			}
+
+			if (overrideOptions && parameterID < 0 && runtimeConversation)
+			{
+				UpdateSocketIDs (runtimeConversation);
+			}
 		}
 
 		
@@ -60,6 +107,7 @@ namespace AC
 		{
 			if (runtimeConversation == null)
 			{
+				LogWarning ("Cannot start conversation - no Conversation assigned");
 				return 0f;
 			}
 
@@ -73,6 +121,12 @@ namespace AC
 					return 0f;
 				}
 				KickStarter.actionListManager.ignoreNextConversationSkip = false;
+			}
+
+			if (!overrideOptions && setElement && runtimeDialogList)
+			{
+				runtimeDialogList.OverrideConversation = runtimeConversation;
+				runtimeMenu.TurnOn ();
 			}
 
 			runtimeConversation.Interact (parentActionList, this);
@@ -114,19 +168,7 @@ namespace AC
 
 		public override void ShowGUI (List<ActionParameter> parameters)
 		{
-			parameterID = Action.ChooseParameterGUI ("Conversation:", parameters, parameterID, ParameterType.GameObject);
-			if (parameterID >= 0)
-			{
-				constantID = 0;
-				conversation = null;
-			}
-			else
-			{
-				conversation = (Conversation) EditorGUILayout.ObjectField ("Conversation:", conversation, typeof (Conversation), true);
-				
-				constantID = FieldToID <Conversation> (conversation, constantID);
-				conversation = IDToField <Conversation> (conversation, constantID, false);
-			}
+			ComponentField ("Conversation:", ref conversation, ref constantID, parameters, ref parameterID);
 
 			if (conversation)
 			{
@@ -134,6 +176,7 @@ namespace AC
 
 				if (overrideOptions)
 				{
+					UpdateSocketIDs (conversation);
 					numSockets = conversation.options.Count;
 				}
 				else
@@ -174,6 +217,16 @@ namespace AC
 				}
 			}
 
+			if (!overrideOptions)
+			{
+				setElement = EditorGUILayout.Toggle ("Open in set element?", setElement);
+				if (setElement)
+				{
+					TextField ("Menu name:", ref menuName, parameters, ref menuParameterID);
+					TextField ("DialogList name:", ref containerElementName, parameters, ref elementParameterID);
+				}
+			}
+
 			if (!overrideOptions && !KickStarter.settingsManager.allowGameplayDuringConversations)
 			{
 				willWait = EditorGUILayout.Toggle ("Wait until finish?", willWait);
@@ -211,7 +264,7 @@ namespace AC
 			{
 				AddSaveScript <RememberConversation> (conversation);
 			}
-			AssignConstantID <Conversation> (conversation, constantID, parameterID);
+			constantID = AssignConstantID<Conversation> (conversation, constantID, parameterID);
 		}
 
 		
@@ -229,13 +282,75 @@ namespace AC
 		{
 			if (parameterID < 0)
 			{
-				if (conversation != null && conversation.gameObject == _gameObject) return true;
+				if (conversation && conversation.gameObject == _gameObject) return true;
 				if (constantID == id) return true;
 			}
 			return base.ReferencesObjectOrID (_gameObject, id);
 		}
 
 		#endif
+		
+
+		private void UpdateSocketIDs (Conversation _conversation)
+		{
+			List<int> newOverrideOptionSocketIDs = new List<int> ();
+			for (int i = 0; i < _conversation.options.Count; i++)
+			{
+				int newOptionID = _conversation.options[i].ID;
+				if (!newOverrideOptionSocketIDs.Contains (newOptionID))
+				{
+					newOverrideOptionSocketIDs.Add (newOptionID);
+				}
+			}
+
+			if (overrideOptionSocketIDs == null || overrideOptionSocketIDs.Count == 0)
+			{
+				overrideOptionSocketIDs = newOverrideOptionSocketIDs;
+			}
+			else
+			{
+				// Deleted options since last check?
+				for (int i = 0; i < overrideOptionSocketIDs.Count; i++)
+				{
+					if (!newOverrideOptionSocketIDs.Contains (overrideOptionSocketIDs[i]))
+					{
+						overrideOptionSocketIDs.RemoveAt (i);
+						endings.RemoveAt (i);
+						i = -1;
+					}
+				}
+
+				// Added options since last check?
+				for (int i = 0; i < newOverrideOptionSocketIDs.Count; i++)
+				{
+					if (!overrideOptionSocketIDs.Contains (newOverrideOptionSocketIDs[i]))
+					{
+						overrideOptionSocketIDs.Add (newOverrideOptionSocketIDs[i]);
+						endings.Add (new ActionEnd (true));
+						i = -1;
+					}
+				}
+
+				// Now lists should contain same IDs (but order may differ)
+				for (int i = 0; i < newOverrideOptionSocketIDs.Count; i++)
+				{
+					int newOptionID = newOverrideOptionSocketIDs[i];
+					if (overrideOptionSocketIDs[i] != newOptionID)
+					{
+						int oldIndex = overrideOptionSocketIDs.IndexOf (newOptionID);
+						if (oldIndex > i)
+						{
+							overrideOptionSocketIDs.RemoveAt (oldIndex);
+							overrideOptionSocketIDs.Insert (i, newOptionID);
+							ActionEnd oldEnding = new ActionEnd (endings[oldIndex]);
+							endings.RemoveAt (oldIndex);
+							endings.Insert (i, oldEnding);
+							i = -1;
+						}
+					}
+				}
+			}
+		}
 
 
 		/**
@@ -247,6 +362,7 @@ namespace AC
 		{
 			ActionConversation newAction = CreateNew<ActionConversation> ();
 			newAction.conversation = conversationToRun;
+			newAction.TryAssignConstantID (newAction.conversation, ref newAction.constantID);
 			return newAction;
 		}
 

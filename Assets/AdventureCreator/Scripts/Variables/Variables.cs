@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2024
  *	
  *	"Variables.cs"
  * 
@@ -10,7 +10,6 @@
  */
 
 using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
 
 namespace AC
@@ -28,8 +27,8 @@ namespace AC
 		public List<GVar> vars = new List<GVar>();
 
 		#if UNITY_EDITOR
-		public string filter;
-		public Vector2 scrollPos;
+		public string filter { get; set; }
+		public Vector2 scrollPos { get; set; }
 		#endif
 
 		#endregion
@@ -44,24 +43,20 @@ namespace AC
 				foreach (GVar _var in vars)
 				{
 					_var.CreateRuntimeTranslations ();
-					_var.BackupValue ();
 				}
 			}
+		}
 
-			RememberVariables rememberVariables = GetComponent <RememberVariables>();
-			if (rememberVariables && rememberVariables.LoadedData) return;
 
-			foreach (GVar var in vars)
-			{
-				if (var.updateLinkOnStart)
-				{
-					var.Download (VariableLocation.Component, this);
-				}
-				else
-				{
-					var.Upload (VariableLocation.Component, this);
-				}
-			}
+		private void OnEnable ()
+		{
+			EventManager.OnInitialiseScene += OnInitialiseScene;
+		}
+
+
+		private void OnDisable ()
+		{
+			EventManager.OnInitialiseScene -= OnInitialiseScene;
 		}
 
 		#endregion
@@ -80,7 +75,12 @@ namespace AC
 			{
 				if (_var.id == _id)
 				{
-					_var.Download (VariableLocation.Component, this);
+					#if UNITY_EDITOR
+					if (Application.isPlaying)
+					#endif
+					{
+						_var.Download (VariableLocation.Component, this);
+					}
 					return _var;
 				}
 			}
@@ -100,7 +100,12 @@ namespace AC
 			GVar _var = GetVariable (_id);
 			if (_var.type == _type)
 			{
-				_var.Download (VariableLocation.Component, this);
+				#if UNITY_EDITOR
+				if (Application.isPlaying)
+				#endif
+				{
+					_var.Download (VariableLocation.Component, this);
+				}
 				return _var;
 			}
 			return null;
@@ -108,9 +113,9 @@ namespace AC
 
 
 		/**
-		 * <summary>Gets a variable with a particular ID value</summary>
+		 * <summary>Gets a variable with a particular name/summary>
 		 * <param name = "_name">The name of the variable to get</param>
-		 * <returns>The variable with the requested ID value, or null if not found</returns>
+		 * <returns>The variable with the requested name, or null if not found</returns>
 		 */
 		public GVar GetVariable (string _name)
 		{
@@ -118,7 +123,12 @@ namespace AC
 			{
 				if (_var.label == _name)
 				{
-					_var.Download (VariableLocation.Component, this);
+					#if UNITY_EDITOR
+					if (Application.isPlaying)
+					#endif
+					{
+						_var.Download (VariableLocation.Component, this);
+					}
 					return _var;
 				}
 			}
@@ -138,10 +148,37 @@ namespace AC
 			GVar _var = GetVariable (_name);
 			if (_var != null && _var.type == _type)
 			{
-				_var.Download (VariableLocation.Component, this);
+				#if UNITY_EDITOR
+				if (Application.isPlaying)
+				#endif
+				{
+					_var.Download (VariableLocation.Component, this);
+				}
 				return _var;
 			}
 			return null;
+		}
+
+		#endregion
+
+
+		#region CustomEvents
+
+		private void OnInitialiseScene ()
+		{
+			foreach (GVar var in vars)
+			{
+				var.CreateRuntimeTranslations ();
+
+				if (var.updateLinkOnStart)
+				{
+					var.Download (VariableLocation.Component, this);
+				}
+				else
+				{
+					var.Upload (VariableLocation.Component, this);
+				}
+			}
 		}
 
 		#endregion

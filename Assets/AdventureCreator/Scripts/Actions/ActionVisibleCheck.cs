@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2024
  *	
  *	"ActionVisibleCheck.cs"
  * 
@@ -46,14 +46,14 @@ namespace AC
 		{
 			if (runtimeObToAffect)
 			{
-				SpriteFader _spriteFader = runtimeObToAffect.GetComponent <SpriteFader>();
-				if (_spriteFader != null && _spriteFader.GetAlpha () <= 0f)
+				SpriteFader _spriteFader = runtimeObToAffect.GetComponent<SpriteFader> ();
+				if (_spriteFader && _spriteFader.GetAlpha () <= 0f)
 				{
 					return false;
 				}
 
-				Renderer _renderer = runtimeObToAffect.GetComponent <Renderer>();
-				if (_renderer != null)
+				Renderer _renderer = runtimeObToAffect.GetComponent<Renderer> ();
+				if (_renderer)
 				{
 					switch (checkVisState)
 					{
@@ -67,6 +67,21 @@ namespace AC
 							break;
 					}
 				}
+
+				Canvas _canvas = runtimeObToAffect.GetComponent<Canvas> ();
+				if (_canvas)
+				{
+					return _canvas.enabled;
+				}
+
+				#if UNITY_2019_4_OR_NEWER
+				CanvasGroup canvasGroup = runtimeObToAffect.GetComponent<CanvasGroup> ();
+				if (canvasGroup)
+				{
+					return !(canvasGroup.enabled && canvasGroup.alpha <= 0f);
+				}
+				#endif
+
 				ACDebug.LogWarning ("Cannot check visibility of " + runtimeObToAffect.name + " as it has no renderer component", runtimeObToAffect);
 			}
 			return false;
@@ -77,27 +92,14 @@ namespace AC
 		
 		public override void ShowGUI (List<ActionParameter> parameters)
 		{
-			parameterID = Action.ChooseParameterGUI ("Object to check:", parameters, parameterID, ParameterType.GameObject);
-			if (parameterID >= 0)
-			{
-				constantID = 0;
-				obToAffect = null;
-			}
-			else
-			{
-				obToAffect = (GameObject) EditorGUILayout.ObjectField ("Object to check:", obToAffect, typeof (GameObject), true);
-				
-				constantID = FieldToID (obToAffect, constantID);
-				obToAffect = IDToField (obToAffect, constantID, false);
-			}
-
+			GameObjectField ("Object to check:", ref obToAffect, ref constantID, parameters, ref parameterID);
 			checkVisState = (CheckVisState) EditorGUILayout.EnumPopup ("Visibility to check:", checkVisState);
 		}
 
 
 		public override void AssignConstantIDs (bool saveScriptsToo, bool fromAssetFile)
 		{
-			AssignConstantID (obToAffect, constantID, parameterID);
+			constantID = AssignConstantID (obToAffect, constantID, parameterID);
 		}
 
 		
@@ -115,7 +117,7 @@ namespace AC
 		{
 			if (parameterID < 0)
 			{
-				if (obToAffect != null && obToAffect == gameObject) return true;
+				if (obToAffect && obToAffect == gameObject) return true;
 				return (constantID == id && id != 0);
 			}
 			return base.ReferencesObjectOrID (gameObject, id);
@@ -134,6 +136,7 @@ namespace AC
 		{
 			ActionVisibleCheck newAction = CreateNew<ActionVisibleCheck> ();
 			newAction.obToAffect = objectToCheck;
+			newAction.TryAssignConstantID (newAction.obToAffect, ref newAction.constantID);
 			newAction.checkVisState = visibilityToCheck;
 			return newAction;
 		}

@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2024
  *	
  *	"MenuButton.cs"
  * 
@@ -11,8 +11,9 @@
 
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.Serialization;
 #if UNITY_EDITOR
-using UnityEditor;	
+using UnityEditor;
 #endif
 
 namespace AC
@@ -30,8 +31,7 @@ namespace AC
 		/** What pointer state registers as a 'click' for Unity UI Menus (PointerClick, PointerDown, PointerEnter) */
 		public UIPointerState uiPointerState = UIPointerState.PointerClick;
 
-		/** The text that's displayed on-screen */
-		public string label = "Element";
+		[SerializeField] [FormerlySerializedAs ("label")] private string _label = "Element";
 		/** The text that appears in the Hotspot label buffer when the mouse hovers over */
 		public string hotspotLabel = "";
 		/** The translation ID of the text that appears in the Hotspot label buffer when the mouse hovers over, as set in SpeechManager */
@@ -43,6 +43,8 @@ namespace AC
 		public TextEffects textEffects;
 		/** The outline thickness, if textEffects != TextEffects.None */
 		public float outlineSize = 2f;
+		/** The outline colour */
+		public Color effectColour = Color.black;
 		/** The type of reaction that occurs when clicked (TurnOffMenu, Crossfade, OffsetElementSlot, RunActionList, CustomScript, OffsetJournal, SimulateInput) */
 		public AC_ButtonClickType buttonClickType;
 
@@ -89,24 +91,27 @@ namespace AC
 		private bool disabledUI = false;
 
 		#if TextMeshProIsPresent
-		private TMPro.TextMeshProUGUI uiText;
-		#else
-		private Text uiText;
+		private TMPro.TextMeshProUGUI uiTextTMP;
 		#endif
+		private Text uiText;
 
 
 		public override void Declare ()
 		{
 			uiText = null;
+			#if TextMeshProIsPresent
+			uiTextTMP = null;
+			#endif
 			uiButton = null;
 			uiPointerState = UIPointerState.PointerClick;
-			label = "Button";
+			_label = "Button";
 			hotspotLabel = string.Empty;
 			hotspotLabelID = -1;
 			isVisible = true;
 			isClickable = true;
 			textEffects = TextEffects.None;
 			outlineSize = 2f;
+			effectColour = Color.black;
 			buttonClickType = AC_ButtonClickType.RunActionList;
 			simulateInput = SimulateInputType.Button;
 			simulateValue = 1f;
@@ -144,24 +149,20 @@ namespace AC
 
 		private void CopyButton (MenuButton _element, bool ignoreUnityUI)
 		{
-			if (ignoreUnityUI)
-			{
-				uiButton = null;
-				uiText = null;
-			}
-			else
-			{
-				uiButton = _element.uiButton;
-				uiText = _element.uiText;
-			}
+			uiButton = null;
+			uiText = null;
+			#if TextMeshProIsPresent
+			uiTextTMP = null;
+			#endif
 			uiPointerState = _element.uiPointerState;
 
-			label = _element.label;
+			_label = _element._label;
 			hotspotLabel = _element.hotspotLabel;
 			hotspotLabelID = _element.hotspotLabelID;
 			anchor = _element.anchor;
 			textEffects = _element.textEffects;
 			outlineSize = _element.outlineSize;
+			effectColour = _element.effectColour;
 			buttonClickType = _element.buttonClickType;
 			simulateInput = _element.simulateInput;
 			simulateValue = _element.simulateValue;
@@ -199,14 +200,17 @@ namespace AC
 
 		public override void LoadUnityUI (AC.Menu _menu, Canvas canvas, bool addEventListeners = true)
 		{
-			uiButton = LinkUIElement <UnityEngine.UI.Button> (canvas);
+			LinkUIElement (canvas, ref uiButton);
 			if (uiButton)
 			{
 				#if TextMeshProIsPresent
-				uiText = uiButton.GetComponentInChildren <TMPro.TextMeshProUGUI>();
-				#else
-				uiText = uiButton.GetComponentInChildren <Text>();
+				if (_menu.useTextMeshProComponents)
+				{
+					uiTextTMP = uiButton.GetComponentInChildren <TMPro.TextMeshProUGUI>();
+				}
+				if (!_menu.useTextMeshProComponents || uiTextTMP == null)
 				#endif
+					uiText = uiButton.GetComponentInChildren <Text>();
 
 				if (addEventListeners)
 				{
@@ -264,7 +268,7 @@ namespace AC
 
 		#if UNITY_EDITOR
 		
-		public override void ShowGUI (Menu menu)
+		public override void ShowGUI (Menu menu, System.Action<ActionListAsset> showALAEditor)
 		{
 			string apiPrefix = "(AC.PlayerMenus.GetElementWithName (\"" + menu.title + "\", \"" + title + "\") as AC.MenuButton)";
 
@@ -273,14 +277,14 @@ namespace AC
 
 			if (source != MenuSource.AdventureCreator)
 			{
-				uiButton = LinkedUiGUI <UnityEngine.UI.Button> (uiButton, "Linked Button:", source, "The Unity UI Button this is linked to");
+				uiButton = LinkedUiGUI <UnityEngine.UI.Button> (uiButton, "Linked Button:", menu, "The Unity UI Button this is linked to");
 				uiSelectableHideStyle = (UISelectableHideStyle) CustomGUILayout.EnumPopup ("When invisible:", uiSelectableHideStyle, apiPrefix + ".uiSelectableHideStyle", "The method by which this element is hidden from view when made invisible");
 				uiPointerState = (UIPointerState) CustomGUILayout.EnumPopup ("Responds to:", uiPointerState, apiPrefix + ".uiPointerState", "What pointer state registers as a 'click' for Unity UI Menus");
 				CustomGUILayout.EndVertical ();
 				CustomGUILayout.BeginVertical ();
 			}
 
-			label = CustomGUILayout.TextField ("Button text:", label, apiPrefix + ".label", "The text that's displayed on-screen");
+			_label = CustomGUILayout.TextField ("Button text:", _label, apiPrefix + ".label", "The text that's displayed on-screen");
 			buttonClickType = (AC_ButtonClickType) CustomGUILayout.EnumPopup ("Click type:", buttonClickType, apiPrefix + ".buttonClickType", "The type of reaction that occurs when clicked");
 
 			if (buttonClickType == AC_ButtonClickType.TurnOffMenu)
@@ -308,7 +312,7 @@ namespace AC
 			}
 			else if (buttonClickType == AC_ButtonClickType.RunActionList)
 			{
-				ActionListGUI (menu.title, apiPrefix);
+				ActionListGUI (menu.title, apiPrefix, showALAEditor);
 			}
 			else if (buttonClickType == AC_ButtonClickType.CustomScript)
 			{
@@ -330,7 +334,7 @@ namespace AC
 			ChangeCursorGUI (menu);
 			CustomGUILayout.EndVertical ();
 			
-			base.ShowGUI (menu);
+			base.ShowGUI (menu, showALAEditor);
 		}
 
 
@@ -340,7 +344,8 @@ namespace AC
 			textEffects = (TextEffects) CustomGUILayout.EnumPopup ("Text effect:", textEffects, apiPrefix + ".textEffects", "The special FX applied to the text");
 			if (textEffects != TextEffects.None)
 			{
-				outlineSize = CustomGUILayout.Slider ("Effect size:", outlineSize, 1f, 5f, apiPrefix + ".outlineSize", "The outline thickness");
+				outlineSize = CustomGUILayout.Slider ("Effect size:", outlineSize, 1f, 5f, apiPrefix + ".outlineSize", "The effect thickness");
+				effectColour = CustomGUILayout.ColorField ("Effect colour:", effectColour, apiPrefix + ".effectColour", "The effect colour");
 			}
 		}
 
@@ -354,9 +359,9 @@ namespace AC
 		}
 
 
-		private void ActionListGUI (string menuTitle, string apiPrefix)
+		private void ActionListGUI (string menuTitle, string apiPrefix, System.Action<ActionListAsset> showALAEditor)
 		{
-			actionList = ActionListAssetMenu.AssetGUI ("ActionList to run:", actionList, menuTitle + "_" + title + "_OnClick", apiPrefix + ".actionList", "The ActionList asset to run when clicked");
+			actionList = ActionListAssetMenu.AssetGUI ("ActionList to run:", actionList, menuTitle + "_" + title + "_OnClick", apiPrefix + ".actionList", "The ActionList asset to run when clicked", null, showALAEditor);
 			if (actionList && actionList.NumParameters > 0)
 			{
 				CustomGUILayout.BeginVertical ();
@@ -387,13 +392,25 @@ namespace AC
 
 		public override int GetVariableReferences (int varID)
 		{
-			int numFound = 0;
 			string tokenText = "[var:" + varID.ToString () + "]";
 			if (label.Contains (tokenText))
 			{
-				numFound ++;
+				return 1;
 			}
-			return numFound + base.GetVariableReferences (varID);
+			return 0;
+		}
+
+
+		public override int UpdateVariableReferences (int oldVarID, int newVarID)
+		{
+			string oldTokenText = AdvGame.GetVariableTokenText (VariableLocation.Global, oldVarID);
+			if (label.ToLower ().Contains (oldTokenText))
+			{
+				string newTokenText = AdvGame.GetVariableTokenText (VariableLocation.Local, oldVarID);
+				label = label.Replace (oldTokenText, newTokenText);
+				return 1;
+			}
+			return 0;
 		}
 
 
@@ -415,6 +432,26 @@ namespace AC
 		}
 
 
+		public override int GetSlotIndex (GameObject gameObject)
+		{
+			if (uiButton && uiButton.gameObject == gameObject)
+			{
+				return 0;
+			}
+			#if TextMeshProIsPresent
+			if (uiTextTMP && uiTextTMP.gameObject == gameObject)
+			{
+				return 0;
+			}
+			#endif
+			if (uiText && uiText.gameObject == gameObject)
+			{
+				return 0;
+			}
+			return base.GetSlotIndex (gameObject);
+		}
+
+
 		/** Shows the assigned clickTexture overlay, which fades out over time. */
 		public void ShowClick ()
 		{
@@ -433,11 +470,25 @@ namespace AC
 		}
 
 
+		public override void OverrideLabel (string newLabel, int _lineID = -1)
+		{
+			label = newLabel;
+			lineID = _lineID;
+			ClearCache ();
+		}
+
+
+		protected override string GetLabelToTranslate ()
+		{
+			return label;
+		}
+
+
 		public override void PreDisplay (int _slot, int languageNumber, bool isActive)
 		{
 			SetEffectiveVisibility (true);
 
-			fullText = TranslateLabel (label, languageNumber);
+			fullText = TranslateLabel (languageNumber);
 			fullText = AdvGame.ConvertTokens (fullText, languageNumber);
 
 			if (uiButton)
@@ -451,6 +502,18 @@ namespace AC
 					UpdateUISelectable (uiButton, uiSelectableHideStyle);
 				}
 
+				if (string.IsNullOrEmpty (fullText))
+				{
+					return;
+				}
+
+				#if TextMeshProIsPresent
+				if (uiTextTMP)
+				{
+					uiTextTMP.text = fullText;
+				}
+				#endif
+
 				if (uiText)
 				{
 					uiText.text = fullText;
@@ -459,13 +522,6 @@ namespace AC
 		}
 		
 
-		/**
-		 * <summary>Draws the element using OnGUI</summary>
-		 * <param name = "_style">The GUIStyle to draw with</param>
-		 * <param name = "_slot">Ignored by this subclass</param>
-		 * <param name = "zoom">The zoom factor</param>
-		 * <param name = "isActive">If True, then the element will be drawn as though highlighted</param>
-		 */
 		public override void Display (GUIStyle _style, int _slot, float zoom, bool isActive)
 		{
 			base.Display (_style, _slot, zoom, isActive);
@@ -479,7 +535,7 @@ namespace AC
 			
 			if (textEffects != TextEffects.None)
 			{
-				AdvGame.DrawTextEffect (ZoomRect (relativeRect, zoom), fullText, _style, Color.black, _style.normal.textColor, outlineSize, textEffects);
+				AdvGame.DrawTextEffect (ZoomRect (relativeRect, zoom), fullText, _style, effectColour, _style.normal.textColor, outlineSize, textEffects);
 			}
 			else
 			{
@@ -497,7 +553,7 @@ namespace AC
 					tempColor.a = 1f;
 					GUI.color = tempColor;
 				}
-				clickAlpha -= (KickStarter.stateHandler.gameState == GameState.Paused) ? 0.02f : Time.deltaTime;
+				clickAlpha -= Time.unscaledDeltaTime;
 				if (clickAlpha < 0f)
 				{
 					clickAlpha = 0f;
@@ -506,15 +562,9 @@ namespace AC
 		}
 
 
-		/**
-		 * <summary>Gets the display text of the element</summary>
-		 * <param name = "slot">Ignored by this subclass</param>
-		 * <param name = "languageNumber">The index number of the language number to get the text in</param>
-		 * <returns>The display text of the element</returns>
-		 */
 		public override string GetLabel (int slot, int languageNumber)
 		{
-			return TranslateLabel (label, languageNumber);
+			return TranslateLabel (languageNumber);
 		}
 
 
@@ -523,6 +573,16 @@ namespace AC
 			if (uiButton)
 			{
 				return KickStarter.playerMenus.IsEventSystemSelectingObject (uiButton.gameObject);
+			}
+			return false;
+		}
+		
+		
+		public override bool IsSelectableInteractable (int slotIndex)
+		{
+			if (uiButton)
+			{
+				return uiButton.IsInteractable ();
 			}
 			return false;
 		}
@@ -537,23 +597,23 @@ namespace AC
 			}
 			else
 			{
-				GUIContent content = new GUIContent (TranslateLabel (label, Options.GetLanguage ()));
+				GUIContent content = new GUIContent (TranslateLabel (Options.GetLanguage ()));
 				AutoSize (content);
 			}
 		}
 
 
-		/**
-		 * <summary>Recalculates the element's size.
-		 * This should be called whenever a Menu's shape is changed.</summary>
-		 * <param name = "source">How the parent Menu is displayed (AdventureCreator, UnityUiPrefab, UnityUiInScene)</param>
-		 */
 		public override void RecalculateSize (MenuSource source)
 		{
 			SetEffectiveVisibility (false);
-
-			clickAlpha = 0f;
 			base.RecalculateSize (source);
+		}
+
+
+		public override void OnMenuTurnOn (Menu menu)
+		{
+			clickAlpha = 0f;
+			base.OnMenuTurnOn (menu);
 		}
 
 
@@ -695,11 +755,7 @@ namespace AC
 		 */
 		public string GetHotspotLabel (int languageNumber)
 		{
-			if (languageNumber > 0)
-			{
-				return KickStarter.runtimeLanguages.GetTranslation (hotspotLabel, hotspotLabelID, languageNumber, GetTranslationType (0));
-			}
-			return hotspotLabel;
+			return KickStarter.runtimeLanguages.GetTranslation (hotspotLabel, hotspotLabelID, languageNumber, GetTranslationType (0));
 		}
 
 
@@ -714,7 +770,27 @@ namespace AC
 				if (isVisible != value)
 				{
 					isVisible = value;
+					bool wasSelected = uiButton && KickStarter.playerMenus.EventSystem.currentSelectedGameObject == uiButton.gameObject;
+					if (wasSelected) KickStarter.eventManager.Call_OnHideSelectedElement (parentMenu, this, 0);
 					KickStarter.eventManager.Call_OnMenuElementChangeVisibility (this);
+				}
+			}
+		}
+
+
+		/** The text that's displayed on-screen */
+		public string label
+		{
+			get
+			{
+				return _label;
+			}
+			set
+			{
+				_label = value;
+				if (Application.isPlaying)
+				{
+					ClearCache ();
 				}
 			}
 		}

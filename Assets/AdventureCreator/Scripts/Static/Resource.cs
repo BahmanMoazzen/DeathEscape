@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2024
  *	
  *	"Resource.cs"
  * 
@@ -19,8 +19,6 @@ namespace AC
 
 	public class Resource
 	{
-
-		private const string mainFolderPath = "AdventureCreator";
 
 		// Main Reference resource
 		private const string referencesName = "References";
@@ -105,6 +103,13 @@ namespace AC
 						References[] allReferences = Resources.FindObjectsOfTypeAll (typeof (References)) as References[];
 						if (allReferences.Length > 0) referencesAsset = allReferences[0];
 					}
+
+					#if UNITY_EDITOR
+					if (referencesAsset == null)
+					{
+						referencesAsset = CustomAssetUtility.CreateAsset<References> ("References", Resource.DefaultReferencesPath);
+					}
+					#endif
 				}
 				return referencesAsset;
 			}
@@ -178,22 +183,25 @@ namespace AC
 		{
 			get
 			{
-				return "Assets/" + MainFolderPathRelativeToAssets;
+				return ACEditorPrefs.InstallPath;
 			}
 		}
 
 
-		// Path to root AC folder, relative to the Assets directory
-		public static string MainFolderPathRelativeToAssets
+		public static string DefaultReferencesPath
 		{
 			get
 			{
-				string pluginsAlternative = "Plugins/" + mainFolderPath;
-				if (AssetDatabase.IsValidFolder ("Assets/" + pluginsAlternative))
-				{
-					return pluginsAlternative;
-				}
-				return mainFolderPath;
+				return MainFolderPath + "/Resources";
+			}
+		}
+
+
+		public static string DefaultActionsPath
+		{
+			get
+			{
+				return MainFolderPath + "/Scripts/Actions";
 			}
 		}
 

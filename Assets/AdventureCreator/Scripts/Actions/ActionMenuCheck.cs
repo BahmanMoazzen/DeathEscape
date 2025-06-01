@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2024
  *	
  *	"ActionMenuCheck.cs"
  * 
@@ -19,7 +19,7 @@ namespace AC
 {
 
 	[System.Serializable]
-	public class ActionMenuCheck : ActionCheck
+	public class ActionMenuCheck : ActionCheck, IMenuReferencer
 	{
 		
 		public enum MenuCheckType { MenuIsVisible, MenuIsLocked, ElementIsVisible };
@@ -100,25 +100,12 @@ namespace AC
 			
 			if (checkType == MenuCheckType.MenuIsVisible || checkType == MenuCheckType.MenuIsLocked)
 			{
-				menuToCheckParameterID = Action.ChooseParameterGUI ("Menu to check:", parameters, menuToCheckParameterID, ParameterType.String);
-				if (menuToCheckParameterID < 0)
-				{
-					menuToCheck = EditorGUILayout.TextField ("Menu to check:", menuToCheck);
-				}
+				TextField ("Menu to check:", ref menuToCheck, parameters, ref menuToCheckParameterID);
 			}
 			else if (checkType == MenuCheckType.ElementIsVisible)
 			{
-				menuToCheckParameterID = Action.ChooseParameterGUI ("Menu containing element:", parameters, menuToCheckParameterID, ParameterType.String);
-				if (menuToCheckParameterID < 0)
-				{
-					menuToCheck = EditorGUILayout.TextField ("Menu containing element:", menuToCheck);
-				}
-
-				elementToCheckParameterID = Action.ChooseParameterGUI ("Element to check:", parameters, elementToCheckParameterID, ParameterType.String);
-				if (elementToCheckParameterID < 0)
-				{
-					elementToCheck = EditorGUILayout.TextField ("Element to check:", elementToCheck);
-				}
+				TextField ("Menu containing element:", ref menuToCheck, parameters, ref menuToCheckParameterID);
+				TextField ("Element to check:", ref elementToCheck, parameters, ref elementToCheckParameterID);
 			}
 		}
 		
@@ -134,7 +121,7 @@ namespace AC
 		}
 
 
-		public override int GetMenuReferences (string menuName, string elementName = "")
+		public int GetNumMenuReferences (string menuName, string elementName = "")
 		{
 			if (menuToCheckParameterID < 0 && menuName == menuToCheck)
 			{

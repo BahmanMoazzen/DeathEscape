@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2024
  *	
  *	"ActionScene.cs"
  * 
@@ -49,41 +49,6 @@ namespace AC
 		
 		public override float Run ()
 		{
-			int previousSceneIndex = GetSceneIndex ();
-
-			if (previousSceneIndex < 0)
-			{
-				LogWarning ("Cannot load previous scene as there is no data stored - is this the first scene in the game?");
-				return 0f;
-			}
-
-			if (!onlyPreload && relativePosition && runtimeRelativeMarker != null)
-			{
-				KickStarter.sceneChanger.SetRelativePosition (runtimeRelativeMarker);
-			}
-
-			if (onlyPreload && !relativePosition)
-			{
-				if (AdvGame.GetReferences ().settingsManager.useAsyncLoading)
-				{
-					KickStarter.sceneChanger.PreloadScene (previousSceneIndex);
-				}
-				else
-				{
-					LogWarning ("To pre-load scenes, 'Load scenes asynchronously?' must be enabled in the Settings Manager.");
-				}
-			}
-			else
-			{
-				KickStarter.sceneChanger.ChangeScene (previousSceneIndex, true, false, assignScreenOverlay);
-			}
-
-			return 0f;
-		}
-
-
-		private int GetSceneIndex ()
-		{
 			bool runtimeActivePlayer = useActivePlayer;
 
 			if (KickStarter.settingsManager == null || KickStarter.settingsManager.playerSwitching == PlayerSwitching.DoNotAllow)
@@ -91,6 +56,71 @@ namespace AC
 				runtimeActivePlayer = false;
 			}
 
+			if (!onlyPreload && relativePosition && runtimeRelativeMarker != null)
+			{
+				KickStarter.sceneChanger.SetRelativePosition (runtimeRelativeMarker);
+			}
+
+			switch (KickStarter.settingsManager.referenceScenesInSave)
+			{
+				case ChooseSceneBy.Name:
+					string previousSceneName = GetSceneName (runtimeActivePlayer);
+					if (string.IsNullOrEmpty (previousSceneName))
+					{
+						LogWarning ("Cannot load previous scene as there is no data stored - is this the first scene in the game?");
+						return 0f;
+					}
+
+					if (onlyPreload && !relativePosition)
+					{
+						if (KickStarter.settingsManager.useAsyncLoading)
+						{
+							KickStarter.sceneChanger.PreloadScene (previousSceneName);
+						}
+						else
+						{
+							LogWarning ("To pre-load scenes, 'Load scenes asynchronously?' must be enabled in the Settings Manager.");
+						}
+					}
+					else
+					{
+						KickStarter.sceneChanger.ChangeScene (previousSceneName, true, false, assignScreenOverlay);
+					}
+					break;
+
+				case ChooseSceneBy.Number:
+				default:
+					int previousSceneIndex = GetSceneIndex (runtimeActivePlayer);
+					if (previousSceneIndex < 0)
+					{
+						LogWarning ("Cannot load previous scene as there is no data stored - is this the first scene in the game?");
+						return 0f;
+					}
+
+					if (onlyPreload && !relativePosition)
+					{
+						if (KickStarter.settingsManager.useAsyncLoading)
+						{
+							KickStarter.sceneChanger.PreloadScene (previousSceneIndex);
+						}
+						else
+						{
+							LogWarning ("To pre-load scenes, 'Load scenes asynchronously?' must be enabled in the Settings Manager.");
+						}
+					}
+					else
+					{
+						KickStarter.sceneChanger.ChangeScene (previousSceneIndex, true, false, assignScreenOverlay);
+					}
+					break;
+			}
+
+			return 0f;
+		}
+
+
+		private int GetSceneIndex (bool runtimeActivePlayer)
+		{
 			if (runtimeActivePlayer)
 			{
 				PlayerData playerData = KickStarter.saveSystem.GetPlayerData (KickStarter.saveSystem.CurrentPlayerID);
@@ -99,12 +129,25 @@ namespace AC
 					return playerData.previousScene;
 				}
 			}
-
 			return KickStarter.sceneChanger.PreviousSceneIndex;
 		}
-		
 
-		#if UNITY_EDITOR
+
+		private string GetSceneName (bool runtimeActivePlayer)
+		{
+			if (runtimeActivePlayer)
+			{
+				PlayerData playerData = KickStarter.saveSystem.GetPlayerData (KickStarter.saveSystem.CurrentPlayerID);
+				if (playerData != null)
+				{
+					return playerData.previousSceneName;
+				}
+			}
+			return KickStarter.sceneChanger.PreviousSceneName;
+		}
+
+
+#if UNITY_EDITOR
 
 		public override void ShowGUI (List<ActionParameter> parameters)
 		{
@@ -120,25 +163,13 @@ namespace AC
 				relativePosition = EditorGUILayout.ToggleLeft ("Position Player relative to Marker?", relativePosition);
 				if (relativePosition)
 				{
-					relativeMarkerParameterID = Action.ChooseParameterGUI ("Relative Marker:", parameters, relativeMarkerParameterID, ParameterType.GameObject);
-					if (relativeMarkerParameterID >= 0)
-					{
-						relativeMarkerID = 0;
-						relativeMarker = null;
-					}
-					else
-					{
-						relativeMarker = (Marker) EditorGUILayout.ObjectField ("Relative Marker:", relativeMarker, typeof(Marker), true);
-						
-						relativeMarkerID = FieldToID (relativeMarker, relativeMarkerID);
-						relativeMarker = IDToField (relativeMarker, relativeMarkerID, false);
-					}
+					ComponentField ("Relative Marker:", ref relativeMarker, ref relativeMarkerID, parameters, ref relativeMarkerParameterID);
 				}
 			}
 
 			if (onlyPreload)
 			{
-				if (AdvGame.GetReferences () != null && AdvGame.GetReferences ().settingsManager != null && AdvGame.GetReferences ().settingsManager.useAsyncLoading)
+				if (KickStarter.settingsManager && KickStarter.settingsManager.useAsyncLoading)
 				{}
 				else
 				{
@@ -154,7 +185,7 @@ namespace AC
 
 		public override void AssignConstantIDs (bool saveScriptsToo, bool fromAssetFile)
 		{
-			AssignConstantID (relativeMarker, relativeMarkerID, relativeMarkerParameterID);
+			relativeMarkerID = AssignConstantID (relativeMarker, relativeMarkerID, relativeMarkerParameterID);
 		}
 
 
@@ -162,7 +193,7 @@ namespace AC
 		{
 			if (relativePosition && relativeMarkerParameterID < 0)
 			{
-				if (relativeMarker != null && relativeMarker.gameObject == gameObject) return true;
+				if (relativeMarker && relativeMarker.gameObject == gameObject) return true;
 				if (relativeMarkerID == id && id != 0) return true;
 			}
 			return base.ReferencesObjectOrID (gameObject, id);
