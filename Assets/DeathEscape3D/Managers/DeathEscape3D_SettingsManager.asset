@@ -156,15 +156,15 @@ MonoBehaviour:
   touchUpWhenPaused: 0
   touchUpInteractScene: 0
   forceAspectRatio: 0
-  aspectRatioEnforcement: 0
-  wantedAspectRatio: 2.2
+  aspectRatioEnforcement: 1
+  wantedAspectRatio: 2
   maxAspectRatio: 2.39
   renderBorderCamera: 1
   landscapeModeOnly: 1
   cameraPerspective: 2
   cacheCameraMain: 0
   linearColorTextures: 0
-  relyOnSafeArea: 1
+  relyOnSafeArea: 0
   movingTurning: 3
   hotspotDetection: 0
   closeInteractionMenusIfPlayerLeavesVicinity: 0

@@ -287,7 +287,7 @@ MonoBehaviour:
     x: 364.20886
     y: 357
     width: 300
-    height: 180
+    height: 187
   overrideColor: {r: 1, g: 1, b: 1, a: 1}
   showOutputSockets: 1
   parentActionListInEditor: {fileID: 0}

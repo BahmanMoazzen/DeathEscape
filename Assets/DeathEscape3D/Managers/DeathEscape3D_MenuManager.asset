@@ -682,9 +682,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ID: 1
   title: Presents
-  slotSize: {x: 14.215909, y: 6.04375}
+  slotSize: {x: 14.211457, y: 5.46875}
   sizeType: 0
-  positionType: 2
+  positionType: 0
   slotSpacing: 0
   lineID: 632
   alternativeInputButton: 
@@ -707,10 +707,10 @@ MonoBehaviour:
   maxAutoWidthFactor: 0.5
   relativeRect:
     serializedVersion: 2
-    x: 813.12006
-    y: 311.52002
-    width: 150.12001
-    height: 29.01
+    x: 19.2
+    y: 71.56
+    width: 136.43
+    height: 26.250002
   relativePosition: {x: 77, y: 64.9}
   numSlots: 1
   uiTextTMP: {fileID: 0}
@@ -1276,9 +1276,9 @@ MonoBehaviour:
   _isLocked: 1
   id: 15
   title: ExitCam
-  manualSize: {x: 11.9800005, y: 14.297777}
+  manualSize: {x: 11.9800005, y: 14.96}
   positionType: 1
-  manualPosition: {x: 2406.656, y: 720}
+  manualPosition: {x: 902.49603, y: 240}
   positionSmoothing: 0
   alignment: 5
   toggleKey: 
@@ -1348,13 +1348,13 @@ MonoBehaviour:
   speechProximityLimit: 0
   speechProximityDistance: 10
   deleteUIWhenTurnOff: 0
-  biggestElementSize: {x: 268.544, y: 167.74399}
+  biggestElementSize: {x: 100.704, y: 57.504}
   rect:
     serializedVersion: 2
-    x: 2253.312
-    y: 617.056
-    width: 306.68802
-    height: 205.88799
+    x: 844.992
+    y: 204.09601
+    width: 115.008
+    height: 71.808
 --- !u!114 &-6735592679231666089
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1378,7 +1378,7 @@ MonoBehaviour:
   _isLocked: 0
   id: 20
   title: HotspotMarker
-  manualSize: {x: 6, y: 11.999999}
+  manualSize: {x: 6, y: 12}
   positionType: 5
   manualPosition: {x: 50, y: 44.4}
   positionSmoothing: 0
@@ -1450,13 +1450,13 @@ MonoBehaviour:
   speechProximityLimit: 0
   speechProximityDistance: 10
   deleteUIWhenTurnOff: 0
-  biggestElementSize: {x: 153.6, y: 172.79999}
+  biggestElementSize: {x: 57.600002, y: 57.600002}
   rect:
     serializedVersion: 2
-    x: 1203.2
-    y: 552.95996
-    width: 153.6
-    height: 172.79999
+    x: 451.2
+    y: 184.31999
+    width: 57.600002
+    height: 57.600002
 --- !u!114 &-6512287195441992988
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -2036,7 +2036,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ID: 0
   title: HotspotLabel
-  slotSize: {x: 5.8203125, y: 5.2777777}
+  slotSize: {x: 5.3291664, y: 8.058333}
   sizeType: 0
   positionType: 0
   slotSpacing: 0
@@ -2063,8 +2063,8 @@ MonoBehaviour:
     serializedVersion: 2
     x: 0
     y: 0
-    width: 149
-    height: 76
+    width: 51.16
+    height: 38.68
   relativePosition: {x: 12.3, y: 0}
   numSlots: 1
   uiTextTMP: {fileID: 0}
@@ -5888,9 +5888,9 @@ MonoBehaviour:
   _isLocked: 0
   id: 11
   title: Hotspot
-  manualSize: {x: 5.8203125, y: 5.2777777}
+  manualSize: {x: 5.3291664, y: 8.058333}
   positionType: 1
-  manualPosition: {x: 1280, y: 720}
+  manualPosition: {x: 480, y: 240}
   positionSmoothing: 0
   alignment: 4
   toggleKey: 
@@ -5960,13 +5960,13 @@ MonoBehaviour:
   speechProximityLimit: 0
   speechProximityDistance: 10
   deleteUIWhenTurnOff: 0
-  biggestElementSize: {x: 149, y: 76}
+  biggestElementSize: {x: 51.16, y: 38.68}
   rect:
     serializedVersion: 2
-    x: 1205.5
-    y: 682
-    width: 149
-    height: 76
+    x: 454.42
+    y: 220.66
+    width: 51.16
+    height: 38.68
 --- !u!114 &504267823609781069
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -6974,8 +6974,8 @@ MonoBehaviour:
     serializedVersion: 2
     x: 0
     y: 0
-    width: 153.6
-    height: 172.79999
+    width: 57.600002
+    height: 57.600002
   relativePosition: {x: 0, y: 0}
   numSlots: 1
   uiImage: {fileID: 0}
@@ -8726,13 +8726,13 @@ MonoBehaviour:
   _isLocked: 0
   id: 17
   title: TitleScreenFirst
-  manualSize: {x: 100, y: 100}
-  positionType: 0
-  manualPosition: {x: 528, y: 240}
+  manualSize: {x: 25.576042, y: 24.377083}
+  positionType: 1
+  manualPosition: {x: 122.76501, y: 240}
   positionSmoothing: 0
-  alignment: 4
+  alignment: 3
   toggleKey: 
-  ignoreMouseClicks: 0
+  ignoreMouseClicks: 1
   pauseWhenEnabled: 0
   showWhenPaused: 0
   canClickInCutscene: 0
@@ -8745,8 +8745,8 @@ MonoBehaviour:
   fitWithinScreen: 1
   backgroundTexture: {fileID: 0}
   visibleElements:
-  - {fileID: -7888324682722728581}
   - {fileID: 6578541129678707267}
+  - {fileID: -7888324682722728581}
   transitionProgress: 0
   appearType: 0
   speechMenuType: 0
@@ -8759,10 +8759,10 @@ MonoBehaviour:
   autoSelectFirstVisibleElement: 0
   firstSelectedElement: 
   elements:
-  - {fileID: -7888324682722728581}
   - {fileID: 6578541129678707267}
-  spacing: 1.71
-  sizeType: 1
+  - {fileID: -7888324682722728581}
+  spacing: 2
+  sizeType: 0
   autoSizeEveryFrame: 0
   orientation: 1
   transitionType: 0
@@ -8800,13 +8800,13 @@ MonoBehaviour:
   speechProximityLimit: 0
   speechProximityDistance: 10
   deleteUIWhenTurnOff: 0
-  biggestElementSize: {x: 546.0576, y: 307.1152}
+  biggestElementSize: {x: 226.33002, y: 97.81}
   rect:
     serializedVersion: 2
     x: 0
-    y: 0
-    width: 1056
-    height: 480
+    y: 181.495
+    width: 245.53001
+    height: 117.009995
 --- !u!114 &6493168427236915666
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -8948,9 +8948,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ID: 0
   title: HelenLabel
-  slotSize: {x: 21.152462, y: 7.483333}
+  slotSize: {x: 21.576042, y: 6.9083333}
   sizeType: 0
-  positionType: 2
+  positionType: 0
   slotSpacing: 0
   lineID: 655
   alternativeInputButton: 
@@ -8973,10 +8973,10 @@ MonoBehaviour:
   maxAutoWidthFactor: 0.5
   relativeRect:
     serializedVersion: 2
-    x: 777.216
-    y: 277.92
-    width: 223.37001
-    height: 35.920002
+    x: 19.2
+    y: 19.2
+    width: 207.13002
+    height: 33.16
   relativePosition: {x: 73.6, y: 57.9}
   numSlots: 1
   uiTextTMP: {fileID: 0}
@@ -9304,10 +9304,10 @@ MonoBehaviour:
   maxAutoWidthFactor: 0.5
   relativeRect:
     serializedVersion: 2
-    x: 38.144
-    y: 38.144
-    width: 230.40001
-    height: 129.59999
+    x: 14.304
+    y: 14.304
+    width: 86.4
+    height: 43.2
   relativePosition: {x: 0, y: 0}
   numSlots: 1
   uiButton: {fileID: 0}
