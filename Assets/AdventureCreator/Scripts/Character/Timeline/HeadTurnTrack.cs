@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2024
  *	
  *	"HeadTurnTrack.cs"
  * 
@@ -9,9 +9,10 @@
  * 
  */
 
+#if TimelineIsPresent
+
 using UnityEngine;
 using UnityEngine.Playables;
-#if !ACIgnoreTimeline
 using UnityEngine.Timeline;
 
 

@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2024
  *	
  *	"SaveData.cs"
  * 
@@ -30,9 +30,7 @@ namespace AC
 		/** Instances of PlayerData for each of the game's Players */
 		public List<PlayerData> playerData = new List<PlayerData>();
 
-		/**
-		 * The default Constructor.
-		 */
+		/** The default Constructor. */
 		public SaveData () { }
 
 
@@ -73,6 +71,8 @@ namespace AC
 
 		/** The build index of the previous scene visited. This may not be the same as the actual Player's last-visited scene, if player-switching or local players are involved */
 		public int previousSceneIndex;
+		/** The name of the previous scene visited. This may not be the same as the actual Player's last-visited scene, if player-switching or local players are involved */
+		public string previousSceneName;
 
 		/** The current values of all Global Variables */
 		public string runtimeVariablesData;
@@ -147,6 +147,8 @@ namespace AC
 		public string activeAssetLists;
 		/** Data regarding active inputs */
 		public string activeInputsData;
+		/** Data regarding timers */
+		public string timersData;
 
 		/** Data regarding which speech lines, that can only be spoken once, have already been spoken */
 		public string spokenLinesData;
@@ -169,7 +171,7 @@ namespace AC
 			{
 				EditorGUILayout.LabelField ("Global Variables:");
 
-				List<GVar> linkedVariables = SaveSystem.UnloadVariablesData (runtimeVariablesData, false, KickStarter.variablesManager.vars, true);
+				List<GVar> linkedVariables = SaveSystem.UnloadVariablesData (runtimeVariablesData, false, KickStarter.variablesManager.vars);
 				foreach (GVar linkedVariable in linkedVariables)
 				{
 					if (linkedVariable.link != VarLink.OptionsData)
@@ -231,6 +233,37 @@ namespace AC
 			CustomGUILayout.MultiLineLabelGUI ("   Active ArrowPrompt:", activeArrows.ToString ());
 			CustomGUILayout.MultiLineLabelGUI ("   Active ActionList assets:", activeAssetLists);
 			CustomGUILayout.MultiLineLabelGUI ("   Active inputs:", activeInputsData);
+			CustomGUILayout.MultiLineLabelGUI ("   Timers:", timersData);
+
+			if (persistentScriptData != null && persistentScriptData.Count > 0)
+			{
+				EditorGUILayout.LabelField ("Persistent data:");
+				foreach (ScriptData scriptData in persistentScriptData)
+				{
+					try
+					{
+						RememberData rememberData = SaveSystem.FileFormatHandler.DeserializeObject<RememberData> (scriptData.data);
+						if (rememberData != null)
+						{
+							CustomGUILayout.MultiLineLabelGUI ("   " + rememberData.GetType ().ToString () + ":", EditorJsonUtility.ToJson (rememberData, true));
+						}
+					}
+					catch (System.Exception)
+					{
+						ACDebug.LogWarning ("Error displying persistent Remember data '" + scriptData.data + "'");
+						continue;
+					}
+				}
+			}
+
+			EditorGUILayout.Space ();
+			if (GUILayout.Button ("Copy as Json"))
+			{
+				TextEditor te = new TextEditor ();
+				te.text = EditorJsonUtility.ToJson (this);
+				te.SelectAll ();
+				te.Copy ();
+			}
 		}
 
 		#endif

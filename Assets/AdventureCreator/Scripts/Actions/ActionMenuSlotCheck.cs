@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2024
  *	
  *	"ActionMenuSlotCheck.cs"
  * 
@@ -20,7 +20,7 @@ namespace AC
 {
 	
 	[System.Serializable]
-	public class ActionMenuSlotCheck : ActionCheck
+	public class ActionMenuSlotCheck : ActionCheck, IMenuReferencer
 	{
 		
 		public string menuToCheck = "";
@@ -81,28 +81,15 @@ namespace AC
 		
 		public override void ShowGUI (List<ActionParameter> parameters)
 		{
-			menuToCheckParameterID = Action.ChooseParameterGUI ("Menu containing element:", parameters, menuToCheckParameterID, ParameterType.String);
-			if (menuToCheckParameterID < 0)
-			{
-				menuToCheck = EditorGUILayout.TextField ("Menu containing element:", menuToCheck);
-			}
-			
-			elementToCheckParameterID = Action.ChooseParameterGUI ("Element to check:", parameters, elementToCheckParameterID, ParameterType.String);
-			if (elementToCheckParameterID < 0)
-			{
-				elementToCheck = EditorGUILayout.TextField ("Element to check:", elementToCheck);
-			}
+			TextField ("Menu containing element:", ref menuToCheck, parameters, ref menuToCheckParameterID);
+			TextField ("Element to check:", ref elementToCheck, parameters, ref elementToCheckParameterID);
 
 			EditorGUILayout.BeginHorizontal ();
 			EditorGUILayout.LabelField ("Number of slots is:", GUILayout.Width (145f));
 			intCondition = (IntCondition) EditorGUILayout.EnumPopup (intCondition);
 			EditorGUILayout.EndHorizontal ();
 
-			numToCheckParameterID = Action.ChooseParameterGUI ("Value:", parameters, numToCheckParameterID, ParameterType.Integer);
-			if (numToCheckParameterID < 0)
-			{
-				numToCheck = EditorGUILayout.IntField ("Value:", numToCheck);
-			}
+			IntField ("Value:", ref numToCheck, parameters, ref numToCheckParameterID);
 		}
 		
 		
@@ -112,7 +99,7 @@ namespace AC
 		}
 
 
-		public override int GetMenuReferences (string menuName, string elementName = "")
+		public int GetNumMenuReferences (string menuName, string elementName = "")
 		{
 			if (menuToCheckParameterID < 0 && menuName == menuToCheck)
 			{

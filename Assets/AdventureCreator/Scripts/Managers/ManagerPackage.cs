@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2024
  *	
  *	"ManagerPackage.cs"
  * 
@@ -18,9 +18,7 @@ using UnityEditor;
 namespace AC
 {
 
-	/**
-	 * An asset file that stores references to Manager assets, so that they can be quickly assigned in bulk.
-	 */
+	/** An asset file that stores references to Manager assets, so that they can be quickly assigned in bulk. */
 	[System.Serializable]
 	public class ManagerPackage : ScriptableObject
 	{
@@ -35,9 +33,7 @@ namespace AC
 		public MenuManager menuManager;
 
 
-		/**
-		 * Checks if all 8 Manager types are assigned.
-		 */
+		/** Checks if all 8 Manager types are assigned. */
 		public bool IsFullyAssigned ()
 		{
 			if (actionsManager == null)
@@ -76,9 +72,7 @@ namespace AC
 		}
 
 
-		/**
-		 * Assigns its various Manager asset files.
-		 */
+		/** Assigns its various Manager asset files. */
 		public void AssignManagers ()
 		{
 			if (AdvGame.GetReferences () != null)
@@ -139,11 +133,6 @@ namespace AC
 					KickStarter.ClearManagerCache ();
 				}
 
-				if (KickStarter.sceneManager)
-				{
-					KickStarter.sceneManager.GetPrefabsInScene ();
-				}
-
 				UnityVersionHandler.CustomSetDirty (AdvGame.GetReferences (), true);
 				AssetDatabase.SaveAssets ();
 				#endif
@@ -152,7 +141,7 @@ namespace AC
 				{
 					if (numAssigned == 0)
 					{
-						ACDebug.Log (this.name + " No Mangers assigned.");
+						ACDebug.Log (this.name + " No Managers assigned.");
 					}
 					else if (numAssigned == 1)
 					{
@@ -167,12 +156,10 @@ namespace AC
 			else
 			{
 				#if UNITY_EDITOR
-				string intendedDirectory = Resource.MainFolderPathRelativeToAssets + System.IO.Path.DirectorySeparatorChar.ToString () + "Resources";
-
-				bool canProceed = EditorUtility.DisplayDialog ("Error - missing References", "A 'References' file must be present in the directory '" + intendedDirectory + "'. Create one?", "OK", "Cancel");
+				bool canProceed = EditorUtility.DisplayDialog ("Error - missing References", "A 'References' file must be present in the directory '" + Resource.DefaultReferencesPath + "'. Create one?", "OK", "Cancel");
 				if (!canProceed) return;
 
-				CustomAssetUtility.CreateAsset<References> ("References", intendedDirectory);
+				CustomAssetUtility.CreateAsset<References> ("References", Resource.DefaultReferencesPath);
 
 				if (AdvGame.GetReferences () != null)
 				{

@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2024
  *	
  *	"DragTrack_Linear.cs"
  * 
@@ -85,7 +85,8 @@ namespace AC
 
 				if (draggable.Rigidbody)
 				{
-					draggable.Rigidbody.velocity = draggable.Rigidbody.angularVelocity = Vector3.zero;
+					UnityVersionHandler.SetRigidbodyVelocity (draggable.Rigidbody, Vector3.zero);
+					draggable.Rigidbody.angularVelocity = Vector3.zero;
 				}
 			}
 
@@ -94,10 +95,10 @@ namespace AC
 			// Limit velocity to just along track
 			if (draggable.UsesRigidbody)
 			{
-				Vector3 localVelocity = Transform.InverseTransformDirection (draggable.Rigidbody.velocity);
+				Vector3 localVelocity = Transform.InverseTransformDirection (UnityVersionHandler.GetRigidbodyVelocity (draggable.Rigidbody));
 				localVelocity.x = 0;
 				localVelocity.z = 0;
-				draggable.Rigidbody.velocity = Transform.TransformDirection (localVelocity);
+				UnityVersionHandler.SetRigidbodyVelocity (draggable.Rigidbody, Transform.TransformDirection (localVelocity));
 			}
 		}
 
@@ -115,12 +116,18 @@ namespace AC
 					deltaForce *= draggable.maxSpeed / deltaForce.magnitude;
 				}
 
-				deltaForce -= draggable.Rigidbody.velocity;
+				deltaForce -= UnityVersionHandler.GetRigidbodyVelocity (draggable.Rigidbody);
 				draggable.Rigidbody.AddForce (deltaForce, ForceMode.VelocityChange);
 			}
 			else
 			{
 				float newPosition = Mathf.Lerp (draggable.trackValue, _position, Time.deltaTime * _speed * 100f);
+
+				if (!Loops)
+				{
+					newPosition = Mathf.Clamp01 (newPosition);
+				}
+
 				SetPositionAlong (newPosition, draggable);
 			}
 		}
@@ -137,7 +144,7 @@ namespace AC
 				if (dragMustScrew)
 				{
 					draggable.UpdateScrewVector();
-					dotProduct = Vector3.Dot (force, draggable._dragVector);
+					dotProduct = Vector3.Dot (force, draggable.dragVector);
 				}
 				else dotProduct = Vector3.Dot (force, Transform.up);
 			}
@@ -246,6 +253,8 @@ namespace AC
 			{
 				SetRotation (draggable, draggable.trackValue);
 			}
+
+			DoRegionAudioCheck (draggable);
 
 			if (!onlySnapOnPlayerRelease)
 			{

@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2024
  *	
  *	"RememberNPC.cs"
  * 
@@ -15,28 +15,28 @@ using UnityEngine;
 namespace AC
 {
 
-	/**
-	 * Attach this script to NPCs in the scene whose state you wish to save.
-	 */
+	/** Attach this script to NPCs in the scene whose state you wish to save. */
 	[AddComponentMenu("Adventure Creator/Save system/Remember NPC")]
 	[HelpURL("https://www.adventurecreator.org/scripting-guide/class_a_c_1_1_remember_n_p_c.html")]
+	[RequireComponent (typeof (NPC))]
 	public class RememberNPC : Remember
 	{
 
+		#region Variables
+
 		/** Determines whether the object is on or off when the game starts */
 		public AC_OnOff startState = AC_OnOff.On;
+		private Hotspot ownHotspot;
 
-		private bool loadedData = false;
+		#endregion
 
-		
-		private void Awake ()
+
+		#region CustomEvents
+
+		protected override void OnInitialiseScene ()
 		{
-			if (loadedData) return;
-
 			if (OwnHotspot != null &&
-				GetComponent <RememberHotspot>() == null &&
-				KickStarter.settingsManager &&
-				GameIsPlaying ())
+				GetComponent <RememberHotspot>() == null)
 			{
 				if (startState == AC_OnOff.On)
 				{
@@ -49,11 +49,11 @@ namespace AC
 			}
 		}
 
+		#endregion
 
-		/**
-		 * <summary>Serialises appropriate GameObject values into a string.</summary>
-		 * <returns>The data, serialised as a string</returns>
-		 */
+
+		#region PublicFunctions
+
 		public override string SaveData ()
 		{
 			NPCData npcData = new NPCData();
@@ -78,41 +78,24 @@ namespace AC
 			npcData.ScaleY = transform.localScale.y;
 			npcData.ScaleZ = transform.localScale.z;
 			
-			if (GetComponent <NPC>())
-			{
-				NPC npc = GetComponent <NPC>();
-				npcData = npc.SaveData (npcData);
-			}
+			NPC npc = GetComponent <NPC>();
+			npcData = npc.SaveData (npcData);
 			
 			return Serializer.SaveScriptData <NPCData> (npcData);
 		}
 		
 
-		/**
-		 * <summary>Deserialises a string of data, and restores the GameObject to its previous state.</summary>
-		 * <param name = "stringData">The data, serialised as a string</param>
-		 */
 		public override void LoadData (string stringData)
 		{
 			NPCData data = Serializer.LoadScriptData <NPCData> (stringData);
 			if (data == null)
 			{
-				loadedData = false;
 				return;
 			}
 			SavePrevented = data.savePrevented; if (savePrevented) return;
 
 			if (GetComponent <RememberHotspot>() == null)
 			{
-				/*if (data.isOn)
-				{
-					gameObject.layer = LayerMask.NameToLayer (KickStarter.settingsManager.hotspotLayer);
-				}
-				else
-				{
-					gameObject.layer = LayerMask.NameToLayer (KickStarter.settingsManager.deactivatedLayer);
-				}*/
-
 				if (OwnHotspot)
 				{
 					if (data.isOn)
@@ -126,22 +109,19 @@ namespace AC
 				}
 			}
 
-			transform.position = new Vector3 (data.LocX, data.LocY, data.LocZ);
-			transform.eulerAngles = new Vector3 (data.RotX, data.RotY, data.RotZ);
 			transform.localScale = new Vector3 (data.ScaleX, data.ScaleY, data.ScaleZ);
 			
-			if (GetComponent <NPC>())
-			{
-				NPC npc = GetComponent <NPC>();
-				npc.SetRotation (transform.rotation);
-				npc.LoadData (data);
-			}
-
-			loadedData = true;
+			NPC npc = GetComponent <NPC>();
+			npc.Teleport (new Vector3 (data.LocX, data.LocY, data.LocZ));
+			npc.SetRotation (Quaternion.Euler (new Vector3 (data.RotX, data.RotY, data.RotZ)));
+			npc.LoadData (data);
 		}
 
+		#endregion
 
-		private Hotspot ownHotspot;
+
+		#region GetSet
+
 		private Hotspot OwnHotspot
 		{
 			get
@@ -154,12 +134,12 @@ namespace AC
 			}
 		}
 
+		#endregion
+
 	}
 
 
-	/**
-	 * A data container used by the RememberNPC script.
-	 */
+	/** A data container used by the RememberNPC script. */
 	[System.Serializable]
 	public class NPCData : RememberData
 	{

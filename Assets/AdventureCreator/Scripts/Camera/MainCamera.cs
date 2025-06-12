@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2024
  *	
  *	"MainCamera.cs"
  * 
@@ -58,6 +58,8 @@ namespace AC
 
 		/** If True, the fade texture will be rendered on the script automatically.  If False, the user can read this script's GetFadeTexture and GetFadeAlpha values to render it with a custom technique. */
 		[SerializeField] protected bool renderFading = true;
+		/** If True, borders will be drawn outside of the playable screen area. */
+		[SerializeField] protected bool renderBorders = true;
 
 		protected _Camera transitionFromCamera;
 
@@ -219,7 +221,8 @@ namespace AC
 
 			UpdateCameraFade ();
 			
-			if (attachedCamera && (!(attachedCamera is GameCamera25D)))
+			bool attachedIs25D = (attachedCamera is GameCamera25D);
+			if (attachedCamera && !attachedIs25D)
 			{
 				switch (mainCameraMode)
 				{
@@ -241,7 +244,7 @@ namespace AC
 				}
 			}
 			
-			else if (attachedCamera && (attachedCamera is GameCamera25D))
+			else if (attachedCamera && attachedIs25D)
 			{
 				Transform.position = attachedCamera.CameraTransform.position;
 				Transform.rotation = attachedCamera.CameraTransform.rotation;
@@ -445,6 +448,10 @@ namespace AC
 			{
 				SetGameCamera (firstPersonCamera);
 			}
+			else
+			{
+				ACDebug.LogWarning ("Cannot set first-person camera because it cannot be found on the Player " + KickStarter.player, KickStarter.player);
+			}
 
 			UpdateLastGameplayCamera ();
 		}
@@ -468,13 +475,16 @@ namespace AC
 		{
 			if (timelineFadeOverride)
 			{
-				Color originalColor = GUI.color;
-				Color tempColor = GUI.color;
-				tempColor.a = timelineFadeWeight;
-				GUI.color = tempColor;
-				GUI.depth = drawDepth;
-				GUI.DrawTexture (new Rect (0, 0,  ACScreen.width,  ACScreen.height), timelineFadeTexture);
-				GUI.color = originalColor;
+				if (renderFading)
+				{
+					Color originalColor = GUI.color;
+					Color tempColor = GUI.color;
+					tempColor.a = timelineFadeWeight;
+					GUI.color = tempColor;
+					GUI.depth = drawDepth;
+					GUI.DrawTexture (new Rect (0, 0,  ACScreen.width,  ACScreen.height), timelineFadeTexture);
+					GUI.color = originalColor;
+				}
 				return;
 			}
 
@@ -543,6 +553,11 @@ namespace AC
 		/** The alpha value of the current fade effect (0 = not visible, 1 = fully visible) */
 		public float GetFadeAlpha ()
 		{
+			if (timelineFadeOverride)
+			{
+				return timelineFadeWeight;
+			}
+
 			return alpha;
 		}
 
@@ -550,6 +565,11 @@ namespace AC
 		/** The texture to display full-screen for the fade effect */
 		public Texture2D GetFadeTexture ()
 		{
+			if (timelineFadeOverride)
+			{
+				return timelineFadeTexture;
+			}
+
 			AssignFadeTexture ();
 			return actualFadeTexture;
 		}
@@ -589,13 +609,9 @@ namespace AC
 				currentFrameCameraData = new GameCameraData (attachedCamera);
 				ApplyCameraData (currentFrameCameraData);
 
-				if (Application.isPlaying && changedOrientation && !SceneSettings.IsUnity2D () && KickStarter.stateHandler.IsInGameplay () && KickStarter.settingsManager.movementMethod == MovementMethod.Direct && KickStarter.settingsManager.directMovementType == DirectMovementType.RelativeToCamera && /*KickStarter.settingsManager.inputMethod != InputMethod.TouchScreen &&*/ KickStarter.playerInput)
+				if (changedOrientation)
 				{
-					if (KickStarter.player && 
-						(KickStarter.player.GetPath () == null || !KickStarter.player.IsLockedToPath ()))
-					{
-						KickStarter.playerInput.cameraLockSnap = true;
-					}
+					KickStarter.playerInput.BeginCameraLockSnap ();
 				}
 			}
 		}
@@ -635,9 +651,7 @@ namespace AC
 		}
 
 
-		/**
-		 * Places a full-screen texture of the current game window over the screen, allowing for a scene change to have no visible transition.
-		 */
+		/** Places a full-screen texture of the current game window over the screen, allowing for a scene change to have no visible transition. */
 		public void TakeOverlayScreenshot ()
 		{
 			Texture2D screenTex = new Texture2D (ACScreen.width, ACScreen.height);
@@ -969,14 +983,14 @@ namespace AC
 		}
 
 
-		/**
-		 * Updates the camera's rect values according to the aspect ratio and split-screen settings.
-		 */
+		/** Updates the camera's rect values according to the aspect ratio and split-screen settings. */
 		public void SetCameraRect ()
 		{
+			#if UNITY_EDITOR
 			if (!Application.isPlaying) return;
+			#endif
 
-			if (SetAspectRatio () && Application.isPlaying)
+			if (SetAspectRatio ())
 			{
 				CreateBorderCamera ();
 			}
@@ -1045,25 +1059,35 @@ namespace AC
 		{
 			if (!Application.isPlaying)
 			{
-				if (AdvGame.GetReferences () == null || AdvGame.GetReferences ().settingsManager == null || AdvGame.GetReferences ().settingsManager.AspectRatioEnforcement == AspectRatioEnforcement.NoneEnforced)
+				if (KickStarter.settingsManager == null || KickStarter.settingsManager.AspectRatioEnforcement == AspectRatioEnforcement.NoneEnforced)
 				{
 					return;
 				}
 				SetAspectRatio ();
 			}
 
+			if (!renderBorders)
+			{
+				return;
+			}
+
+			Color tempColor = GUI.color;
+			Color backupColor = GUI.color;
+			tempColor.a = 1f;
+			GUI.color = tempColor;
+			
 			if (borderWidth > 0f)
 			{
 				if (fadeTexture == null)
 				{
 					ACDebug.LogWarning ("Cannot draw camera borders because no Fade texture is assigned in the MainCamera!");
+					GUI.color = backupColor;
 					return;
 				}
 
 				GUI.depth = 10;
 				GUI.DrawTexture (borderRect1, fadeTexture);
 				GUI.DrawTexture (borderRect2, fadeTexture);
-
 			}
 			else if (isSplitScreen)
 			{
@@ -1072,6 +1096,7 @@ namespace AC
 					if (fadeTexture == null)
 					{
 						ACDebug.LogWarning ("Cannot draw camera borders because no Fade texture is assigned in the MainCamera!", gameObject);
+						GUI.color = backupColor;
 						return;
 					}
 
@@ -1100,6 +1125,8 @@ namespace AC
 					GUI.DrawTexture (new Rect (0f, 0f,  ACScreen.width,  ACScreen.height - ACScreen.safeArea.height - ACScreen.safeArea.y), fadeTexture);
 				}
 			}
+
+			GUI.color = backupColor;
 		}
 		
 
@@ -1262,6 +1289,12 @@ namespace AC
 			SetGameCamera (_camera1);
 			StartSplitScreen (_splitAmountMain, _splitAmountOther);
 		}
+
+
+		public void SwapSplitScreenMainCamera ()
+		{
+			SetSplitScreen (splitCamera, attachedCamera, splitOrientation, !isTopLeftSplit, splitAmountMain, splitAmountOther);
+		}
 		
 
 		/**
@@ -1277,6 +1310,8 @@ namespace AC
 			splitCamera.SetSplitScreen ();
 			SetCameraRect ();
 			SetMidBorder ();
+
+			KickStarter.eventManager.Call_OnCameraSplitScreenStart (splitCamera, splitOrientation, splitAmountMain, splitAmountOther, isTopLeftSplit);
 		}
 
 
@@ -1320,11 +1355,11 @@ namespace AC
 		}
 
 
-		/**
-		 * Ends any active split-screen effect.
-		 */
+		/** Ends any active split-screen effect. */
 		public void RemoveSplitScreen ()
 		{
+			_Camera _splitCamera = isSplitScreen ? splitCamera : null;
+
 			if (isSplitScreen && splitOrientation == CameraSplitOrientation.Overlay)
 			{
 				Camera.depth = overlayDepthBackup;
@@ -1343,6 +1378,11 @@ namespace AC
 				}
 
 				splitCamera = null;
+			}
+
+			if (_splitCamera) 
+			{
+				KickStarter.eventManager.Call_OnCameraSplitScreenStop (_splitCamera);
 			}
 		}
 
@@ -1739,9 +1779,7 @@ namespace AC
 		}
 
 
-		/**
-		 * Displays information about the MainCamera section of the 'AC Status' box.
-		 */
+		/** Displays information about the MainCamera section of the 'AC Status' box. */
 		public void DrawStatus ()
 		{
 			if (IsEnabled ())
@@ -1943,6 +1981,16 @@ namespace AC
 			return (transitionTimer > 0f);
 		}
 
+		
+		/** Called as the scene is initialised, but before the Player is spawned. */
+		public virtual void OnInitialiseScene ()
+		{
+			if (KickStarter.settingsManager.blackOutWhenInitialising)
+			{
+				ForceOverlayForFrames (2000);
+			}
+		}
+
 		#endregion
 
 
@@ -1952,7 +2000,11 @@ namespace AC
 		{
 			if (KickStarter.settingsManager.blackOutWhenInitialising)
 			{
-				ForceOverlayForFrames (4);
+				ForceOverlayForFrames (2);
+			}
+			else
+			{
+				ForceOverlayForFrames (0);
 			}
 		}
 
@@ -2169,6 +2221,7 @@ namespace AC
 			}
 
 			playableScreenRect = new Rect (trueSafeRect);
+			float playableScreenRectMagnitude = playableScreenRect.size.magnitude;
 			playableScreenRectInverted = new Rect (new Vector2 (trueSafeRect.x,  ACScreen.height - trueSafeRect.y - trueSafeRect.height), trueSafeRect.size);
 
 			playableScreenRectRelative = new Rect (playableScreenRect.x / ACScreen.width, playableScreenRect.y / ACScreen.height, playableScreenRect.width /  ACScreen.width, playableScreenRect.height /  ACScreen.height);
@@ -2558,13 +2611,15 @@ namespace AC
 
 		public void ShowGUI ()
 		{
+			CustomGUILayout.Header ("Properties");
 			CustomGUILayout.BeginVertical ();
 			fadeTexture = (Texture2D) CustomGUILayout.ObjectField <Texture2D> ("Fade texture:", fadeTexture, false, string.Empty, "The texture to display fullscreen when fading");
-			renderFading = CustomGUILayout.Toggle ("Draw fade?", renderFading, string.Empty, "If True, the fade texture will be drawn automatically.");
+			renderFading = CustomGUILayout.Toggle ("Draw fade?", renderFading, string.Empty, "If True, the fade effect will be drawn automatically.");
 			if (!renderFading)
 			{
 				EditorGUILayout.HelpBox ("A custom fade effect can be written by hooking into this component's GetFadeTexture and GetFadeAlpha functions.", MessageType.Info);
 			}
+			renderBorders = CustomGUILayout.Toggle ("Draw borders?", renderBorders, string.Empty, "If True, borders will be drawn outside of the playable screen area.");
 
 			#if ALLOW_VR
 			if (UnityEngine.XR.XRSettings.enabled)

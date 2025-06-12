@@ -1,28 +1,28 @@
 ﻿#if UNITY_EDITOR
 
-using UnityEngine;
+using System;
 using System.Collections.Generic;
+using UnityEngine;
 using UnityEditor;
+using AC.SML;
 
 namespace AC
 {
 	
-	/**
-	 * Provides an EditorWindow to manage the export of variables
-	 */
+	/** Provides an EditorWindow to manage the export of variables */
 	public class VarExportWizardWindow : EditorWindow
 	{
 
+		private ExportWizardData exportData = new ExportWizardData ();
 		private VariablesManager variablesManager;
 		private Variables variables;
 		private VariableLocation variableLocation;
 		private bool allScenes;
 
-		private List<ExportColumn> exportColumns = new List<ExportColumn>();
 		private int sideMenuIndex = -1;
-		private bool replaceForwardSlashes;
-
 		private Vector2 scroll;
+
+		private const string ExportDataBackupKey = "VarExportWizardWindowBackup";
 
 
 		public void _Init (VariableLocation _variableLocation, bool _allScenes, Variables _variables)
@@ -32,28 +32,31 @@ namespace AC
 			variables = _variables;
 			allScenes = _allScenes;
 
-			exportColumns.Clear ();
-			exportColumns.Add (new ExportColumn (ExportColumn.ColumnType.Location));
-
-			if (variableLocation == VariableLocation.Local)
+			string exportDataBackup = EditorPrefs.GetString (ExportDataBackupKey, string.Empty);
+			if (ACEditorPrefs.RetainExportFieldData && !string.IsNullOrEmpty (exportDataBackup))
 			{
-				exportColumns.Add (new ExportColumn (ExportColumn.ColumnType.SceneName));
+				EditorJsonUtility.FromJsonOverwrite (exportDataBackup, exportData);
+				if (exportData == null)
+				{
+					exportData = new ExportWizardData (variableLocation);
+				}
 			}
-			exportColumns.Add (new ExportColumn (ExportColumn.ColumnType.Label));
-			exportColumns.Add (new ExportColumn (ExportColumn.ColumnType.Type));
-			exportColumns.Add (new ExportColumn (ExportColumn.ColumnType.InitialValue));
+			else
+			{
+				exportData = new ExportWizardData (variableLocation);
+			}
 		}
 
 
-		/**
-		 * <summary>Initialises the window.</summary>
-		 */
+		/** Initialises the window. */
 		public static void Init (VariableLocation _variableLocation, bool _allScenes, Variables _variables)
 		{
-			VarExportWizardWindow window = EditorWindow.GetWindowWithRect <VarExportWizardWindow> (new Rect (0, 0, 350, 500), true, "Variables export wizard", true);
-			window.titleContent.text = "Variables export wizard";
+			VarExportWizardWindow window = (VarExportWizardWindow) GetWindow (typeof (VarExportWizardWindow));
+
+			window.titleContent.text = _variableLocation.ToString () + " Variables exporter";
 			window.position = new Rect (300, 200, 350, 500);
 			window._Init (_variableLocation, _allScenes, _variables);
+			window.minSize = new Vector2 (300, 180);
 		}
 		
 		
@@ -65,10 +68,10 @@ namespace AC
 				return;
 			}
 
-			if (exportColumns == null)
+			if (exportData.exportColumns == null)
 			{
-				exportColumns = new List<ExportColumn>();
-				exportColumns.Add (new ExportColumn ());
+				exportData.exportColumns = new List<ExportColumn>();
+				exportData.exportColumns.Add (new ExportColumn ());
 			}
 
 			EditorGUILayout.LabelField (variableLocation.ToString () + " Variables exporter", CustomStyles.managerHeader);
@@ -80,49 +83,60 @@ namespace AC
 			ShowColumnsGUI ();
 
 			EditorGUILayout.Space ();
-			if (exportColumns.Count == 0)
+			EditorGUILayout.LabelField ("Export", CustomStyles.subHeader);
+			if (exportData.exportColumns.Count == 0)
 			{
 				GUI.enabled = false;
 			}
-			if (GUILayout.Button ("Export CSV"))
+
+			EditorGUILayout.BeginHorizontal ();
+			if (GUILayout.Button ("Export CSV", GUILayout.Width (position.width / 2f - 5)))
 			{
-				Export ();
+				Export (ExportFormat.CSV);
 			}
+			if (GUILayout.Button ("Export SpreadsheetML", GUILayout.Width (position.width / 2f - 5)))
+			{
+				Export (ExportFormat.XML);
+			}
+			EditorGUILayout.EndHorizontal ();
 			GUI.enabled = true;
 
-			EditorGUILayout.Space ();
 			GUILayout.EndScrollView ();
+
+			if (GUI.changed)
+			{
+				string exportDataBackup = EditorJsonUtility.ToJson (exportData);
+				EditorPrefs.SetString (ExportDataBackupKey, exportDataBackup);
+			}
 		}
 
 
 		private void ShowColumnsGUI ()
 		{
 			EditorGUILayout.LabelField ("Define columns",  CustomStyles.subHeader);
-			EditorGUILayout.Space ();
-			for (int i=0; i<exportColumns.Count; i++)
+			for (int i = 0; i < exportData.exportColumns.Count; i++)
 			{
 				CustomGUILayout.BeginVertical ();
 
 				EditorGUILayout.BeginHorizontal ();
-				exportColumns[i].ShowFieldSelector (i);
+				exportData.exportColumns[i].ShowFieldSelector (i);
 				if (GUILayout.Button ("", CustomStyles.IconCog))
 				{
 					SideMenu (i);
 				}
 				EditorGUILayout.EndHorizontal ();
 
-				if (exportColumns[i].GetHeader () == "Label")
+				if (exportData.exportColumns[i].GetHeader () == "Label")
 				{
-					replaceForwardSlashes = EditorGUILayout.Toggle ("Replace '/' with '.'?", replaceForwardSlashes);
+					exportData.replaceForwardSlashes = EditorGUILayout.Toggle ("Replace '/' with '.'?", exportData.replaceForwardSlashes);
 				}
 
 				CustomGUILayout.EndVertical ();
 			}
 
-			EditorGUILayout.Space ();
 			if (GUILayout.Button ("Add new column"))
 			{
-				exportColumns.Add (new ExportColumn ());
+				exportData.exportColumns.Add (new ExportColumn ());
 			}
 
 			EditorGUILayout.Space ();
@@ -135,14 +149,14 @@ namespace AC
 
 			sideMenuIndex = i;
 
-			if (exportColumns.Count > 1)
+			if (exportData.exportColumns.Count > 1)
 			{
 				if (i > 0)
 				{
 					menu.AddItem (new GUIContent ("Re-arrange/Move to top"), false, MenuCallback, "Move to top");
 					menu.AddItem (new GUIContent ("Re-arrange/Move up"), false, MenuCallback, "Move up");
 				}
-				if (i < (exportColumns.Count - 1))
+				if (i < (exportData.exportColumns.Count - 1))
 				{
 					menu.AddItem (new GUIContent ("Re-arrange/Move down"), false, MenuCallback, "Move down");
 					menu.AddItem (new GUIContent ("Re-arrange/Move to bottom"), false, MenuCallback, "Move to bottom");
@@ -159,33 +173,36 @@ namespace AC
 			if (sideMenuIndex >= 0)
 			{
 				int i = sideMenuIndex;
-				ExportColumn _column = exportColumns[i];
+				ExportColumn _column = exportData.exportColumns[i];
 
 				switch (obj.ToString ())
 				{
-				case "Move to top":
-					exportColumns.Remove (_column);
-					exportColumns.Insert (0, _column);
-					break;
+					case "Move to top":
+						exportData.exportColumns.Remove (_column);
+						exportData.exportColumns.Insert (0, _column);
+						break;
 					
-				case "Move up":
-					exportColumns.Remove (_column);
-					exportColumns.Insert (i-1, _column);
-					break;
+					case "Move up":
+						exportData.exportColumns.Remove (_column);
+						exportData.exportColumns.Insert (i-1, _column);
+						break;
 					
-				case "Move to bottom":
-					exportColumns.Remove (_column);
-					exportColumns.Insert (exportColumns.Count, _column);
-					break;
+					case "Move to bottom":
+						exportData.exportColumns.Remove (_column);
+						exportData.exportColumns.Insert (exportData.exportColumns.Count, _column);
+						break;
 					
-				case "Move down":
-					exportColumns.Remove (_column);
-					exportColumns.Insert (i+1, _column);
-					break;
+					case "Move down":
+						exportData.exportColumns.Remove (_column);
+						exportData.exportColumns.Insert (i+1, _column);
+						break;
 
-				case "Delete":
-					exportColumns.Remove (_column);
-					break;
+					case "Delete":
+						exportData.exportColumns.Remove (_column);
+						break;
+
+					default:
+						break;
 				}
 			}
 			
@@ -193,13 +210,13 @@ namespace AC
 		}
 
 		
-		private void Export ()
+		private void Export (ExportFormat format)
 		{
 			#if UNITY_WEBPLAYER
 			ACDebug.LogWarning ("Game text cannot be exported in WebPlayer mode - please switch platform and try again.");
 			#else
 			
-			if (variablesManager == null || exportColumns == null || exportColumns.Count == 0) return;
+			if (variablesManager == null || exportData.exportColumns == null || exportData.exportColumns.Count == 0) return;
 
 			if (variableLocation == VariableLocation.Local && allScenes)
 			{
@@ -213,17 +230,31 @@ namespace AC
 			}
 
 			string suggestedFilename = "";
-			if (AdvGame.GetReferences ().settingsManager)
+			if (KickStarter.settingsManager)
 			{
-				suggestedFilename = AdvGame.GetReferences ().settingsManager.saveFileName + " - ";
+				suggestedFilename = KickStarter.settingsManager.saveFileName + " - ";
 			}
 			if (variableLocation == VariableLocation.Local && allScenes)
 			{
 				suggestedFilename += " All ";
 			}
-			suggestedFilename += variableLocation.ToString () + " Variables.csv";
+
+			string extension;
+			switch (format)
+			{
+				case ExportFormat.CSV:
+				default:
+					extension = "csv";
+					break;
+
+				case ExportFormat.XML:
+					extension = "xml";
+					break;
+			}
+
+			suggestedFilename += variableLocation.ToString () + " Variables."  + extension;
 			
-			string fileName = EditorUtility.SaveFilePanel ("Export variables", "Assets", suggestedFilename, "csv");
+			string fileName = EditorUtility.SaveFilePanel ("Export variables", "Assets", suggestedFilename, extension);
 			if (fileName.Length == 0)
 			{
 				return;
@@ -233,7 +264,7 @@ namespace AC
 
 			List<string> headerList = new List<string>();
 			headerList.Add ("ID");
-			foreach (ExportColumn exportColumn in exportColumns)
+			foreach (ExportColumn exportColumn in exportData.exportColumns)
 			{
 				headerList.Add (exportColumn.GetHeader ());
 			}
@@ -252,9 +283,9 @@ namespace AC
 				{
 					List<string> rowList = new List<string>();
 					rowList.Add (exportVar.id.ToString ());
-					foreach (ExportColumn exportColumn in exportColumns)
+					foreach (ExportColumn exportColumn in exportData.exportColumns)
 					{
-						string cellText = exportColumn.GetCellText (exportVar, VariableLocation.Global, replaceForwardSlashes);
+						string cellText = exportColumn.GetCellText (exportVar, VariableLocation.Global, exportData.replaceForwardSlashes);
 						rowList.Add (cellText);
 					}
 					output.Add (rowList.ToArray ());
@@ -272,14 +303,11 @@ namespace AC
 					{
 						UnityVersionHandler.OpenScene (sceneFile);
 
-						if (FindObjectOfType <LocalVariables>())
+						LocalVariables localVariables = UnityVersionHandler.FindObjectOfType <LocalVariables>();
+						if (localVariables != null)
 						{
-							LocalVariables localVariables = FindObjectOfType <LocalVariables>();
-							if (localVariables != null)
-							{
-								string sceneName = UnityVersionHandler.GetCurrentSceneName ();
-								output = GatherOutput (output, localVariables.localVars, sceneName);
-							}
+							string sceneName = UnityVersionHandler.GetCurrentSceneName ();
+							output = GatherOutput (output, localVariables.localVars, sceneName);
 						}
 					}
 
@@ -309,7 +337,19 @@ namespace AC
 				}
 			}
 
-			string fileContents = CSVReader.CreateCSVGrid (output);
+			string fileContents;
+			switch (format)
+			{
+				case ExportFormat.CSV:
+				default:
+					fileContents = CSVReader.CreateCSVGrid (output);
+					break;
+
+				case ExportFormat.XML:
+					fileContents = SMLReader.CreateXMLGrid (output);
+					break;
+			}
+
 			if (!string.IsNullOrEmpty (fileContents) && Serializer.SaveFile (fileName, fileContents))
 			{
 				int numExported = output.Count - 1;
@@ -340,9 +380,9 @@ namespace AC
 			{
 				List<string> rowList = new List<string>();
 				rowList.Add (exportVar.id.ToString ());
-				foreach (ExportColumn exportColumn in exportColumns)
+				foreach (ExportColumn exportColumn in exportData.exportColumns)
 				{
-					string cellText = exportColumn.GetCellText (exportVar, variableLocation, replaceForwardSlashes, sceneName);
+					string cellText = exportColumn.GetCellText (exportVar, variableLocation, exportData.replaceForwardSlashes, sceneName);
 					rowList.Add (cellText);
 				}
 
@@ -353,11 +393,12 @@ namespace AC
 		}
 
 
+		[Serializable]
 		private class ExportColumn
 		{
 
+			[SerializeField] private ColumnType columnType;
 			public enum ColumnType { Location, SceneName, Label, Type, Description, InitialValue };
-			private ColumnType columnType;
 
 
 			public ExportColumn ()
@@ -374,7 +415,7 @@ namespace AC
 
 			public void ShowFieldSelector (int i)
 			{
-				columnType = (ColumnType) EditorGUILayout.EnumPopup ("Column #" + (i+1).ToString (), columnType);
+				columnType = (ColumnType) EditorGUILayout.EnumPopup ("Column #" + (i+1).ToString () + ":", columnType);
 			}
 
 
@@ -430,12 +471,46 @@ namespace AC
 			private string RemoveLineBreaks (string text)
 			{
 				if (text.Length == 0) return " ";
-	            //text = text.Replace("\r\n", "[break]").Replace("\n", "[break]");
-				text = text.Replace("\r\n", "[break]");
+	            text = text.Replace("\r\n", "[break]");
 				text = text.Replace("\n", "[break]");
 				text = text.Replace("\r", "[break]");
-	            return text;
-	        }
+				return text;
+			}
+
+		}
+
+
+		[Serializable]
+		private class ExportWizardData
+		{
+
+			public List<ExportColumn> exportColumns = new List<ExportColumn> ();
+			public bool replaceForwardSlashes;
+
+
+			public ExportWizardData ()
+			{
+				exportColumns.Clear ();
+				exportColumns.Add (new ExportColumn (ExportColumn.ColumnType.Location));
+				exportColumns.Add (new ExportColumn (ExportColumn.ColumnType.Label));
+				exportColumns.Add (new ExportColumn (ExportColumn.ColumnType.Type));
+				exportColumns.Add (new ExportColumn (ExportColumn.ColumnType.InitialValue));
+			}
+
+
+			public ExportWizardData (VariableLocation variableLocation)
+			{
+				exportColumns.Clear ();
+				exportColumns.Add (new ExportColumn (ExportColumn.ColumnType.Location));
+
+				if (variableLocation == VariableLocation.Local)
+				{
+					exportColumns.Add (new ExportColumn (ExportColumn.ColumnType.SceneName));
+				}
+				exportColumns.Add (new ExportColumn (ExportColumn.ColumnType.Label));
+				exportColumns.Add (new ExportColumn (ExportColumn.ColumnType.Type));
+				exportColumns.Add (new ExportColumn (ExportColumn.ColumnType.InitialValue));
+			}
 
 		}
 

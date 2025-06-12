@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2024
  *	
  *	"NPC.cs"
  * 
@@ -9,15 +9,16 @@
  * 
  */
 
-using UnityEngine;
 using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace AC
 {
 
 	/** Attaching this to a GameObject will make it an NPC, or Non-Player Character. */
-	[AddComponentMenu("Adventure Creator/Characters/NPC")]
-	[HelpURL("https://www.adventurecreator.org/scripting-guide/class_a_c_1_1_n_p_c.html")]
+	[AddComponentMenu ("Adventure Creator/Characters/NPC")]
+	[HelpURL ("https://www.adventurecreator.org/scripting-guide/class_a_c_1_1_n_p_c.html")]
 	public class NPC : Char
 	{
 
@@ -29,12 +30,13 @@ namespace AC
 
 		/** The minimum distance to keep from the Player, if moveOutOfPlayersWay = True */
 		public float minPlayerDistance = 1f;
-		
+
 		protected Char followTarget = null;
 		protected bool followTargetIsPlayer = false;
 		protected float followFrequency = 0f;
 		protected float followUpdateTimer = 0f;
 		protected float followDistance = 0f;
+		protected float followDistanceMed = 0f;
 		protected float followDistanceMax = 0f;
 		protected bool followFaceWhenIdle = false;
 		protected bool followRandomDirection = false;
@@ -47,7 +49,7 @@ namespace AC
 
 
 		#region UnityStandards		
-		
+
 		protected void Awake ()
 		{
 			if (KickStarter.settingsManager)
@@ -107,7 +109,7 @@ namespace AC
 						charState = CharState.Idle;
 					}
 				}
-				else 
+				else
 				{
 					charState = CharState.Move;
 				}
@@ -168,6 +170,7 @@ namespace AC
 			followUpdateTimer = followFrequency;
 			followDistance = _followDistance;
 			followDistanceMax = _followDistanceMax;
+			followDistanceMed = (followDistance + followDistanceMax) / 2f;
 			followFaceWhenIdle = _faceWhenIdle;
 			followRandomDirection = _followRandomDirection;
 
@@ -194,31 +197,28 @@ namespace AC
 			npcData.RotY = TransformRotation.eulerAngles.y;
 			npcData.RotZ = TransformRotation.eulerAngles.z;
 
-			npcData.inCustomCharState = (charState == CharState.Custom && GetAnimator () && GetAnimator ().GetComponent <RememberAnimator>());
+			npcData.inCustomCharState = (charState == CharState.Custom && GetAnimator () && GetAnimator ().GetComponent<RememberAnimator> ());
 
 			// Animation
 			npcData = GetAnimEngine ().SaveNPCData (npcData, this);
-			
-			npcData.walkSound = AssetLoader.GetAssetInstanceID (walkSound);
-			npcData.runSound = AssetLoader.GetAssetInstanceID (runSound);
-			
+
 			npcData.speechLabel = GetName ();
 			npcData.displayLineID = displayLineID;
 			npcData.portraitGraphic = AssetLoader.GetAssetInstanceID (portraitIcon.texture);
 
 			npcData.walkSpeed = walkSpeedScale;
 			npcData.runSpeed = runSpeedScale;
-			
+
 			// Rendering
 			npcData.lockDirection = lockDirection;
 			npcData.lockScale = lockScale;
-			if (spriteChild && spriteChild.GetComponent <FollowSortingMap>())
+			if (spriteChild && spriteChild.GetComponent<FollowSortingMap> ())
 			{
-				npcData.lockSorting = spriteChild.GetComponent <FollowSortingMap>().lockSorting;
+				npcData.lockSorting = spriteChild.GetComponent<FollowSortingMap> ().lockSorting;
 			}
-			else if (GetComponent <FollowSortingMap>())
+			else if (GetComponent<FollowSortingMap> ())
 			{
-				npcData.lockSorting = GetComponent <FollowSortingMap>().lockSorting;
+				npcData.lockSorting = GetComponent<FollowSortingMap> ().lockSorting;
 			}
 			else
 			{
@@ -228,17 +228,23 @@ namespace AC
 			npcData.spriteDirection = GetSpriteDirectionToSave ();
 
 			npcData.spriteScale = spriteScale;
-			if (spriteChild && spriteChild.GetComponent <Renderer>())
+			var sortingGroup = GetComponentInChildren<SortingGroup> ();
+			if (sortingGroup)
 			{
-				npcData.sortingOrder = spriteChild.GetComponent <Renderer>().sortingOrder;
-				npcData.sortingLayer = spriteChild.GetComponent <Renderer>().sortingLayerName;
+				npcData.sortingOrder = sortingGroup.sortingOrder;
+				npcData.sortingLayer = sortingGroup.sortingLayerName;
 			}
-			else if (GetComponent <Renderer>())
+			else if (spriteChild && spriteChild.GetComponent<Renderer> ())
 			{
-				npcData.sortingOrder = GetComponent <Renderer>().sortingOrder;
-				npcData.sortingLayer = GetComponent <Renderer>().sortingLayerName;
+				npcData.sortingOrder = spriteChild.GetComponent<Renderer> ().sortingOrder;
+				npcData.sortingLayer = spriteChild.GetComponent<Renderer> ().sortingLayerName;
 			}
-			
+			else if (GetComponent<Renderer> ())
+			{
+				npcData.sortingOrder = GetComponent<Renderer> ().sortingOrder;
+				npcData.sortingLayer = GetComponent<Renderer> ().sortingLayerName;
+			}
+
 			npcData.pathID = 0;
 			npcData.lastPathID = 0;
 			if (GetPath ())
@@ -247,16 +253,16 @@ namespace AC
 				npcData.prevNode = GetPreviousNode ();
 				npcData.isRunning = isRunning;
 				npcData.pathAffectY = GetPath ().affectY;
-				
-				if (GetPath () == GetComponent <Paths>())
+
+				if (GetPath () == GetComponent<Paths> ())
 				{
-					npcData.pathData = Serializer.CreatePathData (GetComponent <Paths>());
+					npcData.pathData = Serializer.CreatePathData (GetComponent<Paths> ());
 				}
 				else
 				{
-					if (GetPath ().GetComponent <ConstantID>())
+					if (GetPath ().GetComponent<ConstantID> ())
 					{
-						npcData.pathID = GetPath ().GetComponent <ConstantID>().constantID;
+						npcData.pathID = GetPath ().GetComponent<ConstantID> ().constantID;
 					}
 					else
 					{
@@ -264,29 +270,29 @@ namespace AC
 					}
 				}
 			}
-			
+
 			if (GetLastPath ())
 			{
 				npcData.lastTargetNode = GetLastTargetNode ();
 				npcData.lastPrevNode = GetLastPrevNode ();
-				
-				if (GetLastPath ().GetComponent <ConstantID>())
+
+				if (GetLastPath ().GetComponent<ConstantID> ())
 				{
-					npcData.lastPathID = GetLastPath ().GetComponent <ConstantID>().constantID;
+					npcData.lastPathID = GetLastPath ().GetComponent<ConstantID> ().constantID;
 				}
 				else
 				{
 					ACDebug.LogWarning ("Want to save previous path data for " + name + " but path has no ID!", gameObject);
 				}
 			}
-			
+
 			if (followTarget)
 			{
 				if (!followTargetIsPlayer)
 				{
-					if (followTarget.GetComponent <ConstantID>())
+					if (followTarget.GetComponent<ConstantID> ())
 					{
-						npcData.followTargetID = followTarget.GetComponent <ConstantID>().constantID;
+						npcData.followTargetID = followTarget.GetComponent<ConstantID> ().constantID;
 						npcData.followTargetIsPlayer = followTargetIsPlayer;
 						npcData.followFrequency = followFrequency;
 						npcData.followDistance = followDistance;
@@ -321,7 +327,7 @@ namespace AC
 				npcData.followFaceWhenIdle = false;
 				npcData.followRandomDirection = false;
 			}
-			
+
 			if (headFacing == HeadFacing.Manual && headTurnTarget)
 			{
 				npcData.isHeadTurning = true;
@@ -343,13 +349,13 @@ namespace AC
 				npcData.headTargetZ = 0f;
 			}
 
-			if (GetComponentInChildren <FollowSortingMap>())
+			if (GetComponentInChildren<FollowSortingMap> ())
 			{
-				FollowSortingMap followSortingMap = GetComponentInChildren <FollowSortingMap>();
+				FollowSortingMap followSortingMap = GetComponentInChildren<FollowSortingMap> ();
 				npcData.followSortingMap = followSortingMap.followSortingMap;
 				if (!npcData.followSortingMap && followSortingMap.GetSortingMap ())
 				{
-					ConstantID followSortingMapConstantID = followSortingMap.GetSortingMap ().GetComponent <ConstantID>();
+					ConstantID followSortingMapConstantID = followSortingMap.GetSortingMap ().GetComponent<ConstantID> ();
 
 					if (followSortingMapConstantID)
 					{
@@ -413,23 +419,23 @@ namespace AC
 
 			walkSpeedScale = data.walkSpeed;
 			runSpeedScale = data.runSpeed;
-			
+
 			// Rendering
 			lockDirection = data.lockDirection;
 			lockScale = data.lockScale;
-			if (spriteChild && spriteChild.GetComponent <FollowSortingMap>())
+			if (spriteChild && spriteChild.GetComponent<FollowSortingMap> ())
 			{
-				spriteChild.GetComponent <FollowSortingMap>().lockSorting = data.lockSorting;
+				spriteChild.GetComponent<FollowSortingMap> ().lockSorting = data.lockSorting;
 			}
-			else if (GetComponent <FollowSortingMap>())
+			else if (GetComponent<FollowSortingMap> ())
 			{
-				GetComponent <FollowSortingMap>().lockSorting = data.lockSorting;
+				GetComponent<FollowSortingMap> ().lockSorting = data.lockSorting;
 			}
 			else
 			{
 				ReleaseSorting ();
 			}
-			
+
 			if (data.lockDirection)
 			{
 				spriteDirection = data.spriteDirection;
@@ -441,25 +447,31 @@ namespace AC
 			}
 			if (data.lockSorting)
 			{
-				if (spriteChild && spriteChild.GetComponent <Renderer>())
+				var sortingGroup = GetComponentInChildren<SortingGroup> ();
+				if (sortingGroup)
 				{
-					spriteChild.GetComponent <Renderer>().sortingOrder = data.sortingOrder;
-					spriteChild.GetComponent <Renderer>().sortingLayerName = data.sortingLayer;
+					sortingGroup.sortingOrder = data.sortingOrder;
+					sortingGroup.sortingLayerName = data.sortingLayer;
 				}
-				else if (GetComponent <Renderer>())
+				else if (spriteChild && spriteChild.GetComponent<Renderer> ())
 				{
-					GetComponent <Renderer>().sortingOrder = data.sortingOrder;
-					GetComponent <Renderer>().sortingLayerName = data.sortingLayer;
+					spriteChild.GetComponent<Renderer> ().sortingOrder = data.sortingOrder;
+					spriteChild.GetComponent<Renderer> ().sortingLayerName = data.sortingLayer;
+				}
+				else if (GetComponent<Renderer> ())
+				{
+					GetComponent<Renderer> ().sortingOrder = data.sortingOrder;
+					GetComponent<Renderer> ().sortingLayerName = data.sortingLayer;
 				}
 			}
-			
+
 			AC.Char charToFollow = null;
 			if (data.followTargetID != 0)
 			{
-				RememberNPC followNPC = ConstantID.GetComponent <RememberNPC> (data.followTargetID);
-				if (followNPC.GetComponent <AC.Char>())
+				RememberNPC followNPC = ConstantID.GetComponent<RememberNPC> (data.followTargetID);
+				if (followNPC.GetComponent<AC.Char> ())
 				{
-					charToFollow = followNPC.GetComponent <AC.Char>();
+					charToFollow = followNPC.GetComponent<AC.Char> ();
 				}
 			}
 
@@ -472,18 +484,18 @@ namespace AC
 				StopFollowing ();
 			}
 			Halt ();
-			
-			if (!string.IsNullOrEmpty (data.pathData) && GetComponent <Paths>())
+
+			if (!string.IsNullOrEmpty (data.pathData) && GetComponent<Paths> ())
 			{
-				Paths savedPath = GetComponent <Paths>();
+				Paths savedPath = GetComponent<Paths> ();
 				savedPath = Serializer.RestorePathData (savedPath, data.pathData);
 				SetPath (savedPath, data.targetNode, data.prevNode, data.pathAffectY);
 				isRunning = data.isRunning;
 			}
 			else if (data.pathID != 0)
 			{
-				Paths pathObject = ConstantID.GetComponent <Paths> (data.pathID);
-				
+				Paths pathObject = ConstantID.GetComponent<Paths> (data.pathID);
+
 				if (pathObject)
 				{
 					SetPath (pathObject, data.targetNode, data.prevNode);
@@ -493,11 +505,11 @@ namespace AC
 					ACDebug.LogWarning ("Trying to assign a path for NPC " + this.name + ", but the path was not found - was it deleted?", gameObject);
 				}
 			}
-			
+
 			if (data.lastPathID != 0)
 			{
-				Paths pathObject = ConstantID.GetComponent <Paths> (data.lastPathID);
-				
+				Paths pathObject = ConstantID.GetComponent<Paths> (data.lastPathID);
+
 				if (pathObject)
 				{
 					SetLastPath (pathObject, data.lastTargetNode, data.lastPrevNode);
@@ -507,11 +519,11 @@ namespace AC
 					ACDebug.LogWarning ("Trying to assign the previous path for NPC " + this.name + ", but the path was not found - was it deleted?", gameObject);
 				}
 			}
-			
+
 			// Head target
 			if (data.isHeadTurning)
 			{
-				ConstantID _headTargetID = ConstantID.GetComponent <ConstantID> (data.headTargetID);
+				ConstantID _headTargetID = ConstantID.GetComponent<ConstantID> (data.headTargetID);
 				if (_headTargetID)
 				{
 					SetHeadTurnTarget (_headTargetID.transform, new Vector3 (data.headTargetX, data.headTargetY, data.headTargetZ), true);
@@ -526,10 +538,10 @@ namespace AC
 				ClearHeadTurnTarget (true);
 			}
 
-			if (GetComponentsInChildren <FollowSortingMap>() != null)
+			if (GetComponentsInChildren<FollowSortingMap> () != null)
 			{
-				FollowSortingMap[] followSortingMaps = GetComponentsInChildren <FollowSortingMap>();
-				SortingMap customSortingMap = ConstantID.GetComponent <SortingMap> (data.customSortingMapID);
+				FollowSortingMap[] followSortingMaps = GetComponentsInChildren<FollowSortingMap> ();
+				SortingMap customSortingMap = ConstantID.GetComponent<SortingMap> (data.customSortingMapID);
 
 				foreach (FollowSortingMap followSortingMap in followSortingMaps)
 				{
@@ -581,7 +593,17 @@ namespace AC
 		}
 
 
-		#if UNITY_EDITOR
+		public override string ToString ()
+		{
+			if (!string.IsNullOrEmpty (speechLabel))
+			{
+				return "NPC " + speechLabel;
+			}
+			return "NPC " + name;
+		}
+
+
+#if UNITY_EDITOR
 
 		[ContextMenu ("Convert character type")]
 		/** Converts the character between an NPC and a Player. */
@@ -589,22 +611,22 @@ namespace AC
 		{
 			if (this is Player)
 			{
-				if (UnityVersionHandler.IsPrefabFile(gameObject))
+				if (UnityVersionHandler.IsPrefabFile (gameObject))
 				{
-					UnityEditor.EditorUtility.DisplayDialog("Convert " + name + " to NPC?", "Only scene objects can be converted. Place an instance of this prefab into your scene and try again.", "OK");
+					UnityEditor.EditorUtility.DisplayDialog ("Convert " + name + " to NPC?", "Only scene objects can be converted. Place an instance of this prefab into your scene and try again.", "OK");
 					return;
 				}
 
-				if (UnityEditor.EditorUtility.DisplayDialog("Convert " + name + " to NPC?", "This will convert the Player into an NPC.  Player-only data will lost in the process, and you should back up your project first. Continue?", "OK", "Cancel"))
+				if (UnityEditor.EditorUtility.DisplayDialog ("Convert " + name + " to NPC?", "This will convert the Player into an NPC.  Player-only data will lost in the process, and you should back up your project first. Continue?", "OK", "Cancel"))
 				{
 					gameObject.tag = Tags.untagged;
 
 					AC.Char playerAsCharacter = (AC.Char) this;
 					string characterData = JsonUtility.ToJson (playerAsCharacter);
 
-					NPC npc = gameObject.AddComponent <NPC>();
-					JsonUtility.FromJsonOverwrite(characterData, npc);
-					DestroyImmediate(this);
+					NPC npc = gameObject.AddComponent<NPC> ();
+					JsonUtility.FromJsonOverwrite (characterData, npc);
+					DestroyImmediate (this);
 				}
 			}
 			else
@@ -619,15 +641,15 @@ namespace AC
 				{
 					AC.Char npcAsCharacter = (AC.Char) this;
 					string characterData = JsonUtility.ToJson (npcAsCharacter);
-				
-					Player player = gameObject.AddComponent <Player>();
+
+					Player player = gameObject.AddComponent<Player> ();
 					JsonUtility.FromJsonOverwrite (characterData, player);
 					DestroyImmediate (this);
 				}
 			}
 		}
 
-		#endif
+#endif
 
 		#endregion
 
@@ -639,27 +661,33 @@ namespace AC
 			if (KickStarter.player && Vector3.Distance (Transform.position, KickStarter.player.Transform.position) < minPlayerDistance)
 			{
 				// Move out the way
-				Vector3[] pointArray = TryNavPoint (Transform.position - KickStarter.player.Transform.position);
-				int i=0;
+				Vector3 relativePosition = Transform.position - KickStarter.player.Transform.position;
+				if (relativePosition == Vector3.zero)
+				{
+					relativePosition = new Vector3 (0.01f, 0f, 0f);
+				}
+
+				Vector3[] pointArray = TryNavPoint (relativePosition, relativePosition.magnitude);
+				int i = 0;
 
 				if (pointArray == null)
 				{
 					// Right
-					pointArray = TryNavPoint (Vector3.Cross (Transform.up, Transform.position - KickStarter.player.Transform.position).normalized);
+					pointArray = TryNavPoint (Vector3.Cross (Transform.up, relativePosition.normalized), relativePosition.magnitude);
 					i++;
 				}
 
 				if (pointArray == null)
 				{
 					// Left
-					pointArray = TryNavPoint (Vector3.Cross (-Transform.up, Transform.position - KickStarter.player.Transform.position).normalized);
+					pointArray = TryNavPoint (Vector3.Cross (-Transform.up, relativePosition.normalized), relativePosition.magnitude);
 					i++;
 				}
 
 				if (pointArray == null)
 				{
 					// Towards
-					pointArray = TryNavPoint (KickStarter.player.Transform.position - Transform.position);
+					pointArray = TryNavPoint (-relativePosition, relativePosition.magnitude);
 					i++;
 				}
 
@@ -671,7 +699,7 @@ namespace AC
 					}
 					else
 					{
-						MoveToPoint (pointArray [pointArray.Length - 1], false);
+						MoveToPoint (pointArray[pointArray.Length - 1], false);
 					}
 					isEvadingPlayer = true;
 					followUpdateTimer = followFrequency;
@@ -680,10 +708,9 @@ namespace AC
 		}
 
 
-		protected Vector3[] TryNavPoint (Vector3 _direction)
+		protected Vector3[] TryNavPoint (Vector3 _direction, float currentDistance)
 		{
-			float currentDistance = _direction.magnitude;
-			Vector3 _targetPosition = Transform.position + _direction.normalized * (minPlayerDistance - currentDistance) * 1.2f;
+			Vector3 _targetPosition = Transform.position + (minPlayerDistance - currentDistance) * 1.2f * _direction.normalized;
 
 			if (SceneSettings.ActInScreenSpace ())
 			{
@@ -693,10 +720,10 @@ namespace AC
 			{
 				_targetPosition.y = Transform.position.y;
 			}
-			
+
 			Vector3[] pointArray = KickStarter.navigationManager.navigationEngine.GetPointsArray (Transform.position, _targetPosition, this);
 
-			if (pointArray.Length == 0 || Vector3.Distance (pointArray [pointArray.Length-1], Transform.position) < minPlayerDistance * 0.6f)
+			if (pointArray.Length == 0 || Vector3.Distance (pointArray[pointArray.Length - 1], Transform.position) < minPlayerDistance * 0.6f)
 			{
 				// Not far away enough
 				return null;
@@ -708,11 +735,11 @@ namespace AC
 		protected void FollowUpdate ()
 		{
 			followUpdateTimer = followFrequency;
-					
+
 			float dist = FollowCheckDistance ();
 			if (dist > followDistance)
 			{
-				Paths path = GetComponent <Paths>();
+				Paths path = GetComponent<Paths> ();
 				if (path == null)
 				{
 					ACDebug.LogWarning ("Cannot move a character with no Paths component", gameObject);
@@ -721,15 +748,15 @@ namespace AC
 				{
 					path.pathType = AC_PathType.ForwardOnly;
 					path.affectY = true;
-					
+
 					Vector3[] pointArray;
 					Vector3 targetPosition = followTarget.Transform.position;
-					
+
 					if (SceneSettings.ActInScreenSpace ())
 					{
 						targetPosition = AdvGame.GetScreenNavMesh (targetPosition);
 					}
-					
+
 					if (KickStarter.navigationManager)
 					{
 						if (followRandomDirection)
@@ -740,19 +767,24 @@ namespace AC
 					}
 					else
 					{
-						List<Vector3> pointList = new List<Vector3>();
+						List<Vector3> pointList = new List<Vector3> ();
 						pointList.Add (targetPosition);
 						pointArray = pointList.ToArray ();
 					}
 
+					//bool doRun = (dist > followDistanceMax);
+
+					bool doRun = isRunning;
 					if (dist > followDistanceMax)
 					{
-						MoveAlongPoints (pointArray, true);
+						doRun = true;
 					}
-					else
+					else if (dist < followDistanceMed)
 					{
-						MoveAlongPoints (pointArray, false);
+						doRun = false;
 					}
+
+					MoveAlongPoints (pointArray, doRun);
 					isEvadingPlayer = false;
 				}
 			}
@@ -787,16 +819,20 @@ namespace AC
 		{
 			if (followTarget)
 			{
-				if (FollowCheckDistance () > followDistanceMax)
+				float dist = FollowCheckDistance ();
+				if (dist > followDistanceMax)
 				{
 					if (!isRunning)
 					{
 						FollowUpdate ();
 					}
 				}
-				else if (isRunning)
+				else if (dist < followDistanceMed)
 				{
-					FollowUpdate ();
+					if (isRunning)
+					{
+						FollowUpdate ();
+					}
 				}
 			}
 		}
@@ -810,12 +846,12 @@ namespace AC
 			}
 		}
 
-		
+
 		protected void TurnOn ()
 		{
 			gameObject.layer = LayerOn;
 		}
-		
+
 
 		protected void TurnOff ()
 		{
@@ -823,7 +859,7 @@ namespace AC
 		}
 
 		#endregion
-		
+
 	}
 
 }

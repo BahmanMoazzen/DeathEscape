@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2024
  *	
  *	"RuntimeVariables.cs"
  * 
@@ -48,9 +48,9 @@ namespace AC
 		/** Downloads variables from the Global Manager to the scene. */
 		public void TransferFromManager ()
 		{
-			if (AdvGame.GetReferences() && AdvGame.GetReferences().variablesManager)
+			if (KickStarter.variablesManager)
 			{
-				VariablesManager variablesManager = AdvGame.GetReferences ().variablesManager;
+				VariablesManager variablesManager = KickStarter.variablesManager;
 
 				globalVars.Clear();
 				foreach (GVar assetVar in variablesManager.vars)
@@ -190,7 +190,7 @@ namespace AC
 		 */
 		public void AssignOptionsLinkedVariables ()
 		{
-			if (AdvGame.GetReferences () && AdvGame.GetReferences ().variablesManager)
+			if (KickStarter.variablesManager)
 			{
 				if (Options.optionsData != null && !string.IsNullOrEmpty (Options.optionsData.linkedVariables))
 				{
@@ -229,12 +229,7 @@ namespace AC
 					{
 						if (!ignoreOptionLinked || globalVar.link != VarLink.OptionsData)
 						{
-							globalVar.IntegerValue= presetValue.val;
-							globalVar.FloatValue = presetValue.floatVal;
-							globalVar.TextValue = presetValue.textVal;
-							globalVar.Vector3Value = presetValue.vector3Val;
-							globalVar.GameObjectValue = presetValue.gameObjectVal;
-
+							globalVar.AssignPreset (presetValue);
 							globalVar.Upload (VariableLocation.Global);
 						}
 					}

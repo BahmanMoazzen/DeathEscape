@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2024
  *	
  *	"ActionEnd.cs"
  * 
@@ -57,7 +57,7 @@ namespace AC
 		/** A Constructor that sets skipAction explicitly. */
 		public ActionEnd (int _skipAction)
 		{
-			resultAction = ResultAction.Continue;
+			resultAction = ResultAction.Skip;
 			skipAction = _skipAction;
 		}
 

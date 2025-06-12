@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2024
  *	
  *	"AC_Trigger.cs"
  * 
@@ -49,8 +49,12 @@ namespace AC
 		/** The GameObjects that the Trigger reacts to, if detectionMethod = TriggerDetectionMethod.TransformPosition */
 		public List<GameObject> obsToDetect = new List<GameObject>();
 
+		/** If True, then the Trigger will restart if it is triggered while already running. Otherwise, it will not restart. */
+		public bool canInterruptSelf = true;
+
 		public int gameObjectParameterID = -1;
 
+		private bool _isEnabled;
 		protected Collider2D _collider2D;
 		protected Collider _collider;
 		protected List<PositionDetectObject> positionDetectObjects = new List<PositionDetectObject>();
@@ -62,6 +66,7 @@ namespace AC
 
 		protected void OnEnable ()
 		{
+			_isEnabled = true;
 			InitTrigger ();
 
 			EventManager.OnPlayerSpawn += OnPlayerSpawn;
@@ -77,6 +82,7 @@ namespace AC
 
 		protected void OnDisable ()
 		{
+			_isEnabled = false;
 			if (KickStarter.stateHandler) KickStarter.stateHandler.Unregister (this);
 
 			EventManager.OnPlayerSpawn -= OnPlayerSpawn;
@@ -98,6 +104,7 @@ namespace AC
 
 		protected void OnTriggerEnter (Collider other)
 		{
+			if (!_isEnabled) return;
 			if (detectionMethod == TriggerDetectionMethod.RigidbodyCollision && triggerType == 0 && IsObjectCorrect (other.gameObject))
 			{
 				Interact (other.gameObject);
@@ -107,6 +114,7 @@ namespace AC
 		
 		protected void OnTriggerEnter2D (Collider2D other)
 		{
+			if (!_isEnabled) return;
 			if (detectionMethod == TriggerDetectionMethod.RigidbodyCollision && triggerType == 0 && IsObjectCorrect (other.gameObject))
 			{
 				Interact (other.gameObject);
@@ -116,6 +124,7 @@ namespace AC
 		
 		protected void OnTriggerStay (Collider other)
 		{
+			if (!_isEnabled) return;
 			if (detectionMethod == TriggerDetectionMethod.RigidbodyCollision && triggerType == 1 && IsObjectCorrect (other.gameObject))
 			{
 				Interact (other.gameObject);
@@ -125,6 +134,7 @@ namespace AC
 		
 		protected void OnTriggerStay2D (Collider2D other)
 		{
+			if (!_isEnabled) return;
 			if (detectionMethod == TriggerDetectionMethod.RigidbodyCollision && triggerType == 1 && IsObjectCorrect (other.gameObject))
 			{
 				Interact (other.gameObject);
@@ -134,6 +144,7 @@ namespace AC
 		
 		protected void OnTriggerExit (Collider other)
 		{
+			if (!_isEnabled) return;
 			if (detectionMethod == TriggerDetectionMethod.RigidbodyCollision && triggerType == 2 && IsObjectCorrect (other.gameObject))
 			{
 				Interact (other.gameObject);
@@ -143,6 +154,7 @@ namespace AC
 		
 		protected void OnTriggerExit2D (Collider2D other)
 		{
+			if (!_isEnabled) return;
 			if (detectionMethod == TriggerDetectionMethod.RigidbodyCollision && triggerType == 2 && IsObjectCorrect (other.gameObject))
 			{
 				Interact (other.gameObject);
@@ -172,9 +184,7 @@ namespace AC
 		}
 		
 
-		/**
-		 * <summary>Enables the Trigger.</summary>
-		 */
+		/** Enables the Trigger. */
 		public void TurnOn ()
 		{
 			InitTrigger ();
@@ -194,9 +204,7 @@ namespace AC
 		}
 		
 
-		/**
-		 * <summary>Disables the Trigger.</summary>
-		 */
+		/** Disables the Trigger. */
 		public void TurnOff ()
 		{
 			InitTrigger ();
@@ -219,7 +227,53 @@ namespace AC
 				positionDetectObjects[i].OnTurnOff ();
 			}
 		}
-		
+
+
+		public override void Interact ()
+		{
+			Interact (null);
+		}
+
+
+		/**
+		 * <summary>Registers an object as one that can be detected by the Trigger, provided that detectionMethod = TriggerDetectionMethod.TransformPosition</summary>
+		 * <param name = "_gameObject">The object to detect</param>
+		 */
+		public void AddObjectToDetect (GameObject _gameObject)
+		{
+			if (_gameObject == null || obsToDetect.Contains (_gameObject))
+			{
+				return;
+			}
+
+			obsToDetect.Add (_gameObject);
+			positionDetectObjects.Add (new PositionDetectObject (_gameObject));
+		}
+
+
+		/**
+		 * <summary>Registers an object as one that cancanot be detected by the Trigger, provided that detectionMethod = TriggerDetectionMethod.TransformPosition</summary>
+		 * <param name = "_gameObject">The object to no longer detect</param>
+		 */
+		public void RemoveObjectToDetect (GameObject _gameObject)
+		{
+			if (_gameObject == null || !obsToDetect.Contains (_gameObject))
+			{
+				return;
+			}
+
+			obsToDetect.Remove (_gameObject);
+
+			for (int i = 0; i < positionDetectObjects.Count; i++)
+			{
+				if (positionDetectObjects[i].IsForObject (_gameObject))
+				{
+					positionDetectObjects.RemoveAt (i);
+					i = 0;
+				}
+			}
+		}
+
 		#endregion
 
 
@@ -227,6 +281,20 @@ namespace AC
 
 		protected void Interact (GameObject collisionOb)
 		{
+			if (!enabled) return;
+
+			if (AreActionsRunning ())
+			{
+				if (canInterruptSelf)
+				{
+					Kill ();
+				}
+				else
+				{
+					return;
+				}
+			}
+
 			if (cancelInteractions)
 			{
 				KickStarter.playerInteraction.StopMovingToHotspot ();
@@ -273,12 +341,6 @@ namespace AC
 		}
 
 
-		public override void Interact ()
-		{
-			Interact (null);
-		}
-		
-
 		protected bool IsObjectCorrect (GameObject obToCheck)
 		{
 			if (KickStarter.stateHandler == null || KickStarter.stateHandler.gameState == GameState.Paused || obToCheck == null)
@@ -291,7 +353,9 @@ namespace AC
 				return false;
 			}
 
-			if (triggerReacts == TriggerReacts.OnlyDuringGameplay && KickStarter.stateHandler.gameState != GameState.Normal)
+			if (triggerReacts == TriggerReacts.OnlyDuringGameplay && KickStarter.stateHandler.gameState == GameState.DialogOptions && KickStarter.settingsManager.allowGameplayDuringConversations)
+			{ }
+			else if (triggerReacts == TriggerReacts.OnlyDuringGameplay && KickStarter.stateHandler.gameState != GameState.Normal)
 			{
 				return false;
 			}
@@ -378,7 +442,11 @@ namespace AC
 
 			if (_collider && _collider.enabled)
 			{
-				return _collider.bounds.Contains (position);
+				if (_collider.transform.eulerAngles == Vector3.zero)
+				{
+					return _collider.bounds.Contains (position);
+				}
+				return (position == _collider.ClosestPoint (position));
 			}
 
 			return false;
@@ -443,7 +511,7 @@ namespace AC
 					}
 					else if (detectsAllPlayers && KickStarter.settingsManager && KickStarter.settingsManager.playerSwitching == PlayerSwitching.Allow)
 					{
-						Player[] players = FindObjectsOfType<Player>();
+						Player[] players = UnityVersionHandler.FindObjectsOfType<Player>();
 						foreach (Player player in players)
 						{
 							positionDetectObjects.Add (new PositionDetectObject (player));

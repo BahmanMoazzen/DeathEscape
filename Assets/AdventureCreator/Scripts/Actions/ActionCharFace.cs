@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2024
  *	
  *	"ActionCharFace.cs"
  * 
@@ -312,28 +312,11 @@ namespace AC
 			isPlayer = EditorGUILayout.Toggle ("Affect Player?", isPlayer);
 			if (isPlayer)
 			{
-				if (playerSwitching)
-				{
-					playerParameterID = ChooseParameterGUI ("Player ID:", parameters, playerParameterID, ParameterType.Integer);
-					if (playerParameterID < 0)
-						playerID = ChoosePlayerGUI (playerID, true);
-				}
+				PlayerField (ref playerID, parameters, ref playerParameterID);
 			}
 			else
 			{
-				charToMoveParameterID = Action.ChooseParameterGUI ("Character to turn:", parameters, charToMoveParameterID, ParameterType.GameObject);
-				if (charToMoveParameterID >= 0)
-				{
-					charToMoveID = 0;
-					charToMove = null;
-				}
-				else
-				{
-					charToMove = (Char) EditorGUILayout.ObjectField ("Character to turn:", charToMove, typeof(Char), true);
-					
-					charToMoveID = FieldToID <Char> (charToMove, charToMoveID);
-					charToMove = IDToField <Char> (charToMove, charToMoveID, false);
-				}
+				ComponentField ("Character to turn:", ref charToMove, ref charToMoveID, parameters, ref charToMoveParameterID);
 			}
 
 			faceType = (CharFaceType) EditorGUILayout.EnumPopup ("Face with:", faceType);
@@ -358,9 +341,7 @@ namespace AC
 				{
 					if (playerSwitching)
 					{
-						faceObjectParameterID = ChooseParameterGUI ("Player ID:", parameters, faceObjectParameterID, ParameterType.Integer);
-						if (faceObjectParameterID < 0)
-							facePlayerID = ChoosePlayerGUI (facePlayerID, true);
+						PlayerField ("Face Player:", "Face Player ID:", ref facePlayerID, parameters, ref faceObjectParameterID);
 
 						if (isPlayer && playerParameterID < 0 && faceObjectParameterID < 0 && playerID == facePlayerID)
 						{
@@ -379,19 +360,7 @@ namespace AC
 			{ }
 			else
 			{
-				faceObjectParameterID = Action.ChooseParameterGUI ("Object to face:", parameters, faceObjectParameterID, ParameterType.GameObject);
-				if (faceObjectParameterID >= 0)
-				{
-					faceObjectID = 0;
-					faceObject = null;
-				}
-				else
-				{
-					faceObject = (GameObject) EditorGUILayout.ObjectField ("Object to face:", faceObject, typeof(GameObject), true);
-					
-					faceObjectID = FieldToID (faceObject, faceObjectID);
-					faceObject = IDToField (faceObject, faceObjectID, false);
-				}
+				GameObjectField ("Object to face:", ref faceObject, ref faceObjectID, parameters, ref faceObjectParameterID);
 			}
 
 			if (faceType == CharFaceType.Body)
@@ -434,9 +403,9 @@ namespace AC
 
 			if (!isPlayer)
 			{
-				AssignConstantID <Char> (charToMove, charToMoveID, charToMoveParameterID);
+				charToMoveID = AssignConstantID<Char> (charToMove, charToMoveID, charToMoveParameterID);
 			}
-			AssignConstantID (faceObject, faceObjectID, faceObjectParameterID);
+			faceObjectID = AssignConstantID (faceObject, faceObjectID, faceObjectParameterID);
 		}
 
 		
@@ -461,16 +430,16 @@ namespace AC
 		{
 			if (!isPlayer && charToMoveParameterID < 0)
 			{
-				if (charToMove != null && charToMove.gameObject == _gameObject) return true;
+				if (charToMove && charToMove.gameObject == _gameObject) return true;
 				if (charToMoveID == id) return true;
 			}
-			if (isPlayer && _gameObject.GetComponent <Player>() != null) return true;
+			if (isPlayer && _gameObject && _gameObject.GetComponent <Player>()) return true;
 			if (!facePlayer && faceObjectParameterID < 0)
 			{
 				if (faceObject != null && faceObject.gameObject == _gameObject) return true;
 				if (faceObjectID == id) return true;
 			}
-			if (facePlayer && _gameObject.GetComponent <Player>() != null) return true;
+			if (facePlayer && _gameObject && _gameObject.GetComponent <Player>() != null) return true;
 			return base.ReferencesObjectOrID (_gameObject, id);
 		}
 
@@ -506,8 +475,10 @@ namespace AC
 		{
 			ActionCharFace newAction = CreateNew<ActionCharFace> ();
 			newAction.charToMove = characterToTurn;
+			newAction.TryAssignConstantID (newAction.charToMove, ref newAction.charToMoveID);
 			newAction.faceType = CharFaceType.Body;
 			newAction.faceObject = objectToFace;
+			newAction.TryAssignConstantID (newAction.faceObject, ref newAction.faceObjectID);
 			newAction.copyRotation = useObjectRotation;
 			newAction.isInstant = isInstant;
 			newAction.willWait = waitUntilFinish;
@@ -527,8 +498,10 @@ namespace AC
 		{
 			ActionCharFace newAction = CreateNew<ActionCharFace> ();
 			newAction.charToMove = characterToTurn;
+			newAction.TryAssignConstantID (newAction.charToMove, ref newAction.charToMoveID);
 			newAction.faceType = CharFaceType.Head;
 			newAction.faceObject = objectToFace;
+			newAction.TryAssignConstantID (newAction.faceObject, ref newAction.faceObjectID);
 			newAction.lookAtHead = true;
 			newAction.isInstant = isInstant;
 			newAction.willWait = waitUntilFinish;
@@ -546,6 +519,7 @@ namespace AC
 		{
 			ActionCharFace newAction = CreateNew<ActionCharFace> ();
 			newAction.charToMove = characterToTurn;
+			newAction.TryAssignConstantID (newAction.charToMove, ref newAction.charToMoveID);
 			newAction.faceType = CharFaceType.Head;
 			newAction.stopLooking = true;
 			newAction.isInstant = isInstant;

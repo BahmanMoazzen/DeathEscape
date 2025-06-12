@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2024
  *	
  *	"RuntimeInventory.cs"
  * 
@@ -27,7 +27,8 @@ namespace AC
 		#region Variables
 
 		protected InvCollection playerInvCollection = new InvCollection ();
-		protected InvCollection craftingInvCollection = new InvCollection ();
+
+		protected List<IngredientCollection> ingredientCollections = new List<IngredientCollection> ();
 
 		protected InvInstance selectedInstance = null;
 		protected InvInstance lastSelectedInstance = null;
@@ -66,7 +67,6 @@ namespace AC
 
 		protected void OnEnable ()
 		{
-			EventManager.OnInitialiseScene += OnInitialiseScene;
 			EventManager.OnInventoryInteract += OnInventoryInteract;
 			EventManager.OnInventoryCombine += OnInventoryCombine;
 			EventManager.OnUpdatePlayableScreenArea += OnUpdatePlayableScreenArea;
@@ -75,9 +75,9 @@ namespace AC
 
 		protected void OnDisable ()
 		{
-			EventManager.OnInitialiseScene -= OnInitialiseScene;
 			EventManager.OnInventoryInteract -= OnInventoryInteract;
 			EventManager.OnInventoryCombine -= OnInventoryCombine;
+			EventManager.OnUpdatePlayableScreenArea -= OnUpdatePlayableScreenArea;
 		}
 
 		#endregion
@@ -85,16 +85,14 @@ namespace AC
 
 		#region PublicFunctions
 
-		/**
-		 * Transfers any relevant data from InventoryManager when the game begins or restarts.
-		 */
+		/** Transfers any relevant data from InventoryManager when the game begins or restarts. */
 		public void OnInitPersistentEngine ()
 		{
 			SetNull ();
 			hoverInstance = null;
 			showHoverLabel = true;
 			
-			craftingInvCollection = new InvCollection ();
+			ingredientCollections = new List<IngredientCollection> ();
 
 			AssignStartingItems ();
 		}
@@ -361,7 +359,7 @@ namespace AC
 		 */
 		public void RemoveFromOtherPlayer (int itemID, int playerID)
 		{
-			if (playerID >= 0 && KickStarter.player.ID != playerID)
+			if (playerID >= 0 && (KickStarter.player == null || KickStarter.player.ID != playerID))
 			{
 				RemoveFromOtherPlayer (itemID, 1, false, playerID);
 			}
@@ -374,19 +372,58 @@ namespace AC
 
 		/**
 		 * <summary>Removes some instances of an inventory item from a player's inventory.</summary>
-		 * <param name = "_id">The ID number of the inventory item (InvItem) to remove</param>
+		 * <param name = "itemID">The ID number of the inventory item (InvItem) to remove</param>
 		 * <param name = "amount">The amount if the inventory item to remove, if the InvItem's canCarryMultiple = True.</param>
 		 * <param name = "playerID">The ID number of the player to affect, if player-switching is enabled</param>
 		 */
 		public void RemoveFromOtherPlayer (int itemID, int amount, int playerID)
 		{
-			if (playerID >= 0 && KickStarter.player.ID != playerID)
+			if (playerID >= 0 && (KickStarter.player == null || KickStarter.player.ID != playerID))
 			{
 				RemoveFromOtherPlayer (itemID, amount, true, playerID);
 			}
 			else
 			{
 				playerInvCollection.Delete (itemID, amount);
+			}
+		}
+
+
+		/**
+		 * <summary>Removes all items from a player's inventory.</summary>
+		 * <param name = "playerID">The ID number of the player to affect</param>
+		 */
+		public void RemoveAllFromOtherPlayer (int playerID)
+		{
+			if (playerID >= 0 && (KickStarter.player == null || KickStarter.player.ID != playerID))
+			{
+				InvCollection otherPlayerInvCollection = KickStarter.saveSystem.GetItemsFromPlayer (playerID);
+				otherPlayerInvCollection.DeleteAll ();
+				KickStarter.saveSystem.AssignItemsToPlayer (otherPlayerInvCollection, playerID);
+			}
+			else
+			{
+				playerInvCollection.DeleteAll ();
+			}
+		}
+
+
+		/**
+		 * <summary>Removes all items in a category from a player's inventory.</summary>
+		 * <param name = "playerID">The ID number of the player to affect</param>
+		 * <param name="categoryID">The ID of the category</param>
+		 */
+		public void RemoveAllFromOtherPlayer (int playerID, int categoryID)
+		{
+			if (playerID >= 0 && (KickStarter.player == null || KickStarter.player.ID != playerID))
+			{
+				InvCollection otherPlayerInvCollection = KickStarter.saveSystem.GetItemsFromPlayer (playerID);
+				otherPlayerInvCollection.DeleteAllInCategory (categoryID);
+				KickStarter.saveSystem.AssignItemsToPlayer (otherPlayerInvCollection, playerID);
+			}
+			else
+			{
+				playerInvCollection.DeleteAllInCategory (categoryID);
 			}
 		}
 
@@ -451,6 +488,23 @@ namespace AC
 
 
 		/**
+		 * <summary>Gets the amount of a particular inventory item within all player inventories, if multiple Player prefabs are supported.</summary>
+		 * <param name = "_invID">The ID number of the inventory item (InvItem) in question</param>
+		 * <param name = "playerID">The ID number of the Player to refer to</param>
+		 * <returns>The amount of the inventory item within all player inventories.</returns>
+		 */
+		public int GetCountFromAllPlayers (int _invID)
+		{
+			int count = 0;
+			foreach (PlayerPrefab playerPrefab in KickStarter.settingsManager.players)
+			{
+				count += GetCount (_invID, playerPrefab.ID);
+			}
+			return count;
+		}
+
+
+		/**
 		 * <summary>Gets the total number of inventory items currently held by the active Player.</summary>
 		 * <param name="includeMultipleInSameSlot">If True, then multiple items in the same slot will be counted separately</param>
 		 * <returns>The total number of inventory items currently held by the active Player</returns>
@@ -464,6 +518,7 @@ namespace AC
 		/**
 		 * <summary>Gets the total number of inventory items currently held by a given Player, if multiple Players are supported.</summary>
 		 * <param name = "playerID">The ID number of the Player to refer to</param>
+		 * <param name="includeMultipleInSameSlot">If True, then multiple items in the same slot will be counted separately</param>
 		 * <returns>The total number of inventory items currently held by the given Player</returns>
 		 */
 		public int GetNumberOfItemsCarried (int _playerID, bool includeMultipleInSameSlot = false)
@@ -474,6 +529,26 @@ namespace AC
 				return otherPlayerInvCollection.GetCount (includeMultipleInSameSlot);
 			}
 			return 0;
+		}
+
+
+		/**
+		 * <summary>Gets the total number of inventory items currently held by all Players, if multiple Players are supported.</summary>
+		 * <param name="includeMultipleInSameSlot">If True, then multiple items in the same slot will be counted separately</param>
+		 * <returns>The total number of inventory items currently held by all Players</returns>
+		 */
+		public int GetNumberOfItemsCarriedByAllPlayers (bool includeMultipleInSameSlot = false)
+		{
+			int count = 0;
+			foreach (PlayerPrefab playerPrefab in KickStarter.settingsManager.players)
+			{
+				InvCollection otherPlayerInvCollection = KickStarter.saveSystem.GetItemsFromPlayer (playerPrefab.ID);
+				if (otherPlayerInvCollection != null)
+				{
+					count += otherPlayerInvCollection.GetCount (includeMultipleInSameSlot);
+				}
+			}
+			return count;
 		}
 
 
@@ -502,6 +577,26 @@ namespace AC
 				return otherPlayerInvCollection.GetCountInCategory (categoryID, includeMultipleInSameSlot);
 			}
 			return 0;
+		}
+
+
+		/**
+		 * <summary>Gets the total number of inventory items currently held by all Players, if multiple Players are supported.</summary>
+		 * <param name = "categoryID">If >=0, then only items placed in the category with that ID will be counted</param>
+		 * <returns>The total number of inventory items currently held by the all Players</returns>
+		 */
+		public int GetNumberOfItemsCarriedInCategoryByAllPlayers (int categoryID, bool includeMultipleInSameSlot = false)
+		{
+			int count = 0;
+			foreach (PlayerPrefab playerPrefab in KickStarter.settingsManager.players)
+			{
+				InvCollection otherPlayerInvCollection = KickStarter.saveSystem.GetItemsFromPlayer (playerPrefab.ID);
+				if (otherPlayerInvCollection != null)
+				{
+					count += otherPlayerInvCollection.GetCountInCategory (categoryID, includeMultipleInSameSlot);
+				}
+			}
+			return count;
 		}
 
 
@@ -673,50 +768,93 @@ namespace AC
 		}
 
 
-		/** Resets any active recipe, and clears all MenuCrafting elements */
+		/** Resets all active recipes, and clears all MenuCrafting elements */
 		public void RemoveRecipes ()
 		{
-			playerInvCollection.TransferAll (craftingInvCollection);
+			foreach (IngredientCollection ingredientCollection in ingredientCollections)
+			{
+				playerInvCollection.TransferAll (ingredientCollection.InvCollection);
+			}
 		}
-		
+
+
+		/** 
+		 * <summary>Resets the inventory associated with a specific Crafting Ingredients element</summary>
+		 * <param name = "menuName">The name of the Menu</param>
+		 * <param name = "craftingIngredientsName">The name of the Crafting menu element of type Ingredients</param>
+		 */
+		public void RemoveRecipe (string menuName, string craftingIngredientsName)
+		{
+			foreach (IngredientCollection ingredientCollection in ingredientCollections)
+			{
+				if (ingredientCollection.Matches (menuName, craftingIngredientsName))
+				{
+					playerInvCollection.TransferAll (ingredientCollection.InvCollection);
+				}
+			}
+		}
 
 
 		/**
 		 * <summary>Works out which Recipe, if any, for which all ingredients have been correctly arranged.</summary>
+		 * <param name = "ingredientsInvCollection">The InvCollection to get ingredients from</param>
+		 * <param name = "limitToCategoryIDs">If set, an array of item categories that the resulting item must be within for the recipe to be valid</param>
 		 * <returns>The Recipe, if any, for which all ingredients have been correctly arranged</returns>
 		 */
-		public Recipe CalculateRecipe ()
+		public Recipe CalculateRecipe (InvCollection ingredientsInvCollection, int[] limitToCategoryIDs = null)
 		{
 			if (KickStarter.inventoryManager == null)
 			{
 				return null;
 			}
-			
+
 			foreach (Recipe recipe in KickStarter.inventoryManager.recipes)
 			{
-				if (recipe.CanBeCrafted (craftingInvCollection))
+				if (recipe.CanBeCrafted (ingredientsInvCollection, limitToCategoryIDs))
 				{
 					return recipe;
 				}
 			}
-			
+
 			return null;
 		}
 
 
 		/**
 		 * <summary>Crafts a new inventory item, and removes the relevent ingredients, according to a Recipe.</summary>
+		 * <param name = "ingredientsInvCollection">The InvCollection to get ingredients from</param>
 		 * <param name = "recipe">The Recipe to perform</param>
 		 * <param name = "selectAfter">If True, then the resulting inventory item will be selected once the crafting is complete</param>
 		 */
-		public void PerformCrafting (Recipe recipe, bool selectAfter)
+		public void PerformCrafting (InvCollection ingredientsInvCollection, Recipe recipe, bool selectAfter)
 		{
-			craftingInvCollection.DeleteRecipeIngredients (recipe);
+			ingredientsInvCollection.DeleteRecipeIngredients (recipe);
 			InvInstance addedInstance = playerInvCollection.Add (new InvInstance (recipe.resultID));
 			
 			if (selectAfter)
 			{
 				SelectItem (addedInstance);
+			}
+		}
+
+
+		/**
+		 * <summary>Crafts a new inventory item, and removes the relevent ingredients, according to a Recipe.</summary>
+		 * <param name = "ingredientsInvCollection">The InvCollection to get ingredients from</param>
+		 * <param name = "recipe">The Recipe to perform</param>
+		 * <param name = "toInvCollection">If assigned, the InvCollection to place the newly-created Recipe item into</param>
+		 */
+		public InvInstance PerformCrafting (InvCollection ingredientsInvCollection, Recipe recipe, InvCollection toInvCollection = null)
+		{
+			ingredientsInvCollection.DeleteRecipeIngredients (recipe);
+			if (toInvCollection != null)
+			{
+				InvInstance addedInstance = toInvCollection.Add (new InvInstance (recipe.resultID));
+				return addedInstance;
+			}
+			else
+			{
+				return new InvInstance (recipe.resultID);
 			}
 		}
 
@@ -741,6 +879,28 @@ namespace AC
 
 
 		/**
+		 * <summary>Gets an InvCollection of ingredients associated with a given MenuCrafting element</summary>
+		 * <param name = "menuName">The title of the Menu that contains the MenuCrafting element</param>
+		 * <param name = "craftingElementName">The title of the "Ingredients" MenuCrafting element</param>
+		 * <returns>The InvCollection of ingredients associated with the MenuCrafting element</summary>
+		 */
+		public InvCollection GetIngredientsInvCollection (string menuName, string craftingElementName)
+		{
+			for (int i = 0; i < ingredientCollections.Count; i++)
+			{
+				if (ingredientCollections[i].Matches (menuName, craftingElementName))
+				{
+					return ingredientCollections[i].InvCollection;
+				}
+			}
+
+			IngredientCollection newIngredientCollection = new IngredientCollection (menuName, craftingElementName);
+			ingredientCollections.Add (newIngredientCollection);
+			return newIngredientCollection.InvCollection;
+		}
+
+
+		/**
 		 * <summary>Assign's the player's current inventory in bulk</summary>
 		 * <param name = "newInventory">A list of the InvInstance classes that make up the new inventory</param>
 		 */
@@ -757,11 +917,11 @@ namespace AC
 		 */
 		public void DrawHighlighted (Rect _rect)
 		{
-			if (!InvInstance.IsValid (highlightInstance) || highlightInstance.InvItem.activeTex == null) return;
+			if (!InvInstance.IsValid (highlightInstance) || highlightInstance.ActiveTex == null) return;
 			
 			if (highlightState == HighlightState.None)
 			{
-				GUI.DrawTexture (_rect, highlightInstance.InvItem.activeTex, ScaleMode.StretchToFill, true, 0f);
+				GUI.DrawTexture (_rect, highlightInstance.ActiveTex, ScaleMode.StretchToFill, true, 0f);
 				return;
 			}
 			
@@ -786,7 +946,7 @@ namespace AC
 				if (highlightState == HighlightState.Normal)
 				{
 					highlightState = HighlightState.None;
-					GUI.DrawTexture (_rect, highlightInstance.InvItem.activeTex, ScaleMode.StretchToFill, true, 0f);
+					GUI.DrawTexture (_rect, highlightInstance.ActiveTex, ScaleMode.StretchToFill, true, 0f);
 					return;
 				}
 				else
@@ -805,7 +965,7 @@ namespace AC
 				else
 				{
 					highlightState = HighlightState.None;
-					GUI.DrawTexture (_rect, highlightInstance.InvItem.tex, ScaleMode.StretchToFill, true, 0f);
+					GUI.DrawTexture (_rect, highlightInstance.Tex, ScaleMode.StretchToFill, true, 0f);
 					highlightInstance = null;
 					return;
 				}
@@ -816,9 +976,9 @@ namespace AC
 			
 			tempColor.a = pulse;
 			GUI.color = tempColor;
-			GUI.DrawTexture (_rect, highlightInstance.InvItem.activeTex, ScaleMode.StretchToFill, true, 0f);
+			GUI.DrawTexture (_rect, highlightInstance.ActiveTex, ScaleMode.StretchToFill, true, 0f);
 			GUI.color = backupColor;
-			GUI.DrawTexture (_rect, highlightInstance.InvItem.tex, ScaleMode.StretchToFill, true, 0f);
+			GUI.DrawTexture (_rect, highlightInstance.Tex, ScaleMode.StretchToFill, true, 0f);
 		}
 		
 
@@ -834,9 +994,7 @@ namespace AC
 		}
 		
 
-		/**
-		 * Removes all highlighting from the inventory item curently being highlighted.
-		 */
+		/** Removes all highlighting from the inventory item curently being highlighted. */
 		public void HighlightItemOffInstant ()
 		{
 			highlightInstance = null;
@@ -931,6 +1089,12 @@ namespace AC
 		{
 			if (InvInstance.IsValid (selectedInstance))
 			{
+				string customText = KickStarter.eventManager.Call_OnRequestInventoryCountText (selectedInstance, true);
+				if (!string.IsNullOrEmpty (customText))
+				{
+					return customText;
+				}
+
 				int displayCount = selectedInstance.TransferCount;
 				if (displayCount > 1)
 				{
@@ -972,9 +1136,14 @@ namespace AC
 
 				case AC_InventoryBoxType.HotspotBased:
 					{
-						if (InvInstance.IsValid (_menu.TargetInvInstance))
+						if (_mouseState == MouseState.LetGo)
+						{
+							// Invalid
+						}
+						else if (InvInstance.IsValid (_menu.TargetInvInstance))
 						{
 							_menu.TargetInvInstance.Combine (inventoryBox.GetInstance (_slot), true);
+							KickStarter.playerInput.ResetMouseClick ();
 							clickConsumed = true;
 						}
 						else if (_menu.TargetHotspot)
@@ -1056,12 +1225,8 @@ namespace AC
 			return (InvInstance.IsValid (invInstance));
 		}
 
-		#endregion
 
-
-		#region CustomEvents
-
-		protected void OnInitialiseScene ()
+		public void OnInitialiseScene ()
 		{
 			if (!KickStarter.settingsManager.IsInLoadingScene () && KickStarter.sceneSettings)
 			{
@@ -1070,6 +1235,10 @@ namespace AC
 			}
 		}
 
+		#endregion
+
+
+		#region CustomEvents
 
 		protected void OnInventoryInteract (InvItem invItem, int cursorID)
 		{
@@ -1150,12 +1319,11 @@ namespace AC
 						}
 
 						item.Upgrade ();
-
-						if (!item.carryOnStartNotDefault && playerID == -1)
+						if (!item.carryOnStartNotDefault && (playerID == -1 || (KickStarter.settingsManager.playerSwitching == PlayerSwitching.Allow && playerID == KickStarter.settingsManager.GetDefaultPlayerID ())))
 						{
 							playerStartItems.Add (item);
 						}
-						else if (playerID >= 0 && item.carryOnStartIDs.Contains (playerID))
+						else if (playerID >= 0 && item.carryOnStartNotDefault && item.carryOnStartIDs.Contains (playerID))
 						{
 							playerStartItems.Add (item);
 						}
@@ -1163,7 +1331,7 @@ namespace AC
 					}
 				}
 
-				return new InvCollection (playerStartItems);
+				return new InvCollection (playerStartItems, KickStarter.settingsManager.maxInventorySlots);
 			}
 			else
 			{
@@ -1256,14 +1424,22 @@ namespace AC
 		}
 
 
-		public InvCollection CraftingInvCollection
+		/** The InvCollections that holds the current set of items to be crafted */
+		public InvCollection[] CraftingInvCollections
 		{
 			get
 			{
-				return craftingInvCollection;
+				InvCollection[] _invCollections = new InvCollection[ingredientCollections.Count];
+				for (int i = 0; i < _invCollections.Length; i++)
+				{
+					_invCollections[i] = ingredientCollections[i].InvCollection;
+				}
+				return _invCollections;
 			}
 		}
 
+
+		/** The InvCollection that holds the current set of items in the Player#s inventory */
 		public InvCollection PlayerInvCollection
 		{
 			get

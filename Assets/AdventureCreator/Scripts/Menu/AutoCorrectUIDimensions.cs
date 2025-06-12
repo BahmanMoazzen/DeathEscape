@@ -1,7 +1,7 @@
 ﻿/*
  *
- *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *    Adventure Creator
+ *	by Chris Burton, 2013-2024
  *	
  *	"AutoCorrectUIDimensions.cs"
  * 
@@ -34,8 +34,10 @@ namespace AC
 
 		public bool updatePosition = true;
 		public bool updateScale = true;
+		public bool accountForSafeArea = false;
 
 		protected Vector2 originalReferenceResolution;
+		protected bool hasInitialised;
 
 		#endregion
 
@@ -45,11 +47,13 @@ namespace AC
 		protected void Start ()
 		{
 			Initialise ();
+			OnUpdatePlayableScreenArea ();
 		}
 
 
 		protected void OnEnable ()
 		{
+			Initialise ();
 			EventManager.OnUpdatePlayableScreenArea += OnUpdatePlayableScreenArea;
 			StartCoroutine (UpdateInOneFrame ());
 		}
@@ -67,6 +71,8 @@ namespace AC
 
 		protected void Initialise ()
 		{
+			if (hasInitialised) return;
+
 			canvasScaler = GetComponent<CanvasScaler> ();
 			if (canvasScaler)
 			{
@@ -75,8 +81,10 @@ namespace AC
 			
 			if (updateScale && canvasScaler == null)
 			{
-				ACDebug.LogWarning ("The AutoCorrectUIDimensions component must be attached to a GameObject with a CanvasScaler component - be sure to attach it to the root Canvas object.", this);
+				ACDebug.LogWarning ("The Auto Correct UI Dimensions component on " + gameObject.name + " must be attached to a GameObject with a CanvasScaler component - be sure to attach it to the root Canvas object.", this);
 			}
+			
+			hasInitialised = true;
 		}
 
 
@@ -104,7 +112,7 @@ namespace AC
 
 			if (updatePosition && transformToControl == null)
 			{
-				ACDebug.LogWarning ("Cannot find which Transform to reposition with the AutoCorrectUIDimensions component - either assign the Transform To Control field, or link the Canvas to a Menu.", this);
+				ACDebug.LogWarning ("Cannot find which Transform to reposition with the AutoCorrectUIDimensions component - either assign the Transform To Control field, or link the Canvas to a Menu with a RectTransform boundary.", this);
 			}
 
 			// Position
@@ -120,12 +128,36 @@ namespace AC
 				Vector2 safeSize = KickStarter.mainCamera.GetPlayableScreenArea (true).size;
 				canvasScaler.referenceResolution = new Vector2 (originalReferenceResolution.x / safeSize.x, originalReferenceResolution.y / safeSize.y);
 			}
+			
+			Canvas.ForceUpdateCanvases ();
 		}
 
 
 		protected Vector2 ConvertToPlayableSpace (Vector2 screenPosition)
 		{
 			Rect playableScreenArea = KickStarter.mainCamera.GetPlayableScreenArea (true);
+			
+			if (accountForSafeArea)
+			{
+				Rect safeArea = Screen.safeArea;
+				
+				var safePlayableScreenArea = new Rect
+				(
+					safeArea.x / ACScreen.width,
+					safeArea.y / ACScreen.height,
+					safeArea.width / ACScreen.width,
+					safeArea.height / ACScreen.height
+				);
+				
+				playableScreenArea = Rect.MinMaxRect
+				(
+					Mathf.Max (playableScreenArea.x, safePlayableScreenArea.x),
+					Mathf.Max (playableScreenArea.y, safePlayableScreenArea.y),
+					Mathf.Min (playableScreenArea.xMax, safePlayableScreenArea.xMax),
+					Mathf.Min (playableScreenArea.yMax, safePlayableScreenArea.yMax)
+				);
+			}
+			
 			return new Vector2 (screenPosition.x * playableScreenArea.width, screenPosition.y * playableScreenArea.height) + playableScreenArea.position;
 		}
 

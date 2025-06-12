@@ -1,4 +1,6 @@
-﻿using UnityEditor;
+﻿#if UNITY_EDITOR
+
+using UnityEditor;
 
 namespace AC
 {
@@ -20,8 +22,8 @@ namespace AC
 
 		public static void PropertiesGUI (DialogueOption _target)
 	    {
+			CustomGUILayout.Header ("Properties");
 			CustomGUILayout.BeginVertical ();
-			EditorGUILayout.LabelField ("Dialogue Option properties", EditorStyles.boldLabel);
 			_target.source = (ActionListSource) CustomGUILayout.EnumPopup ("Actions source:", _target.source, "", "Where the Actions are stored");
 			if (_target.source == ActionListSource.AssetFile)
 			{
@@ -48,10 +50,8 @@ namespace AC
 			{
 				if (_target.source == ActionListSource.InScene)
 				{
-					EditorGUILayout.Space ();
+					CustomGUILayout.Header ("Parameters");
 					CustomGUILayout.BeginVertical ();
-
-					EditorGUILayout.LabelField ("Parameters", EditorStyles.boldLabel);
 					ShowParametersGUI (_target, null, _target.parameters);
 
 					CustomGUILayout.EndVertical ();
@@ -60,10 +60,9 @@ namespace AC
 				{
 					bool isAsset = UnityVersionHandler.IsPrefabFile (_target.gameObject);
 
-					EditorGUILayout.Space ();
-					CustomGUILayout.BeginVertical ();
 
-					EditorGUILayout.LabelField ("Local parameter values", EditorStyles.boldLabel);
+					CustomGUILayout.Header ("Local parameter values");
+					CustomGUILayout.BeginVertical ();
 					ShowLocalParametersGUI (_target.parameters, _target.assetFile.GetParameters (), isAsset);
 
 					CustomGUILayout.EndVertical ();
@@ -74,3 +73,5 @@ namespace AC
 	}
 
 }
+
+#endif

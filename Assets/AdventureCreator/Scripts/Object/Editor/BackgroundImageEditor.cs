@@ -1,6 +1,8 @@
-﻿#if !UNITY_SWITCH
+﻿#if UNITY_STANDALONE && UNITY_EDITOR
+
+//#if !UNITY_SWITCH
 #define ALLOW_VIDEO
-#endif
+//#endif
 
 using UnityEngine;
 using UnityEditor;
@@ -11,7 +13,6 @@ using UnityEngine.Video;
 namespace AC
 {
 
-	#if UNITY_STANDALONE
 	[CustomEditor (typeof (BackgroundImage))]
 	public class BackgroundImageEditor : Editor
 	{
@@ -27,6 +28,7 @@ namespace AC
 		
 		public override void OnInspectorGUI ()
 		{
+			CustomGUILayout.Header ("Properties");
 			CustomGUILayout.BeginVertical ();
 
 			_target = ShowUnityUIMethod (_target);
@@ -80,6 +82,7 @@ namespace AC
 		}
 
 	}
-	#endif
 
 }
+
+#endif

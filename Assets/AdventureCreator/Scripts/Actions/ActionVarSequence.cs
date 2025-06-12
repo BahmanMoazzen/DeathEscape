@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2024
  *	
  *	"ActionVarSequence.cs"
  * 
@@ -30,7 +30,7 @@ namespace AC
 
 		public int numSockets = 2;
 
-		public bool saveToVariable = true;
+		public bool saveToVariable = false;
 		protected int ownVarValue = 0;
 
 		public VariableLocation location = VariableLocation.Global;
@@ -85,19 +85,37 @@ namespace AC
 
 		public override void AssignParentList (ActionList actionList)
 		{
-			if (actionList != null)
+			if (saveToVariable)
 			{
-				localVariables = UnityVersionHandler.GetLocalVariablesOfGameObject (actionList.gameObject);
-			}
-			if (localVariables == null)
-			{
-				localVariables = KickStarter.localVariables;
+				if (actionList != null)
+				{
+					localVariables = UnityVersionHandler.GetLocalVariablesOfGameObject (actionList.gameObject);
+				}
+				if (localVariables == null)
+				{
+					localVariables = KickStarter.localVariables;
+				}
 			}
 
 			base.AssignParentList (actionList);
 		}
+
+
+		public override void Skip ()
+		{
+			if (runtimeVariable != null)
+			{
+				runtimeVariable.RestoreBackupValue ();
+			}
+		}
 		
+
+		public override void ResetAssetValues ()
+		{
+			ownVarValue = 0;
+		}
 		
+
 		public override int GetNextOutputIndex ()
 		{
 			if (numSockets <= 0)
@@ -173,88 +191,34 @@ namespace AC
 			{
 				location = (VariableLocation) EditorGUILayout.EnumPopup ("Variable source:", location);
 
-				if (location == VariableLocation.Local && KickStarter.localVariables == null)
+				switch (location)
 				{
-					EditorGUILayout.HelpBox ("No 'Local Variables' component found in the scene. Please add an AC GameEngine object from the Scene Manager.", MessageType.Info);
-				}
-				else if (location == VariableLocation.Local && isAssetFile)
-				{
-					EditorGUILayout.HelpBox ("Local variables cannot be accessed in ActionList assets.", MessageType.Info);
+					case VariableLocation.Global:
+						GlobalVariableField ("Integer variable:", ref variableID, VariableType.Integer, parameters, ref parameterID);
+						break;
+
+					case VariableLocation.Local:
+						LocalVariableField ("Integer variable:", ref variableID, VariableType.Integer, parameters, ref parameterID);
+						break;
+
+					case VariableLocation.Component:
+						ComponentVariableField ("Integer variable:", ref variables, ref variablesConstantID, ref variableID, VariableType.Integer, parameters, ref parameterID);
+						break;
+
+					default:
+						break;
 				}
 
-				if ((location == VariableLocation.Global && AdvGame.GetReferences ().variablesManager != null) ||
-					(location == VariableLocation.Local && KickStarter.localVariables != null && !isAssetFile))
+				if (parameterID < 0)
 				{
-					ParameterType _parameterType = ParameterType.GlobalVariable;
-					if (location == VariableLocation.Local)
+					if (location != VariableLocation.Component || variables)
 					{
-						_parameterType = ParameterType.LocalVariable;
-					}
-					else if (location == VariableLocation.Component)
-					{
-						_parameterType = ParameterType.ComponentVariable;
-					}
-
-					parameterID = Action.ChooseParameterGUI ("Integer variable:", parameters, parameterID, _parameterType);
-					if (parameterID < 0)
-					{
-						EditorGUILayout.BeginHorizontal ();
-						variableID = ShowVarGUI (variableID);
-						if (GUILayout.Button (string.Empty, CustomStyles.IconCog))
+						if (GUILayout.Button ("Auto-create " + location.ToString () + " variable"))
 						{
-							SideMenu ();
-						}
-						EditorGUILayout.EndHorizontal ();
-					}
-				}
-				else if (location == VariableLocation.Component)
-				{
-					parameterID = Action.ChooseParameterGUI ("Integer variable:", parameters, parameterID, ParameterType.ComponentVariable);
-
-					if (parameterID > 0)
-					{
-						variables = null;
-						variablesConstantID = 0;
-					}
-					else
-					{
-						variables = (Variables) EditorGUILayout.ObjectField ("Component:", variables, typeof (Variables), true);
-						variablesConstantID = FieldToID <Variables> (variables, variablesConstantID);
-						variables = IDToField <Variables> (variables, variablesConstantID, false);
-						
-						if (variables != null)
-						{
-							variableID = ShowVarGUI (variableID);
+							AutoCreateVariableWindow.Init ("Sequence/New integer", location, variables, VariableType.Integer, this);
 						}
 					}
 				}
-			}
-		}
-
-
-		private void SideMenu ()
-		{
-			GenericMenu menu = new GenericMenu ();
-
-			menu.AddItem (new GUIContent ("Auto-create " + location.ToString () + " variable"), false, Callback, "AutoCreate");
-			menu.ShowAsContext ();
-		}
-		
-		
-		private void Callback (object obj)
-		{
-			switch (obj.ToString ())
-			{
-				case "AutoCreate":
-					AutoCreateVariableWindow.Init ("Sequence/New integer", location, VariableType.Integer, this);
-					break;
-
-				case "Show":
-					if (AdvGame.GetReferences () != null && AdvGame.GetReferences ().variablesManager != null)
-					{
-						AdvGame.GetReferences ().variablesManager.ShowVariable (variableID, location);
-					}
-					break;
 			}
 		}
 
@@ -308,29 +272,51 @@ namespace AC
 		}
 
 
-		public override int GetVariableReferences (List<ActionParameter> parameters, VariableLocation _location, int varID, Variables _variables, int _variablesConstantID = 0)
+		public override int GetNumVariableReferences (VariableLocation _location, int varID, List<ActionParameter> parameters, Variables _variables = null, int _variablesConstantID = 0)
 		{
 			int thisCount = 0;
 
 			if (saveToVariable && location == _location && variableID == varID && parameterID < 0)
 			{
-				if (location != VariableLocation.Component || (variables && variables == _variables) || (_variablesConstantID != 0 && variablesConstantID == _variablesConstantID))
+				if (location != VariableLocation.Component || (variables && variables == _variables) || (variablesConstantID != 0 && _variablesConstantID == variablesConstantID))
 				{
 					thisCount ++;
 				}
 			}
 
-			thisCount += base.GetVariableReferences (parameters, _location, varID, _variables);
+			thisCount += base.GetNumVariableReferences (_location, varID, parameters, _variables, _variablesConstantID);
+			return thisCount;
+		}
+
+
+		public override int UpdateVariableReferences (VariableLocation _location, int oldVarID, int newVarID, List<ActionParameter> parameters, Variables _variables = null, int _variablesConstantID = 0)
+		{
+			int thisCount = 0;
+
+			if (saveToVariable && location == _location && variableID == oldVarID && parameterID < 0)
+			{
+				if (location != VariableLocation.Component || (variables && variables == _variables) || (variablesConstantID != 0 && _variablesConstantID == variablesConstantID))
+				{
+					variableID = newVarID;
+					thisCount++;
+				}
+			}
+
+			thisCount += base.UpdateVariableReferences (_location, oldVarID, newVarID, parameters, _variables, _variablesConstantID);
 			return thisCount;
 		}
 
 
 		public override void AssignConstantIDs (bool saveScriptsToo, bool fromAssetFile)
 		{
-			if (saveScriptsToo &&
-				location == VariableLocation.Component)
+			if (location == VariableLocation.Component)
 			{
-				AssignConstantID <Variables> (variables, variablesConstantID, parameterID);
+				if (saveScriptsToo && variables && parameterID < 0)
+				{
+					AddSaveScript<RememberVariables> (variables);
+				}
+
+				variablesConstantID = AssignConstantID<Variables> (variables, variablesConstantID, parameterID);
 			}
 		}
 
@@ -339,7 +325,7 @@ namespace AC
 		{
 			if (parameterID < 0 && location == VariableLocation.Component)
 			{
-				if (variables != null && variables.gameObject == gameObject) return true;
+				if (variables && variables.gameObject == gameObject) return true;
 				return (variablesConstantID == id && id != 0);
 			}
 			return base.ReferencesObjectOrID (gameObject, id);

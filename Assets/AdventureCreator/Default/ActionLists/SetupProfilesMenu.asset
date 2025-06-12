@@ -20,7 +20,7 @@ MonoBehaviour:
   - {fileID: 11460422}
   - {fileID: 11471494}
   isSkippable: 1
-  actionListType: 0
+  actionListType: 1
   unfreezePauseMenus: 1
   useParameters: 0
   canRunMultipleInstances: 0
@@ -28,6 +28,7 @@ MonoBehaviour:
   revertToDefaultParametersAfterRunning: 0
   parameters: []
   tagID: 0
+  groups: []
   backupData: []
 --- !u!114 &11437292
 MonoBehaviour:
@@ -69,6 +70,7 @@ MonoBehaviour:
   overrideColor: {r: 1, g: 1, b: 1, a: 1}
   showOutputSockets: 1
   parentActionListInEditor: {fileID: 0}
+  groupID: 0
   changeType: 3
   removeJournalPageMethod: 0
   menuToChange: Profiles
@@ -77,10 +79,12 @@ MonoBehaviour:
   elementToChangeParameterID: -1
   journalText: 
   onlyAddNewJournal: 0
+  pageTexture: {fileID: 0}
   doFade: 0
   lineID: -1
   journalPageIndex: -1
   journalPageIndexParameterID: -1
+  preprocessTextTokens: 0
 --- !u!114 &11460422
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -121,6 +125,7 @@ MonoBehaviour:
   overrideColor: {r: 1, g: 1, b: 1, a: 1}
   showOutputSockets: 1
   parentActionListInEditor: {fileID: 0}
+  groupID: 0
   changeType: 2
   removeJournalPageMethod: 0
   menuToChange: Profiles
@@ -129,10 +134,12 @@ MonoBehaviour:
   elementToChangeParameterID: -1
   journalText: 
   onlyAddNewJournal: 0
+  pageTexture: {fileID: 0}
   doFade: 0
   lineID: -1
   journalPageIndex: -1
   journalPageIndexParameterID: -1
+  preprocessTextTokens: 0
 --- !u!114 &11464426
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -178,6 +185,7 @@ MonoBehaviour:
   overrideColor: {r: 1, g: 1, b: 1, a: 1}
   showOutputSockets: 1
   parentActionListInEditor: {fileID: 0}
+  groupID: 0
   resultActionTrue: 0
   skipActionTrue: -99
   skipActionTrueActual: {fileID: 0}
@@ -238,6 +246,7 @@ MonoBehaviour:
   overrideColor: {r: 1, g: 1, b: 1, a: 1}
   showOutputSockets: 1
   parentActionListInEditor: {fileID: 0}
+  groupID: 0
   changeType: 3
   removeJournalPageMethod: 0
   menuToChange: Profiles
@@ -246,10 +255,12 @@ MonoBehaviour:
   elementToChangeParameterID: -1
   journalText: 
   onlyAddNewJournal: 0
+  pageTexture: {fileID: 0}
   doFade: 0
   lineID: -1
   journalPageIndex: -1
   journalPageIndexParameterID: -1
+  preprocessTextTokens: 0
 --- !u!114 &11478202
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -290,6 +301,7 @@ MonoBehaviour:
   overrideColor: {r: 1, g: 1, b: 1, a: 1}
   showOutputSockets: 1
   parentActionListInEditor: {fileID: 0}
+  groupID: 0
   changeType: 2
   removeJournalPageMethod: 0
   menuToChange: Profiles
@@ -298,10 +310,12 @@ MonoBehaviour:
   elementToChangeParameterID: -1
   journalText: 
   onlyAddNewJournal: 0
+  pageTexture: {fileID: 0}
   doFade: 0
   lineID: -1
   journalPageIndex: -1
   journalPageIndexParameterID: -1
+  preprocessTextTokens: 0
 --- !u!114 &11492018
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -347,6 +361,7 @@ MonoBehaviour:
   overrideColor: {r: 1, g: 1, b: 1, a: 1}
   showOutputSockets: 1
   parentActionListInEditor: {fileID: 0}
+  groupID: 0
   resultActionTrue: 2
   skipActionTrue: -99
   skipActionTrueActual: {fileID: 11471494}

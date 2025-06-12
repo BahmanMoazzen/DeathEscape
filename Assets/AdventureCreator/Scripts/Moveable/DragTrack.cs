@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2024
  *	
  *	"DragTrack.cs"
  * 
@@ -26,7 +26,11 @@ namespace AC
 		#region Variables
 
 		/** The Physics Material to give the track's end colliders */
+#if UNITY_6000_0_OR_NEWER
+		public PhysicsMaterial colliderMaterial;
+#else
 		public PhysicMaterial colliderMaterial;
+#endif
 		/** The size of the track's end colliders, as seen in the Scene window */
 		public float discSize = 0.2f;
 		/** The colour of Scene window Handles */
@@ -120,7 +124,7 @@ namespace AC
 		 * <summary>Gets the proportion along the track closest to a given position in screen-space</summary>
 		 * <param name = "point">The position in screen-space</param>
 		 * <param name = "grabRelativePosition">The grab position relative to the draggable's centre</param>
-		 * <param name = "dragm">The object being dragged</param>
+		 * <param name = "drag">The object being dragged</param>
 		 * <returns>The proportion along the track closest to a given position in screen-space</returns>
 		 */
 		public virtual float GetScreenPointProportionAlong (Vector2 point, Vector3 grabRelativePosition, Moveable_Drag drag)
@@ -134,9 +138,9 @@ namespace AC
 		 * <param name="point">The point, in screen space</param>
 		 * <returns>The smallest distance, in screen-space, between a given position in screen space, and the point on the track that it is closest to.</returns>
 		 */
-		public float GetMinDistanceToScreenPoint (Vector2 point)
+		public float GetMinDistanceToScreenPoint (Vector2 point, Moveable_Drag drag)
 		{
-			float proportionAlong = GetScreenPointProportionAlong (point, Vector3.zero, null);
+			float proportionAlong = GetScreenPointProportionAlong (point, Vector3.zero, drag);
 			Vector3 trackPointWorldPosition = GetGizmoPosition(proportionAlong);
 			Vector2 trackPointScreenPosition = KickStarter.CameraMain.WorldToScreenPoint(trackPointWorldPosition);
 
@@ -162,12 +166,12 @@ namespace AC
 		public virtual void UpdateDraggable (Moveable_Drag draggable)
 		{
 			draggable.trackValue = GetDecimalAlong (draggable);
-
+			
+			DoRegionAudioCheck (draggable);
 			if (!onlySnapOnPlayerRelease)
 			{
 				DoSnapCheck (draggable);
 			}
-
 			DoConnectionCheck (draggable);
 		}
 
@@ -306,6 +310,36 @@ namespace AC
 
 		#region ProtectedFunctions
 
+		protected void DoRegionAudioCheck (Moveable_Drag draggable)
+		{
+			TrackSnapData trackSnapData = null;
+			for (int i = 0; i < allTrackSnapData.Count; i++)
+			{
+				if (IsWithinTrackRegion (draggable.trackValue, allTrackSnapData[i].ID))
+				{
+					trackSnapData = allTrackSnapData[i];
+					break;
+				}
+			}
+
+			if (trackSnapData != null)
+			{
+				if (draggable.regionID != trackSnapData.ID)
+				{
+					if (trackSnapData.SoundOnEnter)
+					{
+						AudioSource.PlayClipAtPoint (trackSnapData.SoundOnEnter, trackSnapData.GetWorldPosition (this));
+					}
+					draggable.regionID = trackSnapData.ID;
+				}
+			}
+			else
+			{
+				draggable.regionID = -1;
+			}
+		}
+
+
 		protected virtual void AssignColliders (Moveable_Drag draggable)
 		{
 			if (UsesEndColliders && draggable.minCollider && draggable.maxCollider)
@@ -381,7 +415,7 @@ namespace AC
 
 		protected void LimitCollisions (Moveable_Drag draggable)
 		{
-			Collider[] allColliders = FindObjectsOfType (typeof(Collider)) as Collider[];
+			Collider[] allColliders = UnityVersionHandler.FindObjectsOfType<Collider> ();
 			Collider[] dragColliders = draggable.GetComponentsInChildren <Collider>();
 
 			// Disable all collisions on max/min colliders

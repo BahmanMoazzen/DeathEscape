@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2024
  *	
  *	"ActionsManager.cs"
  * 
@@ -30,9 +30,6 @@ namespace AC
 		
 		#if UNITY_EDITOR
 
-		/** The folder path to any custom Actions (this is now deprecated) */
-		public string customFolderPath = "AdventureCreator/Scripts/Actions";
-
 		public List<string> customFolderPaths = new List<string>();
 
 		public List<FavouriteActionData> allFavouriteActionData = new List<FavouriteActionData>();
@@ -40,7 +37,7 @@ namespace AC
 		#endif
 
 		/** If True, then Actions can be displayed in an ActionList's Inspector window */
-		public bool displayActionsInInspector = true;
+		public bool displayActionsInInspector = false;
 		/** How Actions are arranged in the ActionList Editor window (ArrangedVertically, ArrangedHorizontally) */
 		public DisplayActionsInEditor displayActionsInEditor = DisplayActionsInEditor.ArrangedVertically;
 		/** If True, then multiple ActionList Editor windows can be opened at once */
@@ -49,6 +46,8 @@ namespace AC
 		public ActionListEditorScrollWheel actionListEditorScrollWheel = ActionListEditorScrollWheel.PansWindow;
 		/** If True, then panning is inverted in the ActionList Editor window (useful for Macbooks) */
 		public bool invertPanning = false;
+		/** If True, then the ActionList Editor window will focus on newly-pasted Actions */
+		public bool focusOnPastedActions = true;
 		/** The speed factor for panning/zooming */
 		public float panSpeed = 1f;
 		/** If True, the ActionList Editor will pan automatically when dragging the cursor near the window's edge */
@@ -63,6 +62,8 @@ namespace AC
 		#if UNITY_EDITOR
 
 		private ActionType selectedClass = null;
+
+		[SerializeField] List<DefaultActionCategoryData> defaultActionCategoryDatas = new List<DefaultActionCategoryData>();
 
 		private bool showEditing = true;
 		private bool showCustom = true;
@@ -82,11 +83,11 @@ namespace AC
 		 */
 		public static string GetDefaultAction ()
 		{
-			if (AdvGame.GetReferences () != null && AdvGame.GetReferences ().actionsManager != null)
+			if (KickStarter.actionsManager != null)
 			{
-				return AdvGame.GetReferences ().actionsManager._GetDefaultAction ();
+				return KickStarter.actionsManager._GetDefaultAction ();
 			}
-			ACDebug.LogError ("Cannot create Action - no Actions Manager found.");
+			ACDebug.LogWarning ("Cannot create Action - no Actions Manager found.");
 			return string.Empty;
 		}
 
@@ -99,7 +100,7 @@ namespace AC
 			{
 				return defaultClassName;
 			}
-			ACDebug.LogError ("Cannot create default Action - no default set.");
+			ACDebug.LogWarning ("Cannot create default Action - no default set.");
 			return string.Empty;
 		}
 
@@ -122,7 +123,7 @@ namespace AC
 		
 		#if UNITY_EDITOR
 
-		public void ShowGUI ()
+		public void ShowGUI (Rect position)
 		{
 			ShowEditingGUI ();
 
@@ -144,7 +145,7 @@ namespace AC
 					if (selectedClass != null)
 					{
 						EditorGUILayout.Space ();
-						ShowActionTypeGUI ();
+						ShowActionTypeGUI (position.width);
 					}
 				}
 			}
@@ -171,9 +172,11 @@ namespace AC
 			if (!string.IsNullOrEmpty (defaultClassName) && subclass.fileName != defaultClassName)
 											{
 				menu.AddItem (new GUIContent ("Make default"), false, Callback, "Make default");
-				menu.AddItem (new GUIContent ("Edit script"), false, Callback, "EditSource");
-				menu.AddSeparator (string.Empty);
 			}
+
+			menu.AddItem (new GUIContent ("Make default in category"), false, Callback, "Make default in category");
+			menu.AddItem (new GUIContent ("Edit script"), false, Callback, "EditSource");
+			menu.AddSeparator (string.Empty);
 
 			menu.AddItem (new GUIContent ("Search local instances"), false, Callback, "Search local instances");
 			menu.AddItem (new GUIContent ("Search all instances"), false, Callback, "Search all instances");
@@ -195,6 +198,23 @@ namespace AC
 						{
 							defaultClassName = subclass.fileName;
 							subclass.isEnabled = true;
+						}
+						break;
+
+					case "Make default in category":
+						bool updatedExisting = false;
+						foreach (DefaultActionCategoryData defaultActionCategoryData in defaultActionCategoryDatas)
+						{
+							if (defaultActionCategoryData.Category == subclass.category)
+							{
+								defaultActionCategoryData.DefaultClassName = subclass.fileName;
+								updatedExisting = true;
+								break;
+							}
+						}
+						if (!updatedExisting)
+						{
+							defaultActionCategoryDatas.Add (new DefaultActionCategoryData (subclass.category, subclass.fileName));
 						}
 						break;
 
@@ -223,10 +243,10 @@ namespace AC
 
 		private void ShowEditingGUI ()
 		{
-			EditorGUILayout.BeginVertical (CustomStyles.thinBox);
-			showEditing = CustomGUILayout.ToggleHeader (showEditing, "ActionList editing settings");
+			showEditing = CustomGUILayout.ToggleHeader (showEditing, "Editing");
 			if (showEditing)
 			{
+				CustomGUILayout.BeginVertical ();
 				displayActionsInInspector = CustomGUILayout.Toggle ("List Actions in Inspector?", displayActionsInInspector, "AC.KickStarter.actionsManager.displayActionsInInspector", "If True, then Actions can be displayed in an ActionList's Inspector window");
 				displayActionsInEditor = (DisplayActionsInEditor) CustomGUILayout.EnumPopup ("Actions in Editor are:", displayActionsInEditor, "AC.KickStarter.actionsManager.displayActionsInEditor", "How Actions are arranged in the ActionList Editor window");
 				actionListEditorScrollWheel = (ActionListEditorScrollWheel) CustomGUILayout.EnumPopup ("Using scroll-wheel:", actionListEditorScrollWheel, "AC.KickStarter.actionsManager.actionListEditorScrollWheel", "The effect the mouse scrollwheel has inside the ActionList Editor window");
@@ -248,6 +268,7 @@ namespace AC
 				autoPanNearWindowEdge = CustomGUILayout.Toggle ("Auto-panning in Editor?", autoPanNearWindowEdge, "AC.KickStarter.actionListManager.autoPanNearWindowEdge", "If True, the ActionList Editor will pan automatically when dragging the cursor near the window's edge");
 				panSpeed = CustomGUILayout.FloatField ((actionListEditorScrollWheel == ActionListEditorScrollWheel.PansWindow) ? "Panning speed:" : "Zoom speed:", panSpeed, "AC.KickStarter.actionsManager.panSpeed", "The speed factor for panning/zooming");
 				invertPanning = CustomGUILayout.Toggle ("Invert panning in Editor?", invertPanning, "AC.KickStarter.actionsManager.invertPanning", "If True, then panning is inverted in the ActionList Editor window (useful for Macbooks)");
+				focusOnPastedActions = CustomGUILayout.Toggle ("Focus on pasted Actions?", focusOnPastedActions, "AC.KickStarter.actionListManager.focusOnPastedActions", "If True, then the ActionList Editor window will focus on newly - pasted Actions");
 				allowMultipleActionListWindows = CustomGUILayout.Toggle ("Allow multiple Editors?", allowMultipleActionListWindows, "AC.KickStarter.actionsManager.allowMultipleActionListWindows", "If True, then multiple ActionList Editor windows can be opened at once");
 
 				if (allFavouriteActionData != null && allFavouriteActionData.Count > 0)
@@ -258,17 +279,17 @@ namespace AC
 						allFavouriteActionData.Clear ();
 					}
 				}
+				CustomGUILayout.EndVertical ();
 			}
-			CustomGUILayout.EndVertical ();
 		}
 
 
 		private void ShowCustomGUI ()
 		{
-			EditorGUILayout.BeginVertical (CustomStyles.thinBox);
 			showCustom = CustomGUILayout.ToggleHeader (showCustom, "Custom Action scripts");
 			if (showCustom)
 			{
+				CustomGUILayout.BeginVertical ();
 				if (customFolderPaths.Count == 0)
 				{
 					customFolderPaths.Add (string.Empty);
@@ -293,9 +314,9 @@ namespace AC
 						customFolderPaths.RemoveAt (lastIndex);
 					}
 				}
+
+				CustomGUILayout.EndVertical ();
 			}
-			GUILayout.Space (3f);
-			CustomGUILayout.EndVertical ();
 		}
 
 
@@ -308,11 +329,17 @@ namespace AC
 				displayPath = displayPath.Substring (0, 40) + "...";
 			}
 
-			GUILayout.BeginHorizontal ();
-			GUILayout.Label ("Folder #" + i.ToString () + ":", GUILayout.Width (110f));
-			GUILayout.Label (displayPath, EditorStyles.textField);
+			GUILayout.Label (string.Empty);
+			Rect rect = GUILayoutUtility.GetLastRect ();
 
-			if (GUILayout.Button (string.Empty, CustomStyles.FolderIcon))
+			bool showDeleteButton = !string.IsNullOrEmpty (displayPath);
+
+			if (showDeleteButton)
+			{
+				rect.width -= 20;
+			}
+			
+			if (GUI.Button (rect, showDeleteButton ? displayPath : "Click to set...", EditorStyles.textField))
 			{
 				string path = EditorUtility.OpenFolderPanel ("Set custom Actions directory", "Assets", "");
 				string dataPath = Application.dataPath;
@@ -333,12 +360,19 @@ namespace AC
 				}
 			}
 
-			if (GUILayout.Button ("-", GUILayout.Width (22f)))
+			if (showDeleteButton)
 			{
-				_path = string.Empty;
-			}
+				rect.x = rect.width + 8;
+				rect.width = 16;
 
-			EditorGUILayout.EndHorizontal ();
+				GUIStyle deleteButton = new GUIStyle ();
+				deleteButton.normal.background = EditorGUIUtility.FindTexture ("d_TreeEditor.Trash");
+
+				if (GUI.Button (rect, "", deleteButton))
+				{
+					_path = string.Empty;
+				}
+			}
 
 			if (_path == FolderPath) _path = string.Empty;
 
@@ -348,10 +382,10 @@ namespace AC
 
 		private void ShowCategoriesGUI ()
 		{
-			EditorGUILayout.BeginVertical (CustomStyles.thinBox);
 			showCategories = CustomGUILayout.ToggleHeader (showCategories, "Action categories");
 			if (showCategories)
 			{
+				CustomGUILayout.BeginVertical ();
 				ActionCategory[] categories = (ActionCategory[]) System.Enum.GetValues (typeof(ActionCategory));
 
 				for (int i=0; i<categories.Length; i++)
@@ -377,8 +411,8 @@ namespace AC
 				}
 
 				EditorGUILayout.EndHorizontal ();
+				CustomGUILayout.EndVertical ();
 			}
-			CustomGUILayout.EndVertical ();
 
 			if (defaultClass > AllActions.Count - 1)
 			{
@@ -389,10 +423,10 @@ namespace AC
 
 		private void ShowActionTypesGUI ()
 		{
-			EditorGUILayout.BeginVertical (CustomStyles.thinBox);
 			showActionTypes = CustomGUILayout.ToggleHeader (showActionTypes, "Category: " + selectedCategory);
 			if (showActionTypes)
 			{
+				CustomGUILayout.BeginVertical ();
 				ActionType[] actionTypes = GetActionTypesInCategory (selectedCategory);
 
 				if (actionTypes.Length == 0)
@@ -416,34 +450,44 @@ namespace AC
 					{
 						label += " (DISABLED)";
 					}
+					else
+					{
+						foreach (DefaultActionCategoryData defaultActionCategoryData in defaultActionCategoryDatas)
+						{
+							if (defaultActionCategoryData.Category == actionTypes[i].category && defaultActionCategoryData.DefaultClassName == actionTypes[i].fileName)
+							{
+								label += " (CATEGORY DEFAULT)";
+							}
+						}
+					}
 
 					if (GUILayout.Toggle (actionTypes[i].IsMatch (selectedClass), label, "Button"))
 					{
 						selectedClass = actionTypes[i];
 					}
 
-					if (GUILayout.Button ("", CustomStyles.IconCog))
+					if (GUILayout.Button (string.Empty, CustomStyles.IconCog))
 					{
 						SideMenu (AllActions.IndexOf (actionTypes[i]));
 					}
 					EditorGUILayout.EndHorizontal ();
 				}
+				CustomGUILayout.EndVertical ();
 			}
-			CustomGUILayout.EndVertical ();
 		}
 
 
-		private void ShowActionTypeGUI ()
+		private void ShowActionTypeGUI (float maxWidth)
 		{
 			if (selectedClass == null || string.IsNullOrEmpty (selectedClass.fileName)) return;
 			
-			EditorGUILayout.BeginVertical (CustomStyles.thinBox);
 			showActionType = CustomGUILayout.ToggleHeader (showActionType, selectedClass.GetFullTitle ());
 			if (showActionType)
 			{
-				SpeechLine.ShowField ("Name:", selectedClass.GetFullTitle (), false);
-				SpeechLine.ShowField ("Filename:", selectedClass.fileName + ".cs", false);
-				SpeechLine.ShowField ("Description:", selectedClass.description, true);
+				CustomGUILayout.BeginVertical ();
+				SpeechLine.ShowField ("Name:", selectedClass.GetFullTitle (), false, maxWidth);
+				SpeechLine.ShowField ("Filename:", selectedClass.fileName + ".cs", false, maxWidth);
+				SpeechLine.ShowField ("Description:", selectedClass.description, true, maxWidth);
 
 				EditorGUILayout.BeginHorizontal ();
 				EditorGUILayout.LabelField ("Node colour:", GUILayout.Width (85f));
@@ -460,9 +504,20 @@ namespace AC
 					EditorGUILayout.LabelField ("Is enabled?", GUILayout.Width (85f));
 					selectedClass.isEnabled = EditorGUILayout.Toggle (selectedClass.isEnabled);
 					EditorGUILayout.EndHorizontal ();
+
+					if (selectedClass.isEnabled)
+					{
+						foreach (DefaultActionCategoryData defaultActionCategoryData in defaultActionCategoryDatas)
+						{
+							if (defaultActionCategoryData.Category == selectedClass.category && defaultActionCategoryData.DefaultClassName == selectedClass.fileName)
+							{
+								EditorGUILayout.HelpBox ("This is marked as the default Action", MessageType.Info);
+							}
+						}
+					}
 				}
+				CustomGUILayout.EndVertical ();
 			}
-			CustomGUILayout.EndVertical ();
 		}
 
 
@@ -493,7 +548,7 @@ namespace AC
 					}
 				}
 
-				ActionListAsset[] allActionListAssets = AdvGame.GetReferences ().speechManager.GetAllActionListAssets ();
+				ActionListAsset[] allActionListAssets = KickStarter.speechManager.GetAllActionListAssets ();
 				foreach (ActionListAsset actionListAsset in allActionListAssets)
 				{
 					int[] foundIDs = SearchActionsForType (actionListAsset.actions, actionType);
@@ -524,7 +579,7 @@ namespace AC
 			}
 
 			// Speech lines and journal entries
-			ActionList[] actionLists = GameObject.FindObjectsOfType (typeof (ActionList)) as ActionList[];
+			ActionList[] actionLists = UnityVersionHandler.FindObjectsOfType<ActionList> ();
 			foreach (ActionList list in actionLists)
 			{
 				int[] foundIDs = SearchActionsForType (list.GetActions (), actionType);
@@ -565,8 +620,7 @@ namespace AC
 					if (action == null) continue;
 
 					if ((action.Category == actionType.category && action.Title == actionType.title) ||
-					    (action.GetType ().ToString () == actionType.fileName) ||
-					    (action.GetType ().ToString () == "AC." + actionType.fileName))
+					    (action.GetType ().FullName == actionType.fileName))
 					{
 						int id = actionList.IndexOf (action);
 						foundIDs.Add (id);
@@ -582,16 +636,7 @@ namespace AC
 		{
 			get
 			{
-				return Resource.MainFolderPathRelativeToAssets + "/Scripts/Actions";
-			}
-		}
-
-
-		public bool UsingCustomActionsFolder
-		{
-			get
-			{
-				return (customFolderPath != FolderPath);
+				return Resource.DefaultActionsPath;
 			}
 		}
 
@@ -655,7 +700,7 @@ namespace AC
 		{
 			foreach (ActionType actionType in AllActions)
 			{
-				if (_name == actionType.fileName || _name == ("AC." + actionType.fileName))
+				if (_name == actionType.fileName)
 				{
 					return true;
 				}
@@ -700,8 +745,7 @@ namespace AC
 		{
 			if (_action != null)
 			{
-				string className = _action.GetType ().ToString ();
-				className = className.Replace ("AC.", "");
+				string className = _action.GetType ().FullName;
 				foreach (ActionType actionType in AllActions)
 				{
 					if (actionType.fileName == className)
@@ -722,8 +766,7 @@ namespace AC
 		{
 			if (_action != null)
 			{
-				string className = _action.GetType ().ToString ();
-				className = className.Replace ("AC.", "");
+				string className = _action.GetType ().FullName;
 				foreach (ActionType actionType in AllActions)
 				{
 					if (actionType.fileName == className)
@@ -775,12 +818,9 @@ namespace AC
 
 			foreach (ActionType type in AllActions)
 			{
-				if (type.category == _category)
+				if (type.category == _category &&type.isEnabled)
 				{
-					if (type.isEnabled)
-					{
-						titles.Add (type.title);
-					}
+					titles.Add (type.title);
 				}
 			}
 			
@@ -810,7 +850,7 @@ namespace AC
 		 */
 		public int GetActionSubCategory (Action _action)
 		{
-			string fileName = _action.GetType ().ToString ().Replace ("AC.", "");
+			string fileName = _action.GetType ().FullName;
 			ActionCategory _category = _action.Category;
 			
 			// Learn category
@@ -895,6 +935,7 @@ namespace AC
 
 			FavouriteActionData newFavouriteActionData = new FavouriteActionData (action, ID);
 			allFavouriteActionData.Add (newFavouriteActionData);
+			EditorUtility.SetDirty (this);
 		}
 
 
@@ -936,6 +977,58 @@ namespace AC
 				}
 			}
 			return null;
+		}
+
+		
+		public int GetDefaultActionInCategory (ActionCategory category)
+		{
+			foreach (DefaultActionCategoryData defaultActionCategoryData in defaultActionCategoryDatas)
+			{
+				if (defaultActionCategoryData.Category == category)
+				{
+					List<ActionType> types = new List<ActionType> ();
+					foreach (ActionType type in AllActions)
+					{
+						if (type.category == category && type.isEnabled)
+						{
+							types.Add (type);
+						}
+					}
+
+					foreach (ActionType type in types)
+					{
+						if (type.fileName == defaultActionCategoryData.DefaultClassName)
+						{
+							if (type.isEnabled)
+							{
+								return types.IndexOf (type);
+							}
+							return 0;
+						}
+					}
+					return 0;
+				}
+			}
+			return 0;
+		}
+
+
+		[System.Serializable]
+		private class DefaultActionCategoryData
+		{
+
+			[SerializeField] private ActionCategory category;
+			[SerializeField] private string defaultClassName;
+
+			public DefaultActionCategoryData (ActionCategory _category, string _defaultClassName)
+			{
+				category = _category;
+				defaultClassName = _defaultClassName;
+			}
+
+			public ActionCategory Category { get { return category; } }
+			public string DefaultClassName { get { return defaultClassName; } set { defaultClassName = value; } }
+
 		}
 
 		#endif

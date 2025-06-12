@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿#if UNITY_EDITOR
+
+using UnityEngine;
 using UnityEditor;
 
 namespace AC
@@ -12,8 +14,8 @@ namespace AC
 		{
 			DragTrack_Hinge _target = (DragTrack_Hinge) target;
 			
+			CustomGUILayout.Header ("Track shape:");
 			CustomGUILayout.BeginVertical ();
-			EditorGUILayout.LabelField ("Track shape:", EditorStyles.boldLabel);
 
 			_target.radius = CustomGUILayout.FloatField ("Radius:", _target.radius, "", "The track's radius (for visualising in the Scene window)");
 			if (_target.radius < 0f) _target.radius = 0f;
@@ -115,3 +117,5 @@ namespace AC
 	}
 
 }
+
+#endif

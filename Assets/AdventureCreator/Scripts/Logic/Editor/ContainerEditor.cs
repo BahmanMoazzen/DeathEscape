@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿#if UNITY_EDITOR
+
+using UnityEngine;
 using UnityEditor;
 using System.Collections.Generic;
 
@@ -29,17 +31,17 @@ namespace AC
 				return;
 			}
 
-			inventoryManager = AdvGame.GetReferences ().inventoryManager;
+			inventoryManager = KickStarter.inventoryManager;
 
 			ShowCategoriesUI (_target);
 			EditorGUILayout.Space ();
 
-			EditorGUILayout.LabelField ("Stored Inventory items", EditorStyles.boldLabel);
+			CustomGUILayout.Header ("Stored items");
+			CustomGUILayout.BeginVertical ();
 			if (Application.isPlaying)
 			{
 				if (_target.InvCollection.InvInstances.Count > 0)
 				{
-					CustomGUILayout.BeginVertical ();
 					foreach (InvInstance invInstance in _target.InvCollection.InvInstances)
 					{
 						if (!InvInstance.IsValid (invInstance)) continue;
@@ -60,7 +62,6 @@ namespace AC
 
 						CustomGUILayout.DrawUILine ();
 					}
-					CustomGUILayout.EndVertical ();
 				}
 				else
 				{
@@ -71,7 +72,6 @@ namespace AC
 			{
 				if (_target.items.Count > 0)
 				{
-					CustomGUILayout.BeginVertical ();
 					for (int i=0; i<_target.items.Count; i++)
 					{
 						_target.items[i].ShowGUI (inventoryManager);
@@ -94,7 +94,6 @@ namespace AC
 
 						CustomGUILayout.DrawUILine ();
 					}
-					CustomGUILayout.EndVertical ();
 				}
 				else
 				{
@@ -107,23 +106,32 @@ namespace AC
 			EditorGUILayout.BeginHorizontal ();
 			EditorGUILayout.LabelField ("New item to store:", GUILayout.MaxWidth (130f));
 			bool allowEmptySlots = KickStarter.settingsManager && KickStarter.settingsManager.canReorderItems;
-			itemNumber = EditorGUILayout.Popup (itemNumber, CreateItemList (allowEmptySlots));
-			if (GUILayout.Button ("Add new item"))
+			InvItem[] invItems = CreateItemList (allowEmptySlots);
+			string[] itemLabels = new string[invItems.Length];
+			for (int i = 0; i < itemLabels.Length; i++)
 			{
-				if (allowEmptySlots)
+				if (invItems[i] == null)
 				{
-					if (itemNumber == 0)
-					{
-						_target.items.Add (new ContainerItem (-1, _target.items.ToArray ()));
-					}
-					else
-					{
-						_target.items.Add (new ContainerItem (CreateItemID (itemNumber-1), _target.items.ToArray ()));
-					}
+					itemLabels[i] = "(Empty slot)";
 				}
 				else
 				{
-					_target.items.Add (new ContainerItem (CreateItemID (itemNumber), _target.items.ToArray ()));
+					itemLabels[i] = invItems[i].label;
+				}
+			}
+
+			itemNumber = EditorGUILayout.Popup (itemNumber, itemLabels);
+			if (GUILayout.Button ("Add new item"))
+			{
+				InvItem invItem = invItems[itemNumber];
+
+				if (invItem == null)
+				{
+					_target.items.Add (new ContainerItem (-1, _target.items.ToArray ()));
+				}
+				else
+				{
+					_target.items.Add (new ContainerItem (invItem.id, _target.items.ToArray ()));
 				}
 			}
 			EditorGUILayout.EndHorizontal ();
@@ -132,6 +140,7 @@ namespace AC
 			{
 				EditorGUILayout.HelpBox ("The Container is full! Excess slots will be discarded.", MessageType.Warning);
 			}
+			CustomGUILayout.EndVertical ();
 
 			UnityVersionHandler.CustomSetDirty (_target);
 		}
@@ -139,11 +148,19 @@ namespace AC
 
 		private void ShowCategoriesUI (Container _target)
 		{
+			CustomGUILayout.Header ("Properties");
 			CustomGUILayout.BeginVertical ();
+
+			_target.label = CustomGUILayout.TextField ("Label:", _target.label, string.Empty, "The Container's display name");
+			if (_target.HasExistingTranslation (0))
+			{
+				EditorGUILayout.LabelField ("Speech Manager ID:", _target.labelLineID.ToString ());
+			}
+
 			_target.limitToCategory = CustomGUILayout.Toggle ("Limit by category?", _target.limitToCategory, "", "If True, only inventory items of a specific category will be displayed");
 			if (_target.limitToCategory)
 			{
-				List<InvBin> bins = AdvGame.GetReferences ().inventoryManager.bins;
+				List<InvBin> bins = KickStarter.inventoryManager.bins;
 
 				if (bins == null || bins.Count == 0)
 				{
@@ -154,6 +171,8 @@ namespace AC
 				{
 					for (int i=0; i<bins.Count; i++)
 					{
+						if (!bins[i].forItems) continue;
+
 						bool include = (_target.categoryIDs.Contains (bins[i].id)) ? true : false;
 						include = EditorGUILayout.ToggleLeft (" " + i.ToString () + ": " + bins[i].label, include);
 
@@ -261,29 +280,26 @@ namespace AC
 		}
 		
 		
-		private string[] CreateItemList (bool includeEmpty)
+		private InvItem[] CreateItemList (bool includeEmpty)
 		{
-			List<string> itemList = new List<string>();
+			List<InvItem> itemList = new List<InvItem> ();
 			
 			if (includeEmpty)
 			{
-				itemList.Add ("(Empty slot)");
+				itemList.Add (null);
 			}
 
 			foreach (InvItem item in inventoryManager.items)
 			{
-				itemList.Add (item.label);
+				if (_target.limitToCategory && !_target.categoryIDs.Contains (item.binID)) continue;
+				itemList.Add (item);
 			}
 
 			return itemList.ToArray ();
 		}
 
-
-		private int CreateItemID (int i)
-		{
-			return (inventoryManager.items[i].id);
-		}
-
 	}
 
 }
+
+#endif

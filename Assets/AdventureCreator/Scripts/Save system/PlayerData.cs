@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2024
  *	
  *	"PlayerData.cs"
  * 
@@ -34,14 +34,16 @@ namespace AC
 		public int playerID = 0;
 		/** The current scene number */
 		public int currentScene = -1;
-		/** Deprecated - use currentScene instead */
-		public string currentSceneName;
+		/** The current scene name */
+		public string currentSceneName = "";
 		/** The last-visited scene number */
 		public int previousScene = -1;
-		/** Deprecated - use previousScene instead */
-		public string previousSceneName;
-		/** The details any sub-scenes that are also open */
+		/** The last-visited scene name */
+		public string previousSceneName = "";
+		/** The details any sub-scenes that are also open (as build indices) */
 		public string openSubScenes = "";
+		/** The details any sub-scenes that are also open (as names) */
+		public string openSubSceneNames = "";
 
 		/** The Player's X position */
 		public float playerLocX = 0f;
@@ -89,6 +91,8 @@ namespace AC
 		public bool playerLockedPath = false;
 		/** True if the Player is locked along a Path, and going backwards */
 		public bool playerLockedPathReversing = false;
+		/** The type of Path the Player is locked along, if playerLockedPathReversing = true */
+		public int playerLockedPathType;
 		/** The Constant ID number of the Player's current Path */
 		public int playerActivePath = 0;
 		/** True if the Player's current Path affects the Y position */
@@ -168,6 +172,8 @@ namespace AC
 		public float mainCameraRotY = 0f;
 		/** The MainCamera's Z rotation */
 		public float mainCameraRotZ = 0f;
+		/** The pitch of the first-person camera, if used */
+		public float fpCameraPitch = 0f;
 
 		/** True if split-screen is currently active */
 		public bool isSplitScreen = false;
@@ -199,7 +205,7 @@ namespace AC
 		public int activeDocumentID = -1;
 		/** A record of the Documents collected */
 		public string collectedDocumentData = "";
-		/** A record of the last-opened page for each viewed Document */
+		/** Deprecated */
 		public string lastOpenDocumentPagesData = "";
 		/** A record of the player's current objectives */
 		public string playerObjectivesData = "";
@@ -228,6 +234,13 @@ namespace AC
 		/** Data related to the character's available sprite directions */
 		public string spriteDirectionData;
 
+		/** (Deprecated) */
+		public int leftHandSceneItemConstantID;
+		/** (Deprecated)) */
+		public int rightHandSceneItemConstantID;
+		/** Data related to which objects are held in the Player's hands */
+		public AttachmentPointData[] attachmentPointDatas = new AttachmentPointData[0];
+
 		/** Save data for any Remember components attached to the Player */
 		public List<ScriptData> playerScriptData = new List<ScriptData>();
 		/** The Constant ID number of the PlayerStart to appear at when that PlayerStart's scene is next opened */
@@ -249,53 +262,20 @@ namespace AC
 		public void UpdatePosition (int newSceneIndex, TeleportPlayerStartMethod teleportPlayerStartMethod, int playerStartID)
 		{
 			UpdateCurrentAndShiftPrevious (newSceneIndex);
+			OnUpdatePosition (newSceneIndex == SceneChanger.CurrentSceneIndex, teleportPlayerStartMethod, playerStartID);
+		}
 
-			tempPlayerStart = 0;
-			if (newSceneIndex == SceneChanger.CurrentSceneIndex)
-			{
-				// Updating position to the current scene
-				PlayerStart playerStart = null;
 
-				switch (teleportPlayerStartMethod)
-				{
-					case TeleportPlayerStartMethod.BasedOnPrevious:
-						playerStart = KickStarter.sceneSettings.GetPlayerStart (playerID);
-						break;
-
-					case TeleportPlayerStartMethod.EnteredHere:
-						if (playerStartID != 0)
-						{
-							playerStart = ConstantID.GetComponent <PlayerStart> (playerStartID);
-						}
-						break;
-
-					case TeleportPlayerStartMethod.SceneDefault:
-						playerStart = KickStarter.sceneSettings.defaultPlayerStart;
-						break;
-
-					default:
-						break;
-				}
-
-				if (playerStart)
-				{
-					UpdatePositionFromPlayerStart (playerStart);
-				}
-				else if (teleportPlayerStartMethod == TeleportPlayerStartMethod.EnteredHere && playerStartID != 0)
-				{
-					ACDebug.LogWarning ("Cannot find PlayerStart with Constant ID = " + playerStartID + " for Player ID = " + playerID + " in the current scene.");
-				}
-				else
-				{
-					ACDebug.LogWarning ("Cannot find suitable PlayerStart for Player ID = " + playerID + " in the current scene");
-				}
-			}
-			else
-			{
-				// Position is being set in another scene, so keep a record of it
-				tempTeleportPlayerStartMethod = teleportPlayerStartMethod;
-				tempPlayerStart = (teleportPlayerStartMethod == TeleportPlayerStartMethod.EnteredHere) ? playerStartID : -1;
-			}
+		/**
+		 * <summary>Updates the record of the Player's current position</summary>
+		 * <param name = "newSceneName">The scene in which to place the Player in</param>
+		 * <param name = "teleportPlayerStartMethod">How to select which PlayerStart to appear at (SceneDefault, BasedOnPrevious, EnteredHere)</param>
+		 * <param name = "playerStartID">The Constant ID value of the PlayerStart for the Player to appear at</param>
+		 */
+		public void UpdatePosition (string newSceneName, TeleportPlayerStartMethod teleportPlayerStartMethod, int playerStartID)
+		{
+			UpdateCurrentAndShiftPrevious (newSceneName);
+			OnUpdatePosition (newSceneName == SceneChanger.CurrentSceneName, teleportPlayerStartMethod, playerStartID);
 		}
 
 
@@ -307,6 +287,7 @@ namespace AC
 		public void UpdatePosition (TeleportPlayerStartMethod teleportPlayerStartMethod, PlayerStart playerStart)
 		{
 			UpdateCurrentAndShiftPrevious (SceneChanger.CurrentSceneIndex);
+			UpdateCurrentAndShiftPrevious (SceneChanger.CurrentSceneName);
 
 			tempPlayerStart = 0;
 
@@ -316,7 +297,7 @@ namespace AC
 			}
 			else if (teleportPlayerStartMethod == TeleportPlayerStartMethod.BasedOnPrevious)
 			{
-				playerStart = KickStarter.sceneSettings.GetPlayerStart (playerID);
+				playerStart = KickStarter.sceneSettings.GetPlayerStart (playerID, true);
 			}
 
 			UpdatePositionFromPlayerStart (playerStart);
@@ -330,6 +311,7 @@ namespace AC
 		public void CopyPosition (PlayerData playerData)
 		{
 			UpdateCurrentAndShiftPrevious (playerData.currentScene);
+			UpdateCurrentAndShiftPrevious (playerData.currentSceneName);
 			
 			tempPlayerStart = 0;
 
@@ -362,7 +344,7 @@ namespace AC
 					break;
 
 				case TeleportPlayerStartMethod.BasedOnPrevious:
-					playerStart = KickStarter.sceneSettings.GetPlayerStart (playerID);
+					playerStart = KickStarter.sceneSettings.GetPlayerStart (playerID, true);
 					break;
 
 				case TeleportPlayerStartMethod.EnteredHere:
@@ -375,50 +357,6 @@ namespace AC
 			}
 
 			UpdatePositionFromPlayerStart (playerStart);
-		}
-
-
-		/** Updates the Player's presence in the scene. According to the data set in this class, they will be added to or removed from the scene. */
-		public void UpdatePresenceInScene ()
-		{
-			PlayerPrefab playerPrefab = KickStarter.settingsManager.GetPlayerPrefab (playerID);
-			if (playerPrefab != null)
-			{
-				if (KickStarter.saveSystem.CurrentPlayerID == playerID)
-				{
-					playerPrefab.SpawnInScene (false);
-				}
-				else if (SceneChanger.CurrentSceneIndex == currentScene)
-				{
-					playerPrefab.SpawnInScene (false);
-				}
-				else
-				{
-					SubScene subScene = KickStarter.sceneChanger.GetSubScene (currentScene);
-					if (subScene != null)
-					{
-						playerPrefab.SpawnInScene (subScene.gameObject.scene);
-					}
-					else
-					{
-						playerPrefab.RemoveFromScene ();
-					}
-				}
-			}
-		}
-
-
-		public void SpawnIfFollowingActive ()
-		{
-			if (KickStarter.saveSystem.CurrentPlayerID != playerID &&
-				currentScene != SceneChanger.CurrentSceneIndex &&
-				followTargetIsPlayer &&
-				followAcrossScenes)
-			{
-				ClearPathData ();
-				UpdatePosition (SceneChanger.CurrentSceneIndex, TeleportPlayerStartMethod.BasedOnPrevious, 0);
-				UpdatePresenceInScene ();
-			}
 		}
 
 
@@ -444,10 +382,75 @@ namespace AC
 			}
 		}
 
+
+		/**
+		 * <summary>Updates the internal record of the player's current scene</summary>
+		 * <param name = "newSceneIndex">The index of the new scene</param>
+		 */
+		public void UpdateCurrentAndShiftPrevious (string newSceneName)
+		{
+			if (currentSceneName != newSceneName)
+			{
+				previousSceneName = currentSceneName;
+				currentSceneName = newSceneName;
+			}
+		}
+
 		#endregion
 
 
 		#region PrivateFunctions
+
+		private void OnUpdatePosition (bool inScene, TeleportPlayerStartMethod teleportPlayerStartMethod, int playerStartID)
+		{
+			tempPlayerStart = 0;
+			if (inScene)
+			{
+				// Updating position to the current scene
+				PlayerStart playerStart = null;
+
+				switch (teleportPlayerStartMethod)
+				{
+					case TeleportPlayerStartMethod.BasedOnPrevious:
+						playerStart = KickStarter.sceneSettings.GetPlayerStart (playerID, true);
+						break;
+
+					case TeleportPlayerStartMethod.EnteredHere:
+						if (playerStartID != 0)
+						{
+							playerStart = ConstantID.GetComponent<PlayerStart> (playerStartID);
+						}
+						break;
+
+					case TeleportPlayerStartMethod.SceneDefault:
+						playerStart = KickStarter.sceneSettings.defaultPlayerStart;
+						break;
+
+					default:
+						break;
+				}
+
+				if (playerStart)
+				{
+					UpdatePositionFromPlayerStart (playerStart);
+				}
+				else if (teleportPlayerStartMethod == TeleportPlayerStartMethod.EnteredHere && playerStartID != 0)
+				{
+					ACDebug.LogWarning ("Cannot find PlayerStart with Constant ID = " + playerStartID + " for Player ID = " + playerID + " in the current scene.");
+				}
+				else
+				{
+					ACDebug.LogWarning ("Cannot find suitable PlayerStart for Player ID = " + playerID + " in the current scene");
+				}
+			}
+			else
+			{
+				// Position is being set in another scene, so keep a record of it
+				tempTeleportPlayerStartMethod = teleportPlayerStartMethod;
+				tempPlayerStart = (teleportPlayerStartMethod == TeleportPlayerStartMethod.EnteredHere) ? playerStartID : -1;
+			}
+		}
+
 
 		private void UpdatePositionFromPlayerStart (PlayerStart playerStart)
 		{
@@ -529,9 +532,18 @@ namespace AC
 				CustomGUILayout.MultiLineLabelGUI ("Player ID:", playerID.ToString ());
 
 				EditorGUILayout.LabelField ("Scene info:");
-				CustomGUILayout.MultiLineLabelGUI ("   Current scene:", currentScene.ToString ());
-				CustomGUILayout.MultiLineLabelGUI ("   Previous scene:", previousScene.ToString ());
-				CustomGUILayout.MultiLineLabelGUI ("   Sub-scenes:", openSubScenes);
+				if (KickStarter.settingsManager && KickStarter.settingsManager.referenceScenesInSave == ChooseSceneBy.Name)
+				{
+					if (!string.IsNullOrEmpty (currentSceneName)) CustomGUILayout.MultiLineLabelGUI ("   Current:", currentSceneName.ToString ());
+					if (!string.IsNullOrEmpty (previousSceneName)) CustomGUILayout.MultiLineLabelGUI ("   Previous:", previousSceneName.ToString ());
+					if (!string.IsNullOrEmpty (openSubSceneNames)) CustomGUILayout.MultiLineLabelGUI ("   Sub-scenes:", openSubSceneNames.ToString ());
+				}
+				else
+				{
+					CustomGUILayout.MultiLineLabelGUI ("   Current:", currentScene.ToString ());
+					CustomGUILayout.MultiLineLabelGUI ("   Previous:", previousScene.ToString ());
+					CustomGUILayout.MultiLineLabelGUI ("   Sub-scenes:", openSubScenes);
+				}
 				if (tempPlayerStart != 0)
 				{
 					CustomGUILayout.MultiLineLabelGUI ("   PlayerStart ID:", tempPlayerStart.ToString ());
@@ -599,8 +611,17 @@ namespace AC
 				CustomGUILayout.MultiLineLabelGUI ("   Items:", inventoryData);
 				CustomGUILayout.MultiLineLabelGUI ("   Active Document:", activeDocumentID.ToString ());
 				CustomGUILayout.MultiLineLabelGUI ("   Collected Documents:", collectedDocumentData.ToString ());
-				CustomGUILayout.MultiLineLabelGUI ("   Last-open Document pages", lastOpenDocumentPagesData.ToString ());
 				CustomGUILayout.MultiLineLabelGUI ("   Objectives:", playerObjectivesData.ToString ());
+				if (leftHandSceneItemConstantID != 0) CustomGUILayout.MultiLineLabelGUI ("   Left-hand SceneItem:", leftHandSceneItemConstantID.ToString ());
+				if (rightHandSceneItemConstantID != 0) CustomGUILayout.MultiLineLabelGUI ("   Right-hand SceneItem:", rightHandSceneItemConstantID.ToString ());
+				if (attachmentPointDatas != null && attachmentPointDatas.Length > 0)
+				{
+					EditorGUILayout.LabelField ("Attachment points:");
+					foreach (var attachmentPointData in attachmentPointDatas)
+					{
+						CustomGUILayout.MultiLineLabelGUI ("   " + attachmentPointData.attachmentPointID, attachmentPointData.heldSceneItemConstantID.ToString ());
+					}
+				}
 
 				EditorGUILayout.LabelField ("Head-turning:");
 				CustomGUILayout.MultiLineLabelGUI ("   Head facing Hotspot?", playerLockHotspotHeadTurning.ToString ());
@@ -637,11 +658,25 @@ namespace AC
 					foreach (ScriptData scriptData in playerScriptData)
 					{
 						RememberData rememberData = SaveSystem.FileFormatHandler.DeserializeObject<RememberData> (scriptData.data);
+						if (string.IsNullOrEmpty (scriptData.data))
+						{
+							Debug.LogWarning ("Invalid Remember data for object ID " + scriptData.objectID + " for Player ID " + playerID);
+							continue;
+						}
 						if (rememberData != null)
 						{
 							CustomGUILayout.MultiLineLabelGUI ("   " + rememberData.GetType ().ToString () + ":", EditorJsonUtility.ToJson (rememberData, true));
 						}
 					}
+				}
+
+				EditorGUILayout.Space ();
+				if (GUILayout.Button ("Copy as Json"))
+				{
+					TextEditor te = new TextEditor ();
+					te.text = EditorJsonUtility.ToJson (this);
+					te.SelectAll ();
+					te.Copy ();
 				}
 			}
 			catch (Exception e)

@@ -8,9 +8,7 @@ using UnityEditor;
 namespace AC
 {
 	
-	/**
-	 * Provides an EditorWindow to manage the export of script-sheets
-	 */
+	/** Provides an EditorWindow to manage the export of script-sheets */
 	public class ScriptSheetWindow : EditorWindow
 	{
 
@@ -48,21 +46,21 @@ namespace AC
 		
 		private void OnGUI ()
 		{
-			if (AdvGame.GetReferences ().speechManager == null)
+			if (KickStarter.speechManager == null)
 			{
 				EditorGUILayout.HelpBox ("A Speech Manager must be assigned before this window can display correctly.", MessageType.Warning);
 				return;
 			}
 			
 			scroll = GUILayout.BeginScrollView (scroll);
-			SpeechManager speechManager = AdvGame.GetReferences ().speechManager;
+			SpeechManager speechManager = KickStarter.speechManager;
 			
 			EditorGUILayout.HelpBox ("Check the settings below and click 'Create' to save a new script sheet.", MessageType.Info);
 			EditorGUILayout.Space ();
 			
-			if (speechManager.languages.Count > 1)
+			if (speechManager.Languages.Count > 1)
 			{
-				languageIndex = EditorGUILayout.Popup ("Language:", languageIndex, speechManager.languages.ToArray ());
+				languageIndex = EditorGUILayout.Popup ("Language:", languageIndex, speechManager.GetLanguageNameArray ());
 			}
 			else
 			{
@@ -111,7 +109,10 @@ namespace AC
 				}
 			}
 
-			limitToMissingAudio = EditorGUILayout.Toggle ("Limit to lines with no audio?", limitToMissingAudio);
+			if (speechManager.referenceSpeechFiles != ReferenceSpeechFiles.ByAddressable)
+			{
+				limitToMissingAudio = EditorGUILayout.Toggle ("Limit to lines with no audio?", limitToMissingAudio);
+			}
 
 			includeDescriptions = EditorGUILayout.Toggle ("Include descriptions?", includeDescriptions);
 			removeTokens = EditorGUILayout.Toggle ("Remove text tokens?", removeTokens);
@@ -132,19 +133,19 @@ namespace AC
 			ACDebug.LogWarning ("Game text cannot be exported in WebPlayer mode - please switch platform and try again.");
 			#else
 			
-			if (AdvGame.GetReferences () == null || AdvGame.GetReferences ().speechManager == null)
+			if (KickStarter.speechManager == null)
 			{
 				ACDebug.LogError ("Cannot create script sheet - no Speech Manager is assigned!");
 				return;
 			}
 			
-			SpeechManager speechManager = AdvGame.GetReferences ().speechManager;
+			SpeechManager speechManager = KickStarter.speechManager;
 			languageIndex = Mathf.Max (languageIndex, 0);
 			
 			string suggestedFilename = "Adventure Creator";
-			if (AdvGame.GetReferences ().settingsManager)
+			if (KickStarter.settingsManager)
 			{
-				suggestedFilename = AdvGame.GetReferences ().settingsManager.saveFileName;
+				suggestedFilename = KickStarter.settingsManager.saveFileName;
 			}
 			if (limitToCharacter && characterName != "")
 			{
@@ -161,7 +162,7 @@ namespace AC
 			suggestedFilename += " - ";
 			if (languageIndex > 0)
 			{
-				suggestedFilename += speechManager.languages[languageIndex] + " ";
+				suggestedFilename += speechManager.Languages[languageIndex].name + " ";
 			}
 			suggestedFilename += "script.html";
 			
@@ -170,14 +171,31 @@ namespace AC
 			{
 				return;
 			}
-			
-			string gameName = "Adventure Creator";
-			if (AdvGame.GetReferences ().settingsManager && AdvGame.GetReferences ().settingsManager.saveFileName.Length > 0)
+
+			bool limitToPlayer = false;
+			if (limitToCharacter && !string.IsNullOrEmpty (characterName) && KickStarter.settingsManager.playerSwitching == PlayerSwitching.Allow)
 			{
-				gameName = AdvGame.GetReferences ().settingsManager.saveFileName;
+				for (int j = 0; j < KickStarter.settingsManager.players.Count; j++)
+				{
+					if (KickStarter.settingsManager.players[j].EditorPrefab)
+					{
+						string overrideName = KickStarter.settingsManager.players[j].EditorPrefab.name;
+						if (overrideName == characterName)
+						{
+							limitToPlayer = true;
+							break;
+						}
+					}
+				}
+			}
+
+			string gameName = "Adventure Creator";
+			if (KickStarter.settingsManager && KickStarter.settingsManager.saveFileName.Length > 0)
+			{
+				gameName = KickStarter.settingsManager.saveFileName;
 				if (languageIndex > 0)
 				{
-					gameName += " (" + speechManager.languages[languageIndex] + ")";
+					gameName += " (" + speechManager.Languages[languageIndex].name + ")";
 				}
 			}
 			
@@ -207,9 +225,9 @@ namespace AC
 				foreach (SpeechLine line in speechManager.lines)
 				{
 					if (line.textType == AC_TextType.Speech &&
-					    (line.scene == sceneFile || sceneName == (line.scene + ".unity")) &&
-					    (!limitToCharacter || characterName == "" || line.owner == characterName || (line.isPlayer && characterName == "Player")) &&
-					    (!limitToTag || line.tagID == tagID))
+						(line.scene == sceneFile || sceneName == (line.scene + ".unity")) &&
+						(!limitToCharacter || string.IsNullOrEmpty (characterName) || line.owner == characterName || (line.isPlayer && characterName == "Player") || (line.SeparatePlayerAudio () && limitToPlayer)) &&
+						(!limitToTag || line.tagID == tagID))
 					{
 						if (limitToMissingAudio && line.HasAudio (languageIndex))
 						{
@@ -227,7 +245,11 @@ namespace AC
 					script.Append ("<hr/>\n<h3><b>Scene:</b> " + sceneName + "</h3>\n");
 					foreach (SpeechLine sceneSpeechLine in sceneSpeechLines)
 					{
-						script.Append (sceneSpeechLine.Print (languageIndex, includeDescriptions, removeTokens));
+						string lineHTML = (sceneSpeechLine.SeparatePlayerAudio () && limitToPlayer)
+										? sceneSpeechLine.Print (characterName, languageIndex, includeDescriptions, removeTokens)
+										: sceneSpeechLine.Print (languageIndex, includeDescriptions, removeTokens);
+
+						script.Append (lineHTML);
 					}
 				}
 			}
@@ -237,10 +259,10 @@ namespace AC
 			
 			foreach (SpeechLine line in speechManager.lines)
 			{
-				if (line.scene == "" &&
-				    line.textType == AC_TextType.Speech &&
-				    (!limitToCharacter || characterName == "" || line.owner == characterName || (line.isPlayer && characterName == "Player")) &&
-				    (!limitToTag || line.tagID == tagID))
+				if (string.IsNullOrEmpty (line.scene) &&
+					line.textType == AC_TextType.Speech &&
+					(!limitToCharacter || string.IsNullOrEmpty (characterName) || line.owner == characterName || (line.isPlayer && characterName == "Player") || (line.SeparatePlayerAudio () && limitToPlayer)) &&
+					(!limitToTag || line.tagID == tagID))
 				{
 					if (limitToMissingAudio && line.HasAudio (languageIndex))
 					{
@@ -258,11 +280,15 @@ namespace AC
 				script.Append ("<hr/>\n<h3>Scene-independent lines:</h3>\n");
 				foreach (SpeechLine assetSpeechLine in assetSpeechLines)
 				{
-					script.Append (assetSpeechLine.Print (languageIndex, includeDescriptions, removeTokens));
+					string lineHTML = (assetSpeechLine.SeparatePlayerAudio () && limitToPlayer)
+										? assetSpeechLine.Print (characterName, languageIndex, includeDescriptions, removeTokens)
+										: assetSpeechLine.Print (languageIndex, includeDescriptions, removeTokens);
+
+					script.Append (lineHTML);
 				}
 			}
 			
-			script.Append ("<footer>Generated by <a href='http://adventurecreator.org' target=blank>Adventure Creator</a>, by Chris Burton</footer>\n");
+			script.Append ("<footer>Generated by <a href='https://adventurecreator.org' target=blank>Adventure Creator</a>, by Chris Burton</footer>\n");
 			script.Append ("</body>\n</html>");
 			
 			Serializer.SaveFile (fileName, script.ToString ());

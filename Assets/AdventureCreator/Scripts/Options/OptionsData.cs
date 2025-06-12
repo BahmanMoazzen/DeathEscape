@@ -1,13 +1,16 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2024
  *	
  *	"OptionsData.cs"
  * 
  *	This script contains any variables we want to appear in our Options menu.
  * 
  */
+
+using System.Collections.Generic;
+using System.Text;
 
 namespace AC
 {
@@ -35,17 +38,13 @@ namespace AC
 		public string linkedVariables = "";
 		/** A condensed string representing the labels of all save game files */
 		public string saveFileNames = "";
-		/** A unique identifier of the last save game to be written */
-		public int lastSaveID = -1;
 		/** The name of the profile associated with this instance */
 		public string label;	
 		/** A unique identifier */
 		public int ID;
 		
 
-		/**
-		 * The default Constructor.
-		 */
+		/** The default Constructor. */
 		public OptionsData ()
 		{
 			language = 0;
@@ -58,16 +57,13 @@ namespace AC
 
 			linkedVariables = string.Empty;
 			saveFileNames = string.Empty;
-			lastSaveID = -1;
 
 			ID = 0;
 			label = "Profile " + (ID + 1).ToString ();
 		}
 
 
-		/**
-		 * A Constructor with default values, except the ProfileID, which is explicitly set.
-		 */
+		/** A Constructor with default values, except the ProfileID, which is explicitly set. */
 		public OptionsData (int _ID)
 		{
 			language = 0;
@@ -80,16 +76,13 @@ namespace AC
 
 			linkedVariables = string.Empty;
 			saveFileNames = string.Empty;
-			lastSaveID = -1;
 
 			ID = _ID;
 			label = "Profile " + (ID + 1).ToString ();
 		}
 
 
-		/**
-		 * A Constructor in which the basic options values are explicitly set.
-		 */
+		/** A Constructor in which the basic options values are explicitly set. */
 		public OptionsData (int _language, int _voiceLanguage, bool _showSubtitles, float _sfxVolume, float _musicVolume, float _speechVolume, int _ID)
 		{
 			language = _language;
@@ -102,16 +95,13 @@ namespace AC
 
 			linkedVariables = string.Empty;
 			saveFileNames = string.Empty;
-			lastSaveID = -1;
 
 			ID = _ID;
 			label = "Profile " + (ID + 1).ToString ();
 		}
 
 
-		/**
-		 * A Constructor in which the basic options values are copied from another instance of OptionsData.
-		 */
+		/** A Constructor in which the basic options values are copied from another instance of OptionsData. */
 		public OptionsData (OptionsData _optionsData, int _ID)
 		{
 			language = _optionsData.language;
@@ -124,7 +114,6 @@ namespace AC
 			
 			linkedVariables = _optionsData.linkedVariables;
 			saveFileNames = _optionsData.saveFileNames;
-			lastSaveID = -1;
 
 			ID =_ID;
 			label = "Profile " + (ID + 1).ToString ();

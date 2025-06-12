@@ -9,13 +9,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5e900662dcca14340bf4d9be8df1f533, type: 3}
+  m_Script: {fileID: 11500000, guid: 3cc1f751990d444ef9e1381090933b8b, type: 3}
   m_Name: QuitButton
   m_EditorClassIdentifier: 
   actions:
-  - {fileID: 11400002}
+  - {fileID: 7652486100006334432}
   isSkippable: 1
-  actionListType: 0
+  actionListType: 1
   unfreezePauseMenus: 1
   useParameters: 0
   canRunMultipleInstances: 0
@@ -23,8 +23,9 @@ MonoBehaviour:
   revertToDefaultParametersAfterRunning: 0
   parameters: []
   tagID: 0
+  groups: []
   backupData: []
---- !u!114 &11400002
+--- !u!114 &7652486100006334432
 MonoBehaviour:
   m_ObjectHideFlags: 1
   m_CorrespondingSourceObject: {fileID: 0}
@@ -34,7 +35,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c47ef24c0855d41f4a4073c476ef37a2, type: 3}
-  m_Name: 
+  m_Name: (Clone)
   m_EditorClassIdentifier: 
   id: 0
   isDisplayed: 1
@@ -46,12 +47,7 @@ MonoBehaviour:
   skipActionActual: {fileID: 0}
   linkedCutscene: {fileID: 0}
   linkedAsset: {fileID: 0}
-  endings:
-  - resultAction: 1
-    skipAction: -1
-    skipActionActual: {fileID: 0}
-    linkedCutscene: {fileID: 0}
-    linkedAsset: {fileID: 0}
+  endings: []
   isEnabled: 1
   isAssetFile: 1
   isBreakPoint: 0
@@ -60,12 +56,16 @@ MonoBehaviour:
     x: 14
     y: 14
     width: 300
-    height: 72
+    height: 64
   overrideColor: {r: 1, g: 1, b: 1, a: 1}
   showOutputSockets: 1
   parentActionListInEditor: {fileID: 0}
+  groupID: 0
   endGameType: 0
   chooseSceneBy: 0
   sceneNumber: 0
+  sceneNumberParameterID: -1
   sceneName: 
+  sceneNameParameterID: -1
   resetMenus: 0
+  killActionLists: 0

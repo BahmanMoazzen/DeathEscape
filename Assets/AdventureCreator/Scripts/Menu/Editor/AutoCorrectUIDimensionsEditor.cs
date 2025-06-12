@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿#if UNITY_EDITOR
+
 using UnityEngine;
 using UnityEditor;
 using UnityEngine.UI;
@@ -37,6 +38,8 @@ namespace AC
 				{
 					EditorGUILayout.HelpBox ("If no Transform is assigned above, the associated Menu's 'RectTransform boundary' will be used instead.", MessageType.Info);
 				}
+				
+				_target.accountForSafeArea = EditorGUILayout.Toggle ("Account for safe area?", _target.accountForSafeArea);
 			}
 
 			if (_target.GetComponent <Canvas>() == null)
@@ -50,3 +53,5 @@ namespace AC
 	}
 
 }
+
+#endif

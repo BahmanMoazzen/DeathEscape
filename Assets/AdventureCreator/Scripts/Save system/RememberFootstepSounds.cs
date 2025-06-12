@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2024
  *	
  *	"RememberFootstepSounds.cs"
  * 
@@ -10,10 +10,10 @@
  */
 
 using UnityEngine;
+using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 #if AddressableIsPresent
-using System.Collections;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.AddressableAssets;
 #endif
@@ -32,10 +32,6 @@ namespace AC
 		private FootstepSounds footstepSounds;
 		
 
-		/**
-		 * <summary>Serialises appropriate GameObject values into a string.</summary>
-		 * <returns>The data, serialised as a string</returns>
-		 */
 		public override string SaveData ()
 		{
 			FootstepSoundData footstepSoundData = new FootstepSoundData ();
@@ -45,159 +41,27 @@ namespace AC
 
 			if (FootstepSounds)
 			{
-				footstepSoundData.walkSounds = SoundsToString (FootstepSounds.footstepSounds);
-				footstepSoundData.runSounds = SoundsToString (FootstepSounds.runSounds);
+				footstepSoundData.surfaceID = FootstepSounds.CurrentSurface != null ? FootstepSounds.CurrentSurface.ID : -1;
 			}
 
 			return Serializer.SaveScriptData <FootstepSoundData> (footstepSoundData);
 		}
 		
 
-		/**
-		 * <summary>Deserialises a string of data, and restores the GameObject to its previous state.</summary>
-		 * <param name = "stringData">The data, serialised as a string</param>
-		 */
-		public override void LoadData (string stringData)
+		public override IEnumerator LoadDataCo (string stringData)
 		{
 			FootstepSoundData data = Serializer.LoadScriptData <FootstepSoundData> (stringData);
-			if (data == null)
-			{
-				return;
-			}
-			SavePrevented = data.savePrevented; if (savePrevented) return;
+			if (data == null) yield break;
+			SavePrevented = data.savePrevented; if (savePrevented) yield break;
 
 			if (FootstepSounds)
 			{
-				#if AddressableIsPresent
-
-				if (KickStarter.settingsManager.saveAssetReferencesWithAddressables)
+				Surface surface = KickStarter.settingsManager.GetSurface (data.surfaceID);
+				if (surface != null)
 				{
-					StopAllCoroutines ();
-					StartCoroutine (LoadDataFromAddressable (data));
-					return;
-				}
-
-				#endif
-
-				LoadDataFromResources (data);
-			}
-		}
-
-
-		#if AddressableIsPresent
-
-		private IEnumerator LoadDataFromAddressable (FootstepSoundData data)
-		{
-			if (!string.IsNullOrEmpty (data.walkSounds))
-			{
-				List<AudioClip> soundsList = new List<AudioClip> ();
-
-				string[] valuesArray = data.walkSounds.Split (SaveSystem.pipe[0]);
-				for (int i = 0; i < valuesArray.Length; i++)
-				{
-					string audioClipName = valuesArray[i];
-					if (string.IsNullOrEmpty (audioClipName)) continue;
-
-					AsyncOperationHandle<AudioClip> handle = Addressables.LoadAssetAsync<AudioClip> (audioClipName);
-					yield return handle;
-					if (handle.Status == AsyncOperationStatus.Succeeded)
-					{
-						soundsList.Add (handle.Result);
-					}
-					Addressables.Release (handle);
-				}
-				if (soundsList.Count > 0)
-				{
-					FootstepSounds.footstepSounds = soundsList.ToArray ();
+					FootstepSounds.CurrentSurface = surface;
 				}
 			}
-
-			if (!string.IsNullOrEmpty (data.runSounds))
-			{
-				List<AudioClip> soundsList = new List<AudioClip> ();
-
-				string[] valuesArray = data.runSounds.Split (SaveSystem.pipe[0]);
-				for (int i = 0; i < valuesArray.Length; i++)
-				{
-					string audioClipName = valuesArray[i];
-					if (string.IsNullOrEmpty (audioClipName)) continue;
-
-					AsyncOperationHandle<AudioClip> handle = Addressables.LoadAssetAsync<AudioClip> (audioClipName);
-					yield return handle;
-					if (handle.Status == AsyncOperationStatus.Succeeded)
-					{
-						soundsList.Add (handle.Result);
-					}
-					Addressables.Release (handle);
-				}
-				if (soundsList.Count > 0)
-				{
-					FootstepSounds.runSounds = soundsList.ToArray ();
-				}
-			}
-		}
-
-		#endif
-
-
-		private void LoadDataFromResources (FootstepSoundData data)
-		{
-			AudioClip[] walkSounds = StringToSounds (data.walkSounds);
-			if (walkSounds != null && walkSounds.Length > 0)
-			{
-				FootstepSounds.footstepSounds = walkSounds;
-			}
-
-			AudioClip[] runSounds = StringToSounds (data.runSounds);
-			if (runSounds != null && runSounds.Length > 0)
-			{
-				FootstepSounds.runSounds = runSounds;
-			}
-		}
-
-
-		private AudioClip[] StringToSounds (string dataString)
-		{
-			if (string.IsNullOrEmpty (dataString))
-			{
-				return null;
-			}
-
-			List<AudioClip> soundsList = new List<AudioClip>();
-			
-			string[] valuesArray = dataString.Split (SaveSystem.pipe[0]);
-			for (int i=0; i<valuesArray.Length; i++)
-			{
-				string audioClipName = valuesArray[i];
-				AudioClip audioClip = AssetLoader.RetrieveAudioClip (audioClipName);
-				if (audioClip)
-				{
-					soundsList.Add (audioClip);
-				}
-			}
-
-			return soundsList.ToArray ();
-		}
-
-
-		private string SoundsToString (AudioClip[] audioClips)
-		{
-			StringBuilder soundString = new StringBuilder ();
-
-			for (int i=0; i<audioClips.Length; i++)
-			{
-				if (audioClips[i] != null)
-				{
-					soundString.Append (AssetLoader.GetAssetInstanceID (audioClips[i]));
-					
-					if (i < audioClips.Length-1)
-					{
-						soundString.Append (SaveSystem.pipe);
-					}
-				}
-			}
-
-			return soundString.ToString ();
 		}
 
 
@@ -223,6 +87,7 @@ namespace AC
 
 		public string walkSounds;
 		public string runSounds;
+		public int surfaceID;
 
 		/** The default Constructor. */
 		public FootstepSoundData () { }

@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2024
  *	
  *	"ActionMenuJournal.cs"
  * 
@@ -20,7 +20,7 @@ namespace AC
 {
 	
 	[System.Serializable]
-	public class ActionMenuJournal : Action
+	public class ActionMenuJournal : Action, IMenuReferencer
 	{
 
 		public string menuToChange = "";
@@ -91,26 +91,13 @@ namespace AC
 		
 		public override void ShowGUI (List<ActionParameter> parameters)
 		{
-			menuToChangeParameterID = Action.ChooseParameterGUI ("Menu containing element:", parameters, menuToChangeParameterID, ParameterType.String);
-			if (menuToChangeParameterID < 0)
-			{
-				menuToChange = EditorGUILayout.TextField ("Menu containing element:", menuToChange);
-			}
+			TextField ("Menu containing element:", ref menuToChange, parameters, ref menuToChangeParameterID);
+			TextField ("Journal element:", ref elementToChange, parameters, ref elementToChangeParameterID);
 			
-			elementToChangeParameterID = Action.ChooseParameterGUI ("Journal element:", parameters, elementToChangeParameterID, ParameterType.String);
-			if (elementToChangeParameterID < 0)
-			{
-				elementToChange = EditorGUILayout.TextField ("Journal element:", elementToChange);
-			}
-
 			setJournalPage = (SetJournalPage) EditorGUILayout.EnumPopup ("Page to set to:", setJournalPage);
 			if (setJournalPage == SetJournalPage.SetHere)
 			{
-				pageNumberParameterID = Action.ChooseParameterGUI ("Page #:", parameters, pageNumberParameterID, ParameterType.Integer);
-				if (pageNumberParameterID < 0)
-				{
-					pageNumber = EditorGUILayout.IntField ("Page #:", pageNumber);
-				}
+				IntField ("Page #:", ref pageNumber, parameters, ref pageNumberParameterID);
 			}
 		}
 		
@@ -121,7 +108,7 @@ namespace AC
 		}
 
 
-		public override int GetMenuReferences (string _menuName, string _elementName = "")
+		public int GetNumMenuReferences (string _menuName, string _elementName = "")
 		{
 			if (menuToChangeParameterID < 0 && menuToChange == _menuName)
 			{

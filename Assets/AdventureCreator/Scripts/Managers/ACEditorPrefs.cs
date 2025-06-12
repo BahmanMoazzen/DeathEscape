@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2024
  *	
  *	"ACEditorPrefs.cs"
  * 
@@ -11,21 +11,24 @@
 
 #if UNITY_2019_2_OR_NEWER && UNITY_EDITOR
 #define CAN_USE_EDITOR_PREFS
+#endif
+#if UNITY_EDITOR
 using UnityEditor;
 #endif
-
+using System;
+using System.Text;
 using UnityEngine;
 
 namespace AC
 {
 
-	/**
-	 * This script allows for the setting of Editor-wide preferences via Unity's Player settings window (Unity 2019.2 and later).
-	 */
+	/** This script allows for the setting of Editor-wide preferences via Unity's Player settings window (Unity 2019.2 and later). */
 	public class ACEditorPrefs : ScriptableObject
 	{
 
-		#if CAN_USE_EDITOR_PREFS
+		private const string DefaultInstallPath = "Assets/AdventureCreator";
+
+		#if UNITY_EDITOR
 
 		private const string settingsPath = "/Editor/ACEditorPrefs.asset";
 
@@ -36,29 +39,56 @@ namespace AC
 		[SerializeField] protected Color pathGizmoColor = Color.blue;
 		[SerializeField] protected int menuItemsBeforeScroll = 15;
 		[SerializeField] protected CSVFormat csvFormat = CSVFormat.Standard;
-		[SerializeField] protected bool showHierarchyIcons = true;
+		[SerializeField] protected ShowHierarchyIcons showHierarchyIcons = ShowHierarchyIcons.All;
 		[SerializeField] protected int editorLabelWidth = 0;
 		[SerializeField] protected int actionNodeWidth = 300;
 		[SerializeField] protected bool disableInstaller = false;
-
+		[SerializeField] protected string installPath = DefaultInstallPath;
+		[SerializeField] protected int autosaveActionListsInterval = 10;
+		[SerializeField] protected bool retainExportFieldData = true;
+		[SerializeField] protected bool allowDragDrop = false;
+		[SerializeField] protected string actionListAssetPath = "";
+		[SerializeField] protected ExportEncoding exportEncoding = ExportEncoding.UTF8;
+		protected enum ExportEncoding { UTF8, ASCII, Unicode };
 
 		internal static ACEditorPrefs GetOrCreateSettings ()
 		{
-			string fullPath = Resource.MainFolderPath + settingsPath;
+			string fullPath = DefaultInstallPath + settingsPath;
 
-			var settings = AssetDatabase.LoadAssetAtPath<ACEditorPrefs> (fullPath);
+			ACEditorPrefs settings = AssetDatabase.LoadAssetAtPath<ACEditorPrefs> (fullPath);
 			if (settings == null)
 			{
-				bool isValid = AssetDatabase.IsValidFolder (Resource.MainFolderPath + "/Editor");
-				if (!isValid)
+				bool canCreateNew = AssetDatabase.IsValidFolder (DefaultInstallPath + "/Editor");
+				
+				if (!canCreateNew)
 				{
-					AssetDatabase.CreateFolder (Resource.MainFolderPath, "Editor");
-					isValid = AssetDatabase.IsValidFolder (Resource.MainFolderPath + "/Editor");
+					AssetDatabase.CreateFolder (DefaultInstallPath, "Editor");
+					canCreateNew = AssetDatabase.IsValidFolder (DefaultInstallPath + "/Editor");
 				}
 
-				if (isValid)
+				if (!canCreateNew)
 				{
-					settings = ScriptableObject.CreateInstance<ACEditorPrefs> ();
+					fullPath = "Assets/" + settingsPath;
+					settings = AssetDatabase.LoadAssetAtPath<ACEditorPrefs> (fullPath);
+
+					if (settings)
+					{
+						return settings;
+					}
+					canCreateNew = AssetDatabase.IsValidFolder ("Assets/Editor");
+					if (!canCreateNew)
+					{
+						AssetDatabase.CreateFolder ("Assets", "Editor");
+						canCreateNew = AssetDatabase.IsValidFolder ("Assets/Editor");
+					}
+				}
+				
+				if (canCreateNew)
+				{
+					settings = AssetDatabase.LoadAssetAtPath<ACEditorPrefs> (fullPath);
+					if (settings) return settings;
+
+					settings = CreateInstance<ACEditorPrefs> ();
 					settings.hierarchyIconOffset = DefaultHierarchyIconOffset;
 					settings.hotspotGizmoColor = DefaultHotspotGizmoColor;
 					settings.triggerGizmoColor = DefaultTriggerGizmoColor;
@@ -70,12 +100,27 @@ namespace AC
 					settings.editorLabelWidth = DefaultEditorLabelWidth;
 					settings.actionNodeWidth = DefaultActionNodeWidth;
 					settings.disableInstaller = DefaultDisableInstaller;
-					AssetDatabase.CreateAsset (settings, fullPath);
-					AssetDatabase.SaveAssets ();
+					settings.installPath = DefaultInstallPath;
+					settings.autosaveActionListsInterval = DefaultAutosaveActionListsInterval;
+					settings.retainExportFieldData = DefaultRetainExportFieldData;
+					settings.allowDragDrop = DefaultAllowDragDrop;
+					settings.actionListAssetPath = DefaultActionListAssetPath;
+					settings.exportEncoding = DefaultExportEncoding;
+
+					try
+					{
+						AssetDatabase.CreateAsset (settings, fullPath);
+						Debug.Log ("Created new AC EditorPrefs asset: '" + fullPath + "'", settings);
+						AssetDatabase.SaveAssets ();
+					}
+					catch (Exception e)
+					{
+						Debug.LogException (e);
+					}
 				}
 				else
 				{
-					Debug.LogWarning ("Cannot create AC editor prefs - does the folder '" + Resource.MainFolderPath + "/Editor' exist?");
+					Debug.LogWarning ("Cannot create AC editor prefs - does the folder '" + DefaultInstallPath + "/Editor' exist?");
 					return null;
 				}
 			}
@@ -83,10 +128,12 @@ namespace AC
 		}
 
 
+		#if CAN_USE_EDITOR_PREFS
+
 		internal static SerializedObject GetSerializedSettings ()
 		{
 			ACEditorPrefs settings = GetOrCreateSettings ();
-			if (settings != null)
+			if (settings)
 			{
 				return new SerializedObject (settings);
 			}
@@ -101,17 +148,19 @@ namespace AC
 		{
 			get
 			{
-				#if CAN_USE_EDITOR_PREFS
 				ACEditorPrefs settings = GetOrCreateSettings ();
-				return (settings != null) ? settings.hierarchyIconOffset : DefaultHierarchyIconOffset;
-				#else
-				return DefaultHierarchyIconOffset;
-				#endif
+				return settings ? settings.hierarchyIconOffset : DefaultHierarchyIconOffset;
+			}
+			set
+			{
+				ACEditorPrefs settings = GetOrCreateSettings ();
+				if (settings) settings.hierarchyIconOffset = value;
+				if (settings) EditorUtility.SetDirty (settings);
 			}
 		}
 
 
-		private static int DefaultHierarchyIconOffset
+		private static int DefaultHierarchyIconOffset 
 		{
 			get
 			{
@@ -125,12 +174,14 @@ namespace AC
 		{
 			get
 			{
-				#if CAN_USE_EDITOR_PREFS
 				ACEditorPrefs settings = GetOrCreateSettings ();
-				return (settings != null) ? settings.editorLabelWidth : DefaultEditorLabelWidth;
-				#else
-				return DefaultHierarchyIconOffset;
-				#endif
+				return settings ? settings.editorLabelWidth : DefaultEditorLabelWidth;
+			}
+			set
+			{
+				ACEditorPrefs settings = GetOrCreateSettings ();
+				if (settings) settings.editorLabelWidth = value;
+				if (settings) EditorUtility.SetDirty (settings);
 			}
 		}
 
@@ -149,14 +200,17 @@ namespace AC
 		{
 			get
 			{
-				int value = DefaultActionNodeWidth;
-				#if CAN_USE_EDITOR_PREFS
 				ACEditorPrefs settings = GetOrCreateSettings ();
-				if (settings != null) value = settings.actionNodeWidth;
-				#endif
+				int value = (settings != null) ? settings.actionNodeWidth : DefaultActionNodeWidth;
 
 				if (value <= 0) return DefaultActionNodeWidth;
 				return Mathf.Clamp (value, 200, 800);
+			}
+			set
+			{
+				ACEditorPrefs settings = GetOrCreateSettings ();
+				if (settings) settings.actionNodeWidth = Mathf.Clamp (value, 200, 800);
+				if (settings) EditorUtility.SetDirty (settings);
 			}
 		}
 
@@ -171,21 +225,49 @@ namespace AC
 
 
 		/** If True, then icons can be displayed in the Hierarchy window */
-		public static bool ShowHierarchyIcons
+		public static ShowHierarchyIcons ShowHierarchyIcons
 		{
 			get
 			{
-				#if CAN_USE_EDITOR_PREFS
 				ACEditorPrefs settings = GetOrCreateSettings ();
-				return (settings != null) ? settings.showHierarchyIcons : DefaultShowHierarchyIcons;
-				#else
-				return DefaultShowHierarchyIcons;
-				#endif
+				return settings ? settings.showHierarchyIcons : DefaultShowHierarchyIcons;
+			}
+			set
+			{
+				ACEditorPrefs settings = GetOrCreateSettings ();
+				if (settings) settings.showHierarchyIcons = value;
+				if (settings) EditorUtility.SetDirty (settings);
 			}
 		}
 
 
-		private static bool DefaultShowHierarchyIcons
+		private static ShowHierarchyIcons DefaultShowHierarchyIcons
+		{
+			get
+			{
+				return ShowHierarchyIcons.All;
+			}
+		}
+		
+		
+		/** If True, then export wizards will retain their field data when re-opened */
+		public static bool RetainExportFieldData
+		{
+			get
+			{
+				ACEditorPrefs settings = GetOrCreateSettings ();
+				return settings ? settings.retainExportFieldData : DefaultRetainExportFieldData;
+			}
+			set
+			{
+				ACEditorPrefs settings = GetOrCreateSettings ();
+				if (settings) settings.retainExportFieldData = value;
+				if (settings) EditorUtility.SetDirty (settings);
+			}
+		}
+
+
+		private static bool DefaultRetainExportFieldData
 		{
 			get
 			{
@@ -199,12 +281,14 @@ namespace AC
 		{
 			get
 			{
-				#if CAN_USE_EDITOR_PREFS
 				ACEditorPrefs settings = GetOrCreateSettings ();
-				return (settings != null) ? settings.hotspotGizmoColor : DefaultHotspotGizmoColor;
-				#else
-				return DefaultHotspotGizmoColor;
-				#endif
+				return settings ? settings.hotspotGizmoColor : DefaultHotspotGizmoColor;
+			}
+			set
+			{
+				ACEditorPrefs settings = GetOrCreateSettings ();
+				if (settings) settings.hotspotGizmoColor = value;
+				if (settings) EditorUtility.SetDirty (settings);
 			}
 		}
 
@@ -223,12 +307,14 @@ namespace AC
 		{
 			get
 			{
-				#if CAN_USE_EDITOR_PREFS
 				ACEditorPrefs settings = GetOrCreateSettings ();
-				return (settings != null) ? settings.triggerGizmoColor : DefaultTriggerGizmoColor;
-				#else
-				return DefaultTriggerGizmoColor;
-				#endif
+				return settings ? settings.triggerGizmoColor : DefaultTriggerGizmoColor;
+			}
+			set
+			{
+				ACEditorPrefs settings = GetOrCreateSettings ();
+				if (settings) settings.triggerGizmoColor = value;
+				if (settings) EditorUtility.SetDirty (settings);
 			}
 		}
 
@@ -247,12 +333,14 @@ namespace AC
 		{
 			get
 			{
-				#if CAN_USE_EDITOR_PREFS
 				ACEditorPrefs settings = GetOrCreateSettings ();
-				return (settings != null) ? settings.collisionGizmoColor : DefaultCollisionGizmoColor;
-				#else
-				return DefaultCollisionGizmoColor;
-				#endif
+				return settings ? settings.collisionGizmoColor : DefaultCollisionGizmoColor;
+			}
+			set
+			{
+				ACEditorPrefs settings = GetOrCreateSettings ();
+				if (settings) settings.collisionGizmoColor = value;
+				if (settings) EditorUtility.SetDirty (settings);
 			}
 		}
 
@@ -271,12 +359,14 @@ namespace AC
 		{
 			get
 			{
-				#if CAN_USE_EDITOR_PREFS
 				ACEditorPrefs settings = GetOrCreateSettings ();
-				return (settings != null) ? settings.pathGizmoColor : DefaultPathGizmoColor;
-				#else
-				return DefaultPathGizmoColor;
-				#endif
+				return settings ? settings.pathGizmoColor : DefaultPathGizmoColor;
+			}
+			set
+			{
+				ACEditorPrefs settings = GetOrCreateSettings ();
+				if (settings) settings.pathGizmoColor = value;
+				if (settings) EditorUtility.SetDirty (settings);
 			}
 		}
 
@@ -295,12 +385,14 @@ namespace AC
 		{
 			get
 			{
-				#if CAN_USE_EDITOR_PREFS
 				ACEditorPrefs settings = GetOrCreateSettings ();
-				return (settings != null) ? settings.csvFormat : DefaultCSVFormat;
-				#else
-				return CSVFormat.Legacy;
-				#endif
+				return settings ? settings.csvFormat : DefaultCSVFormat;
+			}
+			set
+			{
+				ACEditorPrefs settings = GetOrCreateSettings ();
+				if (settings) settings.csvFormat = value;
+				if (settings) EditorUtility.SetDirty (settings);
 			}
 		}
 
@@ -319,12 +411,14 @@ namespace AC
 		{
 			get
 			{
-				#if CAN_USE_EDITOR_PREFS
 				ACEditorPrefs settings = GetOrCreateSettings ();
-				return (settings != null) ? settings.menuItemsBeforeScroll : DefaultMenuItemsBeforeScroll;
-				#else
-				return DefaultMenuItemsBeforeScroll;
-				#endif
+				return settings ? settings.menuItemsBeforeScroll : DefaultMenuItemsBeforeScroll;
+			}
+			set
+			{
+				ACEditorPrefs settings = GetOrCreateSettings ();
+				if (settings) settings.menuItemsBeforeScroll = value;
+				if (settings) EditorUtility.SetDirty (settings);
 			}
 		}
 
@@ -343,12 +437,14 @@ namespace AC
 		{
 			get
 			{
-				#if CAN_USE_EDITOR_PREFS
 				ACEditorPrefs settings = GetOrCreateSettings ();
-				return (settings != null) ? settings.disableInstaller : DefaultDisableInstaller;
-				#else
-				return DefaultDisableInstaller;
-				#endif
+				return settings ? settings.disableInstaller : DefaultDisableInstaller;
+			}
+			set
+			{
+				ACEditorPrefs settings = GetOrCreateSettings ();
+				if (settings) settings.disableInstaller = value;
+				if (settings) EditorUtility.SetDirty (settings);
 			}
 		}
 
@@ -360,6 +456,130 @@ namespace AC
 				return false;
 			}
 		}
+
+
+		public static string InstallPath
+		{
+			get
+			{
+				ACEditorPrefs settings = GetOrCreateSettings ();
+				return (settings) ? settings.installPath : DefaultInstallPath;
+			}
+			set
+			{
+				ACEditorPrefs settings = GetOrCreateSettings ();
+				if (settings) settings.installPath = value;
+				if (settings) EditorUtility.SetDirty (settings);
+			}
+		}
+
+
+		public static int AutosaveActionListsInterval
+		{
+			get
+			{
+				ACEditorPrefs settings = GetOrCreateSettings ();
+				return settings ? settings.autosaveActionListsInterval : DefaultAutosaveActionListsInterval;
+			}
+			set
+			{
+				ACEditorPrefs settings = GetOrCreateSettings ();
+				if (settings) settings.autosaveActionListsInterval = value;
+				if (settings) EditorUtility.SetDirty (settings);
+			}
+		}
+
+
+		private static int DefaultAutosaveActionListsInterval
+		{
+			get
+			{
+				return 10;
+			}
+		}
+
+
+		public static bool AllowDragDrop
+		{
+			get
+			{
+				ACEditorPrefs settings = GetOrCreateSettings ();
+				return settings ? settings.allowDragDrop : DefaultAllowDragDrop;
+			}
+			set
+			{
+				ACEditorPrefs settings = GetOrCreateSettings ();
+				if (settings) settings.allowDragDrop = value;
+				if (settings) EditorUtility.SetDirty (settings);
+			}
+		}
+
+
+		private static bool DefaultAllowDragDrop
+		{
+			get
+			{
+				return false;
+			}
+		}
+
+
+		public static string ActionListAssetPath
+		{
+			get
+			{
+				ACEditorPrefs settings = GetOrCreateSettings ();
+				return settings ? settings.actionListAssetPath : DefaultActionListAssetPath;
+			}
+			set
+			{
+				ACEditorPrefs settings = GetOrCreateSettings ();
+				if (settings) settings.actionListAssetPath = value;
+				if (settings) EditorUtility.SetDirty (settings);
+			}
+		}
+
+
+		private static string DefaultActionListAssetPath
+		{
+			get
+			{
+				return string.Empty;
+			}
+		}
+
+
+		public static Encoding Encoding
+		{
+			get
+			{
+				ACEditorPrefs settings = GetOrCreateSettings ();
+				ExportEncoding exportEncoding = settings ? settings.exportEncoding : DefaultExportEncoding;
+
+				switch (exportEncoding)
+				{
+					case ExportEncoding.ASCII:
+						return Encoding.ASCII;
+
+					case ExportEncoding.Unicode:
+						return Encoding.Unicode;
+
+					default:
+						return Encoding.UTF8;
+				}
+			}
+		}
+
+
+		protected static ExportEncoding DefaultExportEncoding
+		{
+			get
+			{
+				return ExportEncoding.UTF8;
+			}
+		}
+
+		#endif
 
 	}
 
@@ -390,33 +610,93 @@ namespace AC
 						EditorGUILayout.Space ();
 						EditorGUILayout.LabelField ("Hierarchy icons", EditorStyles.boldLabel);
 						EditorGUILayout.PropertyField (settings.FindProperty ("showHierarchyIcons"), new GUIContent ("Show icons?", "If True, save and node icons will appear in the Hierarchy window"));
-						if (settings.FindProperty ("showHierarchyIcons") == null || settings.FindProperty ("showHierarchyIcons").boolValue)
+						if (settings.FindProperty ("showHierarchyIcons") == null || settings.FindProperty ("showHierarchyIcons").intValue < 2)
 						{
 							EditorGUILayout.PropertyField (settings.FindProperty ("hierarchyIconOffset"), new GUIContent ("Horizontal offset:", "A horizontal offset to apply to AC icons in the Hierarchy"));
 						}
 
 						EditorGUILayout.Space ();
 						EditorGUILayout.LabelField ("Editor settings", EditorStyles.boldLabel);
+						EditorGUILayout.PropertyField (settings.FindProperty ("installPath"), new GUIContent ("Install path:", "The filepath to AC's root folder"));
 						EditorGUILayout.PropertyField (settings.FindProperty ("editorLabelWidth"), new GUIContent ("Label widths:", "How wide to render labels in Managers and other editors"));
 						EditorGUILayout.PropertyField (settings.FindProperty ("menuItemsBeforeScroll"), new GUIContent ("Items before scrolling:", "How many Menus, Inventory items, Variables etc can be listed in the AC Game Editor before scrolling becomes necessary"));
-						EditorGUILayout.PropertyField (settings.FindProperty ("actionNodeWidth"), new GUIContent ("Action node widths:", "How wide Actions are when rendered as nodes in the ActionList Editor window"));
 						EditorGUILayout.PropertyField (settings.FindProperty ("disableInstaller"), new GUIContent ("Bypass install checks?", "If True, checks for AC's required Input and Layer settings will be bypassed"));
+						EditorGUILayout.PropertyField (settings.FindProperty ("allowDragDrop"), new GUIContent ("Drag-drop list re-ordering?", "If True, Editor lists such as Menus and Inventory items can be re-ordered by dragging-and-dropping"));
+
+						EditorGUILayout.Space ();
+						EditorGUILayout.LabelField ("ActionList settings", EditorStyles.boldLabel);
+						EditorGUILayout.BeginHorizontal ();
+						EditorGUILayout.PropertyField (settings.FindProperty ("autosaveActionListsInterval"), new GUIContent ("Autosave interval (m):", "How often - in minutes - scene-based ActionList data should be backed-up (set to 0 to disable)"));
+						if (GUILayout.Button ("Autosave all now", GUILayout.MaxWidth (160f)))
+						{
+							AutosaveAll ();
+						}
+						EditorGUILayout.EndHorizontal ();
+						EditorGUILayout.PropertyField (settings.FindProperty ("actionNodeWidth"), new GUIContent ("Node width:", "How wide Actions are when rendered as nodes in the ActionList Editor window"));
+						EditorGUILayout.PropertyField (settings.FindProperty ("actionListAssetPath"), new GUIContent ("Default asset path:", "Where to place auto-created ActionList asset files, relative to the Assets folder."));
 
 						EditorGUILayout.Space ();
 						EditorGUILayout.LabelField ("Import / export", EditorStyles.boldLabel);
 						EditorGUILayout.PropertyField (settings.FindProperty ("csvFormat"), new GUIContent ("CSV format:", "The formatting method to apply to CSV files"));
+						EditorGUILayout.PropertyField (settings.FindProperty ("retainExportFieldData"), new GUIContent ("Exporters retain fields?", "If True, the Text, Variable and Inventory export wizards will retain their field values upon being re-opened"));
+						EditorGUILayout.PropertyField (settings.FindProperty ("exportEncoding"), new GUIContent ("Export encoding:", "The encoding to use when writing files with the Text, Variable and Inventory export wizards"));
 
 						settings.ApplyModifiedProperties ();
 					}
 					else
 					{
-						EditorGUILayout.HelpBox ("Cannot create AC editor prefs - does the folder '" + Resource.MainFolderPath + "/Editor' exist?", MessageType.Warning);
+						EditorGUILayout.HelpBox ("Cannot create AC editor prefs - does the folder '/Assets/AdventureCreator/Editor' exist?", MessageType.Warning);
 					}
 				},
 			};
 
 			return provider;
 		}
+
+
+		private static void AutosaveAll ()
+		{
+			bool canProceed = EditorUtility.DisplayDialog ("Auto-save all ActionLists", "AC will now go through your game's build settings, and backup the data for all scene-based ActionLists. It is recommended to back up your project beforehand.", "OK", "Cancel");
+			if (!canProceed) return;
+
+			if (UnityEditor.SceneManagement.EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo ())
+			{
+				string originalScene = UnityVersionHandler.GetCurrentSceneFilepath ();
+				string[] sceneFiles = AdvGame.GetSceneFiles ();
+
+				// First look for lines that already have an assigned lineID
+				foreach (string sceneFile in sceneFiles)
+				{
+					AutosaveActions (sceneFile);
+				}
+
+				ACDebug.Log ("Process complete - " + sceneFiles.Length + " scenes processed.");
+
+				UnityVersionHandler.OpenScene (originalScene);
+			}
+		}
+
+
+		private static void AutosaveActions (string sceneFile)
+		{
+			UnityVersionHandler.OpenScene (sceneFile);
+
+			ActionList[] actionLists = UnityVersionHandler.FindObjectsOfType<ActionList> ();
+			if (actionLists.Length == 0)
+			{
+				return;
+			}
+
+			JsonAction.CacheSceneObjectReferences ();
+			foreach (ActionList actionList in actionLists)
+			{
+				actionList.BackupData ();
+			}
+			JsonAction.ClearSceneObjectReferencesCache ();
+
+			UnityVersionHandler.SaveScene ();
+		}
+
 	}
 
 	#endif

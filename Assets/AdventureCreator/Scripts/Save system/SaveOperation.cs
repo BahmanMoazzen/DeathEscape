@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2024
  *	
  *	"SaveOperation.cs"
  * 
@@ -25,6 +25,7 @@ namespace AC
 		private SaveData saveData;
 		private SaveFile requestedSave;
 		private string allData;
+		private System.Action onComplete;
 
 		#endregion
 
@@ -39,11 +40,11 @@ namespace AC
 
 				if (SaveSystem.SaveFileHandler.SupportsSaveThreading ())
 				{
-					KickStarter.saveSystem.OnCompleteSaveOperation (requestedSave, true, this);
+					KickStarter.saveSystem.OnCompleteSaveOperation (requestedSave, true, this, onComplete);
 				}
 				else
 				{
-					SaveSystem.SaveFileHandler.Save (requestedSave, allData);
+					SaveSystem.SaveFileHandler.Save (requestedSave, allData, OnFinishSaveRequest);
 				}
 			}
 		}
@@ -58,14 +59,23 @@ namespace AC
 		 * <param name="saveData">The SaveData class, already filled with data that cannot be saved through threading</param>
 		 * <param name="saveFile">The SaveFile to write to</param>
 		 */
-		public void BeginOperation (ref SaveData saveData, SaveFile saveFile)
+		public void BeginOperation (ref SaveData saveData, SaveFile saveFile, System.Action _onComplete)
 		{
 			this.saveData = saveData;
+			onComplete = _onComplete;
 			requestedSave = new SaveFile (saveFile);
 
 			if (KickStarter.settingsManager.saveWithThreading)
 			{
+				KickStarter.eventManager.Call_OnPrepareSaveThread (saveFile);
+
 				Thread saveThread = new Thread (SendSaveToFile);
+
+				if (KickStarter.settingsManager.useInvariantCulture)
+				{
+					saveThread.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture;
+				}
+
 				if (KickStarter.stateHandler.GetMusicEngine ())
 				{
 					KickStarter.stateHandler.GetMusicEngine ().PrepareSaveBeforeThreading ();
@@ -97,18 +107,18 @@ namespace AC
 			return false;
 		}
 
+		#endregion
 
-		/**
-		 * <summary>A callback called when the SaveFileHandler has written the data to disk</summary>
-		 * <param name="wasSuccesful">If True, the file-writing was succesful.</param>
-		 */
-		public void OnFinishSaveRequest (bool wasSuccesful)
+
+		#region PrivateFunctions
+
+		private void OnFinishSaveRequest (bool wasSuccesful)
 		{
 			// Received data matches requested
 			if (!wasSuccesful)
 			{
 				KickStarter.eventManager.Call_OnSave (FileAccessState.Fail, requestedSave.saveID);
-				KickStarter.saveSystem.OnCompleteSaveOperation (requestedSave, false, this);
+				KickStarter.saveSystem.OnCompleteSaveOperation (requestedSave, false, this, onComplete);
 				return;
 			}
 
@@ -118,20 +128,17 @@ namespace AC
 			}
 			else
 			{
-				KickStarter.saveSystem.OnCompleteSaveOperation (requestedSave, true, this);
+				KickStarter.saveSystem.OnCompleteSaveOperation (requestedSave, true, this, onComplete);
 			}
 		}
 
-		#endregion
-
-
-		#region PrivateFunctions
 
 		private void SendSaveToFile ()
 		{
 			saveData.mainData = KickStarter.stateHandler.SaveMainData (saveData.mainData);
 			saveData.mainData.movementMethod = (int) KickStarter.settingsManager.movementMethod;
 			saveData.mainData.activeInputsData = ActiveInput.CreateSaveData (KickStarter.settingsManager.activeInputs);
+			saveData.mainData.timersData = Timer.CreateSaveData (KickStarter.variablesManager.timers);
 
 			saveData.mainData.currentPlayerID = (KickStarter.player)
 												? KickStarter.player.ID
@@ -147,11 +154,16 @@ namespace AC
 			string levelData = SaveSystem.FileFormatHandler.SerializeAllRoomData (KickStarter.levelStorage.allLevelData);
 			allData = MergeData (mainData, levelData);
 
+			if (KickStarter.settingsManager.saveCompression)
+			{
+				allData = SaveSystem.CompressString (allData);
+			}
+
 			if (KickStarter.settingsManager.saveWithThreading)
 			{
 				if (SaveSystem.SaveFileHandler.SupportsSaveThreading ())
 				{
-					SaveSystem.SaveFileHandler.Save (requestedSave, allData);
+					SaveSystem.SaveFileHandler.Save (requestedSave, allData, OnFinishSaveRequest);
 				}
 				else
 				{
@@ -160,7 +172,7 @@ namespace AC
 			}
 			else
 			{
-				SaveSystem.SaveFileHandler.Save (requestedSave, allData);
+				SaveSystem.SaveFileHandler.Save (requestedSave, allData, OnFinishSaveRequest);
 			}
 		}
 

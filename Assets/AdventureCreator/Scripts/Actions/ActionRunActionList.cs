@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2024
  *	
  *	"ActionRunActionList.cs"
  * 
@@ -20,11 +20,13 @@ namespace AC
 {
 
 	[System.Serializable]
-	public class ActionRunActionList : Action
+	public class ActionRunActionList : Action, IItemReferencerAction, IDocumentReferencerAction
 	{
 		
 		public enum ListSource { InScene, AssetFile };
 		public ListSource listSource = ListSource.InScene;
+
+		private ActionListManager.NestedAwaitingActiveList nestedAwaitingActiveList;
 
 		public ActionList actionList;
 		public int constantID = 0;
@@ -46,9 +48,13 @@ namespace AC
 
 		public bool setParameters = false; // Deprecated
 
+		protected bool isAwaitingDelay;
+
 		protected RuntimeActionList runtimeActionList;
+		protected Conversation[] conversations;
 
 		[SerializeField] protected RunMode runMode = RunMode.RunOnly;
+		protected RunMode runtimeRunMode;
 		protected enum RunMode { RunOnly, SetParametersAndRun, SetParametersOnly };
 
 
@@ -77,17 +83,31 @@ namespace AC
 
 		public override void AssignValues (List<ActionParameter> parameters)
 		{
+			runtimeRunMode = runMode;
+			isAwaitingDelay = false;
+			nestedAwaitingActiveList = null;
+
 			if (listSource == ListSource.InScene)
 			{
 				actionList = AssignFile <ActionList> (parameters, parameterID, constantID, actionList);
 				jumpToAction = AssignInteger (parameters, jumpToActionParameterID, jumpToAction);
+
+				if (parameterID > 0)
+				{
+					runtimeRunMode = RunMode.RunOnly;
+				}
 			}
 			else if (listSource == ListSource.AssetFile)
 			{
 				invActionList = (ActionListAsset) AssignObject <ActionListAsset> (parameters, assetParameterID, invActionList);
+
+				if (assetParameterID > 0)
+				{
+					runtimeRunMode = RunMode.RunOnly;
+				}
 			}
 
-			if (localParameters != null && localParameters.Count > 0)
+			if (localParameters != null && localParameters.Count > 0 && parameters != null)
 			{
 				for (int i=0; i<localParameters.Count; i++)
 				{
@@ -132,7 +152,7 @@ namespace AC
 								{
 									SendParameters (actionList.parameters, false);
 								}
-								if (runMode == RunMode.SetParametersOnly)
+								if (runtimeRunMode == RunMode.SetParametersOnly)
 								{
 									isRunning = false;
 									return 0f;
@@ -141,7 +161,7 @@ namespace AC
 							else if (actionList.source == ActionListSource.InScene && actionList.useParameters)
 							{
 								SendParameters (actionList.parameters, false);
-								if (runMode == RunMode.SetParametersOnly)
+								if (runtimeRunMode == RunMode.SetParametersOnly)
 								{
 									isRunning = false;
 									return 0f;
@@ -171,7 +191,7 @@ namespace AC
 							if (invActionList.useParameters)
 							{
 								SendParameters (invActionList.GetParameters (), true);
-								if (runMode == RunMode.SetParametersOnly)
+								if (runtimeRunMode == RunMode.SetParametersOnly)
 								{
 									isRunning = false;
 									return 0f;
@@ -206,6 +226,11 @@ namespace AC
 
 				if (!runInParallel || (runInParallel && willWait))
 				{
+					if (listSource == ListSource.InScene && actionList && actionList.triggerTime > 0f)
+					{
+						isAwaitingDelay = true;
+						EventManager.OnEndActionList += OnEndActionList;
+					}
 					return defaultPauseTime;
 				}
 			}
@@ -216,13 +241,51 @@ namespace AC
 					case ListSource.InScene:
 						if (actionList)
 						{
-							if (KickStarter.actionListManager.IsListRunning (actionList))
+							if (isAwaitingDelay)
 							{
 								return defaultPauseTime;
 							}
+							else if (KickStarter.actionListManager.IsListRunning (actionList))
+							{
+								if (nestedAwaitingActiveList == null)
+								{
+									ActiveList nextActiveList = GetNextActiveList ();
+									if (nextActiveList != null && KickStarter.actionListManager.IsNestedAwaiting (nextActiveList))
+									{
+										nestedAwaitingActiveList = new ActionListManager.NestedAwaitingActiveList (GetActiveList (), null, actionList);
+										KickStarter.actionListManager.SetActionPendingState (nestedAwaitingActiveList, true);
+									}
+								}
+
+								isAwaitingDelay = false;
+								EventManager.OnEndActionList -= OnEndActionList;
+								return defaultPauseTime;
+							}
+							else if (nestedAwaitingActiveList != null && nestedAwaitingActiveList.Conversation)
+							{
+								if (nestedAwaitingActiveList.Conversation.IsOverridingActionList (actionList))
+								{
+									return defaultPauseTime;
+								}
+							}
 							else
 							{
-								isRunning = false;
+								if (conversations == null)
+								{
+									conversations = UnityVersionHandler.FindObjectsOfType<Conversation> ();
+								}
+								foreach (Conversation conversation in conversations)
+								{
+									if (conversation.IsOverridingActionList (actionList))
+									{
+										nestedAwaitingActiveList = new ActionListManager.NestedAwaitingActiveList (GetActiveList (), conversation, actionList);
+										KickStarter.actionListManager.SetActionPendingState (nestedAwaitingActiveList, true);
+
+										isAwaitingDelay = false;
+										EventManager.OnEndActionList -= OnEndActionList;
+										return defaultPauseTime;
+									}
+								}
 							}
 						}
 						break;
@@ -232,11 +295,44 @@ namespace AC
 						{
 							if (invActionList.canRunMultipleInstances)
 							{
-								if (runtimeActionList != null && KickStarter.actionListManager.IsListRunning (runtimeActionList))
+								if (runtimeActionList)
 								{
-									return defaultPauseTime;
+									if (KickStarter.actionListManager.IsListRunning (runtimeActionList))
+									{
+										ActiveList nextActiveList = GetNextActiveList ();
+										if (nextActiveList != null && KickStarter.actionListManager.IsNestedAwaiting (nextActiveList))
+										{
+											nestedAwaitingActiveList = new ActionListManager.NestedAwaitingActiveList (GetActiveList (), null, runtimeActionList);
+											KickStarter.actionListManager.SetActionPendingState (nestedAwaitingActiveList, true);
+										}
+
+										return defaultPauseTime;
+									}
+
+									if (nestedAwaitingActiveList != null && nestedAwaitingActiveList.Conversation)
+									{
+										if (nestedAwaitingActiveList.Conversation.IsOverridingActionList (runtimeActionList))
+										{
+											return defaultPauseTime;
+										}
+									}
+									else
+									{
+										if (conversations == null)
+										{
+											conversations = UnityVersionHandler.FindObjectsOfType<Conversation> ();
+										}
+										foreach (Conversation conversation in conversations)
+										{
+											if (conversation.IsOverridingActionList (runtimeActionList))
+											{
+												nestedAwaitingActiveList = new ActionListManager.NestedAwaitingActiveList (GetActiveList (), conversation, runtimeActionList);
+												KickStarter.actionListManager.SetActionPendingState (nestedAwaitingActiveList, true);
+												return defaultPauseTime;
+											}
+										}
+									}
 								}
-								isRunning = false;
 							}
 							else
 							{
@@ -244,7 +340,6 @@ namespace AC
 								{
 									return defaultPauseTime;
 								}
-								isRunning = false;
 							}
 						}
 						break;
@@ -254,12 +349,89 @@ namespace AC
 				}
 			}
 
+			if (nestedAwaitingActiveList != null)
+			{
+				KickStarter.actionListManager.SetActionPendingState (nestedAwaitingActiveList, false);
+				nestedAwaitingActiveList = null;
+			}
+			EventManager.OnEndActionList -= OnEndActionList;
+			isAwaitingDelay = false;
+			isRunning = false;
 			return 0f;
+		}
+
+
+		private ActiveList GetActiveList ()
+		{
+			foreach (var activeList in KickStarter.actionListManager.ActiveLists)
+			{
+				if (activeList.actionList == null) continue;
+				if (activeList.actionList.actions.Contains (this))
+				{
+					return activeList;
+				}
+			}
+
+			foreach (var activeList in KickStarter.actionListAssetManager.ActiveLists)
+			{
+				if (activeList.actionList == null) continue;
+				if (activeList.actionList.actions.Contains (this))
+				{
+					return activeList;
+				}
+			}
+			return null;
+		}
+
+
+		private ActiveList GetNextActiveList ()
+		{
+			if (listSource == ListSource.InScene)
+			{
+				foreach (var activeList in KickStarter.actionListManager.ActiveLists)
+				{
+					if (activeList.actionList == null) continue;
+					if (activeList.actionList == actionList)
+					{
+						return activeList;
+					}
+				}
+			}
+			else if (listSource == ListSource.AssetFile)
+			{
+				foreach (var activeList in KickStarter.actionListAssetManager.ActiveLists)
+				{
+					if (activeList.actionList == null) continue;
+					if (activeList.actionList == runtimeActionList)
+					{
+						return activeList;
+					}
+				}
+			}
+			
+			
+			return null;
+		}
+
+
+		private void OnEndActionList (ActionList _actionList, ActionListAsset _actionListAsset, bool isSkipping)
+		{
+			if (listSource == ListSource.InScene && actionList == _actionList && isAwaitingDelay)
+			{
+				isAwaitingDelay = false;
+				EventManager.OnEndActionList -= OnEndActionList;
+			}
 		}
 
 
 		public override void Skip ()
 		{
+			if (nestedAwaitingActiveList != null)
+			{
+				KickStarter.actionListManager.SetActionPendingState (nestedAwaitingActiveList, false);
+				nestedAwaitingActiveList = null;
+			}
+
 			switch (listSource)
 			{
 				case ListSource.InScene:
@@ -275,7 +447,7 @@ namespace AC
 							{
 								SendParameters (actionList.parameters, false);
 							}
-							if (runMode == RunMode.SetParametersOnly)
+							if (runtimeRunMode == RunMode.SetParametersOnly)
 							{
 								return;
 							}
@@ -283,7 +455,7 @@ namespace AC
 						else if (actionList.source == ActionListSource.InScene && actionList.useParameters)
 						{
 							SendParameters (actionList.parameters, false);
-							if (runMode == RunMode.SetParametersOnly)
+							if (runtimeRunMode == RunMode.SetParametersOnly)
 							{
 								return;
 							}
@@ -306,7 +478,7 @@ namespace AC
 						if (invActionList.useParameters)
 						{
 							SendParameters (invActionList.GetParameters (), true);
-							if (runMode == RunMode.SetParametersOnly)
+							if (runtimeRunMode == RunMode.SetParametersOnly)
 							{
 								return;
 							}
@@ -347,7 +519,7 @@ namespace AC
 
 		protected void SendParameters (List<ActionParameter> externalParameters, bool sendingToAsset)
 		{
-			if (runMode == RunMode.RunOnly)
+			if (runtimeRunMode == RunMode.RunOnly)
 			{
 				return;
 			}
@@ -363,50 +535,39 @@ namespace AC
 			listSource = (ListSource) EditorGUILayout.EnumPopup ("Source:", listSource);
 			if (listSource == ListSource.InScene)
 			{
-				parameterID = Action.ChooseParameterGUI ("ActionList:", parameters, parameterID, ParameterType.GameObject);
+				ComponentField ("ActionList:", ref actionList, ref constantID, parameters, ref parameterID);
 				if (parameterID >= 0)
 				{
 					localParameters.Clear ();
-					constantID = 0;
-					actionList = null;
 
 					if (setParameters)
 					{
 						EditorGUILayout.HelpBox ("If the ActionList has parameters, they will be set here - unset the parameter to edit them.", MessageType.Info);
 					}
 				}
-				else
+				else if (actionList)
 				{
-					actionList = (ActionList) EditorGUILayout.ObjectField ("ActionList:", actionList, typeof (ActionList), true);
-					
-					constantID = FieldToID <ActionList> (actionList, constantID);
-					actionList = IDToField <ActionList> (actionList, constantID, true);
-
-					if (actionList != null)
+					if (actionList.actions.Contains (this))
 					{
-						if (actionList.actions.Contains (this))
+						EditorGUILayout.HelpBox ("This Action cannot be used to run the ActionList it is in - use the Skip option below instead.", MessageType.Warning);
+					}
+					else if (actionList.source == ActionListSource.AssetFile && actionList.assetFile != null && actionList.assetFile.NumParameters > 0)
+					{
+						SetParametersGUI (actionList.assetFile.DefaultParameters, parameters);
+						if (runMode == RunMode.SetParametersOnly)
 						{
-							EditorGUILayout.HelpBox ("This Action cannot be used to run the ActionList it is in - use the Skip option below instead.", MessageType.Warning);
+							return;
 						}
-						else if (actionList.source == ActionListSource.AssetFile && actionList.assetFile != null && actionList.assetFile.NumParameters > 0)
+					}
+					else if (actionList.source == ActionListSource.InScene && actionList.NumParameters > 0)
+					{
+						SetParametersGUI (actionList.parameters, parameters);
+						if (runMode == RunMode.SetParametersOnly)
 						{
-							SetParametersGUI (actionList.assetFile.DefaultParameters, parameters);
-							if (runMode == RunMode.SetParametersOnly)
-							{
-								return;
-							}
-						}
-						else if (actionList.source == ActionListSource.InScene && actionList.NumParameters > 0)
-						{
-							SetParametersGUI (actionList.parameters, parameters);
-							if (runMode == RunMode.SetParametersOnly)
-							{
-								return;
-							}
+							return;
 						}
 					}
 				}
-
 
 				runFromStart = EditorGUILayout.Toggle ("Run from start?", runFromStart);
 
@@ -421,11 +582,7 @@ namespace AC
 			}
 			else if (listSource == ListSource.AssetFile)
 			{
-				assetParameterID = Action.ChooseParameterGUI ("ActionList asset:", parameters, assetParameterID, ParameterType.UnityObject);
-				if (assetParameterID < 0)
-				{
-					invActionList = (ActionListAsset) EditorGUILayout.ObjectField ("ActionList asset:", invActionList, typeof (ActionListAsset), true);
-				}
+				AssetField ("ActionList asset:", ref invActionList, parameters, ref assetParameterID);
 
 				if (assetParameterID >= 0)
 				{
@@ -576,6 +733,28 @@ namespace AC
 		}
 
 
+		public static int ShowObjectiveSelectorGUI (string label, List<Objective> objectives, int ID, string tooltip = "")
+		{
+			int obNumber = -1;
+
+			List<string> labelList = new List<string> ();
+			labelList.Add (" (None)");
+			foreach (Objective objective in objectives)
+			{
+				labelList.Add (objective.Title);
+			}
+
+			obNumber = GetObNumber (objectives, ID) + 1;
+			obNumber = CustomGUILayout.Popup (label, obNumber, labelList.ToArray (), string.Empty, tooltip) - 1;
+
+			if (obNumber >= 0)
+			{
+				return objectives[obNumber].ID;
+			}
+			return -1;
+		}
+
+
 		private static int GetVarNumber (List<GVar> vars, int ID)
 		{
 			int i = 0;
@@ -619,6 +798,21 @@ namespace AC
 			}
 			return -1;
 		}
+		
+
+		private static int GetObNumber (List<Objective> objectives, int ID)
+		{
+			int i = 0;
+			foreach (Objective objective in objectives)
+			{
+				if (objective.ID == ID)
+				{
+					return i;
+				}
+				i++;
+			}
+			return -1;
+		}
 
 
 		private void SetParametersGUI (List<ActionParameter> externalParameters, List<ActionParameter> ownParameters = null)
@@ -637,7 +831,7 @@ namespace AC
 
 		public override void AssignConstantIDs (bool saveScriptsToo, bool fromAssetFile)
 		{
-			AssignConstantID <ActionList> (actionList, constantID, parameterID);
+			constantID = AssignConstantID<ActionList> (actionList, constantID, parameterID);
 		}
 
 
@@ -655,7 +849,7 @@ namespace AC
 		}
 
 
-		public override int GetVariableReferences (List<ActionParameter> parameters, VariableLocation location, int varID, Variables _variables, int _variablesConstantID = 0)
+		public override int GetNumVariableReferences (VariableLocation location, int varID, List<ActionParameter> parameters, Variables _variables = null, int _variablesConstantID = 0)
 		{
 			int thisCount = 0;
 
@@ -685,30 +879,113 @@ namespace AC
 				{
 					thisCount ++;
 				}
-				else if (localParameter != null && localParameter.parameterType == ParameterType.ComponentVariable && location == VariableLocation.Component && varID == localParameter.intValue && _variables == localParameter.variables)
+				else if (localParameter != null && localParameter.parameterType == ParameterType.ComponentVariable && location == VariableLocation.Component && varID == localParameter.intValue)
 				{
-					thisCount ++;
+					if (_variables == localParameter.variables)
+					{
+						thisCount ++;
+					}
+					else if (_variablesConstantID != 0 && _variablesConstantID != localParameter.constantID)
+					{
+						thisCount ++;
+					}
 				}
 			}
 
-			thisCount += base.GetVariableReferences (parameters, location, varID, _variables);
+			thisCount += base.GetNumVariableReferences (location, varID, parameters, _variables, _variablesConstantID);
 			return thisCount;
 		}
 
 
-		public override int GetInventoryReferences (List<ActionParameter> parameters, int _invID)
+		public override int UpdateVariableReferences (VariableLocation location, int oldVarID, int newVarID, List<ActionParameter> parameters, Variables _variables = null, int _variablesConstantID = 0)
 		{
-			return GetParameterReferences (parameters, _invID, ParameterType.InventoryItem);
+			int thisCount = 0;
+
+			if (listSource == ListSource.InScene && actionList != null)
+			{
+				if (actionList.source == ActionListSource.InScene && actionList.useParameters)
+				{
+					SyncLists (actionList.parameters, localParameters);
+				}
+				else if (actionList.source == ActionListSource.AssetFile && actionList.assetFile != null && actionList.assetFile.useParameters)
+				{
+					SyncLists (actionList.assetFile.DefaultParameters, localParameters);
+				}
+			}
+			else if (listSource == ListSource.AssetFile && invActionList != null && invActionList.useParameters)
+			{
+				SyncLists (invActionList.DefaultParameters, localParameters);
+			}
+
+			foreach (ActionParameter localParameter in localParameters)
+			{
+				if (localParameter != null && localParameter.parameterType == ParameterType.LocalVariable && location == VariableLocation.Local && oldVarID == localParameter.intValue)
+				{
+					localParameter.intValue = newVarID;
+					thisCount++;
+				}
+				else if (localParameter != null && localParameter.parameterType == ParameterType.GlobalVariable && location == VariableLocation.Global && oldVarID == localParameter.intValue)
+				{
+					localParameter.intValue = newVarID;
+					thisCount++;
+				}
+				else if (localParameter != null && localParameter.parameterType == ParameterType.ComponentVariable && location == VariableLocation.Component && oldVarID == localParameter.intValue)
+				{
+					if (_variables == localParameter.variables)
+					{
+						localParameter.intValue = newVarID;
+						thisCount++;
+					}
+					else if (_variablesConstantID != 0 && _variablesConstantID != localParameter.constantID)
+					{
+						localParameter.intValue = newVarID;
+						thisCount++;
+					}
+				}
+			}
+
+			thisCount += base.UpdateVariableReferences (location, oldVarID, newVarID, parameters, _variables, _variablesConstantID);
+			return thisCount;
 		}
 
 
-		public override int GetDocumentReferences (List<ActionParameter> parameters, int _docID)
+		public int GetNumItemReferences (int _itemID, List<ActionParameter> parameters)
+		{
+			return GetParameterReferences (parameters, _itemID, ParameterType.InventoryItem);
+		}
+
+
+		public int UpdateItemReferences (int oldItemID, int newItemID, List<ActionParameter> parameters)
+		{
+			return GetParameterReferences (parameters, oldItemID, ParameterType.InventoryItem, true, newItemID);
+		}
+
+
+		public int GetNumDocumentReferences (int _docID, List<ActionParameter> parameters)
 		{
 			return GetParameterReferences (parameters, _docID, ParameterType.Document);
 		}
 
 
-		private int GetParameterReferences (List<ActionParameter> parameters, int _ID, ParameterType _paramType)
+		public int UpdateDocumentReferences (int oldDocumentID, int newDocumentID, List<ActionParameter> parameters)
+		{
+			return GetParameterReferences (parameters, oldDocumentID, ParameterType.Document, true, newDocumentID);
+		}
+
+
+		public int GetNumObjectiveReferences (int _objectiveID, List<ActionParameter> parameters)
+		{
+			return GetParameterReferences (parameters, _objectiveID, ParameterType.Objective);
+		}
+
+
+		public int UpdateObjectiveReferences (int oldObjectiveID, int newObjectiveID, List<ActionParameter> parameters)
+		{
+			return GetParameterReferences (parameters, oldObjectiveID, ParameterType.Objective, true, newObjectiveID);
+		}
+
+
+		private int GetParameterReferences (List<ActionParameter> parameters, int _ID, ParameterType _paramType, bool updateID = false, int _newID = 0)
 		{
 			int thisCount = 0;
 
@@ -732,6 +1009,10 @@ namespace AC
 			{
 				if (localParameter != null && localParameter.parameterType == _paramType && _ID == localParameter.intValue)
 				{
+					if (updateID)
+					{
+						localParameter.intValue = _newID;
+					}
 					thisCount ++;
 				}
 			}
@@ -744,7 +1025,7 @@ namespace AC
 		{
 			if (listSource == ListSource.InScene && parameterID < 0)
 			{
-				if (actionList != null && actionList.gameObject == gameObject) return true;
+				if (actionList && actionList.gameObject == gameObject) return true;
 				if (constantID == id && id != 0) return true;
 			}
 			return base.ReferencesObjectOrID (gameObject, id);
@@ -802,8 +1083,10 @@ namespace AC
 			ActionRunActionList newAction = CreateNew<ActionRunActionList> ();
 			newAction.listSource = ListSource.InScene;
 			newAction.actionList = actionList;
+			newAction.TryAssignConstantID (newAction.actionList, ref newAction.constantID);
 			newAction.runFromStart = (startingActionIndex <= 0);
 			newAction.jumpToAction = startingActionIndex;
+			newAction.runInParallel = true;
 			return newAction;
 		}
 
@@ -821,6 +1104,7 @@ namespace AC
 			newAction.invActionList = actionListAsset;
 			newAction.runFromStart = (startingActionIndex <= 0);
 			newAction.jumpToAction = startingActionIndex;
+			newAction.runInParallel = true;
 			return newAction;
 		}
 

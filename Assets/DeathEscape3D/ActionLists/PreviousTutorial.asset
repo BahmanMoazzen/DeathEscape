@@ -45,6 +45,7 @@ MonoBehaviour:
   overrideColor: {r: 1, g: 1, b: 1, a: 1}
   showOutputSockets: 1
   parentActionListInEditor: {fileID: 0}
+  groupID: 0
   resultActionTrue: 0
   skipActionTrue: -1
   skipActionTrueActual: {fileID: 0}
@@ -57,7 +58,6 @@ MonoBehaviour:
   linkedAssetFail: {fileID: 0}
   parameterID: -1
   variableID: 9
-  variableNumber: 9
   checkParameterID: -1
   getVarMethod: 0
   compareVariableID: 0
@@ -72,6 +72,7 @@ MonoBehaviour:
   vector3Value: {x: 0, y: 0, z: 0}
   vectorCondition: 0
   gameObjectValue: {fileID: 0}
+  unityObjectValue: {fileID: 0}
   location: 0
   variables: {fileID: 0}
   variablesConstantID: 0
@@ -119,16 +120,18 @@ MonoBehaviour:
   overrideColor: {r: 1, g: 1, b: 1, a: 1}
   showOutputSockets: 1
   parentActionListInEditor: {fileID: 0}
+  groupID: 0
   setVarMethod: 1
   setVarMethodString: 0
   setVarMethodIntBool: 0
   setVarMethodVector: 0
   parameterID: -1
   variableID: 9
-  variableNumber: 9
   setParameterID: -1
   slotNumber: 0
   slotNumberParameterID: -1
+  slotAccountsForOffset: 0
+  doLoop: 0
   intValue: -1
   floatValue: 0
   boolValue: 0
@@ -136,6 +139,8 @@ MonoBehaviour:
   formula: 
   vector3Value: {x: 0, y: 0, z: 0}
   gameObjectValue: {fileID: 0}
+  unityObjectValue: {fileID: 0}
+  preProcessTokens: 1
   lineID: -1
   location: 0
   menuName: 
@@ -172,6 +177,7 @@ MonoBehaviour:
   revertToDefaultParametersAfterRunning: 0
   parameters: []
   tagID: 0
+  groups: []
   backupData: []
 --- !u!114 &7914579259501238920
 MonoBehaviour:
@@ -213,16 +219,18 @@ MonoBehaviour:
   overrideColor: {r: 1, g: 1, b: 1, a: 1}
   showOutputSockets: 1
   parentActionListInEditor: {fileID: 0}
+  groupID: 0
   setVarMethod: 0
   setVarMethodString: 0
   setVarMethodIntBool: 0
   setVarMethodVector: 0
   parameterID: -1
   variableID: 9
-  variableNumber: 9
   setParameterID: -1
   slotNumber: 0
   slotNumberParameterID: -1
+  slotAccountsForOffset: 0
+  doLoop: 0
   intValue: 6
   floatValue: 0
   boolValue: 0
@@ -230,6 +238,8 @@ MonoBehaviour:
   formula: 
   vector3Value: {x: 0, y: 0, z: 0}
   gameObjectValue: {fileID: 0}
+  unityObjectValue: {fileID: 0}
+  preProcessTokens: 1
   lineID: -1
   location: 0
   menuName: 
@@ -280,6 +290,7 @@ MonoBehaviour:
   overrideColor: {r: 1, g: 1, b: 1, a: 1}
   showOutputSockets: 1
   parentActionListInEditor: {fileID: 0}
+  groupID: 0
   listSource: 1
   actionList: {fileID: 0}
   constantID: 0

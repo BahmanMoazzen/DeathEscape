@@ -2,7 +2,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2024
  *	
  *	"InvVar.cs"
  * 
@@ -37,10 +37,7 @@ namespace AC
 
 		#region Constructors
 
-		/**
-		 * The main Constructor.
-		 * An array of ID numbers is required, to ensure its own ID is unique.
-		 */
+		/** The main Constructor. An array of ID numbers is required, to ensure its own ID is unique. */
 		public InvVar (int[] idArray)
 		{
 			val = 0;
@@ -54,6 +51,7 @@ namespace AC
 			vector3Val = Vector3.zero;
 			popUpID = 0;
 			gameObjectVal = null;
+			objectVal = null;
 
 			// Update id based on array
 			foreach (int _id in idArray)
@@ -68,9 +66,7 @@ namespace AC
 		}
 
 
-		/**
-		 * A blank Constructor.
-		 */
+		/** A blank Constructor. */
 		public InvVar (int _id, VariableType _type)
 		{
 			val = 0;
@@ -84,6 +80,8 @@ namespace AC
 			label = string.Empty;
 			vector3Val = Vector3.zero;
 			popUpID = 0;
+			gameObjectVal = null;
+			objectVal = null;
 		}
 
 
@@ -106,6 +104,8 @@ namespace AC
 			popUpsLineID = assetVar.popUpsLineID;
 			vector3Val = assetVar.vector3Val;
 			popUpID = assetVar.popUpID;
+			gameObjectVal = assetVar.gameObjectVal;
+			objectVal = assetVar.objectVal;
 		}
 
 		#endregion
@@ -137,6 +137,7 @@ namespace AC
 			popUpsLineID = invVar.popUpsLineID;
 			popUpID = invVar.popUpID;
 			gameObjectVal = invVar.gameObjectVal;
+			objectVal = invVar.objectVal;
 		}
 
 
@@ -164,16 +165,26 @@ namespace AC
 					return GetPopUpForIndex (val, languageNumber);
 
 				case VariableType.String:
-					if (languageNumber > 0)
+					if (KickStarter.runtimeLanguages)
 					{
 						return KickStarter.runtimeLanguages.GetTranslation (textVal, textValLineID, languageNumber, GetTranslationType (0));
 					}
-					return textVal;
-
+					else
+					{
+						return textVal;
+					}
+					
 				case VariableType.GameObject:
 					if (gameObjectVal)
 					{
 						return gameObjectVal.name;
+					}
+					return string.Empty;
+
+				case VariableType.UnityObject:
+					if (objectVal)
+					{
+						return objectVal.name;
 					}
 					return string.Empty;
 
@@ -184,23 +195,33 @@ namespace AC
 		}
 
 
-		public void LoadData (string dataValue)
+		public void LoadData (string[] data)
 		{
 			switch (type)
 			{
 				case VariableType.Float:
 					float _floatValue = -1f;
-					if (float.TryParse (dataValue, out _floatValue))
+					if (float.TryParse (data[1], out _floatValue))
 					{
 						floatVal = _floatValue;
 					}
 					break;
 
 				case VariableType.String:
+					if (data.Length > 2)
+					{
+						int _textValueID;
+						if (int.TryParse (data[2], out _textValueID))
+						{
+							string _textValue = data[1];
+							_textValue = AdvGame.PrepareStringForLoading (_textValue);
+							SetStringValue (_textValue, _textValueID);
+						}
+					}
 					break;
 
 				case VariableType.Vector3:
-					string[] vectorArray = dataValue.Split (","[0]);
+					string[] vectorArray = data[1].Split (","[0]);
 					if (vectorArray.Length == 3)
 					{
 						float _xValue = -1f;
@@ -221,7 +242,7 @@ namespace AC
 
 				default:
 					int _intValue = -1;
-					if (int.TryParse (dataValue, out _intValue))
+					if (int.TryParse (data[1], out _intValue))
 					{
 						val = _intValue;
 					}
@@ -248,7 +269,7 @@ namespace AC
 
 		public override AC_TextType GetTranslationType (int index)
 		{
-			return AC_TextType.InventoryItemProperty;
+			return AC_TextType.InventoryProperty;
 		}
 
 
@@ -282,9 +303,9 @@ namespace AC
 
 		#if UNITY_EDITOR
 
-		public void ShowGUI (string apiPrefix)
+		public void ShowGUI (string apiPrefix, bool allowSceneGameObjects = false)
 		{
-			string _label = label + ":";
+			string _label = id + ": " + label + ":";
 			if (string.IsNullOrEmpty (label))
 			{
 				_label = "Property " + id.ToString () + ":";
@@ -318,7 +339,11 @@ namespace AC
 					break;
 
 				case VariableType.GameObject:
-					gameObjectVal = (GameObject) CustomGUILayout.ObjectField <GameObject> (_label, gameObjectVal, false, apiPrefix + ".GameObjectValue", "The property's value for this item");
+					gameObjectVal = (GameObject) CustomGUILayout.ObjectField <GameObject> (_label, gameObjectVal, allowSceneGameObjects, apiPrefix + ".GameObjectValue", "The property's value for this item");
+					break;
+
+				case VariableType.UnityObject:
+					objectVal = CustomGUILayout.ObjectField <Object> (_label, objectVal, false);
 					break;
 			}
 		}

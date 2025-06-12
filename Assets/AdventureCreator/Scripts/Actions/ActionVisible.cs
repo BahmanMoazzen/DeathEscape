@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2024
  *	
  *	"ActionVisible.cs"
  * 
@@ -53,36 +53,44 @@ namespace AC
 			
 			if (runtimeObToAffect != null)
 			{
-				LimitVisibility limitVisibility = runtimeObToAffect.GetComponent <LimitVisibility>();
+				LimitVisibility limitVisibility = runtimeObToAffect.GetComponent<LimitVisibility> ();
 				if (limitVisibility)
 				{
-					limitVisibility.isLockedOff = !state;
+					limitVisibility.IsLockedOff = !state;
 				}
 				else
 				{
-					Renderer renderer = runtimeObToAffect.GetComponent <Renderer>();
+					Renderer renderer = runtimeObToAffect.GetComponent<Renderer> ();
 					if (renderer)
 					{
 						renderer.enabled = state;
 					}
 					else
 					{
-						Canvas canvas = runtimeObToAffect.GetComponent <Canvas>();
+						Canvas canvas = runtimeObToAffect.GetComponent<Canvas> ();
 						if (canvas)
 						{
 							canvas.enabled = state;
+						}
+						else
+						{
+							CanvasGroup canvasGroup = runtimeObToAffect.GetComponent<CanvasGroup> ();
+							if (canvasGroup)
+							{
+								canvasGroup.alpha = state ? 1f : 0f;
+							}
 						}
 					}
 				}
 
 				if (affectChildren)
 				{
-					foreach (Renderer _renderer in runtimeObToAffect.GetComponentsInChildren <Renderer>())
+					foreach (Renderer _renderer in runtimeObToAffect.GetComponentsInChildren<Renderer> ())
 					{
 						_renderer.enabled = state;
 					}
 				}
-					
+
 			}
 			
 			return 0f;
@@ -93,19 +101,7 @@ namespace AC
 
 		public override void ShowGUI (List<ActionParameter> parameters)
 		{
-			parameterID = Action.ChooseParameterGUI ("Object to affect:", parameters, parameterID, ParameterType.GameObject);
-			if (parameterID >= 0)
-			{
-				constantID = 0;
-				obToAffect = null;
-			}
-			else
-			{
-				obToAffect = (GameObject) EditorGUILayout.ObjectField ("Object to affect:", obToAffect, typeof (GameObject), true);
-
-				constantID = FieldToID (obToAffect, constantID);
-				obToAffect = IDToField (obToAffect, constantID, false);
-			}
+			GameObjectField ("Object to affect:", ref obToAffect, ref constantID, parameters, ref parameterID);
 
 			visState = (VisState) EditorGUILayout.EnumPopup ("Visibility:", visState);
 			affectChildren = EditorGUILayout.Toggle ("Affect children?", affectChildren);
@@ -118,7 +114,7 @@ namespace AC
 			{
 				AddSaveScript <RememberVisibility> (obToAffect);
 			}
-			AssignConstantID (obToAffect, constantID, parameterID);
+			constantID = AssignConstantID (obToAffect, constantID, parameterID);
 		}
 		
 		
@@ -136,7 +132,7 @@ namespace AC
 		{
 			if (parameterID < 0)
 			{
-				if (obToAffect != null && obToAffect == gameObject) return true;
+				if (obToAffect && obToAffect == gameObject) return true;
 				return (constantID == id && id != 0);
 			}
 			return base.ReferencesObjectOrID (gameObject, id);
@@ -156,6 +152,7 @@ namespace AC
 		{
 			ActionVisible newAction = CreateNew<ActionVisible> ();
 			newAction.obToAffect = objectToAffect;
+			newAction.TryAssignConstantID (newAction.obToAffect, ref newAction.constantID);
 			newAction.visState = newVisiblityState;
 			newAction.affectChildren = affectChildren;
 			return newAction;

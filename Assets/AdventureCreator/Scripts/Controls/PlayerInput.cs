@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2024
  *	
  *	"PlayerInput.cs"
  * 
@@ -10,6 +10,7 @@
  */
 
 using UnityEngine;
+using System.Collections;
 using System.Collections.Generic;
 #if UNITY_EDITOR
 using UnityEditor;
@@ -26,7 +27,6 @@ namespace AC
 	public class PlayerInput : MonoBehaviour
 	{
 
-		protected AnimationCurve timeCurve;
 		protected float changeTimeStart;
 
 		protected MouseState mouseState = MouseState.Normal;
@@ -39,7 +39,10 @@ namespace AC
 
 		/** The game's current Time.timeScale value */
 		[HideInInspector] public float timeScale = 1f;
-		
+		protected float defaultFixedDeltaTime;
+		protected AnimationCurve timeCurve;
+		protected bool timeCurveAffectsFixedDeltaTime;
+
 		/** If True, Menus can be controlled via the keyboard or controller during gameplay */
 		[HideInInspector] public bool canKeyboardControlMenusDuringGameplay = false;
 		/** The name of the Input button that skips movies played with ActionMove */
@@ -51,6 +54,8 @@ namespace AC
 		/** The name of the Input Axis that controls dragging effects. If empty, the default inputs (LMB / "InteractionA") will be used */
 		public string dragOverrideInput = "";
 
+		public float directMenuThreshold = 0.05f;
+
 		protected float clickTime = 0f;
 		protected float doubleClickTime = 0;
 		protected MenuDrag activeDragElement;
@@ -58,16 +63,8 @@ namespace AC
 		protected bool lastClickWasDouble = false;
 		protected float lastclickTime = 0f;
 		
-		// Menu input override
-		protected string menuButtonInput;
-		protected float menuButtonValue;
-		protected SimulateInputType menuInput;
-		
 		// Controller movement
-		/** The movement speed of a keyboard or controller-controlled cursor */
-		public float cursorMoveSpeed = 4f;
-		/** If True, and Direct movement is used to control the Player, then the Player will not change direction. This is to avoid the Player moving in unwanted directions when the camera cuts. */
-		[HideInInspector] public bool cameraLockSnap = false;
+		private bool cameraLockSnap = false;
 		protected Vector2 xboxCursor;
 		protected Vector2 mousePosition;
 		protected bool scrollingLocked = false;
@@ -80,6 +77,7 @@ namespace AC
 		protected Vector2 dragVector;
 		protected float touchTime = 0f;
 		protected float touchThreshold = 0.2f;
+		protected TouchInstance[] touchInstances = new TouchInstance[10];
 		
 		// 1st person movement
 		protected Vector2 freeAim;
@@ -90,13 +88,15 @@ namespace AC
 		// Draggable
 		protected bool canDragMoveable = false;
 		protected List<HeldObjectData> heldObjectDatas = new List<HeldObjectData>();
+		protected bool pickUpIsHeld;
+		protected bool draggableIsHeld;
 		protected Vector2 lastMousePosition, unconstrainedMousePosition;
 		protected bool resetMouseDelta = false;
 		protected Vector3 lastCameraPosition;
 		protected Vector2 deltaDragMouse;
 
 		/** The active Conversation */
-		public Conversation activeConversation = null;
+		[HideInInspector] public Conversation activeConversation = null;
 		protected Conversation pendingOptionConversation = null;
 		/** The active ArrowPrompt */
 		[HideInInspector] public ArrowPrompt activeArrows = null;
@@ -119,6 +119,8 @@ namespace AC
 		public delegate TouchPhase InputTouchPhaseDelegate (int index);
 		/** A delegate template for overriding touch count */
 		public delegate int _InputTouchCountDelegate ();
+		/** A delegate template for overriding the drag state calculation */
+		public delegate DragState _InputGetDragStateDelegate (DragState currentDragState);
 
 		/** A delegate for the InputGetButtonDown function, used to detect when a button is first pressed */
 		public InputButtonDelegate InputGetButtonDownDelegate = null;
@@ -142,11 +144,18 @@ namespace AC
 		public InputTouchPhaseDelegate InputGetTouchPhaseDelegate;
 		/** A delegate for the InputGetFreeAim function, used to get the free-aiming vector */
 		public InputMouseDelegate InputGetFreeAimDelegate;
-		/** A delegate for the _InputTouchCountDelegate function, used to get the number of touches */
+		/** A delegate for _InputTouchCountDelegate, used to get the number of touches */
 		public _InputTouchCountDelegate InputTouchCountDelegate;
+		/** A delegate for _InputGetDragStateDelegate, used to update the drag state */
+		public _InputGetDragStateDelegate InputGetDragStateDelegate;
 
 		protected LerpUtils.Vector2Lerp freeAimLerp = new LerpUtils.Vector2Lerp ();
 		private LerpUtils.Vector2Lerp directMoveLerp = new LerpUtils.Vector2Lerp (true);
+		private Vector2 lockedCursorPositionOverride;
+		private bool overrideLockedCursorPosition;
+		private bool resetMouseClickThisFrame;
+
+		private List<SimulatedInput> simulatedInputs = new List<SimulatedInput> ();
 
 
 		private void OnEnable ()
@@ -165,6 +174,8 @@ namespace AC
 
 		public void OnInitGameEngine ()
 		{
+			defaultFixedDeltaTime = Time.fixedDeltaTime;
+
 			InitialiseCursorLock (KickStarter.settingsManager.movementMethod);
 		
 			ResetClick ();
@@ -190,12 +201,12 @@ namespace AC
 				float timeIndex = Time.time - changeTimeStart;
 				if (timeCurve [timeCurve.length -1].time < timeIndex)
 				{
-					SetTimeScale (timeCurve [timeCurve.length -1].value);
+					SetTimeScale (timeCurve [timeCurve.length -1].value, timeCurveAffectsFixedDeltaTime);
 					timeCurve = null;
 				}
 				else
 				{
-					SetTimeScale (timeCurve.Evaluate (timeIndex));
+					SetTimeScale (timeCurve.Evaluate (timeIndex), timeCurveAffectsFixedDeltaTime);
 				}
 			}
 
@@ -236,7 +247,10 @@ namespace AC
 				if (KickStarter.stateHandler.gameState == GameState.Cutscene && InputGetButtonDown ("EndCutscene") && !isSkippingMovie)
 				{
 					KickStarter.actionListManager.EndCutscene ();
+					ResetClick ();
 				}
+
+				bool oldCursorLock = cursorIsLocked;
 
 				#if UNITY_EDITOR
 				if (KickStarter.settingsManager.inputMethod == InputMethod.MouseAndKeyboard || KickStarter.settingsManager.inputMethod == InputMethod.TouchScreen)
@@ -250,9 +264,15 @@ namespace AC
 					{
 						cursorIsLocked = false;
 					}
-					else if (IsDragObjectHeld () && 
+					else if (draggableIsHeld && 
 							 KickStarter.settingsManager.IsInFirstPerson () && 
 							 KickStarter.settingsManager.disableFreeAimWhenDragging)
+					{
+						cursorIsLocked = false;
+					}
+					else if (pickUpIsHeld &&
+							 KickStarter.settingsManager.IsInFirstPerson () &&
+							 KickStarter.settingsManager.disableFreeAimWhenDraggingPickUp)
 					{
 						cursorIsLocked = false;
 					}
@@ -291,6 +311,7 @@ namespace AC
 						dragState = DragState.None;
 					}
 
+					resetMouseClickThisFrame = false;
 					if (InputGetMouseButtonDown (0) || InputGetButtonDown ("InteractionA"))
 					{
 						if (mouseState == MouseState.Normal)
@@ -336,9 +357,14 @@ namespace AC
 						{
 							mouseState = MouseState.LetGo;
 						}
-						else
+						else if (mouseState != MouseState.Normal)
 						{
 							ResetMouseClick ();
+
+							if (!CanClick ())
+							{
+								resetMouseClickThisFrame = true;
+							}
 						}
 					}
 
@@ -439,6 +465,7 @@ namespace AC
 						dragStartPosition = GetInvertedMouse ();
 					}
 
+					resetMouseClickThisFrame = false;
 					if ((touchCount == 1 && KickStarter.stateHandler.gameState == GameState.Cutscene && InputTouchPhase (0) == TouchPhase.Began)
 						|| (touchCount == 1 && !KickStarter.settingsManager.CanDragCursor () && InputTouchPhase (0) == TouchPhase.Began)
 						|| Mathf.Approximately (touchTime, -1f))
@@ -480,7 +507,7 @@ namespace AC
 					else if (touchCount == 2 && (InputTouchPhase (0) == TouchPhase.Stationary || InputTouchPhase (0) == TouchPhase.Moved) && KickStarter.settingsManager.IsFirstPersonDragComplex ())
 					{
 						mouseState = MouseState.HeldDown;
-						SetDragStateTouchScreen ();
+						SetDragState (true);
 					}
 					else
 					{
@@ -488,9 +515,14 @@ namespace AC
 						{
 							mouseState = MouseState.LetGo;
 						}
-						else
+						else if (mouseState != MouseState.Normal)
 						{
 							ResetMouseClick ();
+
+							if (!CanClick ())
+							{
+								resetMouseClickThisFrame = true;
+							}
 						}
 					}
 
@@ -542,9 +574,15 @@ namespace AC
 				{
 					// Cursor lock
 					
-					if (IsDragObjectHeld () && 
+					if (draggableIsHeld && 
 						KickStarter.settingsManager.IsInFirstPerson () && 
 						KickStarter.settingsManager.disableFreeAimWhenDragging)
+					{
+						cursorIsLocked = false;
+					}
+					else if (pickUpIsHeld &&
+						KickStarter.settingsManager.IsInFirstPerson () &&
+						KickStarter.settingsManager.disableFreeAimWhenDraggingPickUp)
 					{
 						cursorIsLocked = false;
 					}
@@ -583,8 +621,8 @@ namespace AC
 					else
 					{
 						float speedFactor = (KickStarter.settingsManager.scaleCursorSpeedWithScreen)
-											? cursorMoveSpeed * GetDeltaTime () * KickStarter.mainCamera.PlayableScreenDiagonalLength * 0.5f
-											: cursorMoveSpeed * GetDeltaTime () * 300f;
+											? KickStarter.settingsManager.simulatedCursorMoveSpeed * GetDeltaTime () * KickStarter.mainCamera.PlayableScreenDiagonalLength * 0.5f
+											: KickStarter.settingsManager.simulatedCursorMoveSpeed * GetDeltaTime () * 300f;
 
 						xboxCursor.x += InputGetAxis ("CursorHorizontal") * speedFactor;
 						xboxCursor.y += InputGetAxis ("CursorVertical") * speedFactor;
@@ -650,6 +688,11 @@ namespace AC
 					}
 
 					SetDoubleClickState ();
+				}
+
+				if (oldCursorLock != IsCursorLocked ())
+				{
+					KickStarter.eventManager.Call_OnCursorLock (IsCursorLocked ());
 				}
 
 				if (KickStarter.playerInteraction.GetHotspotMovingTo ())
@@ -913,11 +956,13 @@ namespace AC
 			{
 				toggleCursorOn = KickStarter.settingsManager.lockCursorOnStart;
 
-				if (toggleCursorOn && !KickStarter.settingsManager.IsInFirstPerson () && KickStarter.settingsManager.inputMethod == InputMethod.MouseAndKeyboard && KickStarter.settingsManager.hotspotDetection == HotspotDetection.MouseOver)
+				if (toggleCursorOn && movementMethod != MovementMethod.FirstPerson && KickStarter.settingsManager.inputMethod == InputMethod.MouseAndKeyboard && KickStarter.settingsManager.hotspotDetection == HotspotDetection.MouseOver)
 				{
 					ACDebug.Log ("Starting a non-First Person game with a locked cursor - is this correct?"); 
 				}
 			}
+
+			KickStarter.eventManager.Call_OnCursorLock (toggleCursorOn);
 		}
 
 
@@ -931,7 +976,7 @@ namespace AC
 			{
 				if (mouseState == MouseState.Normal)
 				{
-					if (InvInstance.IsValid (KickStarter.runtimeInventory.SelectedInstance) &&  KickStarter.settingsManager.InventoryDragDrop)
+					if (InvInstance.IsValid (KickStarter.runtimeInventory.SelectedInstance) && KickStarter.settingsManager.InventoryDragDrop)
 					{
 						return true;
 					}
@@ -949,52 +994,58 @@ namespace AC
 		{		
 			if (activeConversation && KickStarter.settingsManager.runConversationsWithKeys)
 			{
+				int offset = 0;
+				if (activeConversation.LinkedDialogList && activeConversation.LinkedDialogList.elementSlotMapping == ElementSlotMapping.List && activeConversation.LinkedDialogList.indexPrefixDisplay != IndexPrefixDisplay.GlobalOrder)
+				{
+					offset = activeConversation.LinkedDialogList.GetOffset ();
+				}
+
 				Event e = Event.current;
 				if (e.isKey && e.type == EventType.KeyDown)
 				{
 					if (e.keyCode == KeyCode.Alpha1 || e.keyCode == KeyCode.Keypad1)
 					{
-						activeConversation.RunOption (0);
+						activeConversation.RunOption (0 + offset);
 						return;
 					}
 					else if (e.keyCode == KeyCode.Alpha2 || e.keyCode == KeyCode.Keypad2)
 					{
-						activeConversation.RunOption (1);
+						activeConversation.RunOption (1 + offset);
 						return;
 					}
 					else if (e.keyCode == KeyCode.Alpha3 || e.keyCode == KeyCode.Keypad3)
 					{
-						activeConversation.RunOption (2);
+						activeConversation.RunOption (2 + offset);
 						return;
 					}
 					else if (e.keyCode == KeyCode.Alpha4 || e.keyCode == KeyCode.Keypad4)
 					{
-						activeConversation.RunOption (3);
+						activeConversation.RunOption (3 + offset);
 						return;
 					}
 					else if (e.keyCode == KeyCode.Alpha5 || e.keyCode == KeyCode.Keypad5)
 					{
-						activeConversation.RunOption (4);
+						activeConversation.RunOption (4 + offset);
 						return;
 					}
 					else if (e.keyCode == KeyCode.Alpha6 || e.keyCode == KeyCode.Keypad6)
 					{
-						activeConversation.RunOption (5);
+						activeConversation.RunOption (5 + offset);
 						return;
 					}
 					else if (e.keyCode == KeyCode.Alpha7 || e.keyCode == KeyCode.Keypad7)
 					{
-						activeConversation.RunOption (6);
+						activeConversation.RunOption (6 + offset);
 						return;
 					}
 					else if (e.keyCode == KeyCode.Alpha8 || e.keyCode == KeyCode.Keypad8)
 					{
-						activeConversation.RunOption (7);
+						activeConversation.RunOption (7 + offset);
 						return;
 					}
 					else if (e.keyCode == KeyCode.Alpha9 || e.keyCode == KeyCode.Keypad9)
 					{
-						activeConversation.RunOption (8);
+						activeConversation.RunOption (8 + offset);
 						return;
 					}
 				}
@@ -1009,41 +1060,47 @@ namespace AC
 		{		
 			if (activeConversation && KickStarter.settingsManager.runConversationsWithKeys)
 			{
+				int offset = 0;
+				if (activeConversation.LinkedDialogList && activeConversation.LinkedDialogList.elementSlotMapping == ElementSlotMapping.List && activeConversation.LinkedDialogList.indexPrefixDisplay != IndexPrefixDisplay.GlobalOrder)
+				{
+					offset = activeConversation.LinkedDialogList.GetOffset ();
+				}
+
 				if (InputGetButtonDown ("DialogueOption1"))
 				{
-					activeConversation.RunOption (0);
+					activeConversation.RunOption (0 + offset);
 				}
 				else if (InputGetButtonDown ("DialogueOption2"))
 				{
-					activeConversation.RunOption (1);
+					activeConversation.RunOption (1 + offset);
 				}
 				else if (InputGetButtonDown ("DialogueOption3"))
 				{
-					activeConversation.RunOption (2);
+					activeConversation.RunOption (2 + offset);
 				}
 				else if (InputGetButtonDown ("DialogueOption4"))
 				{
-					activeConversation.RunOption (3);
+					activeConversation.RunOption (3 + offset);
 				}
 				else if (InputGetButtonDown ("DialogueOption5"))
 				{
-					activeConversation.RunOption (4);
+					activeConversation.RunOption (4 + offset);
 				}
 				else if (InputGetButtonDown ("DialogueOption6"))
 				{
-					activeConversation.RunOption (5);
+					activeConversation.RunOption (5 + offset);
 				}
 				else if (InputGetButtonDown ("DialogueOption7"))
 				{
-					activeConversation.RunOption (6);
+					activeConversation.RunOption (6 + offset);
 				}
 				else if (InputGetButtonDown ("DialogueOption8"))
 				{
-					activeConversation.RunOption (7);
+					activeConversation.RunOption (7 + offset);
 				}
 				else if (InputGetButtonDown ("DialogueOption9"))
 				{
-					activeConversation.RunOption (8);
+					activeConversation.RunOption (8 + offset);
 				}
 			}
 			
@@ -1216,11 +1273,15 @@ namespace AC
 					{
 						h = 0f;
 					}
+
+					bool customTouchInput = KickStarter.settingsManager.inputMethod == InputMethod.TouchScreen && 
+						((KickStarter.settingsManager.movementMethod != MovementMethod.FirstPerson && KickStarter.settingsManager.directTouchScreen == DirectTouchScreen.CustomInput) ||
+						(KickStarter.settingsManager.movementMethod == MovementMethod.FirstPerson && KickStarter.settingsManager.firstPersonTouchScreen == FirstPersonTouchScreen.CustomInput));
 				
 					switch (KickStarter.player.runningLocked)
 					{
 						case PlayerMoveLock.Free:
-							if (KickStarter.settingsManager.inputMethod == InputMethod.TouchScreen || KickStarter.settingsManager.movementMethod == MovementMethod.Drag)
+							if (!customTouchInput && (KickStarter.settingsManager.inputMethod == InputMethod.TouchScreen || KickStarter.settingsManager.movementMethod == MovementMethod.Drag))
 							{
 								if (dragStartPosition != Vector2.zero && dragSpeed > KickStarter.settingsManager.dragRunThreshold * 10f)
 								{
@@ -1282,49 +1343,82 @@ namespace AC
 		{
 			if (KickStarter.settingsManager.movementMethod == MovementMethod.Direct && KickStarter.settingsManager.inputMethod != InputMethod.TouchScreen && KickStarter.settingsManager.directMovementType == DirectMovementType.RelativeToCamera)
 			{
-				if (KickStarter.settingsManager.limitDirectMovement == LimitDirectMovement.FourDirections)
+				switch (KickStarter.settingsManager.limitDirectMovement)
 				{
-					if (Mathf.Abs (h) > Mathf.Abs (v))
-					{
-						v = 0f;
-					}
-					else
-					{
-						h = 0f;
-					}
-				}
-				else if (KickStarter.settingsManager.limitDirectMovement == LimitDirectMovement.EightDirections)
-				{
-					if (Mathf.Abs (h) > Mathf.Abs (v))
-					{
-						v = 0f;
-					}
-					else if (Mathf.Abs (h) < Mathf.Abs (v))
-					{
-						h = 0f;
-					}
-					else if (Mathf.Abs (h) > 0.4f && Mathf.Abs (v) > 0.4f)
-					{
-						if (h*v > 0)
+					case LimitDirectMovement.NoLimit:
+					default:
+						break;
+
+					case LimitDirectMovement.FourDirections:
+						if (Mathf.Abs (h) > Mathf.Abs (v))
 						{
-							h = v;
+							v = 0f;
 						}
 						else
 						{
-							h = -v;
+							h = 0f;
 						}
-					}
-					else
-					{
-						h = v = 0f;
-					}
+						break;
+
+					case LimitDirectMovement.EightDirections:
+						float signedAngle = Vector2.SignedAngle (Vector2.up, new Vector2 (h, v));
+						h = Mathf.Abs (h);
+						v = Mathf.Abs (v);
+
+						if (signedAngle < 0f) signedAngle += 360f;
+
+						if (signedAngle < 45f || signedAngle > 337.5f)
+						{
+							// UP
+							h = 0f;
+						}
+						else if (signedAngle < 67.5f)
+						{
+							// UP LEFT
+							v = h;
+							h = -h;
+						}
+						else if (signedAngle < 112.5f)
+						{
+							// LEFT
+							v = 0f;
+							h = -h;
+						}
+						else if (signedAngle < 157.5f)
+						{
+							// DOWN LEFT
+							v = -h;
+							h = -h;
+						}
+						else if (signedAngle < 202.5f)
+						{
+							// DOWN
+							h = 0f;
+							v = -v;
+						}
+						else if (signedAngle < 247.5f)
+						{
+							// DOWN RIGHT
+							v = -h;
+						}
+						else if (signedAngle < 292.5f)
+						{
+							// RIGHT
+							v = 0f;
+						}
+						else
+						{
+							// UP RIGHT
+							v = h;
+						}
+						break;
 				}
 			}
 
 			if (cameraLockSnap)
 			{
 				Vector2 newMoveKeys = new Vector2 (h, v);
-				if (newMoveKeys.sqrMagnitude < 0.01f || Vector2.Angle (newMoveKeys, moveKeys) > 5f)
+				if (newMoveKeys.sqrMagnitude < 0.01f || moveKeys.sqrMagnitude < 0.01f || Vector2.Angle (newMoveKeys, moveKeys) > KickStarter.settingsManager.cameraLockSnapAngleThreshold)
 				{
 					cameraLockSnap = false;
 					return newMoveKeys;
@@ -1340,24 +1434,45 @@ namespace AC
 		}
 
 
-		protected virtual void FlashHotspots ()
+		public void BeginCameraLockSnap ()
+		{
+			if (Application.isPlaying && !SceneSettings.IsUnity2D () && KickStarter.stateHandler.IsInGameplay () && KickStarter.settingsManager.movementMethod == MovementMethod.Direct && KickStarter.settingsManager.directMovementType == DirectMovementType.RelativeToCamera)
+			{
+				if (KickStarter.settingsManager.cameraLockSnapAngleThreshold > 0f && KickStarter.player && !KickStarter.player.IsTurning (90f) &&
+					(KickStarter.player.GetPath () == null || !KickStarter.player.IsLockedToPath ()))
+				{
+					cameraLockSnap = true;
+				}
+			}
+		}
+
+
+		/** If True, and Direct movement is used to control the Player, then the Player will not change direction. This is to avoid the Player moving in unwanted directions when the camera cuts. */
+		public bool IsCameraLockSnapped ()
+		{
+			return cameraLockSnap;
+		}
+
+
+		/** Invokes the 'Flash' function on all enabled Hotspots that the Player can interact with */
+		public void FlashHotspots ()
 		{
 			foreach (Hotspot hotspot in KickStarter.stateHandler.Hotspots)
 			{
 				if (hotspot.highlight)
 				{
-					if (hotspot.IsOn () && hotspot.PlayerIsWithinBoundary () && hotspot != KickStarter.playerInteraction.GetActiveHotspot ())
+					if (hotspot.IsOn () && hotspot.PlayerIsWithinBoundary ())
 					{
-						hotspot.highlight.Flash ();
+						hotspot.Flash ();
 					}
 				}
 			}
+
+			KickStarter.eventManager.Call_OnHotspotsFlash ();
 		}
 		
 
-		/**
-		 * Disables the active ArrowPrompt.
-		 */
+		/** Disables the active ArrowPrompt. */
 		public void RemoveActiveArrows ()
 		{
 			if (activeArrows)
@@ -1367,9 +1482,7 @@ namespace AC
 		}
 		
 
-		/**
-		 * Records the current click time, so that another click will not register for the duration of clickDelay.
-		 */
+		/** Records the current click time, so that another click will not register for the duration of clickDelay. */
 		public void ResetClick ()
 		{
 			clickTime = clickDelay;
@@ -1435,28 +1548,29 @@ namespace AC
 
 		/**
 		 * <summary>Simulates the pressing of an Input button or axis.</summary>
-		 * <param name = "input">The type of Input this is simulating (Button, Axis)</param>
-		 * <param name = "axis">The name of the Input button or axis</param>
+		 * <param name = "inputType">The type of Input this is simulating (Button, Axis)</param>
+		 * <param name = "name">The name of the Input button or axis</param>
 		 * <param name = "value">The value to assign the Input axis, if input = SimulateInputType.Axis</param>
 		 */
-		public void SimulateInput (SimulateInputType input, string axis, float value)
+		public void SimulateInput (SimulateInputType inputType, string name, float value)
 		{
-			if (!string.IsNullOrEmpty (axis))
+			if (!string.IsNullOrEmpty (name))
 			{
-				menuInput = input;
-				menuButtonInput = axis;
-				
-				if (input == SimulateInputType.Button)
-				{
-					menuButtonValue = 1f;
-				}
-				else
-				{
-					menuButtonValue = value;
-				}
+				SimulatedInput simulatedInput = new SimulatedInput (name, value, inputType);
+				StartCoroutine (SimulateInputCo (simulatedInput));
+			}
+		}
 
-				CancelInvoke ();
-				Invoke ("StopSimulatingInput", 0.1f);
+
+		private IEnumerator SimulateInputCo (SimulatedInput simulatedInput)
+		{
+			simulatedInputs.Add (simulatedInput);
+
+			yield return null;
+
+			if (simulatedInputs.Contains (simulatedInput))
+			{
+				simulatedInputs.Remove (simulatedInput);
 			}
 		}
 
@@ -1471,23 +1585,17 @@ namespace AC
 		}
 
 
-		protected void StopSimulatingInput ()
-		{
-			menuButtonInput = string.Empty;
-		}
-
-
 		/**
 		 * <summary>Checks if any input button is currently being pressed, simulated or otherwise.</summary>
 		 * <returns>True if any input button is currently being pressed, simulated or otherwise.</returns>
 		 */
-		public bool InputAnyKey ()
+		public bool InputAnyKeyDown ()
 		{
-			if (menuButtonInput != null && !string.IsNullOrEmpty (menuButtonInput))
+			if (simulatedInputs.Count > 0)
 			{
 				return true;
 			}
-			return Input.anyKey;
+			return Input.anyKeyDown;
 		}
 
 
@@ -1498,6 +1606,14 @@ namespace AC
 				return 0f;
 			}
 
+			foreach (SimulatedInput simulatedInput in simulatedInputs)
+			{
+				if (simulatedInput.Name == axis && simulatedInput.InputType == SimulateInputType.Axis && simulatedInput.Value != 0f)
+				{
+					return simulatedInput.Value;
+				}
+			}
+			
 			if (InputGetAxisDelegate != null)
 			{
 				return InputGetAxisDelegate (axis);
@@ -1522,11 +1638,6 @@ namespace AC
 				catch {}
 			}
 			
-			if (!string.IsNullOrEmpty (menuButtonInput) && menuButtonInput == axis && menuInput == SimulateInputType.Axis)
-			{
-				return menuButtonValue;
-			}
-			
 			return 0f;
 		}
 		
@@ -1538,9 +1649,17 @@ namespace AC
 		 */
 		public float InputGetAxis (string axis)
 		{
-			if (string.IsNullOrEmpty (axis))
+			if (string.IsNullOrEmpty (axis) || !KickStarter.stateHandler.CanReceiveInput ())
 			{
 				return 0f;
+			}
+
+			foreach (SimulatedInput simulatedInput in simulatedInputs)
+			{
+				if (simulatedInput.Name == axis && simulatedInput.InputType == SimulateInputType.Axis && simulatedInput.Value != 0f)
+				{
+					return simulatedInput.Value;
+				}
 			}
 
 			if (InputGetAxisDelegate != null)
@@ -1567,11 +1686,6 @@ namespace AC
 				catch {}
 			}
 
-			if (!string.IsNullOrEmpty (menuButtonInput) && menuButtonInput == axis && menuInput == SimulateInputType.Axis)
-			{
-				return menuButtonValue;
-			}
-			
 			return 0f;
 		}
 		
@@ -1641,18 +1755,22 @@ namespace AC
 		}
 
 
-		protected TouchPhase InputTouchPhase (int index)
+		public TouchPhase InputTouchPhase (int index)
 		{
 			if (InputGetTouchPhaseDelegate != null)
 			{
 				return InputGetTouchPhaseDelegate (index);
 			}
 
-			return Input.GetTouch (index).phase;
+			if (InputTouchCount () > index)
+			{
+				return Input.GetTouch (index).phase;
+			}
+			return TouchPhase.Canceled;
 		}
 
 
-		protected int InputTouchCount ()
+		public int InputTouchCount ()
 		{
 			if (InputTouchCountDelegate != null)
 			{
@@ -1700,9 +1818,25 @@ namespace AC
 		 */
 		public bool InputGetButton (string axis)
 		{
-			if (string.IsNullOrEmpty (axis))
+			if (string.IsNullOrEmpty (axis) || !KickStarter.stateHandler.CanReceiveInput ())
 			{
 				return false;
+			}
+
+			for (int i = 0; i < simulatedInputs.Count; i++)
+			{
+				if (simulatedInputs[i].Name == axis && simulatedInputs[i].InputType == SimulateInputType.Button)
+				{
+					if (simulatedInputs[i].Value > 0f)
+					{
+						//ResetClick ();
+						simulatedInputs.RemoveAt (i);
+						return true;
+					}
+					
+					simulatedInputs.RemoveAt (i);
+					break;
+				}
 			}
 
 			if (InputGetButtonDelegate != null)
@@ -1729,18 +1863,6 @@ namespace AC
 				catch {}
 			}
 
-			if (!string.IsNullOrEmpty (menuButtonInput) && menuButtonInput == axis && menuInput == SimulateInputType.Button)
-			{
-				if (menuButtonValue > 0f)
-				{
-					//ResetClick ();
-					StopSimulatingInput ();	
-					return true;
-				}
-				
-				StopSimulatingInput ();
-			}
-
 			return false;
 		}
 		
@@ -1753,9 +1875,24 @@ namespace AC
 		 */
 		public bool InputGetButtonDown (string axis, bool showError = false)
 		{
-			if (string.IsNullOrEmpty (axis))
+			if (string.IsNullOrEmpty (axis) || !KickStarter.stateHandler.CanReceiveInput ())
 			{
 				return false;
+			}
+
+			for (int i = 0; i < simulatedInputs.Count; i++)
+			{
+				if (simulatedInputs[i].Name == axis && simulatedInputs[i].InputType == SimulateInputType.Button)
+				{
+					if (simulatedInputs[i].Value > 0f)
+					{
+						simulatedInputs.RemoveAt (i);
+						return true;
+					}
+
+					simulatedInputs.RemoveAt (i);
+					break;
+				}
 			}
 
 			if (InputGetButtonDownDelegate != null)
@@ -1788,18 +1925,6 @@ namespace AC
 				}
 			}
 
-			if (!string.IsNullOrEmpty (menuButtonInput) && menuButtonInput == axis && menuInput == SimulateInputType.Button)
-			{
-				if (menuButtonValue > 0f)
-				{
-					//ResetClick ();
-					StopSimulatingInput ();	
-					return true;
-				}
-				
-				StopSimulatingInput ();
-			}
-			
 			return false;
 		}
 
@@ -1811,7 +1936,7 @@ namespace AC
 		 */
 		public bool InputGetButtonUp (string axis)
 		{
-			if (string.IsNullOrEmpty (axis))
+			if (string.IsNullOrEmpty (axis) || !KickStarter.stateHandler.CanReceiveInput ())
 			{
 				return false;
 			}
@@ -1847,7 +1972,7 @@ namespace AC
 		{
 			if (InvInstance.IsValid (KickStarter.runtimeInventory.SelectedInstance) &&
 				KickStarter.settingsManager.InventoryDragDrop &&
-				KickStarter.settingsManager.dragDropThreshold > 0 &&
+				KickStarter.settingsManager.dragThreshold > 0 &&
 				(KickStarter.stateHandler.IsInGameplay () || KickStarter.stateHandler.gameState == GameState.Paused))
 			{
 				dragState = DragState.PreInventory;
@@ -1856,109 +1981,121 @@ namespace AC
 		}
 
 
-		protected void SetDragState ()
+		protected void SetDragState (bool twoTouches = false)
 		{
 			DragState oldDragState = dragState;
-			
-			if (InvInstance.IsValid (KickStarter.runtimeInventory.SelectedInstance) && KickStarter.settingsManager.InventoryDragDrop && (KickStarter.stateHandler.IsInGameplay () || KickStarter.stateHandler.gameState == GameState.Paused))
-			{
-				if (dragVector.magnitude >= KickStarter.settingsManager.dragDropThreshold)
-				{
-					dragState = DragState.Inventory;
-				}
-				else if (dragState != DragState.Inventory)
-				{
-					dragState = DragState.PreInventory;
-				}
-			}
-			else if (activeDragElement != null && (KickStarter.stateHandler.IsInGameplay () || KickStarter.stateHandler.gameState == GameState.Paused))
-			{
-				dragState = DragState.Menu;
-			}
-			else if (activeArrows && KickStarter.settingsManager.inputMethod == InputMethod.TouchScreen)
-			{
-				dragState = DragState.ScreenArrows;
-			}
-			else if (IsDragObjectHeld ())
-			{
-				dragState = DragState.Moveable;
-			}
-			else if (KickStarter.mainCamera && KickStarter.mainCamera.attachedCamera && KickStarter.mainCamera.attachedCamera.isDragControlled && !KickStarter.stateHandler.AreCamerasDisabled ())
-			{
-				if (dragState == DragState.Moveable)
-				{
-					return;
-				}
 
-				if (!KickStarter.playerInteraction.IsMouseOverHotspot () ||
-					(KickStarter.playerInteraction.GetActiveHotspot () && 
-						(KickStarter.settingsManager.interactionMethod == AC_InteractionMethod.ContextSensitive || 
-						(KickStarter.playerInteraction.GetActiveHotspot ().IsSingleInteraction () && KickStarter.settingsManager.interactionMethod == AC_InteractionMethod.ChooseHotspotThenInteraction))))
+			if (InputGetDragStateDelegate != null)
+			{
+				dragState = InputGetDragStateDelegate (oldDragState);
+			}
+			else if (twoTouches)
+			{
+				if (InvInstance.IsValid (KickStarter.runtimeInventory.SelectedInstance) && KickStarter.settingsManager.InventoryDragDrop && (KickStarter.stateHandler.IsInGameplay () || KickStarter.stateHandler.gameState == GameState.Paused))
+				{ }
+				else if (activeDragElement != null && (KickStarter.stateHandler.IsInGameplay () || KickStarter.stateHandler.gameState == GameState.Paused))
+				{ }
+				else if (activeArrows && KickStarter.settingsManager.inputMethod == InputMethod.TouchScreen)
+				{ }
+				else if (IsDragObjectHeld ())
+				{ }
+				else if (KickStarter.mainCamera.attachedCamera && KickStarter.mainCamera.attachedCamera.isDragControlled)
+				{ }
+				else if ((KickStarter.settingsManager.movementMethod == MovementMethod.Drag || KickStarter.settingsManager.movementMethod == MovementMethod.StraightToCursor ||
+						  (KickStarter.settingsManager.movementMethod != MovementMethod.PointAndClick && KickStarter.settingsManager.inputMethod == InputMethod.TouchScreen))
+						  && KickStarter.settingsManager.movementMethod != MovementMethod.None && KickStarter.stateHandler.IsInGameplay ())
 				{
-					dragState = DragState._Camera;
-
-					if (!cursorIsLocked && (deltaDragMouse.magnitude * Time.deltaTime <= 1f) && (GetInvertedMouse () - dragStartPosition).magnitude < 10f)
+					if (!KickStarter.playerMenus.IsMouseOverMenu () && !KickStarter.playerMenus.IsInteractionMenuOn ())
 					{
-						dragState = DragState.None;
+						if (KickStarter.playerInteraction.IsMouseOverHotspot ())
+						{ }
+						else
+						{
+							dragState = DragState.Player;
+						}
 					}
 				}
-			}
-			else if ((KickStarter.settingsManager.movementMethod == MovementMethod.Drag || KickStarter.settingsManager.movementMethod == MovementMethod.StraightToCursor ||
-					  (KickStarter.settingsManager.movementMethod != MovementMethod.PointAndClick && KickStarter.settingsManager.inputMethod == InputMethod.TouchScreen))
-					&& KickStarter.settingsManager.movementMethod != MovementMethod.None && KickStarter.stateHandler.IsInGameplay ())
-			{
-				if (!KickStarter.playerMenus.IsMouseOverMenu () && !KickStarter.playerMenus.IsInteractionMenuOn ())
+				else
 				{
-					if (KickStarter.playerInteraction.IsMouseOverHotspot ())
-					{}
-					else
-					{
-						dragState = DragState.Player;
-					}
+					dragState = DragState.None;
 				}
 			}
 			else
 			{
-				dragState = DragState.None;
+				if (InvInstance.IsValid (KickStarter.runtimeInventory.SelectedInstance) && KickStarter.settingsManager.InventoryDragDrop && (KickStarter.stateHandler.IsInGameplay () || KickStarter.stateHandler.gameState == GameState.Paused))
+				{
+					if (dragVector.magnitude / ACScreen.LongestDimension >= KickStarter.settingsManager.dragThreshold)
+					{
+						dragState = DragState.Inventory;
+					}
+					else if (dragState != DragState.Inventory)
+					{
+						dragState = DragState.PreInventory;
+					}
+				}
+				else if (activeDragElement != null && (KickStarter.stateHandler.IsInGameplay () || KickStarter.stateHandler.gameState == GameState.Paused))
+				{
+					dragState = DragState.Menu;
+				}
+				else if (activeArrows && KickStarter.settingsManager.inputMethod == InputMethod.TouchScreen)
+				{
+					dragState = DragState.ScreenArrows;
+				}
+				else if (IsDragObjectHeld ())
+				{
+					if (dragState != DragState.Moveable && !cursorIsLocked &&/* (deltaDragMouse.magnitude * Time.deltaTime <= 1f) &&*/ (GetInvertedMouse () - dragStartPosition).magnitude / ACScreen.LongestDimension < KickStarter.settingsManager.dragThreshold)
+					{
+						dragState = DragState.PreMoveable;
+					}
+					else
+					{
+						dragState = DragState.Moveable;
+					}
+				}
+				else if (KickStarter.mainCamera && KickStarter.mainCamera.attachedCamera && KickStarter.mainCamera.attachedCamera.isDragControlled && !KickStarter.stateHandler.AreCamerasDisabled ())
+				{
+					if (dragState == DragState.Moveable || KickStarter.playerMenus.IsMouseOverMenu ())
+					{
+						return;
+					}
+
+					if (!KickStarter.playerInteraction.IsMouseOverHotspot () ||
+						!KickStarter.stateHandler.CanInteract () ||
+						!KickStarter.stateHandler.IsInGameplay () ||
+						(KickStarter.playerInteraction.GetActiveHotspot () && !KickStarter.playerInteraction.hotspotsPreventCameraDragging &&
+							(KickStarter.settingsManager.interactionMethod == AC_InteractionMethod.ContextSensitive || 
+							(KickStarter.playerInteraction.GetActiveHotspot ().IsSingleInteraction () && KickStarter.settingsManager.interactionMethod == AC_InteractionMethod.ChooseHotspotThenInteraction))))
+					{
+						if (dragState == DragState.None && !cursorIsLocked && (deltaDragMouse.magnitude * Time.deltaTime <= 1f) && (GetInvertedMouse () - dragStartPosition).magnitude / ACScreen.LongestDimension < (KickStarter.settingsManager.dragThreshold + 0.001f))
+						{
+							return;
+						}
+
+						dragState = DragState._Camera;
+					}
+				}
+				else if (KickStarter.settingsManager.CanDragPlayer && KickStarter.stateHandler.IsInGameplay () && !KickStarter.stateHandler.MovementIsOff)
+				{
+					if (!KickStarter.playerMenus.IsMouseOverMenu ())
+					{
+						if (KickStarter.playerInteraction.IsMouseOverHotspot ())
+						{}
+						else
+						{
+							dragState = DragState.Player;
+						}
+					}
+				}
+				else
+				{
+					dragState = DragState.None;
+				}
 			}
 
 			if (oldDragState == DragState.None && dragState != DragState.None)
 			{
 				resetMouseDelta = true;
 				lastMousePosition = unconstrainedMousePosition;
-			}
-		}
-
-
-		protected void SetDragStateTouchScreen ()
-		{
-			if (InvInstance.IsValid (KickStarter.runtimeInventory.SelectedInstance) && KickStarter.settingsManager.InventoryDragDrop && (KickStarter.stateHandler.IsInGameplay () || KickStarter.stateHandler.gameState == GameState.Paused))
-			{}
-			else if (activeDragElement != null && (KickStarter.stateHandler.IsInGameplay () || KickStarter.stateHandler.gameState == GameState.Paused))
-			{}
-			else if (activeArrows && KickStarter.settingsManager.inputMethod == InputMethod.TouchScreen)
-			{}
-			else if (IsDragObjectHeld ())
-			{}
-			else if (KickStarter.mainCamera.attachedCamera && KickStarter.mainCamera.attachedCamera.isDragControlled)
-			{}
-			else if ((KickStarter.settingsManager.movementMethod == MovementMethod.Drag || KickStarter.settingsManager.movementMethod == MovementMethod.StraightToCursor ||
-					  (KickStarter.settingsManager.movementMethod != MovementMethod.PointAndClick && KickStarter.settingsManager.inputMethod == InputMethod.TouchScreen))
-					  && KickStarter.settingsManager.movementMethod != MovementMethod.None && KickStarter.stateHandler.IsInGameplay ())
-			{
-				if (!KickStarter.playerMenus.IsMouseOverMenu () && !KickStarter.playerMenus.IsInteractionMenuOn ())
-				{
-					if (KickStarter.playerInteraction.IsMouseOverHotspot ())
-					{}
-					else
-					{
-						dragState = DragState.Player;
-					}
-				}
-			}
-			else
-			{
-				dragState = DragState.None;
 			}
 		}
 
@@ -1991,6 +2128,27 @@ namespace AC
 					heldObjectDatas[i].AttemptRelease (!isInGameplay);
 				}
 			}
+
+			if (KickStarter.settingsManager.inputMethod == InputMethod.TouchScreen)
+			{
+				for (int i = 0; i < Input.touchCount; i++)
+				{
+					Touch touch = Input.GetTouch (i);
+					if (touchInstances[i] == null) touchInstances[i] = new TouchInstance ();
+					touchInstances[i].delta = touch.deltaPosition / Time.deltaTime;
+					touchInstances[i].position = touch.position;
+				}
+			}
+		}
+
+
+		public TouchInstance GetTouchInstance (int index)
+		{
+			if (index >= 0 && index < touchInstances.Length)
+			{
+				return touchInstances[index];
+			}
+			return null;
 		}
 
 
@@ -2000,11 +2158,16 @@ namespace AC
 			{
 				Vector3 cameraPosition = KickStarter.CameraMainTransform.position;
 
-				Vector3 deltaCamera = cameraPosition - lastCameraPosition;
-
-				foreach (HeldObjectData heldObjectData in heldObjectDatas)
+				if (dragState != DragState.PreMoveable)
 				{
-					heldObjectData.Drag (deltaCamera, deltaDragMouse, unconstrainedMousePosition);
+					Vector3 deltaCamera = cameraPosition - lastCameraPosition;
+					foreach (HeldObjectData heldObjectData in heldObjectDatas)
+					{
+						if (!heldObjectData.IgnoreBuiltInDragInput)
+						{
+							heldObjectData.Drag (deltaCamera, deltaDragMouse, unconstrainedMousePosition);
+						}
+					}
 				}
 
 				lastCameraPosition = cameraPosition;
@@ -2042,6 +2205,17 @@ namespace AC
 				
 				if (Physics.Raycast (ray, out hit, KickStarter.settingsManager.moveableRaycastLength, 1 << LayerMask.NameToLayer (KickStarter.settingsManager.hotspotLayer)))
 				{
+					Hotspot hotspot = hit.collider.GetComponent<Hotspot> ();
+					if (hotspot)
+					{
+						Button button = hotspot.GetFirstUseButton ();
+						if (button != null && 
+							((hotspot.interactionSource == InteractionSource.InScene && button.interaction) || (hotspot.interactionSource == InteractionSource.AssetFile && button.assetFile)))
+						{
+							return;
+						}
+					}
+
 					DragBase dragBase = hit.collider.GetComponent <DragBase>();
 					if (dragBase == null || !dragBase.CanGrab ())
 					{
@@ -2093,6 +2267,15 @@ namespace AC
 			}
 
 			heldObjectDatas.Add (new HeldObjectData (dragBase));
+
+			if (dragBase is Moveable_PickUp)
+			{
+				pickUpIsHeld = true;
+			}
+			else if (dragBase is Moveable_Drag)
+			{
+				draggableIsHeld = true;
+			}
 		}
 
 
@@ -2105,7 +2288,22 @@ namespace AC
 				if (heldObjectData.DragObject == dragBase)
 				{
 					heldObjectDatas.Remove (heldObjectData);
-					return;
+					break;
+				}
+			}
+
+			pickUpIsHeld = false;
+			draggableIsHeld = false;
+			
+			foreach (HeldObjectData heldObjectData in heldObjectDatas)
+			{
+				if (heldObjectData.DragObject is Moveable_PickUp)
+				{
+					pickUpIsHeld = true;
+				}
+				else if (heldObjectData.DragObject is Moveable_Drag)
+				{
+					draggableIsHeld = true;
 				}
 			}
 		}
@@ -2139,7 +2337,7 @@ namespace AC
 		}
 		
 
-		protected void ToggleCursor ()
+		public void ToggleCursor ()
 		{
 			foreach (HeldObjectData heldObjectData in heldObjectDatas)
 			{
@@ -2149,6 +2347,11 @@ namespace AC
 				}
 			}
 			toggleCursorOn = !toggleCursorOn;
+
+			if (toggleCursorOn)
+			{
+				freeAimLerp.Update (Vector2.zero, Vector2.zero, 0f);
+			}
 		}
 
 
@@ -2232,16 +2435,21 @@ namespace AC
 
 		/**
 		 * <summary>Sets the timeScale.</summary>
-		 * <param name = "_timeScale">The new timeScale. A value of 0 will have no effect<param>
+		 * <param name = "_timeScale">The new timeScale. A negative value will have no effect<param>
 		 */
-		public void SetTimeScale (float _timeScale)
+		public void SetTimeScale (float _timeScale, bool affectFixedDeltaTime)
 		{
-			if (_timeScale > 0f)
+			if (_timeScale >= 0f)
 			{
 				timeScale = _timeScale;
 				if (KickStarter.stateHandler.gameState != GameState.Paused)
 				{
 					Time.timeScale = _timeScale;
+
+					if (affectFixedDeltaTime)
+					{
+						Time.fixedDeltaTime = defaultFixedDeltaTime * Time.timeScale;
+					}
 				}
 			}
 		}
@@ -2250,10 +2458,12 @@ namespace AC
 		/**
 		 * <summary>Assigns an AnimationCurve that controls the timeScale over time.</summary>
 		 * <param name = "_timeCurve">The AnimationCurve to use</param>
+		 * <param name = "_timeCurveAffectsFixedDeltaTime">If True, Time.fixedDeltaTime will be affected as well</param>
 		 */
-		public void SetTimeCurve (AnimationCurve _timeCurve)
+		public void SetTimeCurve (AnimationCurve _timeCurve, bool _timeCurveAffectsFixedDeltaTime = false)
 		{
 			timeCurve = _timeCurve;
+			timeCurveAffectsFixedDeltaTime = _timeCurveAffectsFixedDeltaTime;
 			changeTimeStart = Time.time;
 		}
 
@@ -2284,10 +2494,39 @@ namespace AC
 
 		/**
 		 * <summary>Gets the current state of the mouse buttons (Normal, SingleClick, RightClick, DoubleClick, HeldDown, LetGo).</summary>
+		 * <param name = "forScene">If True, then SingleClick will swapped with LetGo, allowing for clicks to register upon release, should the current input settings allow for it</param>
 		 * <returns>The current state of the mouse buttons (Normal, SingleClick, RightClick, DoubleClick, HeldDown, LetGo).</returns>
 		 */
-		public MouseState GetMouseState ()
+		public MouseState GetMouseState (bool forScene = true)
 		{
+			if (forScene)
+			{
+				if (!(KickStarter.settingsManager.inputMethod == InputMethod.TouchScreen && KickStarter.settingsManager.offsetTouchCursor && KickStarter.settingsManager.touchUpInteractScene && KickStarter.settingsManager.movementMethod != MovementMethod.FirstPerson))
+				{
+					forScene = false;
+				}
+			}
+			if (forScene && KickStarter.settingsManager.InventoryDragDrop)
+			{
+				if (InvInstance.IsValid (KickStarter.runtimeInventory.HoverInstance) || InvInstance.IsValid (KickStarter.runtimeInventory.SelectedInstance))
+				{
+					// Disallow when drag-dropping
+					forScene = false;
+				}
+			}
+
+			if (forScene)
+			{
+				if (mouseState == MouseState.SingleClick)
+				{
+					return MouseState.Normal;
+				}
+				if (resetMouseClickThisFrame)
+				{
+					return MouseState.SingleClick;
+				}
+			}
+
 			return mouseState;
 		}
 
@@ -2382,7 +2621,6 @@ namespace AC
 			{
 				return Vector2.zero;
 			}
-
 			return freeAim;
 		}
 
@@ -2404,9 +2642,7 @@ namespace AC
 		}
 		
 
-		/**
-		 * Resets the mouse and assigns the correct gameState in StateHandler after loading a save game.
-		 */
+		/** Resets the mouse and assigns the correct gameState in StateHandler after loading a save game. */
 		public void OnLoad ()
 		{
 			pendingOptionConversation = null;
@@ -2486,7 +2722,7 @@ namespace AC
 						Vector2 rawInput = new Vector2 (InputGetAxisRaw (KickStarter.menuManager.horizontalInputAxis), InputGetAxisRaw (KickStarter.menuManager.verticalInputAxis));
 						scrollingLocked = menu.GetNextSlot (rawInput, scrollingLocked);
 						
-						if (rawInput.y < 0.05f && rawInput.y > -0.05f && rawInput.x < 0.05f && rawInput.x > -0.05f)
+						if (rawInput.y < directMenuThreshold && rawInput.y > -directMenuThreshold && rawInput.x < directMenuThreshold && rawInput.x > -directMenuThreshold)
 						{
 							scrollingLocked = false;
 						}
@@ -2496,9 +2732,27 @@ namespace AC
 		}
 
 
-		/**
-		 * <summary>Ends the active Conversation.</summary>
-		 */
+		public IEnumerator DelayConversation (Conversation conversation, System.Action callback)
+		{
+			PendingOptionConversation = conversation;
+
+			float timeElapsed = 0f;
+			while (timeElapsed < KickStarter.dialog.conversationDelay)
+			{
+				timeElapsed += Time.deltaTime;
+				yield return new WaitForEndOfFrame ();
+			}
+			
+			callback.Invoke ();
+
+			if (PendingOptionConversation == conversation)
+			{
+				PendingOptionConversation = null;
+			}
+		}
+
+
+		/** Ends the active Conversation. */
 		public void EndConversation ()
 		{
 			if (activeConversation)
@@ -2560,10 +2814,34 @@ namespace AC
 		}
 
 
-		protected virtual Vector2 LockedCursorPosition
+		/** 
+		 * <summary>Enforces a custom position (in screen coordinates) to apply to the cursor when it is locked</summary>
+		 * <param name="position">The position (in screen coordinates)</param>
+		 */
+		public void OverrideLockedCursorPosition (Vector2 position)
+		{
+			overrideLockedCursorPosition = true;
+			lockedCursorPositionOverride = position;
+		}
+
+
+		/** Releases the custom locked cursor position set with OverrideLockedCursorPosition */
+		public void ReleaseLockedCursorPositionOverride ()
+		{
+			overrideLockedCursorPosition = false;
+			mousePosition = InputMousePosition (cursorIsLocked);
+		}
+
+
+		/** The position of the cursor when it is locked */
+		public virtual Vector2 LockedCursorPosition
 		{
 			get
 			{
+				if (overrideLockedCursorPosition)
+				{
+					return lockedCursorPositionOverride;
+				}
 				return new Vector2 (ACScreen.width / 2f, ACScreen.height / 2f);
 			}
 		}
@@ -2578,6 +2856,12 @@ namespace AC
 			}
 			set
 			{
+				if (KickStarter.settingsManager.inputMethod == InputMethod.TouchScreen)
+				{
+					canKeyboardControlMenusDuringGameplay = false;
+					return;
+				}
+
 				if (canKeyboardControlMenusDuringGameplay && !value)
 				{
 					List<Menu> allMenus = PlayerMenus.GetMenus (true);
@@ -2608,6 +2892,33 @@ namespace AC
 				}
 			}
 			return Vector3.zero;
+		}
+
+
+		private struct SimulatedInput
+		{
+
+			public readonly string Name;
+			public readonly float Value;
+			public readonly SimulateInputType InputType;
+		
+		
+			public SimulatedInput (string name, float value, SimulateInputType inputType)
+			{
+				Name = name;
+				Value = value;
+				InputType = inputType;
+			}
+
+		}
+
+
+		public class TouchInstance
+		{
+
+			public Vector2 delta;
+			public Vector3 position;
+
 		}
 
 	}

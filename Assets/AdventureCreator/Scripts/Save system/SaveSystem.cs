@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2024
  *	
  *	"SaveSystem.cs"
  * 
@@ -14,7 +14,7 @@
  * 
  */
 
-#if UNITY_WEBPLAYER || UNITY_WINRT || UNITY_WII || UNITY_PS4 || UNITY_WSA
+#if UNITY_WEBPLAYER || UNITY_WINRT || UNITY_WII || UNITY_PS4 || UNITY_WSA || UNITY_WEBGL
 #define SAVE_IN_PLAYERPREFS
 #endif
 
@@ -27,16 +27,17 @@ using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.AddressableAssets;
 #endif
 
-using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
+using System.Text;
+using UnityEngine;
 
 namespace AC
 {
 
-	/**
-	 * Processes save game data to and from scene objects.
-	 */
+	/** Processes save game data to and from scene objects. */
 	[HelpURL ("https://www.adventurecreator.org/scripting-guide/class_a_c_1_1_save_system.html")]
 	public class SaveSystem : MonoBehaviour
 	{
@@ -46,12 +47,13 @@ namespace AC
 		[HideInInspector] public List<SaveFile> foundSaveFiles = new List<SaveFile> ();
 		/** A List of SaveFile variables, storing all available import files. */
 		[HideInInspector] public List<SaveFile> foundImportFiles = new List<SaveFile> ();
+		public bool IsInitialisingAfterLoad { get; private set; }
 
 		public const string pipe = "|";
 		public const string colon = ":";
 		public const string mainDataDivider = "||";
 		public const string mainDataDivider_Replacement = "*DOUBLEPIPE*";
-		
+
 		private SaveData saveData = new SaveData ();
 		private SelectiveLoad activeSelectiveLoad = new SelectiveLoad ();
 
@@ -63,16 +65,12 @@ namespace AC
 		private SaveFile requestedImport = null;
 		
 		private bool isTakingSaveScreenshot;
-		private string persistentDataPath;
-		private SaveOperation saveOperation;
+		private static string persistentDataPath;
+		private static string overrideDataPath;
 
 
 		protected void OnEnable ()
 		{
-			if (string.IsNullOrEmpty (persistentDataPath))
-			{
-				persistentDataPath = Application.persistentDataPath;
-			}
 			EventManager.OnAddSubScene += OnAddSubScene;
 		}
 
@@ -83,22 +81,81 @@ namespace AC
 		}
 
 
-		/** Searches the filesystem for all available save files, and stores them in foundSaveFiles. */
-		public void GatherSaveFiles ()
+		/** 
+		 * <summary>Searches the filesystem for all available save files, and stores them in foundSaveFiles.</summary>
+		 * <param name = "callback">A callback to invoke upon completion</param>
+		 */
+		public void GatherSaveFiles (System.Action<List<SaveFile>> callback = null)
 		{
-			foundSaveFiles = SaveFileHandler.GatherSaveFiles (Options.GetActiveProfileID ());
+			if (foundSaveFiles != null)
+			{
+				foreach (var saveFile in foundSaveFiles)
+				{
+					if (saveFile.screenShot) Destroy (saveFile.screenShot);
+				}
+			}
+
+			SaveFileHandler.GatherSaveFiles (Options.GetActiveProfileID (), OnGatherFilesFromHandler);
+
+			void OnGatherFilesFromHandler (List<SaveFile> saveFiles)
+			{
+				foundSaveFiles = saveFiles;
+
+				if (KickStarter.settingsManager && KickStarter.settingsManager.orderSavesByUpdateTime)
+				{
+					foundSaveFiles.Sort (delegate (SaveFile a, SaveFile b) { return a.updatedTime.CompareTo (b.updatedTime); });
+				}
+				
+				foundSaveFiles.Sort (delegate (SaveFile a, SaveFile b) { return b.IsAutoSave.CompareTo (a.IsAutoSave); });
+
+				UpdateSaveFileLabels (ref foundSaveFiles);
+				KickStarter.eventManager.Call_OnGatherSaves (ref foundSaveFiles);
+
+				callback?.Invoke (foundSaveFiles);
+			}
+		}
+
+
+		protected void UpdateSaveList (SaveFile saveFile)
+		{
+			if (saveFile == null) return;
+
+			bool replacedExisting = false;
+			for (int i = 0; i < foundSaveFiles.Count; i++)
+			{
+				if (foundSaveFiles[i].saveID == saveFile.saveID)
+				{
+					if (foundSaveFiles[i].screenShot) Destroy (foundSaveFiles[i].screenShot);
+					foundSaveFiles[i] = saveFile;
+					replacedExisting = true;
+					break;
+				}
+			}
+
+			if (!replacedExisting)
+			{
+				foundSaveFiles.Add (saveFile);
+			}
 
 			if (KickStarter.settingsManager && KickStarter.settingsManager.orderSavesByUpdateTime)
 			{
 				foundSaveFiles.Sort (delegate (SaveFile a, SaveFile b) { return a.updatedTime.CompareTo (b.updatedTime); });
 			}
+			else
+			{
+				foundSaveFiles.Sort (delegate (SaveFile a, SaveFile b) { return a.saveID.CompareTo (b.saveID); });
+			}
 
-			UpdateSaveFileLabels ();
+			foundSaveFiles.Sort (delegate (SaveFile a, SaveFile b) { return b.IsAutoSave.CompareTo (a.IsAutoSave); });
+
+			//UpdateSaveFileLabels (ref foundSaveFiles);
 		}
 
 
-		private void UpdateSaveFileLabels ()
+		public static void UpdateSaveFileLabels (ref List<SaveFile> _saveFiles)
 		{
+			if (_saveFiles == null) return;
+
 			// Now get save file labels
 			if (Options.optionsData != null && !string.IsNullOrEmpty (Options.optionsData.saveFileNames))
 			{
@@ -111,13 +168,13 @@ namespace AC
 					int.TryParse (chunkData[0], out _id);
 					string _label = chunkData[1];
 
-					for (int i = 0; i < Mathf.Min (50, foundSaveFiles.Count); i++)
+					for (int i = 0; i < _saveFiles.Count; i++)
 					{
-						if (foundSaveFiles[i].saveID == _id)
+						if (_saveFiles[i].saveID == _id)
 						{
-							SaveFile newSaveFile = new SaveFile (foundSaveFiles[i]);
+							SaveFile newSaveFile = new SaveFile (_saveFiles[i]);
 							newSaveFile.SetLabel (_label);
-							foundSaveFiles[i] = newSaveFile;
+							_saveFiles[i] = newSaveFile;
 						}
 					}
 				}
@@ -130,13 +187,20 @@ namespace AC
 		 * <param name = "projectName">The project name of the game whose save files we're looking to import</param>
 		 * <param name = "filePrefix">The "save filename" of the game whose save files we're looking to import, as set in the Settings Manager</param>
 		 * <param name = "boolID">If >= 0, the ID of the boolean Global Variable that must be True for the file to be considered valid for import</param>
+		 * <param name = "callback">A callback to invoke, with the files, once complete</param>
 		 */
-		public void GatherImportFiles (string projectName, string filePrefix, int boolID)
+		public void GatherImportFiles (string projectName, string filePrefix, int boolID, System.Action<List<SaveFile>> callback)
 		{
 			#if !UNITY_STANDALONE
 			ACDebug.LogWarning ("Cannot import save files unless running on Windows, Mac or Linux standalone platforms.");
+			callback?.Invoke (new List<SaveFile> ());
+			return;
 			#else
-			foundImportFiles = SaveFileHandler.GatherImportFiles (Options.GetActiveProfileID (), boolID, projectName, filePrefix);
+			SaveFileHandler.GatherImportFiles (Options.GetActiveProfileID (), boolID, projectName, filePrefix, OnGatherImportFiles);
+			void OnGatherImportFiles (List<SaveFile> foundImportFiles)
+			{
+				callback?.Invoke (foundImportFiles);
+			}
 			#endif
 		}
 
@@ -249,7 +313,7 @@ namespace AC
 			{
 				if (!useSaveID)
 				{
-					if (KickStarter.saveSystem.foundImportFiles.Count > elementSlot)
+					if (elementSlot >= 0 && KickStarter.saveSystem.foundImportFiles.Count > elementSlot)
 					{
 						saveID = KickStarter.saveSystem.foundImportFiles[elementSlot].saveID;
 					}
@@ -273,14 +337,34 @@ namespace AC
 		}
 
 
-		/**
-		 * Loads the last-recorded save game file.
-		 */
-		public static void ContinueGame ()
+		/** Loads the last-recorded save game file. */
+		public static void ContinueGame (System.Action onFail = null)
 		{
-			if (Options.optionsData != null && Options.optionsData.lastSaveID >= 0)
+			KickStarter.saveSystem.GatherSaveFiles (OnGatherSaveFiles);
+
+			void OnGatherSaveFiles (List<SaveFile> saveFiles)
 			{
-				SaveSystem.LoadGame (Options.optionsData.lastSaveID);
+				int maxTime = 0;
+				SaveFile mostRecentSave = null;
+
+				foreach (SaveFile saveFile in saveFiles)
+				{
+					var time = -saveFile.updatedTime;
+					if (time > maxTime)
+					{
+						maxTime = time;
+						mostRecentSave = saveFile;
+					}
+				}
+
+				if (mostRecentSave != null)
+				{
+					LoadGame (mostRecentSave);
+				}
+				else
+				{
+					onFail?.Invoke ();
+				}
 			}
 		}
 
@@ -288,10 +372,22 @@ namespace AC
 		/**
 		 * <summary>Loads a save game file.</summary>
 		 * <param name = "saveID">The save ID of the file to load</param>
+		 * <returns>True if a file was found</returns>
 		 */
-		public static void LoadGame (int saveID)
+		public static bool LoadGame (int saveID)
 		{
-			LoadGame (0, saveID, true);
+			return LoadGame (0, saveID, true);
+		}
+
+
+		/**
+		 * <summary>Loads a save game file.</summary>
+		 * <param name = "saveFile">The save file to load</param>
+		 * <returns>True if a file was found</returns>
+		 */
+		public static void LoadGame (SaveFile saveFile)
+		{
+			KickStarter.saveSystem.LoadSaveGame (saveFile);
 		}
 
 
@@ -300,8 +396,9 @@ namespace AC
 		 * <param name = "elementSlot">The slot index of the MenuSavesList element that was clicked on</param>
 		 * <param name = "saveID">The save ID to load</param>
 		 * <param name = "useSaveID">If True, the saveID overrides the elementSlot to determine which file to load</param>
+		 * <returns>True if a file was found</returns>
 		 */
-		public static void LoadGame (int elementSlot, int saveID, bool useSaveID)
+		public static bool LoadGame (int elementSlot, int saveID, bool useSaveID)
 		{
 			if (KickStarter.saveSystem)
 			{
@@ -323,7 +420,7 @@ namespace AC
 					{
 						SaveFile saveFileToLoad = foundSaveFile;
 						KickStarter.saveSystem.LoadSaveGame (saveFileToLoad);
-						return;
+						return true;
 					}
 				}
 
@@ -331,11 +428,12 @@ namespace AC
 				{
 					SaveFile hiddenSaveFile = SaveFileHandler.GetSaveFile (saveID, Options.GetActiveProfileID ());
 					KickStarter.saveSystem.LoadSaveGame (hiddenSaveFile);
-					return;
+					return true;
 				}
 
 				ACDebug.LogWarning ("Could not load game: file with ID " + saveID + " does not exist.");
 			}
+			return false;
 		}
 
 
@@ -359,8 +457,7 @@ namespace AC
 				if (foundImportFile.saveID == saveID)
 				{
 					requestedImport = new SaveFile (foundImportFile);
-					string fileData = SaveFileHandler.Load (foundImportFile, true);
-					ReceiveDataToImport (foundImportFile, fileData);
+					SaveFileHandler.Load (foundImportFile, true, ReceiveDataToImport);
 					return;
 				}
 			}
@@ -372,18 +469,23 @@ namespace AC
 		 * <param name = "saveFile">A data container for information about the save file to import.  Its saveID and profileID need to match up with that requested in the iSaveFileHandler's Import function in order for the data to be processed</param>
 		 * <param name = "saveFileContents">The file contents of the save file. This is empty if the import failed.</param>
 		 */
-		public void ReceiveDataToImport (SaveFile saveFile, string saveFileContents)
+		public void ReceiveDataToImport (SaveFile saveFile, string fileData)
 		{
 			if (requestedImport != null && saveFile != null && requestedImport.saveID == saveFile.saveID && requestedImport.profileID == saveFile.profileID)
 			{
 				// Received data matches requested
 				requestedImport = null;
 
-				if (!string.IsNullOrEmpty (saveFileContents))
+				if (!string.IsNullOrEmpty (fileData))
 				{
+					if (KickStarter.settingsManager.saveCompression)
+					{
+						fileData = SaveSystem.DecompressString (fileData);
+					}
+					
 					KickStarter.eventManager.Call_OnImport (FileAccessState.Before);
 
-					saveData = ExtractMainData (saveFileContents);
+					saveData = ExtractMainData (fileData);
 
 					// Stop any current-running ActionLists, dialogs and interactions
 					KillActionLists ();
@@ -404,8 +506,7 @@ namespace AC
 			if (saveFile == null) return;
 
 			requestedLoad = new SaveFile (saveFile);
-			string saveData = SaveFileHandler.Load (saveFile, true);
-			ReceiveDataToLoad (saveFile, saveData);
+			SaveFileHandler.Load (saveFile, true, ReceiveDataToLoad);
 		}
 
 
@@ -419,6 +520,11 @@ namespace AC
 			if (!string.IsNullOrEmpty (saveFileContents))
 			{
 				int divider = GetDivider (saveFileContents);
+				if (divider < 0)
+				{
+					return null;
+				}
+
 				string mainData = saveFileContents.Substring (0, divider);
 				mainData = mainData.Replace (mainDataDivider_Replacement, mainDataDivider);
 
@@ -436,6 +542,11 @@ namespace AC
 		 */
 		public static List<SingleLevelData> ExtractSceneData (string saveFileContents)
 		{
+			if (saveFileContents.Length == 0)
+			{
+				return new List<SingleLevelData> ();
+			}
+
 			int divider = GetDivider (saveFileContents) + mainDataDivider.Length;
 			string roomData = saveFileContents.Substring (divider);
 			roomData = roomData.Replace (mainDataDivider_Replacement, mainDataDivider);
@@ -447,22 +558,40 @@ namespace AC
 		/**
 		 * <summary>Extracts the Global Variables data of from a save file</summary>
 		 * <param name = "saveFile">The save file to extract Global Global Variables from</param>
-		 * <returns>A List of Global Variables data from the save file</returns>
+		 * <param name = "callback">A callback with the resulting List of GVar variables</param>
 		 */
-		public static List<GVar> ExtractSaveFileVariables (SaveFile saveFile)
+		public static void ExtractSaveFileVariables (SaveFile saveFile, System.Action<List<GVar>> callback)
 		{
 			if (saveFile != null)
 			{
-				string fileData = SaveFileHandler.Load (saveFile, false);
-				SaveData saveData = ExtractMainData (fileData);
-				if (saveData != null)
-				{
-					string runtimeVariablesData = saveData.mainData.runtimeVariablesData;
-					return UnloadVariablesData (runtimeVariablesData, false, KickStarter.runtimeVariables.globalVars);
-				}
-				ACDebug.LogWarning ("Cannot extract variable data from save file ID = " + saveFile.saveID);
+				variableExtractionCallback = callback;
+				SaveFileHandler.Load (saveFile, false, OnLoadSaveFileVariables);
 			}
-			return null;
+		}
+
+
+		private static System.Action<List<GVar>> variableExtractionCallback;
+		private static void OnLoadSaveFileVariables (SaveFile saveFile, string fileData)
+		{
+			if (variableExtractionCallback == null) return;
+
+			if (KickStarter.settingsManager.saveCompression)
+			{
+				fileData = SaveSystem.DecompressString (fileData);
+			}
+
+			SaveData saveData = ExtractMainData (fileData);
+			if (saveData != null)
+			{
+				string runtimeVariablesData = saveData.mainData.runtimeVariablesData;
+				List<GVar> extractedVariables = UnloadVariablesData (runtimeVariablesData, false, KickStarter.runtimeVariables.globalVars);
+				variableExtractionCallback.Invoke (extractedVariables);
+				variableExtractionCallback = null;
+				return;
+			}
+			variableExtractionCallback.Invoke (null);
+			variableExtractionCallback = null;
+			ACDebug.LogWarning ("Cannot extract variable data from save file ID = " + saveFile.saveID);
 		}
 
 
@@ -478,31 +607,77 @@ namespace AC
 		 * <param name = "saveFile">A data container for information about the save file to load.  Its saveID and profileID need to match up with that requested in the iSaveFileHandler's Load function in order for the data to be processed</param>
 		 * <param name = "saveFileContents">The file contents of the save file. This is empty if the load failed.</param>
 		 */
-		public void ReceiveDataToLoad (SaveFile saveFile, string saveFileContents)
+		public void ReceiveDataToLoad (SaveFile saveFile, string fileData)
 		{
-			if (requestedLoad != null && saveFile != null && requestedLoad.saveID == saveFile.saveID && requestedLoad.profileID == saveFile.profileID)
+			StartCoroutine (ReceiveDataToLoadCo (saveFile, fileData));
+		}
+
+
+		private IEnumerator ReceiveDataToLoadCo (SaveFile saveFile, string fileData)
+		{
+			if (requestedLoad == null || saveFile == null)
 			{
-				// Received data matches requested
-				requestedLoad = null;
+				yield break;
+			}
 
-				if (!string.IsNullOrEmpty (saveFileContents))
-				{
-					KickStarter.eventManager.Call_OnLoad (FileAccessState.Before, saveFile.saveID, saveFile);
+			if (requestedLoad.saveID != saveFile.saveID || requestedLoad.profileID != saveFile.profileID)
+			{
+				yield break;
+			}
 
-					saveData = ExtractMainData (saveFileContents);
+			// Received data matches requested
+			requestedLoad = null;
 
-					if (activeSelectiveLoad.loadSceneObjects)
-					{
-						KickStarter.levelStorage.allLevelData = ExtractSceneData (saveFileContents);
-					}
+			if (string.IsNullOrEmpty (fileData))
+			{
+				KickStarter.eventManager.Call_OnLoad (FileAccessState.Fail, saveFile.saveID);
+				yield break;
+			}
 
-					// Stop any current-running ActionLists, dialogs and interactions
-					KillActionLists ();
+			if (KickStarter.settingsManager.saveCompression)
+			{
+				fileData = SaveSystem.DecompressString (fileData);
+			}
+
+			KickStarter.eventManager.Call_OnLoad (FileAccessState.Before, saveFile.saveID, saveFile);
+
+			saveData = ExtractMainData (fileData);
+
+			if (activeSelectiveLoad.loadSceneObjects)
+			{
+				KickStarter.levelStorage.allLevelData = ExtractSceneData (fileData);
+			}
+
+			// Stop any current-running ActionLists, dialogs and interactions
+			KillActionLists ();
 					
-					bool forceReload = KickStarter.settingsManager.reloadSceneWhenLoading;
+			bool forceReload = KickStarter.settingsManager.reloadSceneWhenLoading;
 
+			switch (KickStarter.settingsManager.referenceScenesInSave)
+			{
+				case ChooseSceneBy.Name:
+					string newSceneName = GetPlayerSceneName (CurrentPlayerID);
+					if (forceReload || (SceneChanger.CurrentSceneName != newSceneName && activeSelectiveLoad.loadScene))
+					{
+						if (KickStarter.settingsManager.reloadSceneWhenLoading)
+						{
+							// Force a fade-out to hide the player switch
+							KickStarter.mainCamera.FadeOut (0f);
+						}
+
+						_loadingGame = LoadingGame.InNewScene;
+						bool isOK = KickStarter.sceneChanger.ChangeScene (newSceneName, false, forceReload);
+						if (!isOK)
+						{
+							_loadingGame = LoadingGame.No;
+						}
+						yield break;
+					}
+					break;
+
+				case ChooseSceneBy.Number:
+				default:
 					int newSceneIndex = GetPlayerSceneIndex (CurrentPlayerID);
-
 					if (forceReload || (SceneChanger.CurrentSceneIndex != newSceneIndex && activeSelectiveLoad.loadScene))
 					{
 						if (KickStarter.settingsManager.reloadSceneWhenLoading)
@@ -512,39 +687,33 @@ namespace AC
 						}
 
 						_loadingGame = LoadingGame.InNewScene;
-						KickStarter.sceneChanger.ChangeScene (newSceneIndex, false, forceReload);
-						return;
-					}
-
-					// If player has changed, destroy the old one and load in the new one
-					if (KickStarter.settingsManager.playerSwitching == PlayerSwitching.Allow)
-					{
-						KickStarter.PreparePlayer ();
-					}
-
-					// No need to change scene
-					_loadingGame = LoadingGame.InSameScene;
-
-					// Already in the scene
-					Sound[] sounds = FindObjectsOfType (typeof (Sound)) as Sound[];
-					foreach (Sound sound in sounds)
-					{
-						if (sound.GetComponent <AudioSource>())
+						bool isOK = KickStarter.sceneChanger.ChangeScene (newSceneIndex, false, forceReload);
+						if (!isOK)
 						{
-							if (sound.soundType != SoundType.Music && !sound.GetComponent <AudioSource>().loop)
-							{
-								sound.Stop ();
-							}
+							_loadingGame = LoadingGame.No;
 						}
+						yield break;
 					}
+					break;
+			}
 
-					InitAfterLoad ();
-				}
-				else
+			// No need to change scene
+			_loadingGame = LoadingGame.InSameScene;
+
+			// Already in the scene
+			Sound[] sounds = UnityVersionHandler.FindObjectsOfType<Sound> ();
+			foreach (Sound sound in sounds)
+			{
+				if (sound.GetComponent <AudioSource>())
 				{
-					KickStarter.eventManager.Call_OnLoad (FileAccessState.Fail, saveFile.saveID);
+					if (sound.soundType != SoundType.Music && !sound.GetComponent <AudioSource>().loop)
+					{
+						sound.Stop ();
+					}
 				}
 			}
+
+			InitAfterLoad (saveFile.saveID);
 		}
 
 
@@ -566,55 +735,85 @@ namespace AC
 				}
 			}
 
-			if (playerID >= 0 && KickStarter.settingsManager.playerSwitching == PlayerSwitching.Allow)
+			switch (KickStarter.settingsManager.playerSwitching)
 			{
-				// None found, so make
-
-				PlayerPrefab playerPrefab = KickStarter.settingsManager.GetPlayerPrefab (playerID);
-				if (playerPrefab != null)
-				{
-					Player player = playerPrefab.GetSceneInstance ();
-					if (player == null) player = playerPrefab.playerOb;
-
-					PlayerData playerData = new PlayerData ();
-					if (player)
+				case PlayerSwitching.Allow:
+					if (playerID >= 0)
 					{
-						playerData = player.SaveData (playerData);
+						// None found, so make
+
+						PlayerPrefab playerPrefab = KickStarter.settingsManager.GetPlayerPrefab (playerID);
+						if (playerPrefab != null)
+						{
+							PlayerData playerData = playerPrefab.GetPlayerData ();
+
+							playerData.playerID = playerID;
+							saveData.playerData.Add (playerData);
+							playerPrefab.SetInitialPosition (playerData);
+
+							return playerData;
+						}
 					}
+					break;
 
-					playerData.playerID = playerID;
-					saveData.playerData.Add (playerData);
-					playerPrefab.SetInitialPosition (playerData);
+				case PlayerSwitching.DoNotAllow:
+				default:
+					{
+						PlayerData playerData = new PlayerData ();
+						
+						Player player = KickStarter.player;
+						if (player)
+						{
+							playerData = player.SaveData (playerData);
+						}
+						else
+						{
+							playerData = KickStarter.settingsManager.PlayerPrefab.GetPlayerData ();
+						}
 
-					return playerData;
-				}
-			}
-			else if (KickStarter.settingsManager.playerSwitching == PlayerSwitching.DoNotAllow)
-			{
-				Player player = KickStarter.player;
-				if (player) player = KickStarter.settingsManager.player;
-				
-				PlayerData playerData = new PlayerData ();
-				if (player)
-				{
-					playerData = player.SaveData (playerData);
-				}
-
-				playerData.playerID = playerID;
-
-				saveData.playerData.Add (playerData);
-				return playerData;
+						playerData.playerID = playerID;
+						saveData.playerData.Add (playerData);
+						return playerData;
+					}
 			}
 
 			return null;
 		}
 
 
-		public void InitAfterLoad ()
+		public void InitAfterLoad (int saveID = -1)
 		{
 			if (KickStarter.settingsManager.IsInLoadingScene ())
 			{
 				return;
+			}
+
+			StartCoroutine (InitAfterLoadCo (saveID));
+		}
+
+
+		private IEnumerator InitAfterLoadCo (int saveID)
+		{
+			IsInitialisingAfterLoad = true;
+
+			KickStarter.mainCamera.OnInitialiseScene ();
+			KickStarter.playerInteraction.StopMovingToHotspot ();
+			KickStarter.runtimeInventory.OnInitialiseScene ();
+			KickStarter.playerCursor.OnInitialiseScene ();
+			KickStarter.playerMenus.OnInitialiseScene ();
+			KickStarter.sceneChanger.OnInitialiseScene ();
+			KickStarter.stateHandler.OnInitialiseScene ();
+			KickStarter.options.OnInitialiseScene ();
+			KickStarter.dialog.OnInitialiseScene ();
+
+			// If player has changed, destroy the old one and load in the new one
+			//if (KickStarter.settingsManager.playerSwitching == PlayerSwitching.Allow)
+			{
+				var preparePlayerCoroutine = KickStarter.playerSpawner.PreparePlayer ();
+				while (preparePlayerCoroutine.MoveNext ())
+				{
+					yield return preparePlayerCoroutine.Current;
+				}
 			}
 
 			KickStarter.eventManager.Call_OnInitialiseScene ();
@@ -628,37 +827,70 @@ namespace AC
 			{
 				case LoadingGame.InNewScene:
 				case LoadingGame.InSameScene:
-					ReturnMainData ();
-					KickStarter.levelStorage.ReturnCurrentLevelData ();
-					KickStarter.playerInput.OnLoad ();
-					KickStarter.sceneSettings.OnLoad ();
-					KickStarter.eventManager.Call_OnLoad (FileAccessState.After, -1);
+					{
+						var returnMainDataCoroutine = ReturnMainData ();
+						while (returnMainDataCoroutine.MoveNext ())
+						{
+							yield return returnMainDataCoroutine.Current;
+						}
+
+						var returnCurrentLevelDataCoroutine = KickStarter.levelStorage.ReturnCurrentLevelData ();
+						while (returnCurrentLevelDataCoroutine.MoveNext ())
+						{
+							yield return returnCurrentLevelDataCoroutine.Current;
+						}
+
+						KickStarter.playerInput.OnLoad ();
+						KickStarter.sceneSettings.OnLoad ();
+						KickStarter.eventManager.Call_OnLoad (FileAccessState.After, saveID);
+					}
 					break;
 
 				case LoadingGame.JustSwitchingPlayer:
-					if (playerData != null)
 					{
-						ReturnCameraData (playerData);
-						KickStarter.sceneChanger.LoadPlayerData (playerData);
+						if (playerData != null)
+						{
+							ReturnCameraData (playerData);
+							KickStarter.sceneChanger.LoadPlayerData (playerData);
+						}
+
+						var returnCurrentLevelDataCoroutine = KickStarter.levelStorage.ReturnCurrentLevelData ();
+						while (returnCurrentLevelDataCoroutine.MoveNext ())
+						{
+							yield return returnCurrentLevelDataCoroutine.Current;
+						}
+
+						KickStarter.playerInput.OnLoad ();
+						KickStarter.sceneSettings.OnLoad ();
+						PlayerMenus.ResetInventoryBoxes ();
 					}
-					KickStarter.levelStorage.ReturnCurrentLevelData ();
-					KickStarter.playerInput.OnLoad ();
-					KickStarter.sceneSettings.OnLoad ();
-					PlayerMenus.ResetInventoryBoxes ();
 					break;
 
 				case LoadingGame.No:
-					if (playerData != null)
 					{
-						playerData.UpdateCurrentAndShiftPrevious (SceneChanger.CurrentSceneIndex);
+						if (playerData != null)
+						{
+							playerData.UpdateCurrentAndShiftPrevious (SceneChanger.CurrentSceneIndex);
+							playerData.UpdateCurrentAndShiftPrevious (SceneChanger.CurrentSceneName);
+						}
+						
+						var returnCurrentLevelDataCoroutine = KickStarter.levelStorage.ReturnCurrentLevelData ();
+						while (returnCurrentLevelDataCoroutine.MoveNext ())
+						{
+							yield return returnCurrentLevelDataCoroutine.Current;
+						}
+
+						KickStarter.sceneSettings.OnStart ();
 					}
-					KickStarter.levelStorage.ReturnCurrentLevelData ();
-					KickStarter.sceneSettings.OnStart ();
+					break;
+
+				default:
 					break;
 			}
 
 			AssetLoader.UnloadAssets ();
 
+			IsInitialisingAfterLoad = false;
 			KickStarter.eventManager.Call_OnAfterChangeScene (thisFrameLoadingGame);
 		}
 
@@ -678,20 +910,42 @@ namespace AC
 
 
 		/**
+		 * <summary>Switches to a new Player in a different scene</summary>
+		 * <param name = "playerID">The ID of the Player to switch to</param>
+		 * <param name = "sceneName">The new scene to switch to</param>
+		 * <param name = "doOverlay">If True, then a screenshot of the existing scene will be overlaid on top of the camera to mask the transition</param>
+		 */
+		public void SwitchToPlayerInDifferentScene (int playerID, string sceneName, bool doOverlay)
+		{
+			CurrentPlayerID = playerID;
+			_loadingGame = LoadingGame.JustSwitchingPlayer;
+			KickStarter.sceneChanger.ChangeScene (sceneName, true, false, doOverlay);
+		}
+
+
+		/**
 		 * <summary>Create a new save game file.</summary>
 		 * <param name = "overwriteLabel">True if the label should be updated</param>
 		 * <param name = "newLabel">The new label, if it can be set</param>
+		 * <param name = "onComplete">A callback to invoke upon completion</param>
 		 */
-		public static void SaveNewGame (bool overwriteLabel = true, string newLabel = "")
+		public static void SaveNewGame (bool overwriteLabel = true, string newLabel = "", System.Action onComplete = null)
 		{
 			if (KickStarter.saveSystem)
 			{
-				KickStarter.saveSystem.SaveNewSaveGame (overwriteLabel, newLabel);
+				KickStarter.saveSystem.SaveNewSaveGame (overwriteLabel, newLabel, onComplete);
 			}
 		}
 		
 
-		private void SaveNewSaveGame (bool overwriteLabel = true, string newLabel = "")
+		private void SaveNewSaveGame (bool overwriteLabel = true, string newLabel = "", System.Action onComplete = null)
+		{
+			SaveSaveGame (GetNewSaveID (), overwriteLabel, newLabel, onComplete);
+		}
+
+
+		/** Gets the first-found ID for a new save */
+		public int GetNewSaveID ()
 		{
 			if (foundSaveFiles != null && foundSaveFiles.Count > 0)
 			{
@@ -708,8 +962,7 @@ namespace AC
 				{
 					if (expectedID != -1 && expectedID != foundSaveFilesOrdered[i].saveID)
 					{
-						SaveSaveGame (expectedID, overwriteLabel, newLabel);
-						return;
+						return expectedID;
 					}
 
 					expectedID = foundSaveFilesOrdered[i].saveID + 1;
@@ -717,18 +970,16 @@ namespace AC
 
 				// Saves present, but no gap
 				int newSaveID = (foundSaveFilesOrdered [foundSaveFilesOrdered.Count-1].saveID+1);
-				SaveSaveGame (newSaveID, overwriteLabel, newLabel);
+				return newSaveID;
 			}
 			else
 			{
-				SaveSaveGame (1, overwriteLabel, newLabel);
+				return 1;
 			}
 		}
 
 
-		/**
-		 * <summary>Overwrites the AutoSave file.</summary>
-		 */
+		/** Overwrites the AutoSave file. */
 		public static void SaveAutoSave ()
 		{
 			if (KickStarter.saveSystem)
@@ -743,12 +994,13 @@ namespace AC
 		 * <param name = "saveID">The save ID to save</param>
 		 * <param name = "overwriteLabel">True if the label should be updated</param>
 		 * <param name = "newLabel">The new label, if it can be set. If blank, a default label will be generated.</param>
+		 * <param name = "onComplete">A callback to invoke upon completion</param>
 		 */
-		public static void SaveGame (int saveID, bool overwriteLabel = true, string newLabel = "")
+		public static void SaveGame (int saveID, bool overwriteLabel = true, string newLabel = "", System.Action onComplete = null)
 		{
-			SaveSystem.SaveGame (0, saveID, true, overwriteLabel, newLabel);
+			SaveSystem.SaveGame (0, saveID, true, overwriteLabel, newLabel, onComplete);
 		}
-		
+
 
 		/**
 		 * <summary>Saves the game.</summary>
@@ -758,7 +1010,7 @@ namespace AC
 		 * <param name = "overwriteLabel">True if the label should be updated</param>
 		 * <param name = "newLabel">The new label, if it can be set. If blank, a default label will be generated.</param>
 		 */
-		public static void SaveGame (int elementSlot, int saveID, bool useSaveID, bool overwriteLabel = true, string newLabel = "")
+		public static void SaveGame (int elementSlot, int saveID, bool useSaveID, bool overwriteLabel = true, string newLabel = "", System.Action onComplete = null)
 		{
 			if (KickStarter.saveSystem)
 			{
@@ -776,17 +1028,17 @@ namespace AC
 
 				if (saveID == -1)
 				{
-					SaveSystem.SaveNewGame (overwriteLabel, newLabel);
+					SaveSystem.SaveNewGame (overwriteLabel, newLabel, onComplete);
 				}
 				else
 				{
-					KickStarter.saveSystem.SaveSaveGame (saveID, overwriteLabel, newLabel);
+					KickStarter.saveSystem.SaveSaveGame (saveID, overwriteLabel, newLabel, onComplete);
 				}
 			}
 		}
 
 
-		private void SaveSaveGame (int saveID, bool overwriteLabel = true, string newLabel = "")
+		private void SaveSaveGame (int saveID, bool overwriteLabel = true, string newLabel = "", System.Action onComplete = null)
 		{
 			if (GetNumSaves () >= KickStarter.settingsManager.maxSaves && !DoesSaveExist (saveID))
 			{
@@ -798,11 +1050,27 @@ namespace AC
 			KickStarter.eventManager.Call_OnSave (FileAccessState.Before, saveID);
 			KickStarter.levelStorage.StoreAllOpenLevelData ();
 
-			StartCoroutine (PrepareSaveCoroutine (saveID, overwriteLabel, newLabel));
+			if (KickStarter.settingsManager.saveWithThreading)
+			{
+				// Make sure Persistent components are set, as cannot use GetComponent in a thread
+				if (KickStarter.runtimeVariables == null ||
+					KickStarter.stateHandler == null ||
+					KickStarter.runtimeInventory == null ||
+					KickStarter.runtimeLanguages == null ||
+					KickStarter.runtimeVariables == null ||
+					KickStarter.playerMenus == null ||
+					KickStarter.sceneChanger == null)
+				{
+					Debug.LogWarning ("Cannot save using threading - not all Persistent components found.");
+					return;
+				}
+			}
+
+			StartCoroutine (PrepareSaveCoroutine (saveID, overwriteLabel, newLabel, onComplete));
 		}
 
 		
-		private IEnumerator PrepareSaveCoroutine (int saveID, bool overwriteLabel = true, string newLabel = "")
+		private IEnumerator PrepareSaveCoroutine (int saveID, bool overwriteLabel = true, string newLabel = "", System.Action onComplete = null)
 		{
 			while (loadingGame != LoadingGame.No)
 			{
@@ -822,9 +1090,9 @@ namespace AC
 			{
 				newLabel = string.Empty;
 			}
-
 			int profileID = Options.GetActiveProfileID ();
-			SaveFile saveFile = new SaveFile (saveID, profileID, newLabel, string.Empty, null, string.Empty);
+
+			SaveFile saveFile = new SaveFile (saveID, profileID, newLabel, string.Empty, null, string.Empty, 0);
 
 			if (KickStarter.settingsManager.saveScreenshots == SaveScreenshots.Always || (KickStarter.settingsManager.saveScreenshots == SaveScreenshots.ExceptWhenAutosaving && !saveFile.IsAutoSave))
 			{
@@ -854,58 +1122,31 @@ namespace AC
 
 			saveData.mainData = KickStarter.levelStorage.SavePersistentData (saveData.mainData);
 
-			saveOperation = gameObject.AddComponent <SaveOperation>();
-			saveOperation.BeginOperation (ref saveData, saveFile);
+			SaveOperation saveOperation = gameObject.AddComponent <SaveOperation>();
+			saveOperation.BeginOperation (ref saveData, saveFile, onComplete);
 		}
 
 
-		/**
-		 * <summary>Handles the what happens once a save file has been written</summary>
-		 * <param name = "saveFile">A data container for information about the save file to that was loaded.  Its saveID and profileID need to match up with that requested in the iSaveFileHandler's Save function in order for the data to be processed</param>
-		 * <param name = "wasSuccesful">True if the file saving was succesful</param>
-		 */
-		public void OnFinishSaveRequest (SaveFile saveFile, bool wasSuccesful)
-		{
-			if (saveOperation != null && saveOperation.Matches (saveFile))
-			{
-				saveOperation.OnFinishSaveRequest (wasSuccesful);
-			}
-		}
-
-
-		public void OnCompleteSaveOperation (SaveFile saveFile, bool wasSuccesful, SaveOperation saveOperation)
+		public void OnCompleteSaveOperation (SaveFile saveFile, bool wasSuccesful, SaveOperation saveOperation, System.Action onComplete)
 		{
 			Destroy (saveOperation);
-			saveOperation = null;
 
 			if (!wasSuccesful)
 			{
 				return;
 			}
 
-			GatherSaveFiles ();
-
-			// Update label
-			if (!string.IsNullOrEmpty (saveFile.label))
-			{
-				for (int i = 0; i < Mathf.Min (50, foundSaveFiles.Count); i++)
-				{
-					if (foundSaveFiles[i].saveID == saveFile.saveID)
-					{
-						SaveFile newSaveFile = new SaveFile (foundSaveFiles[i]);
-						newSaveFile.SetLabel (saveFile.label);
-						foundSaveFiles[i] = newSaveFile;
-						break;
-					}
-				}
-			}
+			string label = saveFile.label;
+			saveFile = SaveFileHandler.GetSaveFile (saveFile.saveID, Options.GetActiveProfileID ()); // Get screenshot
+			saveFile.label = label;
+			UpdateSaveList (saveFile);
 
 			// Update PlayerPrefs
-			Options.optionsData.lastSaveID = saveFile.saveID;
 			Options.UpdateSaveLabels (foundSaveFiles.ToArray ());
 
-			UpdateSaveFileLabels ();
+			UpdateSaveFileLabels (ref foundSaveFiles);
 
+			onComplete?.Invoke ();
 			KickStarter.eventManager.Call_OnSave (FileAccessState.After, saveFile.saveID, saveFile);
 		}
 
@@ -914,10 +1155,24 @@ namespace AC
 		{
 			if (KickStarter.mainCamera)
 			{
-				Texture2D screenshotTexture = new Texture2D (ScreenshotWidth, ScreenshotHeight);
 				Rect screenRect = KickStarter.mainCamera.GetPlayableScreenArea (false);
+				Texture2D screenshotTexture = null;
 
-				screenshotTexture.ReadPixels (screenRect, 0, 0);
+				RenderTexture screenshotRenderTexture = KickStarter.settingsManager.screenshotRenderTexture;
+				if (screenshotRenderTexture)
+				{
+					var old_rt = RenderTexture.active;
+					screenshotTexture = new Texture2D(screenshotRenderTexture.width, screenshotRenderTexture.height, TextureFormat.RGB24, false);
+        
+					RenderTexture.active = screenshotRenderTexture;
+					screenshotTexture.ReadPixels (new Rect(0, 0, screenshotRenderTexture.width, screenshotRenderTexture.height), 0, 0);
+					RenderTexture.active = old_rt;
+				}
+				else
+				{
+					screenshotTexture = new Texture2D ((int) screenRect.width, (int) screenRect.height);
+					screenshotTexture.ReadPixels (screenRect, 0, 0);
+				}
 
 				if (KickStarter.settingsManager.linearColorTextures)
 				{
@@ -932,11 +1187,23 @@ namespace AC
 				}
 
 				screenshotTexture.Apply ();
-
+				screenshotTexture = Resize (screenshotTexture, ScreenshotWidth, ScreenshotHeight);
 				return screenshotTexture;
 			}
 			ACDebug.LogWarning ("Cannot take screenshot - no main Camera found!");
 			return null;
+		}
+
+		
+		private Texture2D Resize (Texture2D texture2D, int width, int height)
+		{
+			RenderTexture rt = new RenderTexture (width, height, 24);
+			RenderTexture.active = rt;
+			Graphics.Blit (texture2D, rt);
+			Texture2D result = new Texture2D (width, height);
+			result.ReadPixels (new Rect (0, 0, width, height), 0, 0);
+			result.Apply ();
+			return result;
 		}
 
 
@@ -945,16 +1212,14 @@ namespace AC
 		{
 			get
 			{
-				if (KickStarter.mainCamera)
-				{
-					int width = (int) (KickStarter.mainCamera.GetPlayableScreenArea (false).width * KickStarter.settingsManager.screenshotResolutionFactor);
-					return Mathf.Min (width, Screen.width);
-				}
-				else
-				{
-					int width = (int) (Screen.width * KickStarter.settingsManager.screenshotResolutionFactor);
-					return Mathf.Min (width, Screen.width);
-				}
+				int width = KickStarter.mainCamera
+						  ? (int) (KickStarter.mainCamera.GetPlayableScreenArea (false).width * KickStarter.settingsManager.screenshotResolutionFactor)
+						  : (int) (Screen.width * KickStarter.settingsManager.screenshotResolutionFactor);
+
+				width = Mathf.Min (width, Screen.width);
+				width = RoundToMultiple (width, 4);
+
+				return Mathf.Min (width, Screen.width);
 			}
 		}
 
@@ -964,23 +1229,25 @@ namespace AC
 		{
 			get
 			{
-				if (KickStarter.mainCamera)
-				{
-					int height = (int) (KickStarter.mainCamera.GetPlayableScreenArea (false).height * KickStarter.settingsManager.screenshotResolutionFactor);
-					return Mathf.Min (height, Screen.height);
-				}
-				else
-				{
-					int height = (int) (Screen.height * KickStarter.settingsManager.screenshotResolutionFactor);
-					return Mathf.Min (height, Screen.height);
-				}
+				int height = KickStarter.mainCamera
+						   ? (int) (KickStarter.mainCamera.GetPlayableScreenArea (false).height * KickStarter.settingsManager.screenshotResolutionFactor)
+						   : (int) (Screen.height * KickStarter.settingsManager.screenshotResolutionFactor);
+
+				height = Mathf.Min (height, Screen.height);
+				height = RoundToMultiple (height, 4);
+
+				return Mathf.Min (height, Screen.height);
 			}
 		}
 
 
-		/**
-		 * <summary>Stores the PlayerData of the active Player.</summary>
-		 */
+		private int RoundToMultiple (int value, int roundTo)
+		{
+			return (value / roundTo) * roundTo;
+		}
+
+
+		/** Stores the PlayerData of the active Player. */
 		public void SaveCurrentPlayerData ()
 		{
 			if (loadingGame == LoadingGame.JustSwitchingPlayer)
@@ -1002,6 +1269,7 @@ namespace AC
 		private void SavePlayerData (PlayerData playerData, Player player)
 		{
 			playerData.currentScene = SceneChanger.CurrentSceneIndex;
+			playerData.currentSceneName = SceneChanger.CurrentSceneName;
 			
 			playerData = KickStarter.sceneChanger.SavePlayerData (playerData);
 			
@@ -1016,7 +1284,7 @@ namespace AC
 			{
 				playerData = mainCamera.SaveData (playerData);
 			}
-           
+
 			if (player == null)
 			{
 				playerData.playerPortraitGraphic = string.Empty;
@@ -1036,7 +1304,7 @@ namespace AC
 				{
 					if (KickStarter.player == null || playerPrefab.ID != KickStarter.player.ID)
 					{
-						Player sceneInstance = playerPrefab.GetSceneInstance ();
+						Player sceneInstance = playerPrefab.GetSceneInstance ();;
 						if (sceneInstance)
 						{
 							if (stopFollowCommands)
@@ -1149,7 +1417,7 @@ namespace AC
 		{
 			KickStarter.actionListManager.KillAllLists ();
 
-			Moveable[] moveables = FindObjectsOfType (typeof (Moveable)) as Moveable[];
+			Moveable[] moveables = UnityVersionHandler.FindObjectsOfType<Moveable> ();
 			foreach (Moveable moveable in moveables)
 			{
 				moveable.StopMoving ();
@@ -1218,7 +1486,7 @@ namespace AC
 					{
 						if (saveFile.saveID == saveID)
 						{
-							return saveFile.label;
+							return AdvGame.ConvertTokens (saveFile.label);
 						}
 					}
 				}
@@ -1226,7 +1494,7 @@ namespace AC
 				{
 					if (elementSlot < saveFiles.Length)
 					{
-						return saveFiles [elementSlot].label;
+						return AdvGame.ConvertTokens (saveFiles [elementSlot].label);
 					}
 				}
 				return string.Empty;
@@ -1316,16 +1584,40 @@ namespace AC
 		}
 
 
-		private void ReturnMainData ()
+		private IEnumerator ReturnMainData ()
 		{
 			if (KickStarter.playerInput && KickStarter.runtimeInventory && KickStarter.settingsManager && KickStarter.stateHandler)
 			{
+				// Menus
+				if (activeSelectiveLoad.loadMenus)
+				{
+					KickStarter.playerMenus.LoadMainData (saveData.mainData);
+				}
+
 				PlayerData playerData = GetPlayerData (CurrentPlayerID);
+
+				if (activeSelectiveLoad.loadInventory)
+				{
+					// Do before player data so that held SceneItems can be linked
+					KickStarter.runtimeInventory.AssignPlayerInventory (InvCollection.LoadData (playerData.inventoryData));
+				}
 
 				if (activeSelectiveLoad.loadPlayer)
 				{
-					SpawnAllPlayers ();
-					ReturnPlayerData (playerData, KickStarter.player);
+					var spawnPlayersCoroutine = SpawnAllPlayers ();
+					while (spawnPlayersCoroutine.MoveNext ())
+					{
+						yield return spawnPlayersCoroutine.Current;
+					}
+
+					if (KickStarter.player)
+					{
+						var loadPlayerDataCoroutine = KickStarter.player.LoadData (playerData);
+						while (loadPlayerDataCoroutine.MoveNext ())
+						{
+							yield return loadPlayerDataCoroutine.Current;
+						}
+					}
 				}
 				if (activeSelectiveLoad.loadSceneObjects)
 				{
@@ -1336,6 +1628,7 @@ namespace AC
 				KickStarter.actionListAssetManager.LoadData (saveData.mainData.activeAssetLists);
 				KickStarter.settingsManager.movementMethod = (MovementMethod) saveData.mainData.movementMethod;
 				ActiveInput.LoadSaveData (saveData.mainData.activeInputsData);
+				Timer.LoadSaveData (saveData.mainData.timersData);
 
 				if (activeSelectiveLoad.loadScene)
 				{
@@ -1346,7 +1639,7 @@ namespace AC
 				KickStarter.runtimeInventory.RemoveRecipes ();
 				if (activeSelectiveLoad.loadInventory)
 				{
-					KickStarter.runtimeInventory.AssignPlayerInventory (InvCollection.LoadData (playerData.inventoryData));
+				//	KickStarter.runtimeInventory.AssignPlayerInventory (InvCollection.LoadData (playerData.inventoryData));
 					KickStarter.runtimeDocuments.AssignPlayerDocuments (playerData);
 					KickStarter.runtimeObjectives.AssignPlayerObjectives (playerData);
 					KickStarter.runtimeInventory.LoadMainData (saveData.mainData);
@@ -1361,9 +1654,6 @@ namespace AC
 					KickStarter.runtimeVariables.AssignCustomTokensFromString (saveData.mainData.customTokenData);
 				}
 
-				// Menus
-				KickStarter.playerMenus.LoadMainData (saveData.mainData);
-
 				// Speech
 				KickStarter.runtimeLanguages.LoadMainData (saveData.mainData);
 
@@ -1371,7 +1661,11 @@ namespace AC
 				KickStarter.sceneChanger.LoadMainData (saveData.mainData);
 
 				// Persistent Remember components
-				KickStarter.levelStorage.LoadPersistentData (saveData.mainData);
+				var loadPersistentDataCoroutine = KickStarter.levelStorage.LoadPersistentData (saveData.mainData);
+				while (loadPersistentDataCoroutine.MoveNext ())
+				{
+					yield return loadPersistentDataCoroutine.Current;
+				}
 			}
 			else
 			{
@@ -1412,29 +1706,60 @@ namespace AC
 
 
 		/**
+		 * <summary>Gets the current scene name that a Player is in.</summary>
+		 * <param name = "ID">The ID number of the Player to check</param>
+		 * <returns>The current scene name that the Player is in.</returns>
+		 */
+		public string GetPlayerSceneName (int ID)
+		{
+			PlayerData playerData = GetPlayerData (ID);
+			if (playerData != null)
+			{
+				return playerData.currentSceneName;
+			}
+			return string.Empty;
+		}
+
+
+		/**
 		 * <summary>Updates the internal record of an inactive Player's position to the current scene, provided that player-switching is allowed. If that Player has an Associated NPC, then it will be spawned or teleported to the Player's new position</summary>
 		 * <param name = "ID">The ID number of the Player to affect, as set in the Settings Manager's list of Player prefabs</param>
 		 * <param name = "teleportPlayerStartMethod">How to select which PlayerStart to appear at (SceneDefault, BasedOnPrevious, EnteredHere)</param>
 		 * <param name = "newPlayerStart">If teleportPlayerStartMethod = EnteredHere, a PlayerStart to use as the basis for the Player's new position and rotation</param>
 		 */
-		public void MoveInactivePlayerToCurrentScene (int ID, TeleportPlayerStartMethod teleportPlayerStartMethod, PlayerStart newPlayerStart = null)
+		public void MoveInactivePlayerToCurrentScene (int ID, TeleportPlayerStartMethod teleportPlayerStartMethod, PlayerStart newPlayerStart = null, System.Action onComplete = null)
+		{
+			StartCoroutine (MoveInactivePlayerToCurrentSceneCo (ID, teleportPlayerStartMethod, newPlayerStart, onComplete));
+		}
+		
+
+		private IEnumerator MoveInactivePlayerToCurrentSceneCo (int ID, TeleportPlayerStartMethod teleportPlayerStartMethod, PlayerStart newPlayerStart, System.Action onComplete)
 		{
 			if (KickStarter.settingsManager.playerSwitching == PlayerSwitching.DoNotAllow)
 			{
-				return;
+				if (onComplete != null) onComplete.Invoke ();
+				yield break;
 			}
 
 			if (KickStarter.player && KickStarter.player.ID == ID)
 			{
 				ACDebug.LogWarning ("Cannot update position of player " + ID + " because that Player (" + KickStarter.player + ") is currently active!");
-				return;
+				if (onComplete != null) onComplete.Invoke ();
+				yield break;
 			}
 
 			PlayerData playerData = GetPlayerData (ID);
 
 			playerData.ClearPathData ();
 			playerData.UpdatePosition (teleportPlayerStartMethod, newPlayerStart);
-			playerData.UpdatePresenceInScene ();
+			
+			var updatePlayerPresenceCoroutine = KickStarter.playerSpawner.UpdatePlayerPresenceInSceneCo (playerData, null);
+			while (updatePlayerPresenceCoroutine.MoveNext ())
+			{
+				yield return updatePlayerPresenceCoroutine.Current;
+			}
+
+			if (onComplete != null) onComplete.Invoke ();
 		}
 
 
@@ -1445,7 +1770,59 @@ namespace AC
 		 * <param name = "teleportPlayerStartMethod">How to select which PlayerStart to appear at (SceneDefault, BasedOnPrevious, EnteredHere)</param>
 		 * <param name = "newPlayerStartConstantID">If teleportPlayerStartMethod = EnteredHere, the Constant ID number of the associated PlayerStart to appear at in the new scene</param>
 		 */
-		public void MoveInactivePlayer (int ID, int newSceneIndex, TeleportPlayerStartMethod teleportPlayerStartMethod, int newPlayerStartConstantID = 0)
+		public void MoveInactivePlayer (int ID, int newSceneIndex, TeleportPlayerStartMethod teleportPlayerStartMethod, int newPlayerStartConstantID = 0, System.Action onComplete = null)
+		{
+			StartCoroutine (MoveInactivePlayerCo (ID, newSceneIndex, teleportPlayerStartMethod, newPlayerStartConstantID, onComplete));
+		}
+
+
+		private IEnumerator MoveInactivePlayerCo (int ID, int newSceneIndex, TeleportPlayerStartMethod teleportPlayerStartMethod, int newPlayerStartConstantID, System.Action onComplete = null)
+		{
+			OnMoveInactivePlayer (ID);
+
+			PlayerData playerData = GetPlayerData (ID);
+			playerData.UpdatePosition (newSceneIndex, teleportPlayerStartMethod, newPlayerStartConstantID);
+			
+			var updatePlayerPresenceCoroutine = KickStarter.playerSpawner.UpdatePlayerPresenceInSceneCo (playerData, null);
+			while (updatePlayerPresenceCoroutine.MoveNext ())
+			{
+				yield return updatePlayerPresenceCoroutine.Current;
+			}
+
+			if (onComplete != null) onComplete.Invoke ();
+		}
+
+
+		/**
+		 * <summary>Moves an inactive Player to a new scene</summary>
+		 * <param name = "ID">The inactive Player's ID number</param>
+		 * <param name = "newSceneNamex">The new scene to switch to</param>
+		 * <param name = "teleportPlayerStartMethod">How to select which PlayerStart to appear at (SceneDefault, BasedOnPrevious, EnteredHere)</param>
+		 * <param name = "newPlayerStartConstantID">If teleportPlayerStartMethod = EnteredHere, the Constant ID number of the associated PlayerStart to appear at in the new scene</param>
+		 */
+		public void MoveInactivePlayer (int ID, string newSceneNamex, TeleportPlayerStartMethod teleportPlayerStartMethod, int newPlayerStartConstantID = 0, System.Action onComplete = null)
+		{
+			StartCoroutine (MoveInactivePlayerCo (ID, newSceneNamex, teleportPlayerStartMethod, newPlayerStartConstantID, onComplete));
+		}
+
+
+		private IEnumerator MoveInactivePlayerCo (int ID, string newSceneNamex, TeleportPlayerStartMethod teleportPlayerStartMethod, int newPlayerStartConstantID, System.Action onComplete)
+		{
+			OnMoveInactivePlayer (ID);
+
+			PlayerData playerData = GetPlayerData (ID);
+			playerData.UpdatePosition (newSceneNamex, teleportPlayerStartMethod, newPlayerStartConstantID);
+
+			var updatePlayerPresenceCoroutine = KickStarter.playerSpawner.UpdatePlayerPresenceInSceneCo (playerData, null);
+			while (updatePlayerPresenceCoroutine.MoveNext ())
+			{
+				yield return updatePlayerPresenceCoroutine.Current;
+			}
+			if (onComplete != null) onComplete.Invoke ();
+		}
+
+
+		private void OnMoveInactivePlayer (int ID)
 		{
 			if (KickStarter.settingsManager.playerSwitching == PlayerSwitching.DoNotAllow)
 			{
@@ -1471,8 +1848,6 @@ namespace AC
 			}
 
 			playerData.ClearPathData ();
-			playerData.UpdatePosition (newSceneIndex, teleportPlayerStartMethod, newPlayerStartConstantID);
-			playerData.UpdatePresenceInScene ();
 		}
 
 
@@ -1480,7 +1855,7 @@ namespace AC
 		 * <summary>Updates a Player object with its associated saved data, if it exists.</summary>
 		 * <param name = "player">The Player to load animation data for</param>
 		 */
-		public void AssignPlayerData (Player player)
+		public IEnumerator AssignPlayerData (Player player)
 		{
 			if (player && saveData.playerData.Count > 0)
 			{
@@ -1488,21 +1863,14 @@ namespace AC
 				{
 					if (player.ID == _data.playerID)
 					{
-						player.LoadData (_data);
+						var loadDataCoroutine = player.LoadData (_data);
+						while (loadDataCoroutine.MoveNext ())
+						{
+							yield return loadDataCoroutine.Current;
+						}
 					}
 				}
 			}
-		}
-
-
-		private void ReturnPlayerData (PlayerData playerData, Player player)
-		{
-			if (player == null)
-			{
-				return;
-			}
-
-			player.LoadData (playerData);
 		}
 
 
@@ -1580,7 +1948,7 @@ namespace AC
 							break;
 
 						case VariableType.GameObject:
-							if (_var.GameObjectValue)
+							if (!string.IsNullOrEmpty (_var.TextValue))
 							{
 								if (location == VariableLocation.Global)
 								{
@@ -1588,21 +1956,24 @@ namespace AC
 								}
 								else if (_var.SavePrefabReference)
 								{
-									variablesString.Append (_var.GameObjectValue.name);
+									variablesString.Append (_var.TextValue);
 								}
 								else
 								{
-									ConstantID constantID = _var.GameObjectValue.GetComponent <ConstantID>();
-									if (constantID)
+									if (_var.IntegerValue != 0)
 									{
-										variablesString.Append (constantID.constantID.ToString ());
+										variablesString.Append (_var.IntegerValue.ToString ());
 									}
 									else
 									{
-										ACDebug.LogWarning ("Cannot save the value of " + location + " GameObject variable " + _var.label + ", because the assigned object, '" + _var.GameObjectValue.name + "', has no Constant ID value.", _var.GameObjectValue);
+										ACDebug.LogWarning ("Cannot save the value of " + location + " GameObject variable " + _var.label + ", because the assigned object, '" + _var.TextValue + "', has no Constant ID value.", _var.GameObjectValue);
 									}
 								}
 							}
+							break;
+
+						case VariableType.UnityObject:
+							variablesString.Append (_var.TextValue);
 							break;
 
 						default:
@@ -1780,7 +2151,7 @@ namespace AC
 
 										if (!foundObject)
 										{
-											ACDebug.LogWarning ("Could not find Resources prefab with ID " + chunkData[1] + "- cannot restore variable " + _var.label + " value.  Is it placed in a Resources folder?");
+											ACDebug.LogWarning ("Could not find Resources prefab with ID " + chunkData[1] + "- cannot restore GameObject variable " + _var.label + " value.  Is it placed in a Resources folder?");
 										}
 									}
 									else
@@ -1797,10 +2168,45 @@ namespace AC
 												}
 												else
 												{
-													ACDebug.LogWarning ("Could not find GameObject with ID " + chunkData[1] + " - cannot restore variable " + _var.label + " value");
+													ACDebug.LogWarning ("Could not find GameObject with ID " + chunkData[1] + " - cannot restore GameObject variable " + _var.label + " value");
 												}
 											}
 										}
+									}
+								}
+								break;
+
+							case VariableType.UnityObject:
+								{
+									if (existingVars.Count == 0) break;
+									#if AddressableIsPresent
+									if (KickStarter.settingsManager.saveAssetReferencesWithAddressables)
+									{
+										KickStarter.saveSystem.UnloadVariableDataFromAddressables (_var, chunkData[1]);
+										break;
+									}
+									#endif
+
+									bool foundObject = false;
+
+									if (!searchedResources)
+									{
+										prefabAssets = Resources.LoadAll (string.Empty, typeof (GameObject));
+										searchedResources = true;
+									}
+
+									foreach (Object prefabAsset in prefabAssets)
+									{
+										if (prefabAsset.name == chunkData[1])
+										{
+											_var.UnityObjectValue = prefabAsset;
+											foundObject = true;
+										}
+									}
+
+									if (!foundObject)
+									{
+										ACDebug.LogWarning ("Could not find Resources object with ID " + chunkData[1] + "- cannot restore Unity Object variable " + _var.label + " value.  Is it placed in a Resources folder?");
 									}
 								}
 								break;
@@ -1817,7 +2223,7 @@ namespace AC
 				}
 			}
 
-			if (searchedResources)
+			if (searchedResources && KickStarter.settingsManager.autoCallUnloadUnusedAssets)
 			{
 				Resources.UnloadUnusedAssets ();
 			}
@@ -1830,11 +2236,34 @@ namespace AC
 
 		private void UnloadVariableDataFromAddressables (GVar variableToUpdate, string savedData)
 		{
-			StartCoroutine (UnloadVariableDataFromAddressablesCo (variableToUpdate, savedData));
+			switch (variableToUpdate.type)
+			{
+				case VariableType.GameObject:
+					StartCoroutine (UnloadGameObjectVariableDataFromAddressablesCo (variableToUpdate, savedData));
+					break;
+
+				case VariableType.UnityObject:
+					StartCoroutine (UnloadUnityObjectVariableDataFromAddressablesCo (variableToUpdate, savedData));
+					break;
+
+				default:
+					break;
+			}
+		}
+
+		private IEnumerator UnloadUnityObjectVariableDataFromAddressablesCo (GVar variableToUpdate, string savedData)
+		{
+			AsyncOperationHandle<Object> handle = Addressables.LoadAssetAsync<Object> (savedData);
+			yield return handle;
+			if (handle.Status == AsyncOperationStatus.Succeeded)
+			{
+				variableToUpdate.UnityObjectValue = handle.Result;
+			}
+			Addressables.Release (handle);
 		}
 
 
-		private IEnumerator UnloadVariableDataFromAddressablesCo (GVar variableToUpdate, string savedData)
+		private IEnumerator UnloadGameObjectVariableDataFromAddressablesCo (GVar variableToUpdate, string savedData)
 		{
 			AsyncOperationHandle<GameObject> handle = Addressables.LoadAssetAsync<GameObject> (savedData);
 			yield return handle;
@@ -1889,40 +2318,55 @@ namespace AC
 		}
 
 		
-		public void SpawnAllPlayers ()
+		public IEnumerator SpawnAllPlayers ()
 		{
-			if (KickStarter.settingsManager.playerSwitching != PlayerSwitching.Allow) return;
+			if (KickStarter.settingsManager.playerSwitching != PlayerSwitching.Allow) yield break;
 
 			foreach (PlayerPrefab playerPrefab in KickStarter.settingsManager.players)
 			{
 				PlayerData playerData = GetPlayerData (playerPrefab.ID);
-				playerData.UpdatePresenceInScene ();
+
+				var updatePlayerPresenceCoroutine = KickStarter.playerSpawner.UpdatePlayerPresenceInSceneCo (playerData, null);
+				while (updatePlayerPresenceCoroutine.MoveNext ())
+				{
+					yield return updatePlayerPresenceCoroutine.Current;
+				}
 			}
 		}
 
 
-		public void SpawnFollowingPlayers ()
+		public IEnumerator SpawnFollowingPlayers ()
 		{
-			if (KickStarter.settingsManager.playerSwitching != PlayerSwitching.Allow) return;
+			if (KickStarter.settingsManager.playerSwitching != PlayerSwitching.Allow) yield break;
 
 			foreach (PlayerPrefab playerPrefab in KickStarter.settingsManager.players)
 			{
 				PlayerData playerData = GetPlayerData (playerPrefab.ID);
-				playerData.SpawnIfFollowingActive ();
+
+				var spawnPlayerIfFollowingCoroutine = KickStarter.playerSpawner.SpawnPlayerIfFollowingActive (playerData);
+				while (spawnPlayerIfFollowingCoroutine.MoveNext ())
+				{
+					yield return spawnPlayerIfFollowingCoroutine.Current;
+				}
 			}
 		}
 
 
-		private void SpawnAllInactivePlayers ()
+		private IEnumerator SpawnAllInactivePlayers ()
 		{
-			if (KickStarter.settingsManager.playerSwitching != PlayerSwitching.Allow) return;
+			if (KickStarter.settingsManager.playerSwitching != PlayerSwitching.Allow) yield break;
 
 			foreach (PlayerPrefab playerPrefab in KickStarter.settingsManager.players)
 			{
 				if (playerPrefab.ID != CurrentPlayerID)
 				{
 					PlayerData playerData = GetPlayerData (playerPrefab.ID);
-					playerData.UpdatePresenceInScene ();
+					
+					var updatePlayerPresenceCoroutine = KickStarter.playerSpawner.UpdatePlayerPresenceInSceneCo (playerData, null);
+					while (updatePlayerPresenceCoroutine.MoveNext ())
+					{
+						yield return updatePlayerPresenceCoroutine.Current;
+					}
 				}
 			}
 		}
@@ -1947,7 +2391,7 @@ namespace AC
 				return;
 			}
 
-			GatherSaveFiles ();
+			//GatherSaveFiles ();
 
 			if (foundSaveFiles.Count > saveIndex && saveIndex >= 0)
 			{
@@ -1971,7 +2415,7 @@ namespace AC
 				return;
 			}
 
-			GatherSaveFiles ();
+			//GatherSaveFiles ();
 
 			for (int i=0; i<foundSaveFiles.Count; i++)
 			{
@@ -2035,11 +2479,18 @@ namespace AC
 			Options.DeleteProfilePrefs (profileID);
 			if (isActive)
 			{
-				GatherSaveFiles ();
+				GatherSaveFiles (OnGatherSaveFiles);
 			}
-			KickStarter.playerMenus.RecalculateAll ();
+			else
+			{
+				OnGatherSaveFiles (null);
+			}
 
-			ACDebug.Log ("Profile ID " + profileID + " deleted.");
+			void OnGatherSaveFiles (List<SaveFile> saveFiles)
+			{
+				KickStarter.playerMenus.RecalculateAll ();
+				ACDebug.Log ("Profile ID " + profileID + " deleted.");
+			}
 		}
 
 
@@ -2064,7 +2515,12 @@ namespace AC
 			if (!useSaveID)
 			{
 				// For this to work, must have loaded the list of saves into a SavesList
-				saveID = KickStarter.saveSystem.foundSaveFiles[elementSlot].saveID;
+				if (foundSaveFiles == null || elementSlot < 0 || elementSlot >= foundSaveFiles.Count)
+				{
+					ACDebug.LogWarning ("Cannot delete save file - invalid slot # " + elementSlot);
+					return;
+				}
+				saveID = foundSaveFiles[elementSlot].saveID;
 			}
 
 			foreach (SaveFile saveFile in foundSaveFiles)
@@ -2076,29 +2532,28 @@ namespace AC
 			}
 
 			// Also remove save label
-			GatherSaveFiles ();
-			foreach (SaveFile saveFile in foundSaveFiles)
-			{
-				if (saveFile.saveID == saveID)
-				{
-					foundSaveFiles.Remove (saveFile);
-					Options.UpdateSaveLabels (foundSaveFiles.ToArray ());
-					break;
-				}
-			}
+			GatherSaveFiles (OnGatherSaveFiles);
 
-			if (Options.optionsData != null && Options.optionsData.lastSaveID == saveID)
+			void OnGatherSaveFiles (List<SaveFile> saveFiles)
 			{
-				Options.optionsData.lastSaveID = -1;
-				Options.SavePrefs ();
+				foreach (SaveFile saveFile in foundSaveFiles)
+				{
+					if (saveFile.saveID == saveID)
+					{
+						foundSaveFiles.Remove (saveFile);
+						Options.UpdateSaveLabels (foundSaveFiles.ToArray ());
+						break;
+					}
+				}
+
+				KickStarter.playerMenus.RecalculateAll ();
 			}
-			KickStarter.playerMenus.RecalculateAll ();
 		}
 
 
 		protected void OnAddSubScene (SubScene subScene)
 		{
-			SpawnAllInactivePlayers ();
+			StartCoroutine (SpawnAllInactivePlayers ());
 		}
 
 
@@ -2109,10 +2564,15 @@ namespace AC
 		 */
 		public int GetNumSaves (bool includeAutoSaves = true)
 		{
+			if (includeAutoSaves)
+			{
+				return foundSaveFiles.Count;
+			}
+
 			int numFound = 0;
 			foreach (SaveFile saveFile in foundSaveFiles)
 			{
-				if (!saveFile.IsAutoSave || includeAutoSaves)
+				if (!saveFile.IsAutoSave)
 				{
 					numFound ++;
 				}
@@ -2150,10 +2610,21 @@ namespace AC
 			return null;
 		}
 
-		
-		/**
-		 * The iSaveFileHandler class that handles the creation, loading, and deletion of save files
-		 */
+
+		public SaveFile GetImportFile (int saveID)
+		{
+			foreach (SaveFile saveFile in foundImportFiles)
+			{
+				if (saveFile.saveID == saveID)
+				{
+					return saveFile;
+				}
+			}
+			return null;
+		}
+
+
+		/** The iSaveFileHandler class that handles the creation, loading, and deletion of save files */
 		public static iSaveFileHandler SaveFileHandler
 		{
 			get
@@ -2227,11 +2698,24 @@ namespace AC
 		}
 
 
-		public string PersistentDataPath
+		/** The root path to store save-game files. If set to a non-empty value, this will override the default (Application.persistentDataPath) */
+		public static string PersistentDataPath
 		{
 			get
 			{
+				if (!string.IsNullOrEmpty (overrideDataPath))
+				{
+					return overrideDataPath;
+				}
+				if (string.IsNullOrEmpty (persistentDataPath))
+				{
+					persistentDataPath = Application.persistentDataPath;
+				}
 				return persistentDataPath;
+			}
+			set
+			{
+				overrideDataPath = value;
 			}
 		}
 
@@ -2271,6 +2755,48 @@ namespace AC
 					return KickStarter.runtimeLanguages.GetTranslatableText (KickStarter.settingsManager.saveLabels, 2);
 				}
 				return "Autosave";
+			}
+		}
+
+
+		public static string CompressString (string text)
+		{
+			byte[] buffer = Encoding.UTF8.GetBytes (text);
+			var memoryStream = new MemoryStream();
+			using (var gZipStream = new GZipStream (memoryStream, CompressionMode.Compress, true))
+			{
+				gZipStream.Write (buffer, 0, buffer.Length);
+			}
+
+			memoryStream.Position = 0;
+
+			var compressedData = new byte[memoryStream.Length];
+			memoryStream.Read(compressedData, 0, compressedData.Length);
+
+			var gZipBuffer = new byte[compressedData.Length + 4];
+			System.Buffer.BlockCopy (compressedData, 0, gZipBuffer, 4, compressedData.Length);
+			System.Buffer.BlockCopy (System.BitConverter.GetBytes (buffer.Length), 0, gZipBuffer, 0, 4);
+			return System.Convert.ToBase64String (gZipBuffer);
+		}
+
+
+		public static string DecompressString (string compressedText)
+		{
+			byte[] gZipBuffer = System.Convert.FromBase64String (compressedText);
+			using (var memoryStream = new MemoryStream ())
+			{
+				int dataLength = System.BitConverter.ToInt32 (gZipBuffer, 0);
+				memoryStream.Write (gZipBuffer, 4, gZipBuffer.Length - 4);
+
+				var buffer = new byte[dataLength];
+
+				memoryStream.Position = 0;
+				using (var gZipStream = new GZipStream (memoryStream, CompressionMode.Decompress))
+				{
+					gZipStream.Read (buffer, 0, buffer.Length);
+				}
+
+				return Encoding.UTF8.GetString (buffer);
 			}
 		}
 

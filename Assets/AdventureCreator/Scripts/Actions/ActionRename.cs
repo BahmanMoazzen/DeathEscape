@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2024
  *	
  *	"ActionRename.cs"
  * 
@@ -30,6 +30,7 @@ namespace AC
 		protected Hotspot runtimeHotspot;
 
 		public string newName;
+		public int newNameParameterID = -1;
 		public int lineID = -1;
 
 
@@ -41,6 +42,7 @@ namespace AC
 		public override void AssignValues (List<ActionParameter> parameters)
 		{
 			runtimeHotspot = AssignFile <Hotspot> (parameters, parameterID, constantID, hotspot);
+			newName = AssignString (parameters, newNameParameterID, newName);
 		}
 		
 		
@@ -59,21 +61,8 @@ namespace AC
 		
 		public override void ShowGUI (List<ActionParameter> parameters)
 		{
-			parameterID = Action.ChooseParameterGUI ("Hotspot to rename:", parameters, parameterID, ParameterType.GameObject);
-			if (parameterID >= 0)
-			{
-				constantID = 0;
-				hotspot = null;
-			}
-			else
-			{
-				hotspot = (Hotspot) EditorGUILayout.ObjectField ("Hotspot to rename:", hotspot, typeof (Hotspot), true);
-				
-				constantID = FieldToID <Hotspot> (hotspot, constantID);
-				hotspot = IDToField <Hotspot> (hotspot, constantID, false);
-			}
-			
-			newName = EditorGUILayout.TextField ("New label:", newName);
+			ComponentField ("Hotspot to rename:", ref hotspot, ref constantID, parameters, ref parameterID);
+			TextField ("New label:", ref newName, parameters, ref newNameParameterID);
 		}
 
 
@@ -84,7 +73,7 @@ namespace AC
 				AddSaveScript <RememberHotspot> (hotspot);
 			}
 
-			AssignConstantID <Hotspot> (hotspot, constantID, parameterID);
+			constantID = AssignConstantID<Hotspot> (hotspot, constantID, parameterID);
 		}
 		
 		
@@ -102,7 +91,7 @@ namespace AC
 		{
 			if (parameterID < 0)
 			{
-				if (hotspot != null && hotspot.gameObject == gameObject) return true;
+				if (hotspot && hotspot.gameObject == gameObject) return true;
 				if (constantID == id && id != 0) return true;
 			}
 			return base.ReferencesObjectOrID (gameObject, id);
@@ -171,7 +160,11 @@ namespace AC
 
 		public bool CanTranslate (int index)
 		{
-			return (!string.IsNullOrEmpty (newName));
+			if (newNameParameterID < 0)
+			{
+				return (!string.IsNullOrEmpty (newName));
+			}
+			return false;
 		}
 
 		#endif
@@ -190,6 +183,7 @@ namespace AC
 		{
 			ActionRename newAction = CreateNew<ActionRename> ();
 			newAction.hotspot = hotspotToRename;
+			newAction.TryAssignConstantID (newAction.hotspot, ref newAction.constantID);
 			newAction.newName = newName;
 			newAction.lineID = translationID;
 			return newAction;

@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2024
  *	
  *	"WorldSpaceCursorExample.cs"
  * 
@@ -38,6 +38,8 @@ namespace AC
 		public float minDistance = 1f;
 		/** The maximum distance that the cursor can be from the camera */
 		public float maxDistance = 30f;
+		/** If True, the AC cursor position will be used instead of the raw mouse position */
+		public bool useACCursor = false;
 
 		private RaycastHit hit;
 		private Ray ray;
@@ -52,7 +54,21 @@ namespace AC
 			 */
 
 			ownCollider = GetComponent <Collider>();
-			KickStarter.playerInput.InputMousePositionDelegate = CustomMousePosition;
+
+			if (!useACCursor)
+			{
+				KickStarter.playerInput.InputMousePositionDelegate = CustomMousePosition;
+			}
+		}
+
+
+		private void Update ()
+		{
+			if (useACCursor)
+			{
+				Vector2 newPosition = CustomMousePosition (KickStarter.playerInput.IsCursorLocked ());
+				KickStarter.playerInput.SetSimulatedCursorPosition (newPosition);
+			}
 		}
 		
 		
@@ -63,13 +79,20 @@ namespace AC
 			 * depending on whether the cursor is in it's 'Locked' state or not.
 			 */
 
-			if (cursorIsLocked)
+			if (useACCursor)
 			{
-				ray = KickStarter.CameraMain.ViewportPointToRay (new Vector2 (0.5f, 0.5f));
+				ray = KickStarter.CameraMain.ScreenPointToRay (KickStarter.playerInput.GetMousePosition ());
 			}
 			else
 			{
-				ray = KickStarter.CameraMain.ScreenPointToRay (Input.mousePosition);
+				if (cursorIsLocked)
+				{
+					ray = KickStarter.CameraMain.ViewportPointToRay (new Vector2 (0.5f, 0.5f));
+				}
+				else
+				{
+					ray = KickStarter.CameraMain.ScreenPointToRay (Input.mousePosition);
+				}
 			}
 
 			/**

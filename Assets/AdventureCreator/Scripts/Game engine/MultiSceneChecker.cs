@@ -9,8 +9,11 @@ namespace AC
 	{
 
 		#region Variables
-
-		private bool runStart = false;
+		
+		[SerializeField] protected CallStartupProcess callStartupProcess = CallStartupProcess.Start;
+		[SerializeField] protected bool forceAsMain;
+		protected enum CallStartupProcess { Start, FirstFrameUpdate };
+		protected bool runStart = false;
 
 		#endregion
 
@@ -19,12 +22,9 @@ namespace AC
 
 		protected void Awake ()
 		{
-			if (!UnityVersionHandler.ObjectIsInActiveScene (gameObject))
+			if (!IsMain)
 			{
-				// Register self as a "sub-scene"
-				GameObject subSceneOb = new GameObject ();
-				SubScene newSubScene = subSceneOb.AddComponent <SubScene>();
-				newSubScene.Initialise (this);
+				RegisterAsSubScene ();
 				return;
 			}
 
@@ -40,33 +40,31 @@ namespace AC
 			}
 			#endif
 
-			GetComponent <KickStarter>().Initialise ();
-
-			runStart = true; // This is necessary because switching the active scene will cause Start to be re-run
+			RegisterAsMain ();
 		}
 
 
 		protected void Start ()
 		{
-			if (!runStart) return;
-			runStart = false;
-
-			if (UnityVersionHandler.ObjectIsInActiveScene (gameObject) && KickStarter.settingsManager && KickStarter.saveSystem)
+			if (callStartupProcess == CallStartupProcess.Start)
 			{
-				if (KickStarter.settingsManager.IsInLoadingScene ())
-				{
-					ACDebug.Log ("Bypassing regular AC startup because the current scene is the 'Loading' scene.");
-					return;
-				}
+				RunStartProcess ();
+			}
+		}
 
-				KickStarter.saveSystem.InitAfterLoad ();
+
+		protected void Update ()
+		{
+			if (callStartupProcess == CallStartupProcess.FirstFrameUpdate)
+			{
+				RunStartProcess ();
 			}
 		}
 
 
 		private void OnEnable ()
 		{
-			if (UnityVersionHandler.ObjectIsInActiveScene (gameObject) && KickStarter.stateHandler)
+			if (IsMain && KickStarter.stateHandler)
 			{
 				KickStarter.stateHandler.Register (GetComponent<KickStarter> ());
 			}
@@ -84,11 +82,30 @@ namespace AC
 		#endregion
 
 
+		#region PublicFunctions
+
+		public void RegisterAsMain ()
+		{
+			GetComponent <KickStarter>().Initialise ();
+			runStart = true; // This is necessary because switching the active scene will cause Start to be re-run
+		}
+
+
+		public void RegisterAsSubScene ()
+		{
+			GameObject subSceneOb = new GameObject ();
+			SubScene newSubScene = subSceneOb.AddComponent <SubScene>();
+			newSubScene.Initialise (this);
+		}
+
+		#endregion
+
+
 		#region StaticFunctions
 
 		public static MultiSceneChecker GetSceneInstance (Scene scene)
 		{
-			MultiSceneChecker[] multiSceneCheckers = FindObjectsOfType<MultiSceneChecker>();
+			MultiSceneChecker[] multiSceneCheckers = UnityVersionHandler.FindObjectsOfType<MultiSceneChecker>();
 			foreach (MultiSceneChecker multiSceneChecker in multiSceneCheckers)
 			{
 				if (multiSceneChecker.gameObject.scene == scene)
@@ -105,19 +122,37 @@ namespace AC
 
 		#region ProtectedFunctions
 
+		protected void RunStartProcess ()
+		{
+			if (!runStart) return;
+			runStart = false;
+
+			if (IsMain && KickStarter.settingsManager && KickStarter.saveSystem)
+			{
+				if (KickStarter.settingsManager.IsInLoadingScene ())
+				{
+					ACDebug.Log ("Bypassing regular AC startup because the current scene is the 'Loading' scene.");
+					return;
+				}
+
+				KickStarter.saveSystem.InitAfterLoad ();
+			}
+		}
+
+
 		protected bool TestManagerPresence ()
 		{
 			References references = Resource.References;
 			if (references)
 			{
-				SceneManager sceneManager = AdvGame.GetReferences ().sceneManager;
-				SettingsManager settingsManager = AdvGame.GetReferences ().settingsManager;
-				ActionsManager actionsManager = AdvGame.GetReferences ().actionsManager;
-				InventoryManager inventoryManager = AdvGame.GetReferences ().inventoryManager;
-				VariablesManager variablesManager = AdvGame.GetReferences ().variablesManager;
-				SpeechManager speechManager = AdvGame.GetReferences ().speechManager;
-				CursorManager cursorManager = AdvGame.GetReferences ().cursorManager;
-				MenuManager menuManager = AdvGame.GetReferences ().menuManager;
+				SceneManager sceneManager = KickStarter.sceneManager;
+				SettingsManager settingsManager = KickStarter.settingsManager;
+				ActionsManager actionsManager = KickStarter.actionsManager;
+				InventoryManager inventoryManager = KickStarter.inventoryManager;
+				VariablesManager variablesManager = KickStarter.variablesManager;
+				SpeechManager speechManager = KickStarter.speechManager;
+				CursorManager cursorManager = KickStarter.cursorManager;
+				MenuManager menuManager = KickStarter.menuManager;
 
 				string missingManagers = string.Empty;
 				if (sceneManager == null)
@@ -163,7 +198,6 @@ namespace AC
 
 				if (!string.IsNullOrEmpty (missingManagers))
 				{
-					if (KickStarter.kickStarter && KickStarter.sceneSettings) KickStarter.kickStarter.CheckRequiredManagerPackage (KickStarter.sceneSettings.requiredManagerPackage);
 					ACDebug.LogError ("Unassigned AC Manager(s): " + missingManagers + " - all Managers must be assigned in the AC Game Editor window for AC to initialise");
 					return false;
 				}
@@ -256,9 +290,10 @@ namespace AC
 
 			if (!string.IsNullOrEmpty (openScene) && !Application.isPlaying)
 			{
-				if (FindObjectOfType <KickStarter>())
+				KickStarter kickStarter = UnityVersionHandler.FindObjectOfType<KickStarter> ();
+				if (kickStarter)
 				{
-					FindObjectOfType <KickStarter>().ClearVariables ();
+					kickStarter.ClearVariables ();
 				}
 			}
 
@@ -266,6 +301,13 @@ namespace AC
 		}
 
 		#endif
+
+
+		#region GetSet
+
+		public bool IsMain => forceAsMain || UnityVersionHandler.ObjectIsInActiveScene (gameObject);
+
+		#endregion
 		
 	}
 

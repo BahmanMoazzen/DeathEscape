@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2024
  *	
  *	"ActionInventorySelect.cs"
  * 
@@ -20,7 +20,7 @@ namespace AC
 {
 
 	[System.Serializable]
-	public class ActionInventorySelect : Action
+	public class ActionInventorySelect : Action, IItemReferencerAction
 	{
 
 		public enum InventorySelectType { SelectItem, DeselectActive };
@@ -213,53 +213,14 @@ namespace AC
 				return;
 			}
 
-			inventoryManager = AdvGame.GetReferences ().inventoryManager;
-			settingsManager = AdvGame.GetReferences ().settingsManager;
+			inventoryManager = KickStarter.inventoryManager;
+			settingsManager = KickStarter.settingsManager;
 			
 			if (inventoryManager)
 			{
-				// Create a string List of the field's names (for the PopUp box)
-				List<string> labelList = new List<string>();
-				
-				int i = 0;
-				if (parameterID == -1)
-				{
-					invNumber = -1;
-				}
-				
 				if (inventoryManager.items.Count > 0)
 				{
-					foreach (InvItem _item in inventoryManager.items)
-					{
-						labelList.Add (_item.label);
-						
-						// If an item has been removed, make sure selected variable is still valid
-						if (_item.id == invID)
-						{
-							invNumber = i;
-						}
-						
-						i++;
-					}
-					
-					if (invNumber == -1)
-					{
-						if (invID > 0) LogWarning ("Previously chosen item no longer exists!");
-						invNumber = 0;
-						invID = 0;
-					}
-
-					parameterID = Action.ChooseParameterGUI ("Inventory item:", parameters, parameterID, ParameterType.InventoryItem);
-					if (parameterID >= 0)
-					{
-						invNumber = Mathf.Min (invNumber, inventoryManager.items.Count-1);
-						invID = -1;
-					}
-					else
-					{
-						invNumber = EditorGUILayout.Popup ("Inventory item:", invNumber, labelList.ToArray());
-						invID = inventoryManager.items[invNumber].id;
-					}
+					ItemField (ref invID, parameters, ref parameterID);
 
 					if (parameterID >= 0 || (invNumber >= 0 && invNumber < inventoryManager.items.Count && inventoryManager.items[invNumber].canCarryMultiple))
 					{
@@ -267,11 +228,7 @@ namespace AC
 
 						if (setAmount)
 						{
-							amountParameterID = Action.ChooseParameterGUI ("Amount to select:", parameters, amountParameterID, ParameterType.Integer);
-							if (amountParameterID < 0)
-							{
-								amount = EditorGUILayout.IntField ("Amount to select:", amount);
-							}
+							IntField ("Amount to select:", ref amount, parameters, ref amountParameterID);
 						}
 					}
 
@@ -287,7 +244,6 @@ namespace AC
 				{
 					EditorGUILayout.HelpBox ("No inventory items exist!", MessageType.Info);
 					invID = -1;
-					invNumber = -1;
 				}
 			}
 			else
@@ -312,10 +268,21 @@ namespace AC
 		}
 
 
-		public override int GetInventoryReferences (List<ActionParameter> parameters, int _invID)
+		public int GetNumItemReferences (int _itemID, List<ActionParameter> parameters)
 		{
-			if (selectType == InventorySelectType.SelectItem && parameterID < 0 && invID == _invID)
+			if (selectType == InventorySelectType.SelectItem && parameterID < 0 && invID == _itemID)
 			{
+				return 1;
+			}
+			return 0;
+		}
+
+
+		public int UpdateItemReferences (int oldItemID, int newItemID, List<ActionParameter> parameters)
+		{
+			if (selectType == InventorySelectType.SelectItem && parameterID < 0 && invID == oldItemID)
+			{
+				invID = newItemID;
 				return 1;
 			}
 			return 0;

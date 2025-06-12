@@ -59,6 +59,7 @@ MonoBehaviour:
   textEffects: 0
   anchor: 4
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   inventoryBoxType: 1
   actionListOnClick: {fileID: 0}
   maxSlots: 3
@@ -71,6 +72,10 @@ MonoBehaviour:
   preventSelection: 0
   limitMaxScroll: 1
   highlightEmptySlots: 0
+  canBeLooped: 0
+  markAlreadyRead: 0
+  alreadyReadFontColour: {r: 1, g: 1, b: 1, a: 1}
+  alreadyReadFontHighlightedColour: {r: 1, g: 1, b: 1, a: 1}
   updateHotspotLabelWhenHover: 0
   hoverSoundOverEmptySlots: 1
   containerSelectMode: 1
@@ -79,7 +84,9 @@ MonoBehaviour:
   autoOpenDocument: 1
   emptySlotTexture: {fileID: 0}
   inventoryItemCountDisplay: 0
+  indexPrefixDisplay: 0
   objectiveDisplayType: 0
+  objectiveSorting: 0
 --- !u!114 &-8707872414355503412
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -125,11 +132,14 @@ MonoBehaviour:
     height: 92.16
   relativePosition: {x: 11.6, y: 52}
   numSlots: 1
+  uiTextTMP: {fileID: 0}
+  hideScrollingCharacters: 0
   uiText: {fileID: 0}
-  label: Drag items on objects to operate
+  _label: Drag items on objects to operate
   anchor: 4
   textEffects: 1
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   labelType: 0
   variableID: 0
   useCharacterColour: 0
@@ -141,6 +151,7 @@ MonoBehaviour:
   inventoryPropertyType: 0
   selectedObjectiveLabelType: 0
   itemSlotNumber: 0
+  uiComponentHideStyle: 0
 --- !u!114 &-8695357793249033300
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -203,6 +214,8 @@ MonoBehaviour:
     alwaysAnimate: 0
   uiRawImage: {fileID: 0}
   uiImageType: 0
+  linkedJournalElementName: 
+  uiComponentHideStyle: 0
 --- !u!114 &-8527061030517426470
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -249,11 +262,14 @@ MonoBehaviour:
   relativePosition: {x: 0, y: 0}
   numSlots: 1
   uiButton: {fileID: 0}
+  uiDropdownTMP: {fileID: 0}
   uiDropdown: {fileID: 0}
   actionListOnClick: {fileID: 0}
   label: Language
+  labelSuffix: ' : '
   textEffects: 1
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   anchor: 4
   selected: 0
   optionsArray:
@@ -321,6 +337,7 @@ MonoBehaviour:
   anchor: 4
   textEffects: 0
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   iconID: 2
   uiSelectableHideStyle: 0
   overrideTexture: 0
@@ -389,6 +406,7 @@ MonoBehaviour:
     sprite: {fileID: 0}
   textEffects: 1
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   displayType: 0
   testIcon: {fileID: 0}
   anchor: 3
@@ -399,9 +417,13 @@ MonoBehaviour:
   alreadyChosenFontColour: {r: 1, g: 1, b: 1, a: 1}
   alreadyChosenFontHighlightedColour: {r: 1, g: 1, b: 1, a: 1}
   showIndexNumbers: 0
+  showWhenDisabled: 0
+  indexPrefixDisplay: 0
+  autoRunOption: 1
   uiHideStyle: 0
   linkUIGraphic: 0
   resetOffsetWhenRestart: 1
+  limitMaxScroll: 1
   elementSlotMapping: 0
 --- !u!114 &-8107394783213713423
 MonoBehaviour:
@@ -417,6 +439,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   menuSource: 0
   canvas: {fileID: 22300000, guid: 28788199fc2abb34085462b6576be22f, type: 3}
+  canvasAssetKey: 
   canvasID: 0
   rectTransform: {fileID: 0}
   rectTransformID: 1386510
@@ -440,6 +463,7 @@ MonoBehaviour:
   actionListOnTurnOff: {fileID: 0}
   updateWhenFadeOut: 1
   hideDuringSaveScreenshots: 1
+  useTextMeshProComponents: 0
   fitWithinScreen: 1
   backgroundTexture: {fileID: 2800000, guid: 5afe8d06fd76ba447a30cc25fd23e687, type: 3}
   visibleElements:
@@ -508,7 +532,6 @@ MonoBehaviour:
     y: 82.56
     width: 359.04
     height: 314.88
-  showInFilter: 1
 --- !u!114 &-8029871501591860192
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -554,11 +577,14 @@ MonoBehaviour:
     height: 66.240005
   relativePosition: {x: 49.6, y: 25.6}
   numSlots: 1
+  uiTextTMP: {fileID: 0}
+  hideScrollingCharacters: 0
   uiText: {fileID: 0}
-  label: Items Found
+  _label: Items Found
   anchor: 4
   textEffects: 1
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   labelType: 0
   variableID: 0
   useCharacterColour: 0
@@ -570,6 +596,7 @@ MonoBehaviour:
   inventoryPropertyType: 0
   selectedObjectiveLabelType: 0
   itemSlotNumber: 0
+  uiComponentHideStyle: 0
 --- !u!114 &-7992012712813569817
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -609,20 +636,21 @@ MonoBehaviour:
   maxAutoWidthFactor: 0.5
   relativeRect:
     serializedVersion: 2
-    x: 11.616
-    y: 80.832
-    width: 316.80002
+    x: 10.56
+    y: 78.72
+    width: 288
     height: 57.600002
   relativePosition: {x: 0, y: 35}
   numSlots: 1
   uiButton: {fileID: 0}
   uiPointerState: 0
-  label: Start Game
+  _label: Start Game
   hotspotLabel: 
   hotspotLabelID: -1
   anchor: 4
   textEffects: 1
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   buttonClickType: 3
   actionList: {fileID: 11400000, guid: 34893b082bfd6f442b2843d08a17bd98, type: 2}
   parameterID: -1
@@ -654,9 +682,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ID: 1
   title: Presents
-  slotSize: {x: 15.530303, y: 4.375}
-  sizeType: 0
-  positionType: 2
+  slotSize: {x: 22, y: 6}
+  sizeType: 1
+  positionType: 0
   slotSpacing: 0
   lineID: 632
   alternativeInputButton: 
@@ -679,17 +707,20 @@ MonoBehaviour:
   maxAutoWidthFactor: 0.5
   relativeRect:
     serializedVersion: 2
-    x: 813.12006
-    y: 311.52002
-    width: 164
-    height: 21
+    x: 19.2
+    y: 67.2
+    width: 211.20001
+    height: 28.800001
   relativePosition: {x: 77, y: 64.9}
   numSlots: 1
+  uiTextTMP: {fileID: 0}
+  hideScrollingCharacters: 0
   uiText: {fileID: 0}
-  label: Proudly Presents
+  _label: Proudly Presents
   anchor: 4
   textEffects: 1
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   labelType: 0
   variableID: 0
   useCharacterColour: 0
@@ -701,6 +732,7 @@ MonoBehaviour:
   inventoryPropertyType: 0
   selectedObjectiveLabelType: 0
   itemSlotNumber: 0
+  uiComponentHideStyle: 0
 --- !u!114 &-7688596602633617569
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -763,76 +795,8 @@ MonoBehaviour:
     alwaysAnimate: 0
   uiRawImage: {fileID: 0}
   uiImageType: 0
---- !u!114 &-7578443276892736756
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 64747f67d47cb4e04a88bea43b7c1cfd, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  ID: 6
-  title: SupportUs
-  slotSize: {x: 30, y: 12}
-  sizeType: 1
-  positionType: 0
-  slotSpacing: 0
-  lineID: 621
-  alternativeInputButton: 
-  font: {fileID: 12800000, guid: 84211003358ed8d448a1d84288481aa5, type: 3}
-  fontScaleFactor: 2.5
-  fontColor: {r: 0.7877358, g: 0.8408019, b: 1, a: 1}
-  fontHighlightColor: {r: 0.9528302, g: 0.8720103, b: 0, a: 1}
-  isVisible: 1
-  isClickable: 1
-  orientation: 1
-  gridWidth: 3
-  backgroundTexture: {fileID: 2800000, guid: 32e15e936d26ba04c8fb24df081c8e86, type: 3}
-  singleSlotBackgrounds: 0
-  highlightTexture: {fileID: 0}
-  hoverSound: {fileID: 0}
-  clickSound: {fileID: 0}
-  changeCursor: 0
-  cursorID: 0
-  linkedUiID: 0
-  maxAutoWidthFactor: 0.5
-  relativeRect:
-    serializedVersion: 2
-    x: 11.616
-    y: 357.696
-    width: 316.80002
-    height: 57.600002
-  relativePosition: {x: 68.9, y: 55}
-  numSlots: 1
-  uiButton: {fileID: 0}
-  uiPointerState: 0
-  label: Support Us
-  hotspotLabel: 
-  hotspotLabelID: -1
-  anchor: 4
-  textEffects: 1
-  outlineSize: 2
-  buttonClickType: 1
-  actionList: {fileID: 11400000, guid: a1c9d0f13fa44a14c9158ad8c44e957c, type: 2}
-  parameterID: -1
-  parameterValue: 0
-  doFade: 0
-  switchMenuTitle: TitleScreenPay
-  inventoryBoxTitle: 
-  shiftInventory: 0
-  shiftAmount: 1
-  onlyShowWhenEffective: 0
-  loopJournal: 0
-  inputAxis: 
-  simulateInput: 0
-  simulateValue: 1
-  clickTexture: {fileID: 0}
-  allowContinuousClick: 0
-  uiSelectableHideStyle: 0
+  linkedJournalElementName: 
+  uiComponentHideStyle: 0
 --- !u!114 &-7431172153447578618
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -880,12 +844,13 @@ MonoBehaviour:
   numSlots: 1
   uiButton: {fileID: 11435390, guid: f15f8212986624a8899a47f0054ebbc1, type: 3}
   uiPointerState: 0
-  label: 
+  _label: 
   hotspotLabel: 
   hotspotLabelID: -1
   anchor: 4
   textEffects: 0
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   buttonClickType: 5
   actionList: {fileID: 0}
   parameterID: -1
@@ -948,11 +913,14 @@ MonoBehaviour:
     height: 24
   relativePosition: {x: 67, y: 48}
   numSlots: 1
+  uiTextTMP: {fileID: 0}
+  hideScrollingCharacters: 0
   uiText: {fileID: 0}
-  label: State type
+  _label: State type
   anchor: 4
   textEffects: 1
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   labelType: 8
   variableID: 0
   useCharacterColour: 0
@@ -964,6 +932,7 @@ MonoBehaviour:
   inventoryPropertyType: 0
   selectedObjectiveLabelType: 4
   itemSlotNumber: 0
+  uiComponentHideStyle: 0
 --- !u!114 &-7381334725699063889
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1009,13 +978,16 @@ MonoBehaviour:
     height: 152
   relativePosition: {x: 0, y: 0}
   numSlots: 1
+  uiTextTMP: {fileID: 0}
+  hideScrollingCharacters: 0
   uiText: {fileID: 0}
-  label: 'Helen Game Factory
+  _label: 'Helen Game Factory
 
     Proudly Presents'
   anchor: 4
   textEffects: 1
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   labelType: 0
   variableID: 0
   useCharacterColour: 0
@@ -1027,6 +999,7 @@ MonoBehaviour:
   inventoryPropertyType: 0
   selectedObjectiveLabelType: 0
   itemSlotNumber: 0
+  uiComponentHideStyle: 0
 --- !u!114 &-7300633662378351452
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1074,12 +1047,13 @@ MonoBehaviour:
   numSlots: 1
   uiButton: {fileID: 0}
   uiPointerState: 0
-  label: 
+  _label: 
   hotspotLabel: 
   hotspotLabelID: -1
   anchor: 4
   textEffects: 1
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   buttonClickType: 3
   actionList: {fileID: 11400000, guid: f35923133643b584392b14eecbdd036e, type: 2}
   parameterID: -1
@@ -1146,6 +1120,7 @@ MonoBehaviour:
   doInvert: 0
   timerTexture: {fileID: 2800000, guid: b52a5dfd9a8f3084e8db95dc9684ea40, type: 3}
   timerType: 0
+  timerID: 0
   uiSelectableHideStyle: 0
   smoothingFactor: 0
   autoSetVisibility: 0
@@ -1194,11 +1169,14 @@ MonoBehaviour:
     height: 48
   relativePosition: {x: 5, y: 4}
   numSlots: 1
+  uiTextTMP: {fileID: 0}
+  hideScrollingCharacters: 0
   uiText: {fileID: 0}
-  label: Tutorial
+  _label: Tutorial
   anchor: 7
   textEffects: 1
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   labelType: 0
   variableID: 0
   useCharacterColour: 0
@@ -1210,6 +1188,7 @@ MonoBehaviour:
   inventoryPropertyType: 0
   selectedObjectiveLabelType: 0
   itemSlotNumber: 0
+  uiComponentHideStyle: 0
 --- !u!114 &-6911262007681954893
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1259,9 +1238,11 @@ MonoBehaviour:
   toggleType: 0
   actionListOnClick: {fileID: 0}
   label: Subtitles
+  labelSuffix: ' : '
   isOn: 1
   textEffects: 1
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   anchor: 4
   varID: 0
   appendState: 1
@@ -1286,6 +1267,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   menuSource: 0
   canvas: {fileID: 0}
+  canvasAssetKey: 
   canvasID: 0
   rectTransform: {fileID: 0}
   rectTransformID: 0
@@ -1294,9 +1276,9 @@ MonoBehaviour:
   _isLocked: 1
   id: 15
   title: ExitCam
-  manualSize: {x: 11.9800005, y: 14.297777}
+  manualSize: {x: 11.9800005, y: 14.96}
   positionType: 1
-  manualPosition: {x: 2406.656, y: 720}
+  manualPosition: {x: 902.49603, y: 240}
   positionSmoothing: 0
   alignment: 5
   toggleKey: 
@@ -1309,6 +1291,7 @@ MonoBehaviour:
   actionListOnTurnOff: {fileID: 11400000, guid: 7eea9486ec5478e418780d5edfc9805d, type: 2}
   updateWhenFadeOut: 1
   hideDuringSaveScreenshots: 1
+  useTextMeshProComponents: 0
   fitWithinScreen: 1
   backgroundTexture: {fileID: 2800000, guid: 40fc9f56c7492d64dac99f34614c6fa3, type: 3}
   visibleElements:
@@ -1365,14 +1348,13 @@ MonoBehaviour:
   speechProximityLimit: 0
   speechProximityDistance: 10
   deleteUIWhenTurnOff: 0
-  biggestElementSize: {x: 268.544, y: 167.74399}
+  biggestElementSize: {x: 100.704, y: 57.504}
   rect:
     serializedVersion: 2
-    x: 2253.312
-    y: 617.056
-    width: 306.68802
-    height: 205.88799
-  showInFilter: 1
+    x: 844.992
+    y: 204.09601
+    width: 115.008
+    height: 71.808
 --- !u!114 &-6735592679231666089
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1387,6 +1369,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   menuSource: 0
   canvas: {fileID: 0}
+  canvasAssetKey: 
   canvasID: 0
   rectTransform: {fileID: 0}
   rectTransformID: 0
@@ -1395,7 +1378,7 @@ MonoBehaviour:
   _isLocked: 0
   id: 20
   title: HotspotMarker
-  manualSize: {x: 6, y: 11.999999}
+  manualSize: {x: 6, y: 12}
   positionType: 5
   manualPosition: {x: 50, y: 44.4}
   positionSmoothing: 0
@@ -1410,6 +1393,7 @@ MonoBehaviour:
   actionListOnTurnOff: {fileID: 0}
   updateWhenFadeOut: 1
   hideDuringSaveScreenshots: 1
+  useTextMeshProComponents: 0
   fitWithinScreen: 1
   backgroundTexture: {fileID: 0}
   visibleElements:
@@ -1466,14 +1450,13 @@ MonoBehaviour:
   speechProximityLimit: 0
   speechProximityDistance: 10
   deleteUIWhenTurnOff: 0
-  biggestElementSize: {x: 153.6, y: 172.79999}
+  biggestElementSize: {x: 57.600002, y: 57.600002}
   rect:
     serializedVersion: 2
-    x: 1203.2
-    y: 552.95996
-    width: 153.6
-    height: 172.79999
-  showInFilter: 1
+    x: 451.2
+    y: 184.31999
+    width: 57.600002
+    height: 57.600002
 --- !u!114 &-6512287195441992988
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1521,12 +1504,13 @@ MonoBehaviour:
   numSlots: 1
   uiButton: {fileID: 0}
   uiPointerState: 0
-  label: Back
+  _label: Back
   hotspotLabel: 
   hotspotLabelID: -1
   anchor: 4
   textEffects: 1
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   buttonClickType: 1
   actionList: {fileID: 0}
   parameterID: -1
@@ -1558,6 +1542,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   menuSource: 0
   canvas: {fileID: 0}
+  canvasAssetKey: 
   canvasID: 0
   rectTransform: {fileID: 0}
   rectTransformID: 0
@@ -1581,6 +1566,7 @@ MonoBehaviour:
   actionListOnTurnOff: {fileID: 0}
   updateWhenFadeOut: 1
   hideDuringSaveScreenshots: 1
+  useTextMeshProComponents: 0
   fitWithinScreen: 1
   backgroundTexture: {fileID: 2800000, guid: 40fc9f56c7492d64dac99f34614c6fa3, type: 3}
   visibleElements:
@@ -1650,7 +1636,6 @@ MonoBehaviour:
     y: 191.76
     width: 1003.2
     height: 96.48
-  showInFilter: 1
 --- !u!114 &-6155354556581653263
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1713,6 +1698,8 @@ MonoBehaviour:
     alwaysAnimate: 0
   uiRawImage: {fileID: 0}
   uiImageType: 0
+  linkedJournalElementName: 
+  uiComponentHideStyle: 0
 --- !u!114 &-6092469888334739104
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1760,12 +1747,13 @@ MonoBehaviour:
   numSlots: 1
   uiButton: {fileID: 0}
   uiPointerState: 0
-  label: Pay More
+  _label: Pay More
   hotspotLabel: 
   hotspotLabelID: -1
   anchor: 4
   textEffects: 2
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   buttonClickType: 3
   actionList: {fileID: 11400000, guid: c8e5ec7a6fa26af4bb8e555f17910d24, type: 2}
   parameterID: -1
@@ -1828,13 +1816,16 @@ MonoBehaviour:
     height: 152
   relativePosition: {x: 0, y: 0}
   numSlots: 1
+  uiTextTMP: {fileID: 0}
+  hideScrollingCharacters: 0
   uiText: {fileID: 0}
-  label: 'Designed and Developed by:
+  _label: 'Designed and Developed by:
 
     BAHMAN Moazzen'
   anchor: 4
   textEffects: 1
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   labelType: 0
   variableID: 0
   useCharacterColour: 0
@@ -1846,6 +1837,7 @@ MonoBehaviour:
   inventoryPropertyType: 0
   selectedObjectiveLabelType: 0
   itemSlotNumber: 0
+  uiComponentHideStyle: 0
 --- !u!114 &-5908671520022974874
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1896,6 +1888,7 @@ MonoBehaviour:
   textEffects: 1
   anchor: 4
   outlineSize: 1
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   inventoryBoxType: 6
   actionListOnClick: {fileID: 0}
   maxSlots: 10
@@ -1908,6 +1901,10 @@ MonoBehaviour:
   preventSelection: 0
   limitMaxScroll: 0
   highlightEmptySlots: 0
+  canBeLooped: 0
+  markAlreadyRead: 0
+  alreadyReadFontColour: {r: 1, g: 1, b: 1, a: 1}
+  alreadyReadFontHighlightedColour: {r: 1, g: 1, b: 1, a: 1}
   updateHotspotLabelWhenHover: 0
   hoverSoundOverEmptySlots: 1
   containerSelectMode: 1
@@ -1916,7 +1913,9 @@ MonoBehaviour:
   autoOpenDocument: 1
   emptySlotTexture: {fileID: 0}
   inventoryItemCountDisplay: 0
+  indexPrefixDisplay: 0
   objectiveDisplayType: 0
+  objectiveSorting: 0
 --- !u!114 &-5867142869674698662
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1931,6 +1930,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   menuSource: 0
   canvas: {fileID: 0}
+  canvasAssetKey: 
   canvasID: 0
   rectTransform: {fileID: 0}
   rectTransformID: 0
@@ -1954,6 +1954,7 @@ MonoBehaviour:
   actionListOnTurnOff: {fileID: 11400000, guid: 5de386670cc5f4241a05890075e6e503, type: 2}
   updateWhenFadeOut: 1
   hideDuringSaveScreenshots: 1
+  useTextMeshProComponents: 0
   fitWithinScreen: 1
   backgroundTexture: {fileID: 2800000, guid: 5afe8d06fd76ba447a30cc25fd23e687, type: 3}
   visibleElements:
@@ -2021,7 +2022,6 @@ MonoBehaviour:
     y: 366.16003
     width: 409.6
     height: 707.67993
-  showInFilter: 1
 --- !u!114 &-5583208088436554377
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -2036,7 +2036,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ID: 0
   title: HotspotLabel
-  slotSize: {x: 5.8203125, y: 5.2777777}
+  slotSize: {x: 5.3291664, y: 8.058333}
   sizeType: 0
   positionType: 0
   slotSpacing: 0
@@ -2063,15 +2063,18 @@ MonoBehaviour:
     serializedVersion: 2
     x: 0
     y: 0
-    width: 149
-    height: 76
+    width: 51.16
+    height: 38.68
   relativePosition: {x: 12.3, y: 0}
   numSlots: 1
+  uiTextTMP: {fileID: 0}
+  hideScrollingCharacters: 0
   uiText: {fileID: 0}
-  label: Test
+  _label: Test
   anchor: 4
   textEffects: 1
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   labelType: 1
   variableID: 0
   useCharacterColour: 0
@@ -2083,6 +2086,7 @@ MonoBehaviour:
   inventoryPropertyType: 0
   selectedObjectiveLabelType: 0
   itemSlotNumber: 0
+  uiComponentHideStyle: 0
 --- !u!114 &-5035143202880881447
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -2130,12 +2134,13 @@ MonoBehaviour:
   numSlots: 1
   uiButton: {fileID: 0}
   uiPointerState: 0
-  label: 
+  _label: 
   hotspotLabel: 
   hotspotLabelID: -1
   anchor: 4
   textEffects: 0
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   buttonClickType: 2
   actionList: {fileID: 0}
   parameterID: -1
@@ -2205,6 +2210,7 @@ MonoBehaviour:
   label: Speech volume
   textEffects: 1
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   anchor: 4
   sliderTexture: {fileID: 2800000, guid: 32e15e936d26ba04c8fb24df081c8e86, type: 3}
   sliderDisplayType: 0
@@ -2261,11 +2267,14 @@ MonoBehaviour:
     height: 66.240005
   relativePosition: {x: 49.6, y: 25.6}
   numSlots: 1
+  uiTextTMP: {fileID: 0}
+  hideScrollingCharacters: 0
   uiText: {fileID: 0}
-  label: Use to move
+  _label: Use to move
   anchor: 4
   textEffects: 1
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   labelType: 0
   variableID: 0
   useCharacterColour: 0
@@ -2277,6 +2286,7 @@ MonoBehaviour:
   inventoryPropertyType: 0
   selectedObjectiveLabelType: 0
   itemSlotNumber: 0
+  uiComponentHideStyle: 0
 --- !u!114 &-4701816245415667605
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -2324,12 +2334,13 @@ MonoBehaviour:
   numSlots: 1
   uiButton: {fileID: 0}
   uiPointerState: 0
-  label: Tutorials
+  _label: Tutorials
   hotspotLabel: 
   hotspotLabelID: -1
   anchor: 4
   textEffects: 1
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   buttonClickType: 1
   actionList: {fileID: 0}
   parameterID: -1
@@ -2394,12 +2405,13 @@ MonoBehaviour:
   numSlots: 1
   uiButton: {fileID: 0}
   uiPointerState: 0
-  label: Goals
+  _label: Goals
   hotspotLabel: 
   hotspotLabelID: -1
   anchor: 4
   textEffects: 1
   outlineSize: 1.5
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   buttonClickType: 3
   actionList: {fileID: 11400000, guid: b7eb2a9d17c0828439086a7397bef8b0, type: 2}
   parameterID: -1
@@ -2456,17 +2468,20 @@ MonoBehaviour:
   maxAutoWidthFactor: 1
   relativeRect:
     serializedVersion: 2
-    x: 11.616
-    y: 11.616
-    width: 316.80002
+    x: 10.56
+    y: 10.56
+    width: 288
     height: 57.600002
   relativePosition: {x: 40, y: 15}
   numSlots: 1
+  uiTextTMP: {fileID: 0}
+  hideScrollingCharacters: 0
   uiText: {fileID: 0}
-  label: Death Escape
+  _label: Death Escape
   anchor: 4
   textEffects: 1
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   labelType: 0
   variableID: 0
   useCharacterColour: 0
@@ -2478,6 +2493,7 @@ MonoBehaviour:
   inventoryPropertyType: 0
   selectedObjectiveLabelType: 0
   itemSlotNumber: 0
+  uiComponentHideStyle: 0
 --- !u!114 &-4204669357874638465
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -2492,6 +2508,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   menuSource: 0
   canvas: {fileID: 0}
+  canvasAssetKey: 
   canvasID: 0
   rectTransform: {fileID: 0}
   rectTransformID: 0
@@ -2515,6 +2532,7 @@ MonoBehaviour:
   actionListOnTurnOff: {fileID: 11400000, guid: 08bd57cc9873ef74c9d1894b158f149b, type: 2}
   updateWhenFadeOut: 1
   hideDuringSaveScreenshots: 1
+  useTextMeshProComponents: 0
   fitWithinScreen: 1
   backgroundTexture: {fileID: 2800000, guid: 40fc9f56c7492d64dac99f34614c6fa3, type: 3}
   visibleElements:
@@ -2582,7 +2600,6 @@ MonoBehaviour:
     y: 191.76
     width: 851.136
     height: 96.48
-  showInFilter: 1
 --- !u!114 &-4184779791118094497
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -2630,12 +2647,13 @@ MonoBehaviour:
   numSlots: 1
   uiButton: {fileID: 0}
   uiPointerState: 0
-  label: Pay More
+  _label: Pay More
   hotspotLabel: 
   hotspotLabelID: -1
   anchor: 4
   textEffects: 2
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   buttonClickType: 3
   actionList: {fileID: 11400000, guid: 618fa950a6949fa43a7462d8b603848b, type: 2}
   parameterID: -1
@@ -2700,12 +2718,13 @@ MonoBehaviour:
   numSlots: 1
   uiButton: {fileID: 0}
   uiPointerState: 0
-  label: Menu
+  _label: Menu
   hotspotLabel: 
   hotspotLabelID: -1
   anchor: 4
   textEffects: 1
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   buttonClickType: 1
   actionList: {fileID: 0}
   parameterID: -1
@@ -2768,11 +2787,14 @@ MonoBehaviour:
     height: 53.280003
   relativePosition: {x: 7.2, y: 0}
   numSlots: 1
+  uiTextTMP: {fileID: 0}
+  hideScrollingCharacters: 0
   uiText: {fileID: 0}
-  label: Support Us Improve Our Job?
+  _label: Support Us Improve Our Job?
   anchor: 4
   textEffects: 2
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   labelType: 0
   variableID: 0
   useCharacterColour: 0
@@ -2784,6 +2806,7 @@ MonoBehaviour:
   inventoryPropertyType: 0
   selectedObjectiveLabelType: 0
   itemSlotNumber: 0
+  uiComponentHideStyle: 0
 --- !u!114 &-3853030243932252295
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -2844,6 +2867,7 @@ MonoBehaviour:
     sprite: {fileID: 0}
   textEffects: 1
   outlineSize: 1
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   anchor: 4
   saveListType: 0
   maxSlots: 5
@@ -2913,12 +2937,13 @@ MonoBehaviour:
   numSlots: 1
   uiButton: {fileID: 11470026, guid: f15f8212986624a8899a47f0054ebbc1, type: 3}
   uiPointerState: 0
-  label: Close
+  _label: Close
   hotspotLabel: 
   hotspotLabelID: -1
   anchor: 4
   textEffects: 0
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   buttonClickType: 0
   actionList: {fileID: 0}
   parameterID: -1
@@ -2981,11 +3006,14 @@ MonoBehaviour:
     height: 28.800001
   relativePosition: {x: 65.3, y: 37}
   numSlots: 1
+  uiTextTMP: {fileID: 0}
+  hideScrollingCharacters: 0
   uiText: {fileID: 0}
-  label: No Data!
+  _label: No Data!
   anchor: 4
   textEffects: 1
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   labelType: 0
   variableID: 0
   useCharacterColour: 0
@@ -2997,6 +3025,7 @@ MonoBehaviour:
   inventoryPropertyType: 0
   selectedObjectiveLabelType: 0
   itemSlotNumber: 0
+  uiComponentHideStyle: 0
 --- !u!114 &-3700526455035105695
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -3011,6 +3040,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   menuSource: 0
   canvas: {fileID: 22396742, guid: 5278aefc561483847b3a05764b29591e, type: 3}
+  canvasAssetKey: 
   canvasID: 0
   rectTransform: {fileID: 0}
   rectTransformID: 74892
@@ -3034,6 +3064,7 @@ MonoBehaviour:
   actionListOnTurnOff: {fileID: 11400000, guid: a9b11786a48370a4ead0096fd5d53468, type: 2}
   updateWhenFadeOut: 1
   hideDuringSaveScreenshots: 1
+  useTextMeshProComponents: 0
   fitWithinScreen: 1
   backgroundTexture: {fileID: 2800000, guid: 5afe8d06fd76ba447a30cc25fd23e687, type: 3}
   visibleElements:
@@ -3106,7 +3137,6 @@ MonoBehaviour:
     y: 122.400024
     width: 1536
     height: 1195.2
-  showInFilter: 1
 --- !u!114 &-3426506404938716195
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -3152,11 +3182,14 @@ MonoBehaviour:
     height: 48
   relativePosition: {x: 0, y: 0}
   numSlots: 1
+  uiTextTMP: {fileID: 0}
+  hideScrollingCharacters: 0
   uiText: {fileID: 0}
-  label: Pause
+  _label: Pause
   anchor: 4
   textEffects: 1
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   labelType: 0
   variableID: 0
   useCharacterColour: 0
@@ -3168,6 +3201,7 @@ MonoBehaviour:
   inventoryPropertyType: 0
   selectedObjectiveLabelType: 0
   itemSlotNumber: 0
+  uiComponentHideStyle: 0
 --- !u!114 &-3092700952767042831
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -3182,6 +3216,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   menuSource: 0
   canvas: {fileID: 0}
+  canvasAssetKey: 
   canvasID: 0
   rectTransform: {fileID: 0}
   rectTransformID: 0
@@ -3205,6 +3240,7 @@ MonoBehaviour:
   actionListOnTurnOff: {fileID: 0}
   updateWhenFadeOut: 1
   hideDuringSaveScreenshots: 1
+  useTextMeshProComponents: 0
   fitWithinScreen: 1
   backgroundTexture: {fileID: 0}
   visibleElements:
@@ -3270,7 +3306,6 @@ MonoBehaviour:
     y: 0
     width: 2560
     height: 1440
-  showInFilter: 1
 --- !u!114 &-3019168002440656647
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -3316,11 +3351,14 @@ MonoBehaviour:
     height: 48
   relativePosition: {x: 0, y: 0}
   numSlots: 1
+  uiTextTMP: {fileID: 0}
+  hideScrollingCharacters: 0
   uiText: {fileID: 0}
-  label: Load game
+  _label: Load game
   anchor: 4
   textEffects: 1
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   labelType: 0
   variableID: 0
   useCharacterColour: 0
@@ -3332,6 +3370,7 @@ MonoBehaviour:
   inventoryPropertyType: 0
   selectedObjectiveLabelType: 0
   itemSlotNumber: 0
+  uiComponentHideStyle: 0
 --- !u!114 &-3019143521084862395
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -3395,6 +3434,7 @@ MonoBehaviour:
     sprite: {fileID: 0}
   textEffects: 1
   outlineSize: 1
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   anchor: 4
   saveListType: 1
   maxSlots: 5
@@ -3479,6 +3519,8 @@ MonoBehaviour:
     alwaysAnimate: 0
   uiRawImage: {fileID: 0}
   uiImageType: 0
+  linkedJournalElementName: 
+  uiComponentHideStyle: 0
 --- !u!114 &-2629644097135478389
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -3526,12 +3568,13 @@ MonoBehaviour:
   numSlots: 1
   uiButton: {fileID: 0}
   uiPointerState: 0
-  label: Options
+  _label: Options
   hotspotLabel: 
   hotspotLabelID: -1
   anchor: 4
   textEffects: 1
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   buttonClickType: 1
   actionList: {fileID: 0}
   parameterID: -1
@@ -3594,11 +3637,14 @@ MonoBehaviour:
     height: 38.4
   relativePosition: {x: 61.8, y: 55.2}
   numSlots: 1
+  uiTextTMP: {fileID: 0}
+  hideScrollingCharacters: 0
   uiText: {fileID: 0}
-  label: Objective Stat Description
+  _label: Objective Stat Description
   anchor: 1
   textEffects: 3
   outlineSize: 1
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   labelType: 8
   variableID: 0
   useCharacterColour: 0
@@ -3610,6 +3656,7 @@ MonoBehaviour:
   inventoryPropertyType: 0
   selectedObjectiveLabelType: 3
   itemSlotNumber: 0
+  uiComponentHideStyle: 0
 --- !u!114 &-2401774984793491776
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -3655,11 +3702,14 @@ MonoBehaviour:
     height: 53.280003
   relativePosition: {x: 4.7, y: 0}
   numSlots: 1
+  uiTextTMP: {fileID: 0}
+  hideScrollingCharacters: 0
   uiText: {fileID: 0}
-  label: Support Us Improve Our Job?
+  _label: Support Us Improve Our Job?
   anchor: 4
   textEffects: 2
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   labelType: 0
   variableID: 0
   useCharacterColour: 0
@@ -3671,6 +3721,7 @@ MonoBehaviour:
   inventoryPropertyType: 0
   selectedObjectiveLabelType: 0
   itemSlotNumber: 0
+  uiComponentHideStyle: 0
 --- !u!114 &-2375674716339920617
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -3685,6 +3736,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   menuSource: 0
   canvas: {fileID: 0}
+  canvasAssetKey: 
   canvasID: 0
   rectTransform: {fileID: 0}
   rectTransformID: 0
@@ -3693,9 +3745,9 @@ MonoBehaviour:
   _isLocked: 0
   id: 18
   title: TitleScreenSecond
-  manualSize: {x: 32.2, y: 88.94}
+  manualSize: {x: 32.2, y: 44.800003}
   positionType: 0
-  manualPosition: {x: 528, y: 240}
+  manualPosition: {x: 480, y: 240}
   positionSmoothing: 0
   alignment: 4
   toggleKey: 
@@ -3708,15 +3760,13 @@ MonoBehaviour:
   actionListOnTurnOff: {fileID: 0}
   updateWhenFadeOut: 1
   hideDuringSaveScreenshots: 1
+  useTextMeshProComponents: 0
   fitWithinScreen: 1
   backgroundTexture: {fileID: 2800000, guid: 5afe8d06fd76ba447a30cc25fd23e687, type: 3}
   visibleElements:
   - {fileID: -4282958009224650304}
   - {fileID: -7992012712813569817}
   - {fileID: -1133477729634168690}
-  - {fileID: -342464549889674866}
-  - {fileID: -1644161424427271127}
-  - {fileID: -7578443276892736756}
   transitionProgress: 0
   appearType: 0
   speechMenuType: 0
@@ -3734,7 +3784,6 @@ MonoBehaviour:
   - {fileID: -1133477729634168690}
   - {fileID: -342464549889674866}
   - {fileID: -1644161424427271127}
-  - {fileID: -7578443276892736756}
   spacing: 1.1
   sizeType: 0
   autoSizeEveryFrame: 0
@@ -3774,14 +3823,13 @@ MonoBehaviour:
   speechProximityLimit: 0
   speechProximityDistance: 10
   deleteUIWhenTurnOff: 0
-  biggestElementSize: {x: 328.41602, y: 415.29602}
+  biggestElementSize: {x: 298.56, y: 204.48001}
   rect:
     serializedVersion: 2
-    x: 357.984
-    y: 26.543991
-    width: 340.032
-    height: 426.91202
-  showInFilter: 1
+    x: 325.44
+    y: 132.48
+    width: 309.12
+    height: 215.04001
 --- !u!114 &-2322440120729400312
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -3796,6 +3844,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   menuSource: 0
   canvas: {fileID: 0}
+  canvasAssetKey: 
   canvasID: 0
   rectTransform: {fileID: 0}
   rectTransformID: 0
@@ -3819,6 +3868,7 @@ MonoBehaviour:
   actionListOnTurnOff: {fileID: 11400000, guid: 08bd57cc9873ef74c9d1894b158f149b, type: 2}
   updateWhenFadeOut: 1
   hideDuringSaveScreenshots: 1
+  useTextMeshProComponents: 0
   fitWithinScreen: 1
   backgroundTexture: {fileID: 2800000, guid: 40fc9f56c7492d64dac99f34614c6fa3, type: 3}
   visibleElements:
@@ -3886,7 +3936,6 @@ MonoBehaviour:
     y: 191.76
     width: 851.136
     height: 96.48
-  showInFilter: 1
 --- !u!114 &-2111190305744473262
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -3901,6 +3950,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   menuSource: 0
   canvas: {fileID: 22300000, guid: 123f643ffcdd54b458dba3430546b3f9, type: 3}
+  canvasAssetKey: 
   canvasID: 0
   rectTransform: {fileID: 0}
   rectTransformID: 310968
@@ -3924,6 +3974,7 @@ MonoBehaviour:
   actionListOnTurnOff: {fileID: 11400000, guid: 6230f1528f53f9a43891a70a80ebeb8c, type: 2}
   updateWhenFadeOut: 1
   hideDuringSaveScreenshots: 1
+  useTextMeshProComponents: 0
   fitWithinScreen: 1
   backgroundTexture: {fileID: 2800000, guid: 5afe8d06fd76ba447a30cc25fd23e687, type: 3}
   visibleElements:
@@ -3999,7 +4050,6 @@ MonoBehaviour:
     y: 8.639999
     width: 258.72
     height: 462.72
-  showInFilter: 1
 --- !u!114 &-2011889074673794730
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -4047,12 +4097,13 @@ MonoBehaviour:
   numSlots: 1
   uiButton: {fileID: 0}
   uiPointerState: 0
-  label: Back
+  _label: Back
   hotspotLabel: 
   hotspotLabelID: -1
   anchor: 4
   textEffects: 1
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   buttonClickType: 0
   actionList: {fileID: 0}
   parameterID: -1
@@ -4122,6 +4173,7 @@ MonoBehaviour:
   label: Music volume
   textEffects: 1
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   anchor: 4
   sliderTexture: {fileID: 2800000, guid: 32e15e936d26ba04c8fb24df081c8e86, type: 3}
   sliderDisplayType: 0
@@ -4180,12 +4232,13 @@ MonoBehaviour:
   numSlots: 1
   uiButton: {fileID: 0}
   uiPointerState: 0
-  label: Next
+  _label: Next
   hotspotLabel: 
   hotspotLabelID: -1
   anchor: 4
   textEffects: 1
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   buttonClickType: 3
   actionList: {fileID: 11400000, guid: 91a2fdc9f749ce84f9a6e9ce825a804b, type: 2}
   parameterID: -1
@@ -4217,6 +4270,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   menuSource: 0
   canvas: {fileID: 22300000, guid: 1ab628d83f236d244821564e11a02d77, type: 3}
+  canvasAssetKey: 
   canvasID: 0
   rectTransform: {fileID: 0}
   rectTransformID: 710880
@@ -4240,6 +4294,7 @@ MonoBehaviour:
   actionListOnTurnOff: {fileID: 11400000, guid: d8a8627e0a7ab0f40bfe8253f16acda6, type: 2}
   updateWhenFadeOut: 1
   hideDuringSaveScreenshots: 1
+  useTextMeshProComponents: 0
   fitWithinScreen: 1
   backgroundTexture: {fileID: 2800000, guid: 5afe8d06fd76ba447a30cc25fd23e687, type: 3}
   visibleElements:
@@ -4314,7 +4369,6 @@ MonoBehaviour:
     y: 112.32001
     width: 860.16003
     height: 1215.36
-  showInFilter: 1
 --- !u!114 &-1644161424427271127
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -4339,7 +4393,7 @@ MonoBehaviour:
   fontScaleFactor: 2.5
   fontColor: {r: 0.7877358, g: 0.8408019, b: 1, a: 1}
   fontHighlightColor: {r: 0.9528302, g: 0.8720103, b: 0, a: 1}
-  isVisible: 1
+  isVisible: 0
   isClickable: 1
   orientation: 1
   gridWidth: 3
@@ -4354,20 +4408,21 @@ MonoBehaviour:
   maxAutoWidthFactor: 0.5
   relativeRect:
     serializedVersion: 2
-    x: 11.616
-    y: 288.48
-    width: 316.80002
+    x: 10.56
+    y: 283.2
+    width: 288
     height: 57.600002
   relativePosition: {x: 68.9, y: 55}
   numSlots: 1
   uiButton: {fileID: 0}
   uiPointerState: 0
-  label: Other Products
+  _label: Other Products
   hotspotLabel: 
   hotspotLabelID: -1
   anchor: 4
   textEffects: 1
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   buttonClickType: 3
   actionList: {fileID: 11400000, guid: 55552c8563c694e42bf6657def693da6, type: 2}
   parameterID: -1
@@ -4432,12 +4487,13 @@ MonoBehaviour:
   numSlots: 1
   uiButton: {fileID: 11478532, guid: f15f8212986624a8899a47f0054ebbc1, type: 3}
   uiPointerState: 0
-  label: 
+  _label: 
   hotspotLabel: 
   hotspotLabelID: -1
   anchor: 4
   textEffects: 0
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   buttonClickType: 5
   actionList: {fileID: 0}
   parameterID: -1
@@ -4500,11 +4556,14 @@ MonoBehaviour:
     height: 66.240005
   relativePosition: {x: 62.5, y: 46.3}
   numSlots: 1
+  uiTextTMP: {fileID: 0}
+  hideScrollingCharacters: 0
   uiText: {fileID: 0}
-  label: Pick-ups items
+  _label: Pick-ups items
   anchor: 4
   textEffects: 1
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   labelType: 0
   variableID: 0
   useCharacterColour: 0
@@ -4516,6 +4575,7 @@ MonoBehaviour:
   inventoryPropertyType: 0
   selectedObjectiveLabelType: 0
   itemSlotNumber: 0
+  uiComponentHideStyle: 0
 --- !u!114 &-1509788218019092144
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -4561,11 +4621,14 @@ MonoBehaviour:
     height: 115.2
   relativePosition: {x: 0, y: 0}
   numSlots: 1
+  uiTextTMP: {fileID: 0}
+  hideScrollingCharacters: 0
   uiText: {fileID: 0}
-  label: Memos
+  _label: Memos
   anchor: 4
   textEffects: 1
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   labelType: 0
   variableID: 0
   useCharacterColour: 0
@@ -4577,6 +4640,7 @@ MonoBehaviour:
   inventoryPropertyType: 0
   selectedObjectiveLabelType: 0
   itemSlotNumber: 0
+  uiComponentHideStyle: 0
 --- !u!114 &-1449630170895576017
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -4622,13 +4686,16 @@ MonoBehaviour:
     height: 152
   relativePosition: {x: 0, y: 0}
   numSlots: 1
+  uiTextTMP: {fileID: 0}
+  hideScrollingCharacters: 0
   uiText: {fileID: 0}
-  label: 'In Memory of Kian
+  _label: 'In Memory of Kian
 
     Who loved rainbows'
   anchor: 4
   textEffects: 1
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   labelType: 0
   variableID: 0
   useCharacterColour: 0
@@ -4640,6 +4707,7 @@ MonoBehaviour:
   inventoryPropertyType: 0
   selectedObjectiveLabelType: 0
   itemSlotNumber: 0
+  uiComponentHideStyle: 0
 --- !u!114 &-1374373696823168758
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -4687,12 +4755,13 @@ MonoBehaviour:
   numSlots: 1
   uiButton: {fileID: 0}
   uiPointerState: 0
-  label: No
+  _label: No
   hotspotLabel: 
   hotspotLabelID: -1
   anchor: 4
   textEffects: 2
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   buttonClickType: 0
   actionList: {fileID: 0}
   parameterID: -1
@@ -4764,6 +4833,7 @@ MonoBehaviour:
   anchor: 4
   textEffects: 0
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   iconID: 3
   uiSelectableHideStyle: 0
   overrideTexture: 0
@@ -4816,12 +4886,13 @@ MonoBehaviour:
   numSlots: 1
   uiButton: {fileID: 0}
   uiPointerState: 0
-  label: Need Help?
+  _label: Need Help?
   hotspotLabel: 
   hotspotLabelID: -1
   anchor: 4
   textEffects: 1
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   buttonClickType: 3
   actionList: {fileID: 11400000, guid: 0e170b931dcc0be49a191971cd87532d, type: 2}
   parameterID: -1
@@ -4878,20 +4949,21 @@ MonoBehaviour:
   maxAutoWidthFactor: 0.5
   relativeRect:
     serializedVersion: 2
-    x: 11.616
-    y: 150.048
-    width: 316.80002
+    x: 10.56
+    y: 146.88
+    width: 288
     height: 57.600002
   relativePosition: {x: 0, y: 35}
   numSlots: 1
   uiButton: {fileID: 0}
   uiPointerState: 0
-  label: Load
+  _label: Load
   hotspotLabel: 
   hotspotLabelID: -1
   anchor: 4
   textEffects: 1
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   buttonClickType: 1
   actionList: {fileID: 11400000, guid: 34893b082bfd6f442b2843d08a17bd98, type: 2}
   parameterID: -1
@@ -4923,6 +4995,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   menuSource: 0
   canvas: {fileID: 22300000, guid: bce394f9908d9d241abd61df17296034, type: 3}
+  canvasAssetKey: 
   canvasID: 0
   rectTransform: {fileID: 0}
   rectTransformID: 1765320
@@ -4946,6 +5019,7 @@ MonoBehaviour:
   actionListOnTurnOff: {fileID: 0}
   updateWhenFadeOut: 1
   hideDuringSaveScreenshots: 1
+  useTextMeshProComponents: 0
   fitWithinScreen: 1
   backgroundTexture: {fileID: 2800000, guid: 40fc9f56c7492d64dac99f34614c6fa3, type: 3}
   visibleElements:
@@ -5013,7 +5087,6 @@ MonoBehaviour:
     y: 19.199997
     width: 432.96
     height: 86.4
-  showInFilter: 1
 --- !u!114 &-1076738256450293666
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -5061,12 +5134,13 @@ MonoBehaviour:
   numSlots: 1
   uiButton: {fileID: 0}
   uiPointerState: 0
-  label: 
+  _label: 
   hotspotLabel: 
   hotspotLabelID: -1
   anchor: 4
   textEffects: 0
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   buttonClickType: 2
   actionList: {fileID: 0}
   parameterID: -1
@@ -5129,11 +5203,14 @@ MonoBehaviour:
     height: 66.240005
   relativePosition: {x: 49.6, y: 25.6}
   numSlots: 1
+  uiTextTMP: {fileID: 0}
+  hideScrollingCharacters: 0
   uiText: {fileID: 0}
-  label: Looks the item
+  _label: Looks the item
   anchor: 4
   textEffects: 1
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   labelType: 0
   variableID: 0
   useCharacterColour: 0
@@ -5145,6 +5222,7 @@ MonoBehaviour:
   inventoryPropertyType: 0
   selectedObjectiveLabelType: 0
   itemSlotNumber: 0
+  uiComponentHideStyle: 0
 --- !u!114 &-488067653810175781
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -5190,11 +5268,14 @@ MonoBehaviour:
     height: 48
   relativePosition: {x: 4.5, y: 4}
   numSlots: 1
+  uiTextTMP: {fileID: 0}
+  hideScrollingCharacters: 0
   uiText: {fileID: 0}
-  label: Objectives
+  _label: Objectives
   anchor: 4
   textEffects: 1
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   labelType: 0
   variableID: 0
   useCharacterColour: 0
@@ -5206,6 +5287,7 @@ MonoBehaviour:
   inventoryPropertyType: 0
   selectedObjectiveLabelType: 0
   itemSlotNumber: 0
+  uiComponentHideStyle: 0
 --- !u!114 &-365653720194383045
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -5220,6 +5302,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   menuSource: 0
   canvas: {fileID: 22300000, guid: 42c215fb5ddb33e4997e5806e1323256, type: 3}
+  canvasAssetKey: 
   canvasID: 0
   rectTransform: {fileID: 0}
   rectTransformID: 15198304
@@ -5243,6 +5326,7 @@ MonoBehaviour:
   actionListOnTurnOff: {fileID: 0}
   updateWhenFadeOut: 1
   hideDuringSaveScreenshots: 1
+  useTextMeshProComponents: 0
   fitWithinScreen: 1
   backgroundTexture: {fileID: 2800000, guid: 39edea452fe9d05408fff056ffa7184b, type: 3}
   visibleElements:
@@ -5314,7 +5398,6 @@ MonoBehaviour:
     y: 789.84
     width: 737.27997
     height: 243.36
-  showInFilter: 1
 --- !u!114 &-350156704506044041
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -5329,6 +5412,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   menuSource: 0
   canvas: {fileID: 0}
+  canvasAssetKey: 
   canvasID: 0
   rectTransform: {fileID: 0}
   rectTransformID: 0
@@ -5352,6 +5436,7 @@ MonoBehaviour:
   actionListOnTurnOff: {fileID: 11400000, guid: bf439cd1a2788e246837392d0f9160f7, type: 2}
   updateWhenFadeOut: 1
   hideDuringSaveScreenshots: 1
+  useTextMeshProComponents: 0
   fitWithinScreen: 1
   backgroundTexture: {fileID: 2800000, guid: 40fc9f56c7492d64dac99f34614c6fa3, type: 3}
   visibleElements:
@@ -5415,7 +5500,6 @@ MonoBehaviour:
     y: 191.76
     width: 851.136
     height: 96.48
-  showInFilter: 1
 --- !u!114 &-342464549889674866
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -5440,7 +5524,7 @@ MonoBehaviour:
   fontScaleFactor: 2.5
   fontColor: {r: 0.7877358, g: 0.8408019, b: 1, a: 1}
   fontHighlightColor: {r: 0.9528302, g: 0.8720103, b: 0, a: 1}
-  isVisible: 1
+  isVisible: 0
   isClickable: 1
   orientation: 1
   gridWidth: 3
@@ -5455,20 +5539,21 @@ MonoBehaviour:
   maxAutoWidthFactor: 0.5
   relativeRect:
     serializedVersion: 2
-    x: 11.616
-    y: 219.264
-    width: 316.80002
+    x: 10.56
+    y: 215.04001
+    width: 288
     height: 57.600002
   relativePosition: {x: 28.9, y: 55}
   numSlots: 1
   uiButton: {fileID: 0}
   uiPointerState: 0
-  label: Rate Us
+  _label: Rate Us
   hotspotLabel: 
   hotspotLabelID: -1
   anchor: 4
   textEffects: 1
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   buttonClickType: 3
   actionList: {fileID: 11400000, guid: 1ba07ebdc8100c04e9b061fe281f9f99, type: 2}
   parameterID: -1
@@ -5533,12 +5618,13 @@ MonoBehaviour:
   numSlots: 1
   uiButton: {fileID: 0}
   uiPointerState: 0
-  label: Close
+  _label: Close
   hotspotLabel: 
   hotspotLabelID: -1
   anchor: 4
   textEffects: 1
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   buttonClickType: 0
   actionList: {fileID: 0}
   parameterID: -1
@@ -5601,11 +5687,14 @@ MonoBehaviour:
     height: 144
   relativePosition: {x: 0, y: 0}
   numSlots: 1
+  uiTextTMP: {fileID: 0}
+  hideScrollingCharacters: 0
   uiText: {fileID: 0}
-  label: Save game
+  _label: Save game
   anchor: 4
   textEffects: 1
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   labelType: 0
   variableID: 0
   useCharacterColour: 0
@@ -5617,6 +5706,7 @@ MonoBehaviour:
   inventoryPropertyType: 0
   selectedObjectiveLabelType: 0
   itemSlotNumber: 0
+  uiComponentHideStyle: 0
 --- !u!114 &-11392577786196937
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -5631,6 +5721,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   menuSource: 0
   canvas: {fileID: 0}
+  canvasAssetKey: 
   canvasID: 0
   rectTransform: {fileID: 0}
   rectTransformID: 0
@@ -5654,6 +5745,7 @@ MonoBehaviour:
   actionListOnTurnOff: {fileID: 11400000, guid: 6c6603f842e29b9459a6b69e38dc0828, type: 2}
   updateWhenFadeOut: 1
   hideDuringSaveScreenshots: 1
+  useTextMeshProComponents: 0
   fitWithinScreen: 1
   backgroundTexture: {fileID: 2800000, guid: 40fc9f56c7492d64dac99f34614c6fa3, type: 3}
   visibleElements:
@@ -5717,7 +5809,6 @@ MonoBehaviour:
     y: 191.76
     width: 851.136
     height: 96.48
-  showInFilter: 1
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5769,6 +5860,7 @@ MonoBehaviour:
   autoSelectValidRaycasts: 0
   horizontalInputAxis: Horizontal
   verticalInputAxis: Vertical
+  useAddressables: 0
   hasUpgraded: 1
   doWindowsPreviewFix: 1
   drawOutlines: 1
@@ -5787,6 +5879,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   menuSource: 0
   canvas: {fileID: 22300000, guid: e2473a0bc3544264fa6bed5258d96bd6, type: 3}
+  canvasAssetKey: 
   canvasID: 0
   rectTransform: {fileID: 0}
   rectTransformID: 87948
@@ -5795,9 +5888,9 @@ MonoBehaviour:
   _isLocked: 0
   id: 11
   title: Hotspot
-  manualSize: {x: 5.8203125, y: 5.2777777}
+  manualSize: {x: 5.3291664, y: 8.058333}
   positionType: 1
-  manualPosition: {x: 1280, y: 720}
+  manualPosition: {x: 480, y: 240}
   positionSmoothing: 0
   alignment: 4
   toggleKey: 
@@ -5810,6 +5903,7 @@ MonoBehaviour:
   actionListOnTurnOff: {fileID: 0}
   updateWhenFadeOut: 1
   hideDuringSaveScreenshots: 1
+  useTextMeshProComponents: 0
   fitWithinScreen: 1
   backgroundTexture: {fileID: 2800000, guid: eed8e726a169c8b4bab8a695c9e2fce6, type: 3}
   visibleElements:
@@ -5866,14 +5960,13 @@ MonoBehaviour:
   speechProximityLimit: 0
   speechProximityDistance: 10
   deleteUIWhenTurnOff: 0
-  biggestElementSize: {x: 149, y: 76}
+  biggestElementSize: {x: 51.16, y: 38.68}
   rect:
     serializedVersion: 2
-    x: 1205.5
-    y: 682
-    width: 149
-    height: 76
-  showInFilter: 1
+    x: 454.42
+    y: 220.66
+    width: 51.16
+    height: 38.68
 --- !u!114 &504267823609781069
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -5963,6 +6056,7 @@ MonoBehaviour:
   textEffects: 1
   anchor: 4
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   inventoryBoxType: 0
   actionListOnClick: {fileID: 0}
   maxSlots: 4
@@ -5975,6 +6069,10 @@ MonoBehaviour:
   preventSelection: 0
   limitMaxScroll: 1
   highlightEmptySlots: 0
+  canBeLooped: 0
+  markAlreadyRead: 0
+  alreadyReadFontColour: {r: 1, g: 1, b: 1, a: 1}
+  alreadyReadFontHighlightedColour: {r: 1, g: 1, b: 1, a: 1}
   updateHotspotLabelWhenHover: 0
   hoverSoundOverEmptySlots: 1
   containerSelectMode: 1
@@ -5983,7 +6081,9 @@ MonoBehaviour:
   autoOpenDocument: 1
   emptySlotTexture: {fileID: 0}
   inventoryItemCountDisplay: 0
+  indexPrefixDisplay: 0
   objectiveDisplayType: 0
+  objectiveSorting: 0
 --- !u!114 &616669415731845949
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -5998,6 +6098,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   menuSource: 0
   canvas: {fileID: 0}
+  canvasAssetKey: 
   canvasID: 0
   rectTransform: {fileID: 0}
   rectTransformID: 0
@@ -6021,6 +6122,7 @@ MonoBehaviour:
   actionListOnTurnOff: {fileID: 11400000, guid: a9b11786a48370a4ead0096fd5d53468, type: 2}
   updateWhenFadeOut: 1
   hideDuringSaveScreenshots: 1
+  useTextMeshProComponents: 0
   fitWithinScreen: 1
   backgroundTexture: {fileID: 2800000, guid: 40fc9f56c7492d64dac99f34614c6fa3, type: 3}
   visibleElements:
@@ -6085,7 +6187,6 @@ MonoBehaviour:
     y: 67.552
     width: 234.496
     height: 239.29599
-  showInFilter: 1
 --- !u!114 &776453922820933256
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -6131,11 +6232,14 @@ MonoBehaviour:
     height: 53.280003
   relativePosition: {x: 4.7, y: 0}
   numSlots: 1
+  uiTextTMP: {fileID: 0}
+  hideScrollingCharacters: 0
   uiText: {fileID: 0}
-  label: Payment Failed!
+  _label: Payment Failed!
   anchor: 4
   textEffects: 2
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   labelType: 0
   variableID: 0
   useCharacterColour: 0
@@ -6147,6 +6251,7 @@ MonoBehaviour:
   inventoryPropertyType: 0
   selectedObjectiveLabelType: 0
   itemSlotNumber: 0
+  uiComponentHideStyle: 0
 --- !u!114 &790158920499309185
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -6194,12 +6299,13 @@ MonoBehaviour:
   numSlots: 1
   uiButton: {fileID: 0}
   uiPointerState: 0
-  label: Previous
+  _label: Previous
   hotspotLabel: 
   hotspotLabelID: -1
   anchor: 4
   textEffects: 1
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   buttonClickType: 3
   actionList: {fileID: 11400000, guid: a26935c89304d18439cf81636827dfb7, type: 2}
   parameterID: -1
@@ -6279,6 +6385,8 @@ MonoBehaviour:
     alwaysAnimate: 0
   uiRawImage: {fileID: 0}
   uiImageType: 0
+  linkedJournalElementName: 
+  uiComponentHideStyle: 0
 --- !u!114 &1043093648439338829
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -6326,12 +6434,13 @@ MonoBehaviour:
   numSlots: 1
   uiButton: {fileID: 0}
   uiPointerState: 0
-  label: Load
+  _label: Load
   hotspotLabel: 
   hotspotLabelID: -1
   anchor: 4
   textEffects: 1
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   buttonClickType: 1
   actionList: {fileID: 0}
   parameterID: -1
@@ -6411,6 +6520,8 @@ MonoBehaviour:
     alwaysAnimate: 0
   uiRawImage: {fileID: 0}
   uiImageType: 0
+  linkedJournalElementName: 
+  uiComponentHideStyle: 0
 --- !u!114 &1559421555737136610
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -6425,6 +6536,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   menuSource: 0
   canvas: {fileID: 0}
+  canvasAssetKey: 
   canvasID: 0
   rectTransform: {fileID: 0}
   rectTransformID: 0
@@ -6448,6 +6560,7 @@ MonoBehaviour:
   actionListOnTurnOff: {fileID: 0}
   updateWhenFadeOut: 1
   hideDuringSaveScreenshots: 1
+  useTextMeshProComponents: 0
   fitWithinScreen: 1
   backgroundTexture: {fileID: 0}
   visibleElements:
@@ -6516,7 +6629,6 @@ MonoBehaviour:
     y: 631.2
     width: 697.6
     height: 177.6
-  showInFilter: 1
 --- !u!114 &1576085568333994014
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -6531,6 +6643,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   menuSource: 0
   canvas: {fileID: 22300000, guid: 3bce5b3458b9d384d8b5c3ae21c27e20, type: 3}
+  canvasAssetKey: 
   canvasID: 0
   rectTransform: {fileID: 0}
   rectTransformID: 14169666
@@ -6554,6 +6667,7 @@ MonoBehaviour:
   actionListOnTurnOff: {fileID: 0}
   updateWhenFadeOut: 1
   hideDuringSaveScreenshots: 1
+  useTextMeshProComponents: 0
   fitWithinScreen: 1
   backgroundTexture: {fileID: 2800000, guid: 5afe8d06fd76ba447a30cc25fd23e687, type: 3}
   visibleElements:
@@ -6619,7 +6733,6 @@ MonoBehaviour:
     y: 617.2799
     width: 1126.3999
     height: 772.80005
-  showInFilter: 1
 --- !u!114 &1661021797063010418
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -6667,12 +6780,13 @@ MonoBehaviour:
   numSlots: 1
   uiButton: {fileID: 0}
   uiPointerState: 0
-  label: Resume
+  _label: Resume
   hotspotLabel: 
   hotspotLabelID: -1
   anchor: 4
   textEffects: 1
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   buttonClickType: 0
   actionList: {fileID: 0}
   parameterID: -1
@@ -6735,11 +6849,14 @@ MonoBehaviour:
     height: 115.200005
   relativePosition: {x: 5, y: 55}
   numSlots: 1
+  uiTextTMP: {fileID: 0}
+  hideScrollingCharacters: 0
   uiText: {fileID: 0}
-  label: Description
+  _label: Description
   anchor: 1
   textEffects: 1
   outlineSize: 1
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   labelType: 8
   variableID: 0
   useCharacterColour: 0
@@ -6751,6 +6868,7 @@ MonoBehaviour:
   inventoryPropertyType: 0
   selectedObjectiveLabelType: 1
   itemSlotNumber: 0
+  uiComponentHideStyle: 0
 --- !u!114 &1977033541709948120
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -6813,6 +6931,8 @@ MonoBehaviour:
     alwaysAnimate: 0
   uiRawImage: {fileID: 0}
   uiImageType: 0
+  linkedJournalElementName: 
+  uiComponentHideStyle: 0
 --- !u!114 &2074323957516166364
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -6854,8 +6974,8 @@ MonoBehaviour:
     serializedVersion: 2
     x: 0
     y: 0
-    width: 153.6
-    height: 172.79999
+    width: 57.600002
+    height: 57.600002
   relativePosition: {x: 0, y: 0}
   numSlots: 1
   uiImage: {fileID: 0}
@@ -6879,6 +6999,8 @@ MonoBehaviour:
     alwaysAnimate: 0
   uiRawImage: {fileID: 0}
   uiImageType: 0
+  linkedJournalElementName: 
+  uiComponentHideStyle: 0
 --- !u!114 &2175459711920284462
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -6931,6 +7053,7 @@ MonoBehaviour:
   label: SFX volume
   textEffects: 1
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   anchor: 4
   sliderTexture: {fileID: 2800000, guid: 32e15e936d26ba04c8fb24df081c8e86, type: 3}
   sliderDisplayType: 0
@@ -6987,12 +7110,15 @@ MonoBehaviour:
     height: 304
   relativePosition: {x: 0, y: 0}
   numSlots: 1
+  uiTextTMP: {fileID: 0}
+  hideScrollingCharacters: 0
   uiText: {fileID: 0}
-  label: "Since they took you from me\nrainbow is the begginer\nof the rain \nfrom
+  _label: "Since they took you from me\nrainbow is the begginer\nof the rain \nfrom
     my eyes"
   anchor: 4
   textEffects: 1
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   labelType: 0
   variableID: 0
   useCharacterColour: 0
@@ -7004,6 +7130,7 @@ MonoBehaviour:
   inventoryPropertyType: 0
   selectedObjectiveLabelType: 0
   itemSlotNumber: 0
+  uiComponentHideStyle: 0
 --- !u!114 &2637056322803261297
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -7051,12 +7178,13 @@ MonoBehaviour:
   numSlots: 1
   uiButton: {fileID: 0}
   uiPointerState: 0
-  label: Yes
+  _label: Yes
   hotspotLabel: 
   hotspotLabelID: -1
   anchor: 4
   textEffects: 2
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   buttonClickType: 3
   actionList: {fileID: 11400000, guid: a37fa013bda9e3e41b3de127395b76b4, type: 2}
   parameterID: -1
@@ -7136,6 +7264,8 @@ MonoBehaviour:
     alwaysAnimate: 0
   uiRawImage: {fileID: 0}
   uiImageType: 0
+  linkedJournalElementName: 
+  uiComponentHideStyle: 0
 --- !u!114 &2807365565196457062
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -7201,6 +7331,7 @@ MonoBehaviour:
   textEffects: 1
   anchor: 4
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   inventoryBoxType: 7
   actionListOnClick: {fileID: 11400000, guid: 006991c5e5a2a4391bb18373a56ce249, type: 2}
   maxSlots: 5
@@ -7213,6 +7344,10 @@ MonoBehaviour:
   preventSelection: 0
   limitMaxScroll: 1
   highlightEmptySlots: 0
+  canBeLooped: 0
+  markAlreadyRead: 0
+  alreadyReadFontColour: {r: 1, g: 1, b: 1, a: 1}
+  alreadyReadFontHighlightedColour: {r: 1, g: 1, b: 1, a: 1}
   updateHotspotLabelWhenHover: 0
   hoverSoundOverEmptySlots: 1
   containerSelectMode: 1
@@ -7221,7 +7356,9 @@ MonoBehaviour:
   autoOpenDocument: 1
   emptySlotTexture: {fileID: 0}
   inventoryItemCountDisplay: 0
+  indexPrefixDisplay: 0
   objectiveDisplayType: 0
+  objectiveSorting: 0
 --- !u!114 &3010662595719328917
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -7236,6 +7373,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   menuSource: 0
   canvas: {fileID: 22300000, guid: a39b47b6471a86d47ba82a3450050db9, type: 3}
+  canvasAssetKey: 
   canvasID: 0
   rectTransform: {fileID: 0}
   rectTransformID: 13953742
@@ -7259,6 +7397,7 @@ MonoBehaviour:
   actionListOnTurnOff: {fileID: 0}
   updateWhenFadeOut: 1
   hideDuringSaveScreenshots: 1
+  useTextMeshProComponents: 0
   fitWithinScreen: 1
   backgroundTexture: {fileID: 2800000, guid: 5afe8d06fd76ba447a30cc25fd23e687, type: 3}
   visibleElements:
@@ -7322,7 +7461,6 @@ MonoBehaviour:
     y: 1281.6
     width: 256
     height: 158.4
-  showInFilter: 1
 --- !u!114 &3178645254563041242
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -7370,12 +7508,13 @@ MonoBehaviour:
   numSlots: 1
   uiButton: {fileID: 0}
   uiPointerState: 0
-  label: 
+  _label: 
   hotspotLabel: 
   hotspotLabelID: -1
   anchor: 4
   textEffects: 0
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   buttonClickType: 2
   actionList: {fileID: 0}
   parameterID: -1
@@ -7438,11 +7577,14 @@ MonoBehaviour:
     height: 24
   relativePosition: {x: 4.8, y: 48}
   numSlots: 1
+  uiTextTMP: {fileID: 0}
+  hideScrollingCharacters: 0
   uiText: {fileID: 0}
-  label: Objective title
+  _label: Objective title
   anchor: 4
   textEffects: 1
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   labelType: 8
   variableID: 0
   useCharacterColour: 0
@@ -7454,6 +7596,7 @@ MonoBehaviour:
   inventoryPropertyType: 0
   selectedObjectiveLabelType: 0
   itemSlotNumber: 0
+  uiComponentHideStyle: 0
 --- !u!114 &3391312646282971011
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -7501,12 +7644,13 @@ MonoBehaviour:
   numSlots: 1
   uiButton: {fileID: 0}
   uiPointerState: 0
-  label: 
+  _label: 
   hotspotLabel: 
   hotspotLabelID: -1
   anchor: 4
   textEffects: 0
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   buttonClickType: 2
   actionList: {fileID: 0}
   parameterID: -1
@@ -7571,12 +7715,13 @@ MonoBehaviour:
   numSlots: 1
   uiButton: {fileID: 0}
   uiPointerState: 0
-  label: Save
+  _label: Save
   hotspotLabel: 
   hotspotLabelID: -1
   anchor: 4
   textEffects: 1
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   buttonClickType: 1
   actionList: {fileID: 0}
   parameterID: -1
@@ -7639,11 +7784,14 @@ MonoBehaviour:
     height: 158.4
   relativePosition: {x: 5, y: 10.1}
   numSlots: 1
+  uiTextTMP: {fileID: 0}
+  hideScrollingCharacters: 0
   uiText: {fileID: 0}
-  label: Brain
+  _label: Brain
   anchor: 4
   textEffects: 1
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   labelType: 3
   variableID: 0
   useCharacterColour: 0
@@ -7655,6 +7803,7 @@ MonoBehaviour:
   inventoryPropertyType: 0
   selectedObjectiveLabelType: 0
   itemSlotNumber: 0
+  uiComponentHideStyle: 0
 --- !u!114 &3993997940315208265
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -7700,11 +7849,14 @@ MonoBehaviour:
     height: 28.800001
   relativePosition: {x: 66.9, y: 37}
   numSlots: 1
+  uiTextTMP: {fileID: 0}
+  hideScrollingCharacters: 0
   uiText: {fileID: 0}
-  label: No Data!
+  _label: No Data!
   anchor: 4
   textEffects: 1
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   labelType: 0
   variableID: 0
   useCharacterColour: 0
@@ -7716,6 +7868,7 @@ MonoBehaviour:
   inventoryPropertyType: 0
   selectedObjectiveLabelType: 0
   itemSlotNumber: 0
+  uiComponentHideStyle: 0
 --- !u!114 &4174713895539040433
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -7730,6 +7883,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   menuSource: 0
   canvas: {fileID: 0}
+  canvasAssetKey: 
   canvasID: 0
   rectTransform: {fileID: 0}
   rectTransformID: 0
@@ -7753,6 +7907,7 @@ MonoBehaviour:
   actionListOnTurnOff: {fileID: 0}
   updateWhenFadeOut: 1
   hideDuringSaveScreenshots: 1
+  useTextMeshProComponents: 0
   fitWithinScreen: 1
   backgroundTexture: {fileID: 2800000, guid: 40fc9f56c7492d64dac99f34614c6fa3, type: 3}
   visibleElements:
@@ -7816,7 +7971,6 @@ MonoBehaviour:
     y: 282.24
     width: 432.64
     height: 233.28
-  showInFilter: 1
 --- !u!114 &4746884079016676648
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -7862,11 +8016,14 @@ MonoBehaviour:
     height: 102
   relativePosition: {x: 0, y: 0}
   numSlots: 1
+  uiTextTMP: {fileID: 0}
+  hideScrollingCharacters: 0
   uiText: {fileID: 0}
-  label: Death Escape
+  _label: Death Escape
   anchor: 4
   textEffects: 1
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   labelType: 0
   variableID: 0
   useCharacterColour: 0
@@ -7878,6 +8035,7 @@ MonoBehaviour:
   inventoryPropertyType: 0
   selectedObjectiveLabelType: 0
   itemSlotNumber: 0
+  uiComponentHideStyle: 0
 --- !u!114 &5052758812529388605
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -7940,6 +8098,8 @@ MonoBehaviour:
     alwaysAnimate: 0
   uiRawImage: {fileID: 0}
   uiImageType: 0
+  linkedJournalElementName: 
+  uiComponentHideStyle: 0
 --- !u!114 &5155373565046684256
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -8002,6 +8162,8 @@ MonoBehaviour:
     alwaysAnimate: 0
   uiRawImage: {fileID: 0}
   uiImageType: 0
+  linkedJournalElementName: 
+  uiComponentHideStyle: 0
 --- !u!114 &5171468442743802659
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -8049,12 +8211,13 @@ MonoBehaviour:
   numSlots: 1
   uiButton: {fileID: 0}
   uiPointerState: 0
-  label: No
+  _label: No
   hotspotLabel: 
   hotspotLabelID: -1
   anchor: 4
   textEffects: 2
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   buttonClickType: 1
   actionList: {fileID: 11400000, guid: 618fa950a6949fa43a7462d8b603848b, type: 2}
   parameterID: -1
@@ -8126,6 +8289,7 @@ MonoBehaviour:
   anchor: 4
   textEffects: 0
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   iconID: 0
   uiSelectableHideStyle: 0
   overrideTexture: 0
@@ -8178,12 +8342,13 @@ MonoBehaviour:
   numSlots: 1
   uiButton: {fileID: 0}
   uiPointerState: 0
-  label: Back
+  _label: Back
   hotspotLabel: 
   hotspotLabelID: -1
   anchor: 4
   textEffects: 1
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   buttonClickType: 1
   actionList: {fileID: 0}
   parameterID: -1
@@ -8246,11 +8411,14 @@ MonoBehaviour:
     height: 53.280003
   relativePosition: {x: 4.7, y: 0}
   numSlots: 1
+  uiTextTMP: {fileID: 0}
+  hideScrollingCharacters: 0
   uiText: {fileID: 0}
-  label: Payment Done. Thank You!
+  _label: Payment Done. Thank You!
   anchor: 4
   textEffects: 2
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   labelType: 0
   variableID: 0
   useCharacterColour: 0
@@ -8262,6 +8430,7 @@ MonoBehaviour:
   inventoryPropertyType: 0
   selectedObjectiveLabelType: 0
   itemSlotNumber: 0
+  uiComponentHideStyle: 0
 --- !u!114 &5790826555277278405
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -8307,11 +8476,14 @@ MonoBehaviour:
     height: 172.79999
   relativePosition: {x: 0, y: 0}
   numSlots: 1
+  uiTextTMP: {fileID: 0}
+  hideScrollingCharacters: 0
   uiText: {fileID: 0}
-  label: Options
+  _label: Options
   anchor: 4
   textEffects: 1
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   labelType: 0
   variableID: 0
   useCharacterColour: 0
@@ -8323,6 +8495,7 @@ MonoBehaviour:
   inventoryPropertyType: 0
   selectedObjectiveLabelType: 0
   itemSlotNumber: 0
+  uiComponentHideStyle: 0
 --- !u!114 &5844180127062457745
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -8368,11 +8541,14 @@ MonoBehaviour:
     height: 53.280003
   relativePosition: {x: 4.7, y: 0}
   numSlots: 1
+  uiTextTMP: {fileID: 0}
+  hideScrollingCharacters: 0
   uiText: {fileID: 0}
-  label: Give us a five start rate if you liked the game?
+  _label: Give us a five start rate if you liked the game?
   anchor: 4
   textEffects: 2
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   labelType: 0
   variableID: 0
   useCharacterColour: 0
@@ -8384,6 +8560,7 @@ MonoBehaviour:
   inventoryPropertyType: 0
   selectedObjectiveLabelType: 0
   itemSlotNumber: 0
+  uiComponentHideStyle: 0
 --- !u!114 &6354350363648417781
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -8431,12 +8608,13 @@ MonoBehaviour:
   numSlots: 1
   uiButton: {fileID: 0}
   uiPointerState: 0
-  label: Back
+  _label: Back
   hotspotLabel: 
   hotspotLabelID: -1
   anchor: 4
   textEffects: 1
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   buttonClickType: 1
   actionList: {fileID: 0}
   parameterID: -1
@@ -8501,12 +8679,13 @@ MonoBehaviour:
   numSlots: 1
   uiButton: {fileID: 0}
   uiPointerState: 0
-  label: Back
+  _label: Back
   hotspotLabel: 
   hotspotLabelID: -1
   anchor: 4
   textEffects: 1
   outlineSize: 3
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   buttonClickType: 1
   actionList: {fileID: 0}
   parameterID: -1
@@ -8538,6 +8717,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   menuSource: 0
   canvas: {fileID: 0}
+  canvasAssetKey: 
   canvasID: 0
   rectTransform: {fileID: 0}
   rectTransformID: 0
@@ -8546,14 +8726,14 @@ MonoBehaviour:
   _isLocked: 0
   id: 17
   title: TitleScreenFirst
-  manualSize: {x: 100, y: 100}
+  manualSize: {x: 26, y: 24}
   positionType: 0
-  manualPosition: {x: 528, y: 240}
+  manualPosition: {x: 480, y: 240}
   positionSmoothing: 0
   alignment: 4
   toggleKey: 
-  ignoreMouseClicks: 0
-  pauseWhenEnabled: 1
+  ignoreMouseClicks: 1
+  pauseWhenEnabled: 0
   showWhenPaused: 0
   canClickInCutscene: 0
   enabledOnStart: 0
@@ -8561,11 +8741,12 @@ MonoBehaviour:
   actionListOnTurnOff: {fileID: 0}
   updateWhenFadeOut: 1
   hideDuringSaveScreenshots: 1
+  useTextMeshProComponents: 0
   fitWithinScreen: 1
   backgroundTexture: {fileID: 0}
   visibleElements:
-  - {fileID: -7888324682722728581}
   - {fileID: 6578541129678707267}
+  - {fileID: -7888324682722728581}
   transitionProgress: 0
   appearType: 0
   speechMenuType: 0
@@ -8578,10 +8759,10 @@ MonoBehaviour:
   autoSelectFirstVisibleElement: 0
   firstSelectedElement: 
   elements:
-  - {fileID: -7888324682722728581}
   - {fileID: 6578541129678707267}
-  spacing: 1.71
-  sizeType: 1
+  - {fileID: -7888324682722728581}
+  spacing: 2
+  sizeType: 0
   autoSizeEveryFrame: 0
   orientation: 1
   transitionType: 0
@@ -8619,14 +8800,13 @@ MonoBehaviour:
   speechProximityLimit: 0
   speechProximityDistance: 10
   deleteUIWhenTurnOff: 0
-  biggestElementSize: {x: 546.0576, y: 307.1152}
+  biggestElementSize: {x: 230.40001, y: 96}
   rect:
     serializedVersion: 2
-    x: 0
-    y: 0
-    width: 1056
-    height: 480
-  showInFilter: 1
+    x: 355.2
+    y: 182.4
+    width: 249.6
+    height: 115.2
 --- !u!114 &6493168427236915666
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -8689,6 +8869,8 @@ MonoBehaviour:
     alwaysAnimate: 0
   uiRawImage: {fileID: 0}
   uiImageType: 0
+  linkedJournalElementName: 
+  uiComponentHideStyle: 0
 --- !u!114 &6543530323565511985
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -8734,20 +8916,24 @@ MonoBehaviour:
     height: 302.4
   relativePosition: {x: 10, y: 71.2}
   numSlots: 1
+  uiTextTMP: {fileID: 0}
   uiText: {fileID: 11435218, guid: f15f8212986624a8899a47f0054ebbc1, type: 3}
   pages:
   - lineID: -1
     text: Page text goes here.
+    texture: {fileID: 0}
   numPages: 1
   showPage: 1
   startFromPage: 0
   anchor: 1
   textEffects: 1
   outlineSize: 1.3
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   actionListOnAddPage: {fileID: 0}
   journalType: 2
   pageOffset: 0
   otherJournalTitle: 
+  uiComponentHideStyle: 0
 --- !u!114 &6578541129678707267
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -8762,9 +8948,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ID: 0
   title: HelenLabel
-  slotSize: {x: 22.253788, y: 5.4166665}
-  sizeType: 0
-  positionType: 2
+  slotSize: {x: 22, y: 6}
+  sizeType: 1
+  positionType: 0
   slotSpacing: 0
   lineID: 655
   alternativeInputButton: 
@@ -8787,17 +8973,20 @@ MonoBehaviour:
   maxAutoWidthFactor: 0.5
   relativeRect:
     serializedVersion: 2
-    x: 777.216
-    y: 277.92
-    width: 235.00002
-    height: 26
+    x: 19.2
+    y: 19.2
+    width: 211.20001
+    height: 28.800001
   relativePosition: {x: 73.6, y: 57.9}
   numSlots: 1
+  uiTextTMP: {fileID: 0}
+  hideScrollingCharacters: 0
   uiText: {fileID: 0}
-  label: Helen Game Factory
+  _label: Helen Game Factory
   anchor: 4
   textEffects: 1
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   labelType: 0
   variableID: 0
   useCharacterColour: 0
@@ -8809,6 +8998,7 @@ MonoBehaviour:
   inventoryPropertyType: 0
   selectedObjectiveLabelType: 0
   itemSlotNumber: 0
+  uiComponentHideStyle: 0
 --- !u!114 &6737470743322959975
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -8856,12 +9046,13 @@ MonoBehaviour:
   numSlots: 1
   uiButton: {fileID: 0}
   uiPointerState: 0
-  label: Quit
+  _label: Quit
   hotspotLabel: 
   hotspotLabelID: -1
   anchor: 4
   textEffects: 1
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   buttonClickType: 3
   actionList: {fileID: 11400000, guid: 673b36f59d83c4cc5b707d270f4ad87a, type: 2}
   parameterID: -1
@@ -8926,12 +9117,13 @@ MonoBehaviour:
   numSlots: 1
   uiButton: {fileID: 0}
   uiPointerState: 0
-  label: Memos
+  _label: Memos
   hotspotLabel: 
   hotspotLabelID: -1
   anchor: 4
   textEffects: 1
   outlineSize: 1.5
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   buttonClickType: 3
   actionList: {fileID: 11400000, guid: 66d05133704ad0442994ca714bfae730, type: 2}
   parameterID: -1
@@ -8963,6 +9155,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   menuSource: 0
   canvas: {fileID: 0}
+  canvasAssetKey: 
   canvasID: 0
   rectTransform: {fileID: 0}
   rectTransformID: 0
@@ -8986,6 +9179,7 @@ MonoBehaviour:
   actionListOnTurnOff: {fileID: 11400000, guid: cc3c6ddd3c5437348873a2d62d1de3aa, type: 2}
   updateWhenFadeOut: 1
   hideDuringSaveScreenshots: 1
+  useTextMeshProComponents: 0
   fitWithinScreen: 1
   backgroundTexture: {fileID: 2800000, guid: 5afe8d06fd76ba447a30cc25fd23e687, type: 3}
   visibleElements:
@@ -9071,7 +9265,6 @@ MonoBehaviour:
     y: 24
     width: 739.2
     height: 432
-  showInFilter: 1
 --- !u!114 &7439235976474763671
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -9111,20 +9304,21 @@ MonoBehaviour:
   maxAutoWidthFactor: 0.5
   relativeRect:
     serializedVersion: 2
-    x: 38.144
-    y: 38.144
-    width: 230.40001
-    height: 129.59999
+    x: 14.304
+    y: 14.304
+    width: 86.4
+    height: 43.2
   relativePosition: {x: 0, y: 0}
   numSlots: 1
   uiButton: {fileID: 0}
   uiPointerState: 0
-  label: Return
+  _label: Return
   hotspotLabel: 
   hotspotLabelID: -1
   anchor: 4
   textEffects: 1
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   buttonClickType: 3
   actionList: {fileID: 11400000, guid: f44b37e51e67131469fc539332cd760a, type: 2}
   parameterID: -1
@@ -9189,12 +9383,13 @@ MonoBehaviour:
   numSlots: 1
   uiButton: {fileID: 0}
   uiPointerState: 0
-  label: Pay For This
+  _label: Pay For This
   hotspotLabel: 
   hotspotLabelID: -1
   anchor: 4
   textEffects: 2
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   buttonClickType: 3
   actionList: {fileID: 11400000, guid: f2d9875bb32fbe540b442044144be3e3, type: 2}
   parameterID: -1
@@ -9257,11 +9452,14 @@ MonoBehaviour:
     height: 66.240005
   relativePosition: {x: 19, y: 23.9}
   numSlots: 1
+  uiTextTMP: {fileID: 0}
+  hideScrollingCharacters: 0
   uiText: {fileID: 0}
-  label: Drag to look around
+  _label: Drag to look around
   anchor: 4
   textEffects: 1
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   labelType: 0
   variableID: 0
   useCharacterColour: 0
@@ -9273,6 +9471,7 @@ MonoBehaviour:
   inventoryPropertyType: 0
   selectedObjectiveLabelType: 0
   itemSlotNumber: 0
+  uiComponentHideStyle: 0
 --- !u!114 &8081359312808330209
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -9336,6 +9535,7 @@ MonoBehaviour:
     sprite: {fileID: 0}
   textEffects: 1
   outlineSize: 1
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   anchor: 4
   saveListType: 1
   maxSlots: 5
@@ -9372,6 +9572,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   menuSource: 0
   canvas: {fileID: 22350434, guid: fb1279bb517036b4b9d6d0cf6a20b5e4, type: 3}
+  canvasAssetKey: 
   canvasID: 0
   rectTransform: {fileID: 0}
   rectTransformID: 80694
@@ -9395,6 +9596,7 @@ MonoBehaviour:
   actionListOnTurnOff: {fileID: 11400000, guid: 46044fe13d1151f45b951f75c4673bc9, type: 2}
   updateWhenFadeOut: 1
   hideDuringSaveScreenshots: 1
+  useTextMeshProComponents: 0
   fitWithinScreen: 1
   backgroundTexture: {fileID: 2800000, guid: 5afe8d06fd76ba447a30cc25fd23e687, type: 3}
   visibleElements:
@@ -9476,7 +9678,6 @@ MonoBehaviour:
     y: 51.462784
     width: 591.36
     height: 377.07443
-  showInFilter: 1
 --- !u!114 &8413212937202601877
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -9522,11 +9723,14 @@ MonoBehaviour:
     height: 144
   relativePosition: {x: 5, y: 4}
   numSlots: 1
+  uiTextTMP: {fileID: 0}
+  hideScrollingCharacters: 0
   uiText: {fileID: 11405610, guid: f15f8212986624a8899a47f0054ebbc1, type: 3}
-  label: Document title
+  _label: Document title
   anchor: 4
   textEffects: 1
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   labelType: 7
   variableID: 0
   useCharacterColour: 0
@@ -9538,6 +9742,7 @@ MonoBehaviour:
   inventoryPropertyType: 0
   selectedObjectiveLabelType: 0
   itemSlotNumber: 0
+  uiComponentHideStyle: 0
 --- !u!114 &8605166057181571696
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -9552,6 +9757,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   menuSource: 0
   canvas: {fileID: 0}
+  canvasAssetKey: 
   canvasID: 0
   rectTransform: {fileID: 0}
   rectTransformID: 0
@@ -9575,6 +9781,7 @@ MonoBehaviour:
   actionListOnTurnOff: {fileID: 0}
   updateWhenFadeOut: 1
   hideDuringSaveScreenshots: 1
+  useTextMeshProComponents: 0
   fitWithinScreen: 1
   backgroundTexture: {fileID: 2800000, guid: 5afe8d06fd76ba447a30cc25fd23e687, type: 3}
   visibleElements:
@@ -9643,7 +9850,6 @@ MonoBehaviour:
     y: 82.56
     width: 359.04
     height: 314.88
-  showInFilter: 1
 --- !u!114 &8694164247688259083
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -9658,6 +9864,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   menuSource: 0
   canvas: {fileID: 22300000, guid: f5749e0478f43e144969bf6a6433db3e, type: 3}
+  canvasAssetKey: 
   canvasID: 0
   rectTransform: {fileID: 0}
   rectTransformID: 1313004
@@ -9681,6 +9888,7 @@ MonoBehaviour:
   actionListOnTurnOff: {fileID: 0}
   updateWhenFadeOut: 1
   hideDuringSaveScreenshots: 1
+  useTextMeshProComponents: 0
   fitWithinScreen: 1
   backgroundTexture: {fileID: 2800000, guid: 5afe8d06fd76ba447a30cc25fd23e687, type: 3}
   visibleElements:
@@ -9748,7 +9956,6 @@ MonoBehaviour:
     y: 272
     width: 870.4
     height: 896
-  showInFilter: 1
 --- !u!114 &8834703449045089313
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -9763,6 +9970,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   menuSource: 0
   canvas: {fileID: 22300000, guid: c918d3e211731354f8fd0bce710d2e42, type: 3}
+  canvasAssetKey: 
   canvasID: 0
   rectTransform: {fileID: 0}
   rectTransformID: 14532472
@@ -9786,6 +9994,7 @@ MonoBehaviour:
   actionListOnTurnOff: {fileID: 0}
   updateWhenFadeOut: 1
   hideDuringSaveScreenshots: 1
+  useTextMeshProComponents: 0
   fitWithinScreen: 1
   backgroundTexture: {fileID: 2800000, guid: fe0e4ac24a85f24499156300c2940324, type: 3}
   visibleElements:
@@ -9850,7 +10059,6 @@ MonoBehaviour:
     y: 853.92
     width: 1459.2
     height: 573.12
-  showInFilter: 1
 --- !u!114 &8836444159064751508
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -9896,11 +10104,14 @@ MonoBehaviour:
     height: 66.240005
   relativePosition: {x: 49.6, y: 25.6}
   numSlots: 1
+  uiTextTMP: {fileID: 0}
+  hideScrollingCharacters: 0
   uiText: {fileID: 0}
-  label: Operates Item
+  _label: Operates Item
   anchor: 4
   textEffects: 1
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   labelType: 0
   variableID: 0
   useCharacterColour: 0
@@ -9912,6 +10123,7 @@ MonoBehaviour:
   inventoryPropertyType: 0
   selectedObjectiveLabelType: 0
   itemSlotNumber: 0
+  uiComponentHideStyle: 0
 --- !u!114 &8887705275764565915
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -9957,11 +10169,14 @@ MonoBehaviour:
     height: 48
   relativePosition: {x: 0, y: 0}
   numSlots: 1
+  uiTextTMP: {fileID: 0}
+  hideScrollingCharacters: 0
   uiText: {fileID: 0}
-  label: Load game
+  _label: Load game
   anchor: 4
   textEffects: 1
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   labelType: 0
   variableID: 0
   useCharacterColour: 0
@@ -9973,6 +10188,7 @@ MonoBehaviour:
   inventoryPropertyType: 0
   selectedObjectiveLabelType: 0
   itemSlotNumber: 0
+  uiComponentHideStyle: 0
 --- !u!114 &8898005855938453842
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -10020,12 +10236,13 @@ MonoBehaviour:
   numSlots: 1
   uiButton: {fileID: 0}
   uiPointerState: 0
-  label: Pay For This
+  _label: Pay For This
   hotspotLabel: 
   hotspotLabelID: -1
   anchor: 4
   textEffects: 2
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   buttonClickType: 3
   actionList: {fileID: 11400000, guid: 05568c18a9ccb7c42b333ad995443eec, type: 2}
   parameterID: -1
@@ -10097,6 +10314,7 @@ MonoBehaviour:
   anchor: 4
   textEffects: 0
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   iconID: 1
   uiSelectableHideStyle: 0
   overrideTexture: 0
@@ -10147,11 +10365,14 @@ MonoBehaviour:
     height: 76
   relativePosition: {x: 0, y: 0}
   numSlots: 1
+  uiTextTMP: {fileID: 0}
+  hideScrollingCharacters: 0
   uiText: {fileID: 0}
-  label: And left us soon
+  _label: And left us soon
   anchor: 4
   textEffects: 1
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   labelType: 0
   variableID: 0
   useCharacterColour: 0
@@ -10163,6 +10384,7 @@ MonoBehaviour:
   inventoryPropertyType: 0
   selectedObjectiveLabelType: 0
   itemSlotNumber: 0
+  uiComponentHideStyle: 0
 --- !u!114 &9211676623442372813
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -10208,11 +10430,14 @@ MonoBehaviour:
     height: 129.59999
   relativePosition: {x: 4.9, y: 41}
   numSlots: 1
+  uiTextTMP: {fileID: 0}
+  hideScrollingCharacters: 0
   uiText: {fileID: 0}
-  label: Hi!
+  _label: Hi!
   anchor: 4
   textEffects: 1
   outlineSize: 2
+  effectColour: {r: 0, g: 0, b: 0, a: 1}
   labelType: 2
   variableID: 0
   useCharacterColour: 0
@@ -10224,3 +10449,4 @@ MonoBehaviour:
   inventoryPropertyType: 0
   selectedObjectiveLabelType: 0
   itemSlotNumber: 0
+  uiComponentHideStyle: 0

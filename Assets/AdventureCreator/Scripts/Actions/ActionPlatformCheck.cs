@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2024
  *	
  *	"ActionPlatformCheck.cs"
  * 
@@ -48,8 +48,8 @@ namespace AC
 					return false;
 					#endif
 
-				case PlatformType.WebPlayer:
-					#if UNITY_WEBPLAYER
+				case PlatformType.WebGL:
+					#if UNITY_WEBGL
 					return true;
 					#else
 					return false;
@@ -85,6 +85,13 @@ namespace AC
 
 				case PlatformType.Android:
 					#if UNITY_ANDROID
+					return true;
+					#else
+					return false;
+					#endif
+
+				case PlatformType.Editor:
+					#if UNITY_EDITOR
 					return true;
 					#else
 					return false;

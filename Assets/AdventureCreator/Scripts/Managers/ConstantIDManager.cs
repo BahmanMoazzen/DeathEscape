@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2024
  *	
  *	"ConstantIDManager.cs"
  * 
@@ -17,7 +17,7 @@ namespace AC
 {
 
 	/** This script is used to store a record of all ConstantID components in the Hierarchy, as well as provide functions to retrieve them based on ID number. */
-	public struct ConstantIDManager
+	public class ConstantIDManager
 	{
 
 		#region Variables
@@ -382,7 +382,7 @@ namespace AC
 			if (constantID is Remember)
 			{
 				Canvas canvas = constantID.transform.root.GetComponent <Canvas>();
-				if (canvas && canvas.gameObject.IsPersistent ())
+				if (canvas && canvas.gameObject.IsPersistent () && !MenuConstantIDs.Contains (constantID))
 				{
 					MenuConstantIDs.Add (constantID);
 					return;

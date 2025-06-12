@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿#if UNITY_EDITOR
+
+using UnityEngine;
 using UnityEditor;
 
 namespace AC
@@ -12,8 +14,8 @@ namespace AC
 		{
 			DragTrack_Straight _target = (DragTrack_Straight) target;
 			
+			CustomGUILayout.Header ("Track shape:");
 			CustomGUILayout.BeginVertical ();
-			EditorGUILayout.LabelField ("Track shape:", EditorStyles.boldLabel);
 			
 			_target.maxDistance = CustomGUILayout.FloatField ("Length:", _target.maxDistance, "", "The track's length");
 			_target.handleColour = CustomGUILayout.ColorField ("Handles colour:", _target.handleColour, "", "The colour of Scene window Handles");
@@ -34,14 +36,18 @@ namespace AC
 			
 			CustomGUILayout.EndVertical ();
 
+			CustomGUILayout.Header ("End-colliders");
 			CustomGUILayout.BeginVertical ();
-			EditorGUILayout.LabelField ("End-colliders", EditorStyles.boldLabel);
 			
 			_target.generateColliders = CustomGUILayout.Toggle ("Generate end-colliders?", _target.generateColliders);
 
 			if (_target.generateColliders)
 			{
+#if UNITY_6000_0_OR_NEWER
+				_target.colliderMaterial = (PhysicsMaterial) CustomGUILayout.ObjectField <PhysicsMaterial> ("Material:", _target.colliderMaterial, false, "", "Physics Material to give the track's end colliders");
+#else
 				_target.colliderMaterial = (PhysicMaterial) CustomGUILayout.ObjectField <PhysicMaterial> ("Material:", _target.colliderMaterial, false, "", "Physics Material to give the track's end colliders");
+#endif
 			}
 			
 			CustomGUILayout.EndVertical ();
@@ -57,6 +63,7 @@ namespace AC
 			DragTrack_Straight _target = (DragTrack_Straight) target;
 			
 			Handles.color = _target.handleColour;
+			EditorGUI.BeginChangeCheck ();
 			Vector3 maxPosition = _target.GetGizmoPosition (1f);
 			maxPosition = Handles.PositionHandle (maxPosition, Quaternion.identity);
 			Handles.DrawSolidDisc (maxPosition, -_target.transform.up, _target.discSize);
@@ -98,3 +105,5 @@ namespace AC
 	}
 
 }
+
+#endif

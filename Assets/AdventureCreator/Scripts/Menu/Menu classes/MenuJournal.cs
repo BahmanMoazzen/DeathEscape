@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2024
  *	
  *	"MenuJournal.cs"
  * 
@@ -29,10 +29,9 @@ namespace AC
 
 		/** The Unity UI Text this is linked to (Unity UI Menus only) */
 		#if TextMeshProIsPresent
-		public TMPro.TextMeshProUGUI uiText;
-		#else
-		public Text uiText;
+		public TMPro.TextMeshProUGUI uiTextTMP;
 		#endif
+		public Text uiText;
 
 		/** A List of JournalPage instances that make up the pages within */
 		public List<JournalPage> pages = new List<JournalPage>();
@@ -48,6 +47,8 @@ namespace AC
 		public TextEffects textEffects;
 		/** The outline thickness, if textEffects != TextEffects.None */
 		public float outlineSize = 2f;
+		/** The outline colour */
+		public Color effectColour = Color.black;
 		/** An ActionList to run whenever a new page is added */
 		public ActionListAsset actionListOnAddPage;
 		/** What type of journal this is (NewJournal, DisplayExistingJournal, DisplayActiveDocument) */
@@ -56,22 +57,25 @@ namespace AC
 		public int pageOffset;
 		/** The name of the Journal element within the same Menu that is used as reference, if journalType = JournalType.DisplayExistingJournal) */
 		public string otherJournalTitle;
+		/** The change to make to the associated UI object when invisible */
+		public UIComponentHideStyle uiComponentHideStyle = UIComponentHideStyle.DisableObject;
 
 		private string fullText;
 		private MenuJournal otherJournal;
-		private Document ownDocument;
+		private DocumentInstance ownDocumentInstance;
+		private DocumentInstance overrideDocument;
 
 		#if UNITY_EDITOR
 		private int sideMenu;
 		#endif
 
 
-		/**
-		 * Initialises the element when it is created within MenuManager.
-		 */
 		public override void Declare ()
 		{
 			uiText = null;
+			#if TextMeshProIsPresent
+			uiTextTMP = null;
+			#endif
 
 			pages = new List<JournalPage>();
 			pages.Add (new JournalPage ());
@@ -84,11 +88,13 @@ namespace AC
 			SetSize (new Vector2 (10f, 5f));
 			textEffects = TextEffects.None;
 			outlineSize = 2f;
+			effectColour = Color.black;
 			fullText = "";
 			actionListOnAddPage = null;
 			journalType = JournalType.NewJournal;
 			pageOffset = 0;
 			otherJournalTitle = "";
+			uiComponentHideStyle = UIComponentHideStyle.DisableObject;
 
 			base.Declare ();
 		}
@@ -105,15 +111,11 @@ namespace AC
 		
 		private void CopyJournal (MenuJournal _element, bool fromEditor, bool ignoreUnityUI)
 		{
-			if (ignoreUnityUI)
-			{
-				uiText = null;
-			}
-			else
-			{
-				uiText = _element.uiText;
-			}
-
+			uiText = null;
+			#if TextMeshProIsPresent
+			uiTextTMP = null;
+			#endif
+			
 			pages = new List<JournalPage>();
 			foreach (JournalPage page in _element.pages)
 			{
@@ -139,11 +141,13 @@ namespace AC
 			anchor = _element.anchor;
 			textEffects = _element.textEffects;
 			outlineSize = _element.outlineSize;
+			effectColour = _element.effectColour;
 			fullText = "";
 			actionListOnAddPage = _element.actionListOnAddPage;
 			journalType = _element.journalType;
 			pageOffset = _element.pageOffset;
-			otherJournalTitle = _element.otherJournalTitle;;
+			otherJournalTitle = _element.otherJournalTitle;
+			uiComponentHideStyle = _element.uiComponentHideStyle;
 
 			base.Copy (_element);
 		}
@@ -167,20 +171,24 @@ namespace AC
 		public override void LoadUnityUI (AC.Menu _menu, Canvas canvas, bool addEventListeners = true)
 		{
 			#if TextMeshProIsPresent
-			uiText = LinkUIElement <TMPro.TextMeshProUGUI> (canvas);
-			#else
-			uiText = LinkUIElement <Text> (canvas);
+			if (_menu.useTextMeshProComponents)
+			{
+				LinkUIElement (canvas, ref uiTextTMP);
+			}
+			if (!_menu.useTextMeshProComponents || uiTextTMP == null)
 			#endif
+				LinkUIElement (canvas, ref uiText);
 		}
 		
 
-		/**
-		 * <summary>Gets the boundary of the element</summary>
-		 * <param name = "_slot">Ignored by this subclass</param>
-		 * <returns>The boundary Rect of the element</returns>
-		 */
 		public override RectTransform GetRectTransform (int _slot)
 		{
+			#if TextMeshProIsPresent
+			if (uiTextTMP)
+			{
+				return uiTextTMP.rectTransform;
+			}
+			#endif
 			if (uiText)
 			{
 				return uiText.rectTransform;
@@ -195,8 +203,45 @@ namespace AC
 		 */
 		public int GetCurrentPageNumber ()
 		{
+			if (journalType == JournalType.DisplayExistingJournal)
+			{
+				if (otherJournal != null)
+				{
+					return otherJournal.showPage + pageOffset;
+				}
+				return 0;
+			}
 			return showPage;
 		}
+
+
+		/**
+		 * <summary>Gets the currently-viewed page.</summary>
+		 * <returns>The currently-viewed page</returms>
+		 */
+		public JournalPage GetCurrentPage ()
+		{
+			if (journalType == JournalType.DisplayExistingJournal)
+			{
+				if (otherJournal != null)
+				{
+					int _pageIndex = otherJournal.showPage + pageOffset - 1;
+					if (_pageIndex >= 0 && _pageIndex < otherJournal.pages.Count)
+					{
+						return otherJournal.pages[_pageIndex];
+					}
+				}
+				return null;
+			}
+
+			int pageIndex = showPage - 1;
+			if (pageIndex >= 0 && pageIndex < pages.Count)
+			{
+				return pages[pageIndex];
+			}
+			return null;
+		}
+
 
 
 		/**
@@ -205,6 +250,15 @@ namespace AC
 		 */
 		public int GetTotalNumberOfPages ()
 		{
+			if (journalType == JournalType.DisplayExistingJournal)
+			{
+				if (otherJournal != null)
+				{
+					return otherJournal.pages.Count;
+				}
+				return 0;
+			}
+
 			if (pages != null)
 			{
 				return pages.Count;
@@ -215,7 +269,7 @@ namespace AC
 		
 		#if UNITY_EDITOR
 		
-		public override void ShowGUI (Menu menu)
+		public override void ShowGUI (Menu menu, System.Action<ActionListAsset> showALAEditor)
 		{
 			string apiPrefix = "(AC.PlayerMenus.GetElementWithName (\"" + menu.title + "\", \"" + title + "\") as AC.MenuJournal)";
 
@@ -264,11 +318,11 @@ namespace AC
 
 					if (pages[i].lineID >= 0)
 					{
-						CustomGUILayout.LabelField ("Page #" + (i+1).ToString () + ", Text ID #" + pages[i].lineID + ":", apiPrefix + ".pages[" + i.ToString () + "].text");
+						CustomGUILayout.LabelField ("Page #" + (i+1).ToString () + ", Text ID #" + pages[i].lineID + ":", string.Empty, apiPrefix + ".pages[" + i.ToString () + "].text");
 					}
 					else
 					{
-						CustomGUILayout.LabelField ("Page #" + (i+1).ToString () + ":", apiPrefix + ".pages[" + i.ToString () + "].text");
+						CustomGUILayout.LabelField ("Page #" + (i+1).ToString () + ":", string.Empty, apiPrefix + ".pages[" + i.ToString () + "].text");
 					}
 
 					if (GUILayout.Button ("", CustomStyles.IconCog))
@@ -279,7 +333,8 @@ namespace AC
 					EditorGUILayout.EndHorizontal ();
 
 					pages[i].text = CustomGUILayout.TextArea (pages[i].text, GUILayout.MaxWidth (370f), apiPrefix + ".pages[" + i.ToString () + "].text");
-					GUILayout.Box ("", GUILayout.ExpandWidth (true), GUILayout.Height(1));
+					pages[i].texture = (Texture2D) CustomGUILayout.ObjectField<Texture2D> ("Texture:", pages[i].texture, false);
+					GUILayout.Box (string.Empty, GUILayout.ExpandWidth (true), GUILayout.Height(1));
 				}
 
 				if (GUILayout.Button ("Create new page", EditorStyles.miniButton))
@@ -314,7 +369,8 @@ namespace AC
 				textEffects = (TextEffects) CustomGUILayout.EnumPopup ("Text effect:", textEffects, apiPrefix + ".textEffects", "The special FX applied to the text");
 				if (textEffects != TextEffects.None)
 				{
-					outlineSize = CustomGUILayout.Slider ("Effect size:", outlineSize, 1f, 5f, apiPrefix + ".outlineSize", "The outline thickness");
+					outlineSize = CustomGUILayout.Slider ("Effect size:", outlineSize, 1f, 5f, apiPrefix + ".outlineSize", "The effect thickness");
+					effectColour = CustomGUILayout.ColorField ("Effect colour:", effectColour, apiPrefix + ".effectColour", "The effect colour");
 				}
 			}
 			else
@@ -323,20 +379,28 @@ namespace AC
 				CustomGUILayout.BeginVertical ();
 
 				#if TextMeshProIsPresent
-				uiText = LinkedUiGUI <TMPro.TextMeshProUGUI> (uiText, "Linked Text:", source);
-				#else
-				uiText = LinkedUiGUI <Text> (uiText, "Linked Text:", source);
+				if (menu.useTextMeshProComponents)
+				{
+					uiTextTMP = LinkedUiGUI <TMPro.TextMeshProUGUI> (uiTextTMP, "Linked Text:", menu);
+				}
+				else
 				#endif
+					uiText = LinkedUiGUI <Text> (uiText, "Linked Text:", menu);
 			}
 
 			if (journalType == JournalType.NewJournal)
 			{
-				actionListOnAddPage = (ActionListAsset) CustomGUILayout.ObjectField <ActionListAsset> ("ActionList on add page:", actionListOnAddPage, false, apiPrefix + ".actionListOnAddPage", "An ActionList to run whenever a new page is added");
+				actionListOnAddPage = ActionListAssetMenu.AssetGUI ("ActionList on add page:", actionListOnAddPage, title + "_OnAddPAge", apiPrefix + ".actionListOnAddPage", "An ActionList to run whenever a new page is added", null, showALAEditor);
+			}
+
+			if (menu.menuSource != MenuSource.AdventureCreator)
+			{
+				uiComponentHideStyle = (UIComponentHideStyle) CustomGUILayout.EnumPopup ("When invisible:", uiComponentHideStyle, apiPrefix + ".uiComponentHideStyle", "The method by which this element (or slots within it) are hidden from view when made invisible");
 			}
 
 			CustomGUILayout.EndVertical ();
 			
-			base.ShowGUI (menu);
+			base.ShowGUI (menu, showALAEditor);
 		}
 
 
@@ -454,7 +518,7 @@ namespace AC
 		public override int GetVariableReferences (int _varID)
 		{
 			int numFound = 0;
-			string tokenText = "[var:" + _varID.ToString () + "]";
+			string tokenText = AdvGame.GetVariableTokenText (VariableLocation.Global, _varID);
 			if (journalType == JournalType.NewJournal)
 			{
 				foreach (JournalPage page in pages)
@@ -466,7 +530,28 @@ namespace AC
 				}
 			}
 
-			return numFound + base.GetVariableReferences (_varID);
+			return numFound;
+		}
+
+
+		public override int UpdateVariableReferences (int oldVarID, int newVarID)
+		{
+			int numFound = 0;
+			string oldTokenText = AdvGame.GetVariableTokenText (VariableLocation.Global, oldVarID);
+			string newTokenText = AdvGame.GetVariableTokenText (VariableLocation.Global, newVarID);
+			if (journalType == JournalType.NewJournal)
+			{
+				foreach (JournalPage page in pages)
+				{
+					if (page.text.Contains (oldTokenText))
+					{
+						page.text = page.text.Replace (oldTokenText, newTokenText);
+						numFound++;
+					}
+				}
+			}
+
+			return numFound;
 		}
 
 
@@ -482,9 +567,28 @@ namespace AC
 
 		public override bool ReferencesObjectOrID (GameObject gameObject, int id)
 		{
+			#if TextMeshProIsPresent
+			if (uiTextTMP && uiTextTMP.gameObject == gameObject) return true;
+			#endif
 			if (uiText && uiText.gameObject == gameObject) return true;
 			if (linkedUiID == id && id != 0) return true;
 			return false;
+		}
+
+
+		public override int GetSlotIndex (GameObject gameObject)
+		{
+			#if TextMeshProIsPresent
+			if (uiTextTMP && uiTextTMP.gameObject == gameObject)
+			{
+				return 0;
+			}
+			#endif
+			if (uiText && uiText.gameObject == gameObject)
+			{
+				return 0;
+			}
+			return base.GetSlotIndex (gameObject);
 		}
 
 
@@ -494,11 +598,11 @@ namespace AC
 
 			if (journalType == JournalType.DisplayActiveDocument)
 			{
-				if (KickStarter.runtimeDocuments.ActiveDocument != null)
+				if (DocumentInstance.IsValid (DocumentInstance))
 				{
-					ownDocument = KickStarter.runtimeDocuments.ActiveDocument;
-					pages = ownDocument.pages;
-					showPage = KickStarter.runtimeDocuments.GetLastOpenPage (ownDocument);
+					ownDocumentInstance = DocumentInstance;
+					pages = ownDocumentInstance.Document.pages;
+					showPage = KickStarter.runtimeDocuments.GetLastOpenPage (ownDocumentInstance);
 				}
 			}
 		}
@@ -526,11 +630,11 @@ namespace AC
 			{
 				if (Application.isPlaying && journalType == JournalType.DisplayActiveDocument)
 				{
-					if (ownDocument != KickStarter.runtimeDocuments.ActiveDocument && KickStarter.runtimeDocuments.ActiveDocument != null)
+					if (DocumentInstance.IsValid (DocumentInstance) && ownDocumentInstance != DocumentInstance)
 					{
-						ownDocument = KickStarter.runtimeDocuments.ActiveDocument;
-						pages = ownDocument.pages;
-						showPage = KickStarter.runtimeDocuments.GetLastOpenPage (ownDocument);
+						ownDocumentInstance = DocumentInstance;
+						pages = ownDocumentInstance.Document.pages;
+						showPage = KickStarter.runtimeDocuments.GetLastOpenPage (ownDocumentInstance);
 					}
 				}
 
@@ -545,21 +649,22 @@ namespace AC
 				}
 			}
 
+			#if TextMeshProIsPresent
+			if (uiTextTMP)
+			{
+				UpdateUIElement (uiTextTMP, uiComponentHideStyle);
+				uiTextTMP.text = fullText;
+			}
+			else
+			#endif
 			if (uiText)
 			{
-				UpdateUIElement (uiText);
+				UpdateUIElement (uiText, uiComponentHideStyle);
 				uiText.text = fullText;
 			}
 		}
 		
 
-		/**
-		 * <summary>Draws the element using OnGUI</summary>
-		 * <param name = "_style">The GUIStyle to draw with</param>
-		 * <param name = "_slot">Ignored by this subclass</param>
-		 * <param name = "zoom">The zoom factor</param>
-		 * <param name = "isActive">If True, then the element will be drawn as though highlighted</param>
-		 */
 		public override void Display (GUIStyle _style, int _slot, float zoom, bool isActive)
 		{
 			base.Display (_style, _slot, zoom, isActive);
@@ -575,7 +680,7 @@ namespace AC
 			{
 				if (textEffects != TextEffects.None)
 				{
-					AdvGame.DrawTextEffect (ZoomRect (relativeRect, zoom), fullText, _style, Color.black, _style.normal.textColor, outlineSize, textEffects);
+					AdvGame.DrawTextEffect (ZoomRect (relativeRect, zoom), fullText, _style, effectColour, _style.normal.textColor, outlineSize, textEffects);
 				}
 				else
 				{
@@ -585,12 +690,6 @@ namespace AC
 		}
 
 
-		/**
-		 * <summary>Gets the display text of the current page</summary>
-		 * <param name = "slot">Ignored by this subclass</param>
-		 * <param name = "languageNumber">The index number of the language number to get the text in</param>
-		 * <returns>The display text of the current page</returns>
-		 */
 		public override string GetLabel (int slot, int languageNumber)
 		{
 			if (journalType == JournalType.DisplayExistingJournal)
@@ -664,9 +763,9 @@ namespace AC
 
 			if (journalType == JournalType.DisplayActiveDocument)
 			{
-				if (ownDocument != null)
+				if (DocumentInstance.IsValid (ownDocumentInstance))
 				{
-					KickStarter.runtimeDocuments.SetLastOpenPage (ownDocument, showPage);
+					KickStarter.runtimeDocuments.SetLastOpenPage (ownDocumentInstance, showPage);
 				}
 			}
 
@@ -678,7 +777,7 @@ namespace AC
 		{
 			if (Application.isPlaying)
 			{
-				return KickStarter.runtimeLanguages.GetTranslation (page.text, page.lineID, languageNumber, AC_TextType.JournalEntry);
+				return KickStarter.runtimeLanguages.GetTranslation (page.text, page.lineID, languageNumber, (journalType == JournalType.DisplayActiveDocument) ? AC_TextType.Document : AC_TextType.JournalEntry);
 			}
 			return page.text;
 		}
@@ -852,9 +951,7 @@ namespace AC
 		}
 
 
-		/**
-		 * <summary>Removes all page from the journal.</summary>
-		 */
+		/** Removes all page from the journal. */
 		public void RemoveAllPages ()
 		{
 			if (journalType == JournalType.DisplayExistingJournal)
@@ -871,6 +968,36 @@ namespace AC
 			pages.Clear ();
 			showPage = 0;
 		}
+
+
+		private DocumentInstance DocumentInstance
+		{
+			get
+			{
+				if (DocumentInstance.IsValid (overrideDocument))
+				{
+					return overrideDocument;
+				}
+				return KickStarter.runtimeDocuments.ActiveDocumentInstance;
+			}
+		}
+
+
+		public DocumentInstance OverrideDocument
+		{
+			get
+			{
+				return overrideDocument;
+			}
+			set
+			{
+				if (overrideDocument != value)
+				{
+					overrideDocument = value;
+				}
+			}
+		}
+
 
 
 		#region ITranslatable
@@ -951,9 +1078,7 @@ namespace AC
 	}
 
 
-	/**
-	 * A data container for the contents of each page in a MenuJournal.
-	 */
+	/** A data container for the contents of each page in a MenuJournal. */
 	[System.Serializable]
 	public class JournalPage
 	{
@@ -962,11 +1087,10 @@ namespace AC
 		public int lineID = -1;
 		/** The page text, in its original language */
 		public string text = "";
+		/** An associated image */
+		public Texture2D texture;
 
 
-		/**
-		 * The default Constructor.
-		 */
 		public JournalPage ()
 		{ }
 
@@ -975,13 +1099,15 @@ namespace AC
 		{
 			lineID = journalPage.lineID;
 			text = journalPage.text;
+			texture = journalPage.texture;
 		}
 
 
-		public JournalPage (int _lineID, string _text)
+		public JournalPage (int _lineID, string _text, Texture2D _texture = null)
 		{
 			lineID = _lineID;
 			text = _text;
+			texture = _texture;
 		}
 
 	}

@@ -40,6 +40,7 @@ MonoBehaviour:
   overrideColor: {r: 1, g: 1, b: 1, a: 1}
   showOutputSockets: 1
   parentActionListInEditor: {fileID: 0}
+  groupID: 0
   changeType: 1
   removeJournalPageMethod: 0
   menuToChange: TitleScreenSecond
@@ -48,10 +49,12 @@ MonoBehaviour:
   elementToChangeParameterID: -1
   journalText: 
   onlyAddNewJournal: 0
+  pageTexture: {fileID: 0}
   doFade: 1
   lineID: -1
   journalPageIndex: -1
   journalPageIndexParameterID: -1
+  preprocessTextTokens: 0
 --- !u!114 &-7934840884465690000
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -92,6 +95,7 @@ MonoBehaviour:
   overrideColor: {r: 1, g: 1, b: 1, a: 1}
   showOutputSockets: 1
   parentActionListInEditor: {fileID: 0}
+  groupID: 0
   trackID: 0
   trackIDParameterID: -1
   fadeTime: 0.2
@@ -143,6 +147,7 @@ MonoBehaviour:
   overrideColor: {r: 1, g: 1, b: 1, a: 1}
   showOutputSockets: 1
   parentActionListInEditor: {fileID: 0}
+  groupID: 0
   chooseSceneBy: 0
   sceneNumber: 1
   sceneNumberParameterID: -1
@@ -150,6 +155,7 @@ MonoBehaviour:
   sceneNameParameterID: -1
   assignScreenOverlay: 0
   onlyPreload: 0
+  bypassLoadingScreen: 0
   relativePosition: 0
   relativeMarker: {fileID: 0}
   relativeMarkerID: 0
@@ -195,6 +201,7 @@ MonoBehaviour:
   overrideColor: {r: 1, g: 1, b: 1, a: 1}
   showOutputSockets: 1
   parentActionListInEditor: {fileID: 0}
+  groupID: 0
   changeType: 5
   removeJournalPageMethod: 0
   menuToChange: Inventory
@@ -203,10 +210,12 @@ MonoBehaviour:
   elementToChangeParameterID: -1
   journalText: 
   onlyAddNewJournal: 0
+  pageTexture: {fileID: 0}
   doFade: 0
   lineID: -1
   journalPageIndex: -1
   journalPageIndexParameterID: -1
+  preprocessTextTokens: 0
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -236,6 +245,7 @@ MonoBehaviour:
   revertToDefaultParametersAfterRunning: 0
   parameters: []
   tagID: 0
+  groups: []
   backupData: []
 --- !u!114 &2348002302144105978
 MonoBehaviour:
@@ -277,6 +287,7 @@ MonoBehaviour:
   overrideColor: {r: 1, g: 1, b: 1, a: 1}
   showOutputSockets: 1
   parentActionListInEditor: {fileID: 0}
+  groupID: 0
   changeType: 5
   removeJournalPageMethod: 0
   menuToChange: InGame
@@ -285,10 +296,12 @@ MonoBehaviour:
   elementToChangeParameterID: -1
   journalText: 
   onlyAddNewJournal: 0
+  pageTexture: {fileID: 0}
   doFade: 0
   lineID: -1
   journalPageIndex: -1
   journalPageIndexParameterID: -1
+  preprocessTextTokens: 0
 --- !u!114 &5183854254007321203
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -329,6 +342,7 @@ MonoBehaviour:
   overrideColor: {r: 1, g: 1, b: 1, a: 1}
   showOutputSockets: 1
   parentActionListInEditor: {fileID: 0}
+  groupID: 0
   listSource: 1
   actionList: {fileID: 0}
   invActionList: {fileID: 11400000, guid: 3eaded3e2b9f90046896f805000f1ab6, type: 2}
@@ -375,6 +389,7 @@ MonoBehaviour:
   overrideColor: {r: 1, g: 1, b: 1, a: 1}
   showOutputSockets: 1
   parentActionListInEditor: {fileID: 0}
+  groupID: 0
   changeMovementMethod: 1
   newMovementMethod: 2
   cursorLock: 2

@@ -1,7 +1,7 @@
 ﻿/*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2024
  *	
  *	"AssetLoader.cs"
  * 
@@ -11,12 +11,12 @@
  */
 
 
-#if !UNITY_SWITCH
+//#if !UNITY_SWITCH
 #define ALLOW_VIDEO
-#endif
+//#endif
 
 using UnityEngine;
-#if !ACIgnoreTimeline
+#if TimelineIsPresent
 using UnityEngine.Timeline;
 #endif
 #if ALLOW_VIDEO
@@ -38,7 +38,7 @@ namespace AC
 		private static Object[] materialAssets;
 		private static Object[] actionListAssets;
 		private static Object[] runtimeAnimatorControllerAssets;
-		#if !ACIgnoreTimeline
+		#if TimelineIsPresent
 		private static Object[] timelineAssets;
 		#endif
 		#if ALLOW_VIDEO
@@ -78,59 +78,60 @@ namespace AC
 		 * <param name = "_name">A unique identifier for the asset file</param>
 		 * <returns>The asset file, or the current asset if it wasn't found</returns>
 		 */
-		public static T RetrieveAsset <T> (T originalFile, string _name) where T : Object
+		public static T RetrieveAsset <T> (T originalFile, string _name, bool ignoreIfOriginalFileIsNull = true) where T : Object
 		{
 			if (string.IsNullOrEmpty (_name))
 			{
 				return originalFile;
 			}
 
-			if (originalFile == null)
+			if (originalFile == null && ignoreIfOriginalFileIsNull)
 			{
 				return null;
 			}
 
 			Object newFile = null;
 
-			if (originalFile is Texture)
+			if (typeof (T) == typeof (Texture))
 			{
 				newFile = RetrieveTextures (_name);
 			}
-			else if (originalFile is AudioClip)
+			else if (typeof (T) == typeof (AudioClip))
 			{
 				newFile = RetrieveAudioClip (_name);
 			}
-			else if (originalFile is AnimationClip)
+			else if (typeof (T) == typeof (AnimationClip))
 			{
 				newFile = RetrieveAnimClips (_name);
 			}
-			else if (originalFile is Material)
+			else if (typeof (T) == typeof (Material))
 			{
 				newFile = RetrieveMaterials (_name);
 			}
-			else if (originalFile is ActionListAsset)
+			else if (typeof (T) == typeof (ActionListAsset))
 			{
 				newFile = RetrieveActionListAssets (_name);
 			}
-			#if !ACIgnoreTimeline
-			else if (originalFile is TimelineAsset)
+			#if TimelineIsPresent
+			else if (typeof (T) == typeof (TimelineAsset))
 			{
 				newFile = RetrieveTimelines (_name);
 			}
 			#endif
 			#if ALLOW_VIDEO
-			else if (originalFile is VideoClip)
+			else if (typeof (T) == typeof (VideoClip))
 			{
 				newFile = RetrieveVideoClips (_name);
 			}
 			#endif
-			else if (originalFile is RuntimeAnimatorController)
+			else if (typeof (T) == typeof (RuntimeAnimatorController))
 			{
 				newFile = RetrieveRuntimeAnimatorControllerAssets (_name);
 			}
 			else
 			{
-				Object[] genericAssets = RetrieveAssetFiles<T> (null, string.Empty);
+				Object[] genericAssets = null;
+				RetrieveAssetFiles<T> (ref genericAssets, string.Empty);
 				newFile = GetAssetFile<T> (genericAssets, _name);
 			}
 
@@ -140,7 +141,7 @@ namespace AC
 
 		private static Texture RetrieveTextures (string _name)
 		{
-			textureAssets = RetrieveAssetFiles <Texture> (textureAssets, "Textures");
+			RetrieveAssetFiles <Texture> (ref textureAssets, "Textures");
 			return GetAssetFile <Texture> (textureAssets, _name);
 		}
 
@@ -152,36 +153,36 @@ namespace AC
 		 */
 		public static AudioClip RetrieveAudioClip (string _name)
 		{
-			audioAssets = RetrieveAssetFiles <AudioClip> (audioAssets, "Audio");
+			RetrieveAssetFiles <AudioClip> (ref audioAssets, "Audio");
 			return GetAssetFile <AudioClip> (audioAssets, _name);
 		}
 
 
 		private static AnimationClip RetrieveAnimClips (string _name)
 		{
-			animationAssets = RetrieveAssetFiles <AnimationClip> (animationAssets, "Animations");
+			RetrieveAssetFiles <AnimationClip> (ref animationAssets, "Animations");
 			return GetAssetFile <AnimationClip> (animationAssets, _name);
 		}
 
 
 		private static Material RetrieveMaterials (string _name)
 		{
-			materialAssets = RetrieveAssetFiles <Material> (materialAssets, "Materials");
+			RetrieveAssetFiles <Material> (ref materialAssets, "Materials");
 			return GetAssetFile <Material> (materialAssets, _name);
 		}
 
 
 		private static ActionListAsset RetrieveActionListAssets (string _name)
 		{
-			actionListAssets = RetrieveAssetFiles <ActionListAsset> (actionListAssets, "ActionLists");
+			RetrieveAssetFiles <ActionListAsset> (ref actionListAssets, "ActionLists");
 			return GetAssetFile <ActionListAsset> (actionListAssets, _name);
 		}
 
 
-		#if !ACIgnoreTimeline
+		#if TimelineIsPresent
 		private static TimelineAsset RetrieveTimelines (string _name)
 		{
-			timelineAssets = RetrieveAssetFiles <TimelineAsset> (timelineAssets, "Timelines");
+			RetrieveAssetFiles <TimelineAsset> (ref timelineAssets, "Timelines");
 			return GetAssetFile <TimelineAsset> (timelineAssets, _name);
 		}
 		#endif
@@ -190,7 +191,7 @@ namespace AC
 		#if ALLOW_VIDEO
 		private static VideoClip RetrieveVideoClips (string _name)
 		{
-			videoAssets = RetrieveAssetFiles <VideoClip> (videoAssets, "VideoClips");
+			RetrieveAssetFiles <VideoClip> (ref videoAssets, "VideoClips");
 			return GetAssetFile <VideoClip> (videoAssets, _name);
 		}
 		#endif
@@ -198,7 +199,7 @@ namespace AC
 
 		private static RuntimeAnimatorController RetrieveRuntimeAnimatorControllerAssets (string _name)
 		{
-			runtimeAnimatorControllerAssets = RetrieveAssetFiles <RuntimeAnimatorController> (runtimeAnimatorControllerAssets, "Animators");
+			RetrieveAssetFiles <RuntimeAnimatorController> (ref runtimeAnimatorControllerAssets, "Animators");
 			return GetAssetFile <RuntimeAnimatorController> (runtimeAnimatorControllerAssets, _name);
 		}
 
@@ -221,7 +222,7 @@ namespace AC
 		}
 
 
-		private static Object[] RetrieveAssetFiles <T> (Object[] assetFiles, string saveableFolderName) where T : Object
+		private static void RetrieveAssetFiles <T> (ref Object[] assetFiles, string saveableFolderName) where T : Object
 		{
 			if (assetFiles == null && !string.IsNullOrEmpty (saveableFolderName))
 			{
@@ -231,14 +232,10 @@ namespace AC
 			{
 				assetFiles = Resources.LoadAll (string.Empty, typeof (T));
 			}
-
-			return assetFiles;
 		}
 
 
-		/**
-		 * Clears the cache of stored assets from memory.
-		 */
+		/** Clears the cache of stored assets from memory. */
 		public static void UnloadAssets ()
 		{
 			textureAssets = null;
@@ -247,11 +244,19 @@ namespace AC
 			materialAssets = null;
 			actionListAssets = null;
 			runtimeAnimatorControllerAssets = null;
-			#if !ACIgnoreTimeline
+			#if TimelineIsPresent
 			timelineAssets = null;
 			#endif
 
-			Resources.UnloadUnusedAssets ();
+			#if AddressableIsPresent
+			if (!KickStarter.settingsManager.saveAssetReferencesWithAddressables)
+			#endif
+			{
+				if (KickStarter.settingsManager.autoCallUnloadUnusedAssets)
+				{
+					Resources.UnloadUnusedAssets ();
+				}
+			}
 		}
 
 	}

@@ -29,13 +29,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 100000}
+  serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!135 &13500000
 SphereCollider:
@@ -45,9 +45,17 @@ SphereCollider:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 100000}
   m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
   m_IsTrigger: 0
+  m_ProvidesContacts: 0
   m_Enabled: 1
-  serializedVersion: 2
+  serializedVersion: 3
   m_Radius: 0.5
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!54 &5400000
@@ -57,10 +65,21 @@ Rigidbody:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 100000}
-  serializedVersion: 2
+  serializedVersion: 5
   m_Mass: 1
-  m_Drag: 1
-  m_AngularDrag: 0.5
+  m_LinearDamping: 1
+  m_AngularDamping: 0.5
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
   m_UseGravity: 1
   m_IsKinematic: 0
   m_Interpolate: 1
@@ -77,6 +96,7 @@ AudioSource:
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 0}
+  m_Resource: {fileID: 0}
   m_PlayOnAwake: 0
   m_Volume: 1
   m_Pitch: 1
@@ -174,6 +194,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aa8890221352045539c9bf25ab235232, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _moveWithRigidbody: 0
+  predictCollisions: 0
   interactiveBoundary: {fileID: 0}
   limitToCamera: {fileID: 0}
   invertInput: 0
@@ -196,6 +218,7 @@ MonoBehaviour:
   ignorePlayerCollider: 0
   childrenShareLayer: 0
   offScreenRelease: 0
+  moveSound: {fileID: 0}
   allowRotation: 0
   breakForce: Infinity
   allowThrow: 0
@@ -203,6 +226,9 @@ MonoBehaviour:
   pullbackDistance: 0.6
   throwForce: 400
   autoSetConstraints: 1
+  maxAngularVelocity: 7
+  maxDistance: 1
+  minDistance: 0.2
   actionListSource: 0
   interactionOnGrab: {fileID: 0}
   interactionOnDrop: {fileID: 0}
@@ -242,4 +268,6 @@ MonoBehaviour:
   constantID: 0
   retainInPrefab: 0
   autoManual: 0
+  moveableToSave: {fileID: 0}
   startState: 0
+  saveTransformInSpace: 0

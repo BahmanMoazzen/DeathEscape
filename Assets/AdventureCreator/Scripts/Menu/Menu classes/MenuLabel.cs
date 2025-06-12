@@ -1,7 +1,7 @@
 /*
  *
  *	Adventure Creator
- *	by Chris Burton, 2013-2021
+ *	by Chris Burton, 2013-2024
  *	
  *	"MenuLabel.cs"
  * 
@@ -10,8 +10,9 @@
  */
 
 using UnityEngine;
-using System.Collections.Generic;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
+using System.Collections.Generic;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -30,19 +31,20 @@ namespace AC
 
 		/** The Unity UI Text this is linked to (Unity UI Menus only) */
 		#if TextMeshProIsPresent
-		public TMPro.TextMeshProUGUI uiText;
-		#else
-		public Text uiText;
+		public TMPro.TextMeshProUGUI uiTextTMP;
+		public bool hideScrollingCharacters = false;
 		#endif
+		public Text uiText;
 
-		/** The display text, if labelType = AC_LabelType.Normal */
-		public string label = "Element";
+		[SerializeField] [FormerlySerializedAs ("label")] private string _label = "Element";
 		/** The text alignement */
 		public TextAnchor anchor;
 		/** The special FX applied to the text (None, Outline, Shadow, OutlineAndShadow) */
 		public TextEffects textEffects = TextEffects.None;
 		/** The outline thickness, if textEffects != TextEffects.None */
 		public float outlineSize = 2f;
+		/** The outline colour */
+		public Color effectColour = Color.black;
 		/** What kind of text the label displays (Normal, Hotspot, DialogueLine, DialogueSpeaker, GlobalVariable, ActiveSaveProfile, JournalPageNumber, InventoryProperty, DocumentTitle, SelectedObjective) */
 		public AC_LabelType labelType;
 
@@ -68,28 +70,21 @@ namespace AC
 		public SelectedObjectiveLabelType selectedObjectiveLabelType = SelectedObjectiveLabelType.Title;
 		/** The InventoryBox slot number to retrieve properties for, if itemInInventoryBox = ItemInInventoryBox.ItemInSlot */
 		public int itemSlotNumber;
-
-		private MenuJournal linkedJournal;
-		private MenuInventoryBox linkedInventoryBox;
+		/** The change to make to the associated UI object when invisible */
+		public UIComponentHideStyle uiComponentHideStyle = UIComponentHideStyle.DisableObject;
 
 		private string newLabel = "";
+		private string overrideLabel;
 		private Speech speech;
 		private Color speechColour;
 		private bool isDuppingSpeech;
 
-		#if UNITY_EDITOR
-		private VariablesManager variablesManager;
-		#endif
 
-
-		/**
-		 * Initialises the element when it is created within MenuManager.
-		 */
 		public override void Declare ()
 		{
 			uiText = null;
-
-			label = "Label";
+			
+			_label = "Label";
 			isVisible = true;
 			isClickable = false;
 			numSlots = 1;
@@ -101,6 +96,7 @@ namespace AC
 			autoAdjustHeight = true;
 			textEffects = TextEffects.None;
 			outlineSize = 2f;
+			effectColour = Color.black;
 			newLabel = "";
 			updateIfEmpty = false;
 			showPendingWhileMovingToHotspot = false;
@@ -109,6 +105,11 @@ namespace AC
 			itemPropertyID = 0;
 			itemSlotNumber = 0;
 			multiplyByItemCount = false;
+			uiComponentHideStyle = UIComponentHideStyle.DisableObject;
+			#if TextMeshProIsPresent
+			uiTextTMP = null;
+			hideScrollingCharacters = false;
+			#endif
 
 			base.Declare ();
 		}
@@ -125,19 +126,16 @@ namespace AC
 		
 		private void CopyLabel (MenuLabel _element, bool ignoreUnityUI)
 		{
-			if (ignoreUnityUI)
-			{
-				uiText = null;
-			}
-			else
-			{
-				uiText = _element.uiText;
-			}
-
-			label = _element.label;
+			uiText = null;
+			#if TextMeshProIsPresent
+			uiTextTMP = null;
+			#endif
+			
+			_label = _element._label;
 			anchor = _element.anchor;
 			textEffects = _element.textEffects;
 			outlineSize = _element.outlineSize;
+			effectColour = _element.effectColour;
 			labelType = _element.labelType;
 			variableID = _element.variableID;
 			useCharacterColour = _element.useCharacterColour;
@@ -150,6 +148,10 @@ namespace AC
 			itemPropertyID = _element.itemPropertyID;
 			itemSlotNumber = _element.itemSlotNumber;
 			multiplyByItemCount = _element.multiplyByItemCount;
+			uiComponentHideStyle = _element.uiComponentHideStyle;
+			#if TextMeshProIsPresent
+			hideScrollingCharacters = _element.hideScrollingCharacters;
+			#endif
 
 			base.Copy (_element);
 		}
@@ -158,20 +160,24 @@ namespace AC
 		public override void LoadUnityUI (AC.Menu _menu, Canvas canvas, bool addEventListeners = true)
 		{
 			#if TextMeshProIsPresent
-			uiText = LinkUIElement <TMPro.TextMeshProUGUI> (canvas);
-			#else
-			uiText = LinkUIElement <Text> (canvas);
+			if (_menu.useTextMeshProComponents)
+			{
+				LinkUIElement (canvas, ref uiTextTMP);
+			}
+			if (!_menu.useTextMeshProComponents || uiTextTMP == null)
 			#endif
+				LinkUIElement (canvas, ref uiText);
 		}
 
 
-		/**
-		 * <summary>Gets the boundary of the element.</summary>
-		 * <param name = "_slot">Ignored by this subclass</param>
-		 * <returns>The boundary Rect of the element</returns>
-		 */
 		public override RectTransform GetRectTransform (int _slot)
 		{
+			#if TextMeshProIsPresent
+			if (uiTextTMP)
+			{
+				return uiTextTMP.rectTransform;
+			}
+			#endif
 			if (uiText)
 			{
 				return uiText.rectTransform;
@@ -182,7 +188,7 @@ namespace AC
 		
 		#if UNITY_EDITOR
 
-		public override void ShowGUI (Menu menu)
+		public override void ShowGUI (Menu menu, System.Action<ActionListAsset> showALAEditor)
 		{
 			string apiPrefix = "(AC.PlayerMenus.GetElementWithName (\"" + menu.title + "\", \"" + title + "\") as AC.MenuLabel)";
 
@@ -192,10 +198,13 @@ namespace AC
 			if (source != MenuSource.AdventureCreator)
 			{
 				#if TextMeshProIsPresent
-				uiText = LinkedUiGUI <TMPro.TextMeshProUGUI> (uiText, "Linked Text:", source);
-				#else
-				uiText = LinkedUiGUI <Text> (uiText, "Linked Text:", source);
+				if (menu.useTextMeshProComponents)
+				{
+					uiTextTMP = LinkedUiGUI <TMPro.TextMeshProUGUI> (uiTextTMP, "Linked Text:", menu);
+				}
+				else
 				#endif
+					uiText = LinkedUiGUI <Text> (uiText, "Linked Text:", menu);
 
 				CustomGUILayout.EndVertical ();
 				CustomGUILayout.BeginVertical ();
@@ -204,11 +213,11 @@ namespace AC
 			labelType = (AC_LabelType) CustomGUILayout.EnumPopup ("Label type:", labelType, apiPrefix + ".labelType", "What kind of text the label displays");
 			if (labelType == AC_LabelType.Normal)
 			{
-				label = CustomGUILayout.TextArea ("Label text:", label, apiPrefix + ".label", "The display text");
+				_label = CustomGUILayout.TextArea ("Label text:", _label, apiPrefix + ".label", "The display text");
 			}
 			else if (source == MenuSource.AdventureCreator)
 			{
-				label = CustomGUILayout.TextArea ("Placeholder text:", label, apiPrefix + ".label");
+				_label = CustomGUILayout.TextArea ("Placeholder text:", _label, apiPrefix + ".label");
 			}
 
 			if (labelType == AC_LabelType.GlobalVariable)
@@ -217,7 +226,7 @@ namespace AC
 			}
 			else if (labelType == AC_LabelType.DialogueLine)
 			{
-				useCharacterColour = CustomGUILayout.Toggle ("Use Character text colour?", useCharacterColour, apiPrefix + ".useCharacterColour", "If True, then the displayed subtitle text will use the speaking character's subtitle text colour");
+				useCharacterColour = CustomGUILayout.Toggle ("Use speaker text colour?", useCharacterColour, apiPrefix + ".useCharacterColour", "If True, then the displayed subtitle text will use the speaking character's subtitle text colour");
 				if (sizeType == AC_SizeType.Manual && source == MenuSource.AdventureCreator)
 				{
 					autoAdjustHeight = CustomGUILayout.Toggle ("Auto-adjust height to fit?", autoAdjustHeight, apiPrefix + ".autoAdjustHeight", "If True, then the label's height will adjust itself to fit the text within it");
@@ -239,14 +248,20 @@ namespace AC
 				{
 					showPendingWhileMovingToHotspot = CustomGUILayout.ToggleLeft ("Show pending Interaction while moving to Hotspot?", showPendingWhileMovingToHotspot, apiPrefix + ".showPendingWhileMovingToHotspot", "If True, then the label will not change while the player is moving towards a Hotspot in order to run an interaction");
 				}
+				#if TextMeshProIsPresent
+				else if (menu.menuSource != MenuSource.AdventureCreator && menu.useTextMeshProComponents && labelType == AC_LabelType.DialogueLine && KickStarter.speechManager && (KickStarter.speechManager.scrollSubtitles || KickStarter.speechManager.scrollNarration))
+				{
+					hideScrollingCharacters = CustomGUILayout.Toggle ("TMPro Typewriter effect?", hideScrollingCharacters, apiPrefix + ".hideScrollingCharacters", "If True, all speech text will be fed to the TMPro Text component, and shown as speech scrolls. Otherwise, scrolling text will be fed character-by-character.");
+				}
+				#endif
 			}
 			else if (labelType == AC_LabelType.InventoryProperty)
 			{
-				if (AdvGame.GetReferences ().inventoryManager)
+				if (KickStarter.inventoryManager)
 				{
-					if (AdvGame.GetReferences ().inventoryManager.invVars != null && AdvGame.GetReferences ().inventoryManager.invVars.Count > 0)
+					if (KickStarter.inventoryManager.invVars != null && KickStarter.inventoryManager.invVars.Count > 0)
 					{
-						InvVar[] invVars = AdvGame.GetReferences ().inventoryManager.invVars.ToArray ();
+						InvVar[] invVars = KickStarter.inventoryManager.invVars.ToArray ();
 						List<string> invVarNames = new List<string>();
 						invVarNames.Add ("Item amount");
 
@@ -287,9 +302,14 @@ namespace AC
 				}
 			}
 
+			if (menu.menuSource != MenuSource.AdventureCreator)
+			{
+				uiComponentHideStyle = (UIComponentHideStyle) CustomGUILayout.EnumPopup ("When invisible:", uiComponentHideStyle, apiPrefix + ".uiComponentHideStyle", "The method by which this element (or slots within it) are hidden from view when made invisible");
+			}
+
 			CustomGUILayout.EndVertical ();
 
-			base.ShowGUI (menu);
+			base.ShowGUI (menu, showALAEditor);
 		}
 
 
@@ -299,7 +319,8 @@ namespace AC
 			textEffects = (TextEffects) CustomGUILayout.EnumPopup ("Text effect:", textEffects, apiPrefix + ".textEffects", "The special FX applied to the text");
 			if (textEffects != TextEffects.None)
 			{
-				outlineSize = CustomGUILayout.Slider ("Effect size:", outlineSize, 1f, 5f, apiPrefix + ".outlineSize", "The outline thickness");
+				outlineSize = CustomGUILayout.Slider ("Effect size:", outlineSize, 1f, 5f, apiPrefix + ".outlineSize", "The effect thickness");
+				effectColour = CustomGUILayout.ColorField ("Effect colour:", effectColour, apiPrefix + ".effectColour", "The effect colour");
 			}
 		}
 
@@ -315,20 +336,60 @@ namespace AC
 		{
 			int numFound = 0;
 
-			if (labelType == AC_LabelType.Normal)
+			switch (labelType)
 			{
-				string tokenText = "[var:" + _varID.ToString () + "]";
-				if (label.Contains (tokenText))
-				{
-					numFound ++;
-				}
-			}
-			else if (labelType == AC_LabelType.GlobalVariable && variableID == _varID)
-			{
-				numFound ++;
+				case AC_LabelType.Normal:
+					string tokenText = AdvGame.GetVariableTokenText (VariableLocation.Global, _varID);
+					if (label.ToLower ().Contains (tokenText))
+					{
+						numFound++;
+					}
+					break;
+
+				case AC_LabelType.GlobalVariable:
+					if (variableID == _varID)
+					{
+						numFound++;
+					}
+					break;
+
+				default:
+					break;
 			}
 
-			return numFound + base.GetVariableReferences (_varID);
+			return numFound;
+		}
+
+
+		public override int UpdateVariableReferences (int oldVarID, int newVarID)
+		{
+			int numFound = 0;
+
+			switch (labelType)
+			{
+				case AC_LabelType.Normal:
+					string oldTokenText = AdvGame.GetVariableTokenText (VariableLocation.Global, oldVarID);
+					if (label.ToLower ().Contains (oldTokenText))
+					{
+						string newTokenText = AdvGame.GetVariableTokenText (VariableLocation.Global, newVarID);
+						label = label.Replace (oldTokenText, newTokenText);
+						numFound++;
+					}
+					break;
+
+				case AC_LabelType.GlobalVariable:
+					if (variableID == oldVarID)
+					{
+						variableID = newVarID;
+						numFound++;
+					}
+					break;
+
+				default:
+					break;
+			}
+
+			return numFound;
 		}
 
 		#endif
@@ -336,9 +397,28 @@ namespace AC
 
 		public override bool ReferencesObjectOrID (GameObject gameObject, int id)
 		{
+			#if TextMeshProIsPresent
+			if (uiTextTMP && uiTextTMP.gameObject == gameObject) return true;
+			#endif
 			if (uiText && uiText.gameObject == gameObject) return true;
 			if (linkedUiID == id && id != 0) return true;
 			return false;
+		}
+
+
+		public override int GetSlotIndex (GameObject gameObject)
+		{
+			#if TextMeshProIsPresent
+			if (uiTextTMP && uiTextTMP.gameObject == gameObject)
+			{
+				return 0;
+			}
+			#endif
+			if (uiText && uiText.gameObject == gameObject)
+			{
+				return 0;
+			}
+			return base.GetSlotIndex (gameObject);
 		}
 
 
@@ -349,9 +429,6 @@ namespace AC
 		}
 
 
-		/**
-		 * Clears any speech text on display.
-		 */
 		public override void ClearSpeech ()
 		{
 			if (labelType == AC_LabelType.DialogueLine || labelType == AC_LabelType.DialogueSpeaker)
@@ -382,181 +459,234 @@ namespace AC
 			
 			newLabel = AdvGame.ConvertTokens (newLabel, languageNumber);
 
+			#if TextMeshProIsPresent
+			if (uiTextTMP && Application.isPlaying)
+			{
+				uiTextTMP.text = newLabel;
+				UpdateUIElement (uiTextTMP, uiComponentHideStyle);
+			}
+			else
+			#endif
 			if (uiText && Application.isPlaying)
 			{
 				uiText.text = newLabel;
-				UpdateUIElement (uiText);
+				UpdateUIElement (uiText, uiComponentHideStyle);
 			}
 		}
 
 
-		/**
-		 * Updates the label's text buffer.  This is normally done internally at runtime, but can be called manually to update it in Edit mode.
-		 */
+		public override void OverrideLabel (string newLabel, int _lineID = -1)
+		{
+			overrideLabel = newLabel;
+			lineID = _lineID;
+			UpdateLabelText ();
+			ClearCache ();
+		}
+
+
+		protected override string GetLabelToTranslate ()
+		{
+			return (labelType == AC_LabelType.Normal) ? label : string.Empty;
+		}
+
+
+		/** Updates the label's text buffer.  This is normally done internally at runtime, but can be called manually to update it in Edit mode. */
 		public void UpdateLabelText (int languageNumber = 0)
 		{
 			string _oldLabel = newLabel;
 
-			switch (labelType)
+			if (!string.IsNullOrEmpty (overrideLabel))
 			{
-				case AC_LabelType.Normal:
-					newLabel = TranslateLabel (label, languageNumber);
-					break;
+				newLabel = KickStarter.runtimeLanguages.GetTranslation (overrideLabel, lineID, languageNumber, AC_TextType.MenuElement);
+			}
+			else
+			{
+				switch (labelType)
+				{
+					case AC_LabelType.Normal:
+						newLabel = TranslateLabel (languageNumber);
+						break;
 
-				case AC_LabelType.Hotspot:
-					string _newLabel = string.Empty;
+					case AC_LabelType.Hotspot:
+						string _newLabel = string.Empty;
 
-					if (showPendingWhileMovingToHotspot &&
-						KickStarter.playerInteraction.GetHotspotMovingTo () && 
-						KickStarter.playerCursor.GetSelectedCursorID () == -1 &&
-						!InvInstance.IsValid (KickStarter.runtimeInventory.SelectedInstance))
-					{
-						_newLabel = KickStarter.playerInteraction.MovingToHotspotLabel;
-					}
+						if (showPendingWhileMovingToHotspot &&
+							KickStarter.playerInteraction.GetHotspotMovingTo () && 
+							KickStarter.playerCursor.GetSelectedCursorID () == -1 &&
+							!InvInstance.IsValid (KickStarter.runtimeInventory.SelectedInstance))
+						{
+							_newLabel = KickStarter.playerInteraction.MovingToHotspotLabel;
+						}
 
-					if (parentMenu != null && parentMenu.appearType == AppearType.OnInteraction)
-					{
-						if (parentMenu.TargetHotspot && parentMenu.TargetHotspot != KickStarter.playerInteraction.GetActiveHotspot ())
+						if (parentMenu != null && parentMenu.appearType == AppearType.OnInteraction)
+						{
+							if (parentMenu.TargetHotspot && parentMenu.TargetHotspot != KickStarter.playerInteraction.GetActiveHotspot ())
+							{
+								return;
+							}
+						}
+
+						if (string.IsNullOrEmpty (_newLabel))
+						{
+							_newLabel = parentMenu.HotspotLabelData.HotspotLabel;
+						}
+
+						if (!string.IsNullOrEmpty (_newLabel) || updateIfEmpty)
+						{
+							newLabel = _newLabel;
+						}
+						break;
+
+					case AC_LabelType.GlobalVariable:
+						GVar variable = GlobalVariables.GetVariable (variableID);
+						if (variable != null)
+						{
+							newLabel = variable.GetValue (languageNumber);
+						}
+						else
+						{
+							ACDebug.LogWarning ("Label element '" + title + "' cannot display Global Variable " + variableID + " as it does not exist!");
+						}
+						break;
+
+					case AC_LabelType.ActiveSaveProfile:
+						newLabel = KickStarter.options.GetProfileName ();
+						break;
+
+					case AC_LabelType.InventoryProperty:
+						newLabel = GetPropertyDisplayValue (languageNumber);
+						break;
+
+					case AC_LabelType.DialogueLine:
+					case AC_LabelType.DialogueSpeaker:
+						if (parentMenu != null && parentMenu.IsFadingOut ())
 						{
 							return;
 						}
-					}
 
-					if (string.IsNullOrEmpty (_newLabel))
-					{
-						_newLabel = KickStarter.playerMenus.GetHotspotLabel ();
-					}
+						UpdateSpeechLink ();
 
-					if (!string.IsNullOrEmpty (_newLabel) || updateIfEmpty)
-					{
-						newLabel = _newLabel;
-					}
-					break;
-
-				case AC_LabelType.GlobalVariable:
-					GVar variable = GlobalVariables.GetVariable (variableID);
-					if (variable != null)
-					{
-						newLabel = variable.GetValue (languageNumber);
-					}
-					else
-					{
-						ACDebug.LogWarning ("Label element '" + title + "' cannot display Global Variable " + variableID + " as it does not exist!");
-					}
-					break;
-
-				case AC_LabelType.ActiveSaveProfile:
-					newLabel = KickStarter.options.GetProfileName ();
-					break;
-
-				case AC_LabelType.InventoryProperty:
-					newLabel = GetPropertyDisplayValue (languageNumber);
-					break;
-
-				case AC_LabelType.DialogueLine:
-				case AC_LabelType.DialogueSpeaker:
-					if (parentMenu != null && parentMenu.IsFadingOut ())
-					{
-						return;
-					}
-
-					UpdateSpeechLink ();
-
-					if (labelType == AC_LabelType.DialogueLine)
-					{
-						if (speech != null)
+						if (labelType == AC_LabelType.DialogueLine)
 						{
-							string line = speech.displayText;
-							if (line != string.Empty || updateIfEmpty)
+							if (speech != null)
 							{
-								newLabel = line;
-							}
+								string line = speech.displayText;
 
-							if (useCharacterColour)
-							{
-								speechColour = speech.GetColour ();
-								if (uiText)
+								#if TextMeshProIsPresent
+								if (uiTextTMP && hideScrollingCharacters && (KickStarter.speechManager.scrollSubtitles || KickStarter.speechManager.scrollNarration))
 								{
-									uiText.color = speechColour;
+									if (KickStarter.runtimeLanguages.LanguageReadsRightToLeft (Options.GetLanguageName ()))
+									{
+										ACDebug.LogWarning ("Cannot use TMPro Typewriter effect for RTL speech text.");
+									}
+									else if (speech.IsScrolling ())
+									{
+										line = speech.log.textWithRichTextTags;
+										uiTextTMP.maxVisibleCharacters = speech.CurrentCharIndex;
+									}
+									else
+									{
+										uiTextTMP.maxVisibleCharacters = int.MaxValue;
+									}
+								}
+								#endif
+								
+								if (line != string.Empty || updateIfEmpty)
+								{
+									newLabel = line;
+								}
+
+								if (useCharacterColour)
+								{
+									speechColour = speech.GetColour ();
+									SetUITextColor (speechColour);
 								}
 							}
+							else if (!KickStarter.speechManager.keepTextInBuffer)
+							{
+								newLabel = string.Empty;
+							}
 						}
-						else if (!KickStarter.speechManager.keepTextInBuffer)
+						else if (labelType == AC_LabelType.DialogueSpeaker)
+						{
+							if (speech != null)
+							{
+								string line = speech.GetSpeaker (languageNumber);
+
+								if (line != string.Empty || updateIfEmpty || speech.GetSpeakingCharacter () == null)
+								{
+									newLabel = line;
+								}
+
+								if (useCharacterColour)
+								{
+									speechColour = speech.GetColour ();
+									SetUITextColor (speechColour);
+								}
+							}
+							else if (!KickStarter.speechManager.keepTextInBuffer)
+							{
+								newLabel = string.Empty;
+							}
+						}
+						break;
+
+					case AC_LabelType.DocumentTitle:
+						if (Document != null)
+						{
+							newLabel = KickStarter.runtimeLanguages.GetTranslation (Document.title,
+																					Document.titleLineID,
+																					languageNumber,
+																					Document.GetTranslationType (0));
+						}
+						break;
+
+					case AC_LabelType.SelectedObjective:
+						if (KickStarter.runtimeObjectives.SelectedObjective != null)
+						{
+							switch (selectedObjectiveLabelType)
+							{
+								case SelectedObjectiveLabelType.Title:
+									newLabel = KickStarter.runtimeObjectives.SelectedObjective.Objective.GetTitle (languageNumber);
+									break;
+
+								case SelectedObjectiveLabelType.Description:
+									newLabel = KickStarter.runtimeObjectives.SelectedObjective.Objective.GetDescription (languageNumber);
+									break;
+
+								case SelectedObjectiveLabelType.StateLabel:
+									newLabel = KickStarter.runtimeObjectives.SelectedObjective.CurrentState.GetLabel (languageNumber);
+									break;
+
+								case SelectedObjectiveLabelType.StateDescription:
+									newLabel = KickStarter.runtimeObjectives.SelectedObjective.CurrentState.GetDescription (languageNumber);
+									break;
+
+								case SelectedObjectiveLabelType.StateType:
+									newLabel = KickStarter.runtimeObjectives.SelectedObjective.CurrentState.GetStateTypeText (languageNumber);
+									break;
+							}
+						}
+						else
 						{
 							newLabel = string.Empty;
 						}
-					}
-					else if (labelType == AC_LabelType.DialogueSpeaker)
-					{
-						if (speech != null)
+						break;
+
+					case AC_LabelType.ActiveContainer:
+						if (KickStarter.playerInput.activeContainer)
 						{
-							string line = speech.GetSpeaker (languageNumber);
-
-							if (line != string.Empty || updateIfEmpty || speech.GetSpeakingCharacter () == null)
-							{
-								newLabel = line;
-							}
-
-							if (useCharacterColour)
-							{
-								speechColour = speech.GetColour ();
-								if (uiText)
-								{
-									uiText.color = speechColour;
-								}
-							}
+							newLabel = KickStarter.playerInput.activeContainer.GetLabel (languageNumber);
 						}
-						else if (!KickStarter.speechManager.keepTextInBuffer)
+						else
 						{
 							newLabel = string.Empty;
 						}
-					}
-					break;
+						break;
 
-				case AC_LabelType.DocumentTitle:
-					if (Document != null)
-					{
-						newLabel = KickStarter.runtimeLanguages.GetTranslation (Document.title,
-																				Document.titleLineID,
-																				languageNumber,
-																				Document.GetTranslationType (0));
-					}
-					break;
-
-				case AC_LabelType.SelectedObjective:
-					if (KickStarter.runtimeObjectives.SelectedObjective != null)
-					{
-						switch (selectedObjectiveLabelType)
-						{
-							case SelectedObjectiveLabelType.Title:
-								newLabel = KickStarter.runtimeObjectives.SelectedObjective.Objective.GetTitle (languageNumber);
-								break;
-
-							case SelectedObjectiveLabelType.Description:
-								newLabel = KickStarter.runtimeObjectives.SelectedObjective.Objective.GetDescription (languageNumber);
-								break;
-
-							case SelectedObjectiveLabelType.StateLabel:
-								newLabel = KickStarter.runtimeObjectives.SelectedObjective.CurrentState.GetLabel (languageNumber);
-								break;
-
-							case SelectedObjectiveLabelType.StateDescription:
-								newLabel = KickStarter.runtimeObjectives.SelectedObjective.CurrentState.GetDescription (languageNumber);
-								break;
-
-							case SelectedObjectiveLabelType.StateType:
-								newLabel = KickStarter.runtimeObjectives.SelectedObjective.CurrentState.stateType.ToString ();
-								break;
-						}
-					}
-					else
-					{
-						newLabel = string.Empty;
-					}
-					break;
-
-				default:
-					break;
+					default:
+						break;
+				}
 			}
 
 			if (newLabel != _oldLabel && sizeType == AC_SizeType.Automatic && parentMenu != null && parentMenu.menuSource == MenuSource.AdventureCreator)
@@ -625,18 +755,28 @@ namespace AC
 					}
 					return invVar.GetDisplayValue (languageNumber);
 				}
+				ACDebug.LogWarning ("Inventory Property with ID " + itemPropertyID + " not found");
 			}
 			return string.Empty;
 		}
 
 
-		/**
-		 * <summary>Draws the element using OnGUI</summary>
-		 * <param name = "_style">The GUIStyle to draw with</param>
-		 * <param name = "_slot">Ignored by this subclass</param>
-		 * <param name = "zoom">The zoom factor</param>
-		 * <param name = "isActive">If True, then the element will be drawn as though highlighted</param>
-		 */
+		public void SetUITextColor (Color color)
+		{
+			#if TextMeshProIsPresent
+			if (uiTextTMP)
+			{
+				uiTextTMP.color = color;
+			}
+			else
+			#endif
+			if (uiText)
+			{
+				uiText.color = color;
+			}
+		}
+
+
 		public override void Display (GUIStyle _style, int _slot, float zoom, bool isActive)
 		{
 			if (Application.isPlaying)
@@ -682,7 +822,7 @@ namespace AC
 
 			if (textEffects != TextEffects.None)
 			{
-				AdvGame.DrawTextEffect (ZoomRect (relativeRect, zoom), newLabel, _style, Color.black, _style.normal.textColor, outlineSize, textEffects);
+				AdvGame.DrawTextEffect (ZoomRect (relativeRect, zoom), newLabel, _style, effectColour, _style.normal.textColor, outlineSize, textEffects);
 			}
 			else
 			{
@@ -691,51 +831,43 @@ namespace AC
 		}
 
 
-		/**
-		 * <summary>Gets the display text of the element.</summary>
-		 * <param name = "slot">Ignored by this subclass</param>
-		 * <param name = "languageNumber">The index number of the language number to get the text in</param>
-		 * <returns>The display text of the element</returns>
-		 */
 		public override string GetLabel (int slot, int languageNumber)
 		{
-			if (labelType == AC_LabelType.Normal)
+			switch (labelType)
 			{
-				return TranslateLabel (label, languageNumber);
-			}
-			else if (labelType == AC_LabelType.DialogueSpeaker)
-			{
-				return KickStarter.dialog.GetSpeaker (languageNumber);
-			}
-			else if (labelType == AC_LabelType.GlobalVariable)
-			{
-				return GlobalVariables.GetVariable (variableID).GetValue (languageNumber);
-			}
-			else if (labelType == AC_LabelType.Hotspot)
-			{
-				return newLabel;
-			}
-			else if (labelType == AC_LabelType.ActiveSaveProfile)
-			{
-				if (Application.isPlaying)
-				{
-					return KickStarter.options.GetProfileName ();
-				}
-				else
-				{
-					return label;
-				}
-			}
+				case AC_LabelType.Normal:
+					return TranslateLabel (languageNumber);
 
-			return string.Empty;
+				case AC_LabelType.DialogueSpeaker:
+					return KickStarter.dialog.GetSpeaker (languageNumber);
+
+				case AC_LabelType.GlobalVariable:
+					return GlobalVariables.GetVariable (variableID).GetValue (languageNumber);
+
+				case AC_LabelType.Hotspot:
+					return newLabel;
+
+				case AC_LabelType.ActiveSaveProfile:
+					if (Application.isPlaying)
+					{
+						return KickStarter.options.GetProfileName ();
+					}
+					else
+					{
+						return label;
+					}
+
+				default:
+					return string.Empty;
+			}
 		}
 
 
 		private void UpdateSpeechLink ()
 		{
-			if (!isDuppingSpeech && KickStarter.dialog.GetLatestSpeech () != null)
+			if (!isDuppingSpeech)
 			{
-				speech = KickStarter.dialog.GetLatestSpeech ();
+				speech = KickStarter.dialog.GetLatestSpeech (parentMenu);
 			}
 		}
 
@@ -788,7 +920,7 @@ namespace AC
 			}
 			else if (labelType == AC_LabelType.Normal)
 			{
-				GUIContent content = new GUIContent (TranslateLabel (_newLabel, languageNumber));
+				GUIContent content = new GUIContent (TranslateLabel (languageNumber));
 				AutoSize (content);
 			}
 			else
@@ -798,7 +930,25 @@ namespace AC
 			}
 		}
 
-		
+
+		/** The display text, if labelType = AC_LabelType.Normal */
+		public string label
+		{
+			get
+			{
+				return _label;
+			}
+			set
+			{
+				_label = value;
+				if (Application.isPlaying)
+				{
+					ClearCache ();
+				}
+			}
+		}
+
+
 		#region ITranslatable
 
 		public string GetTranslatableString (int index)

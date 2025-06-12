@@ -1,4 +1,6 @@
-﻿using UnityEditor;
+﻿#if UNITY_EDITOR
+
+using UnityEditor;
 
 namespace AC
 {
@@ -23,8 +25,8 @@ namespace AC
 
 		protected void NPC_GUI (NPC _target)
 		{
+			CustomGUILayout.Header ("NPC settings");
 			CustomGUILayout.BeginVertical ();
-			EditorGUILayout.LabelField ("NPC settings:", EditorStyles.boldLabel);
 			_target.moveOutOfPlayersWay = CustomGUILayout.Toggle ("Keep out of Player's way?", _target.moveOutOfPlayersWay, "", "If True, the NPC will attempt to keep out of the Player's way");
 			if (_target.moveOutOfPlayersWay)
 			{
@@ -36,3 +38,5 @@ namespace AC
 	}
 
 }
+
+#endif
