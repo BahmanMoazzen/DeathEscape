@@ -682,8 +682,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ID: 1
   title: Presents
-  slotSize: {x: 14.211457, y: 5.46875}
-  sizeType: 0
+  slotSize: {x: 22, y: 6}
+  sizeType: 1
   positionType: 0
   slotSpacing: 0
   lineID: 632
@@ -708,9 +708,9 @@ MonoBehaviour:
   relativeRect:
     serializedVersion: 2
     x: 19.2
-    y: 71.56
-    width: 136.43
-    height: 26.250002
+    y: 67.2
+    width: 211.20001
+    height: 28.800001
   relativePosition: {x: 77, y: 64.9}
   numSlots: 1
   uiTextTMP: {fileID: 0}
@@ -8726,11 +8726,11 @@ MonoBehaviour:
   _isLocked: 0
   id: 17
   title: TitleScreenFirst
-  manualSize: {x: 25.576042, y: 24.377083}
-  positionType: 1
-  manualPosition: {x: 122.76501, y: 240}
+  manualSize: {x: 26, y: 24}
+  positionType: 0
+  manualPosition: {x: 480, y: 240}
   positionSmoothing: 0
-  alignment: 3
+  alignment: 4
   toggleKey: 
   ignoreMouseClicks: 1
   pauseWhenEnabled: 0
@@ -8800,13 +8800,13 @@ MonoBehaviour:
   speechProximityLimit: 0
   speechProximityDistance: 10
   deleteUIWhenTurnOff: 0
-  biggestElementSize: {x: 226.33002, y: 97.81}
+  biggestElementSize: {x: 230.40001, y: 96}
   rect:
     serializedVersion: 2
-    x: 0
-    y: 181.495
-    width: 245.53001
-    height: 117.009995
+    x: 355.2
+    y: 182.4
+    width: 249.6
+    height: 115.2
 --- !u!114 &6493168427236915666
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -8948,8 +8948,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ID: 0
   title: HelenLabel
-  slotSize: {x: 21.576042, y: 6.9083333}
-  sizeType: 0
+  slotSize: {x: 22, y: 6}
+  sizeType: 1
   positionType: 0
   slotSpacing: 0
   lineID: 655
@@ -8975,8 +8975,8 @@ MonoBehaviour:
     serializedVersion: 2
     x: 19.2
     y: 19.2
-    width: 207.13002
-    height: 33.16
+    width: 211.20001
+    height: 28.800001
   relativePosition: {x: 73.6, y: 57.9}
   numSlots: 1
   uiTextTMP: {fileID: 0}
