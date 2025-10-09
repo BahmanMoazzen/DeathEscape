@@ -5,14 +5,14 @@
   ],
   "cleanCommandsComponents": [
     [
-      "C:\\UnityEditors\\6000.1.5f1\\Editor\\Data\\PlaybackEngines\\AndroidPlayer\\SDK\\cmake\\3.22.1\\bin\\ninja.exe",
+      "C:\\UnityEditors\\6000.2.6f2\\Editor\\Data\\PlaybackEngines\\AndroidPlayer\\SDK\\cmake\\3.22.1\\bin\\ninja.exe",
       "-C",
       "C:\\UnityProjects\\DeathEscape\\.utmp\\RelWithDebInfo\\18h3a2y3\\armeabi-v7a",
       "clean"
     ]
   ],
   "buildTargetsCommandComponents": [
-    "C:\\UnityEditors\\6000.1.5f1\\Editor\\Data\\PlaybackEngines\\AndroidPlayer\\SDK\\cmake\\3.22.1\\bin\\ninja.exe",
+    "C:\\UnityEditors\\6000.2.6f2\\Editor\\Data\\PlaybackEngines\\AndroidPlayer\\SDK\\cmake\\3.22.1\\bin\\ninja.exe",
     "-C",
     "C:\\UnityProjects\\DeathEscape\\.utmp\\RelWithDebInfo\\18h3a2y3\\armeabi-v7a",
     "{LIST_OF_TARGETS_TO_BUILD}"
