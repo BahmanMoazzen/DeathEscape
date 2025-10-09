@@ -1,3 +1,3 @@
 # ninja log v5
-0	93	7714383961347853	FramePacing/CMakeFiles/swappywrapper.dir/UnitySwappyWrapper.cpp.o	13411d611dfeb01
-94	167	7714383962027482	C:/UnityProjects/DeathEscape/Library/Bee/Android/Prj/IL2CPP/Gradle/unityLibrary/build/intermediates/cxx/RelWithDebInfo/18h3a2y3/obj/arm64-v8a/libswappywrapper.so	eec217c11f2f3c7f
+2	221	7816762852977625	FramePacing/CMakeFiles/swappywrapper.dir/UnitySwappyWrapper.cpp.o	e2d311601da63e62
+222	291	7816762853553916	C:/UnityProjects/DeathEscape/Library/Bee/Android/Prj/IL2CPP/Gradle/unityLibrary/build/intermediates/cxx/RelWithDebInfo/18h3a2y3/obj/arm64-v8a/libswappywrapper.so	f3c67135d648d08a
